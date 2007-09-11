@@ -62,7 +62,36 @@ SYNOPSIS
               
 DESCRIPTION
    Displays a list of drivers that are currently registered with
-   sqsh.
+   sqsh. An asterisk (*) will be displayed next to drivers for
+   which the actual JDBC implementation (.jar file) is available.
+
+   Sqsh comes bundled with one JDBC driver (jtds) which should
+   be sufficient to communicate with Microsoft SQL Server or Sybase
+   ASE. Additional drivers can be made available by ensuring that
+   the driver is contained in your CLASSPATH environment variable,
+   e.g., for UNIX or cygwin:
+
+      $ CLASSPATH=/path/to/some/jdbc/driver.jar:"$CLASSPATH"
+      $ export CLASSPATH
+
+   or, for Windows:
+   
+      C:\> set CLASSPATH=/path/to/some/jdbc/driver.jar; %CLASSPATH%
+
+   Alternatively, you can add a JDBC driver implementation to sqsh's
+   startup jar directory. The path to this directory can vary from
+   platform to platform but can typically be found in one of the
+   following locations relative to where the jsqsh binary is located:
+
+      ../lib
+      ../share
+      ../share/jsqsh
+
+DRIVER DEFINITION FILE
+   Sqsh comes with a bunch of pre-defined driver definitions built-in,
+   however you can provide your own additional definitions if you wish
+   by editing the $HOME/.jsqsh/drivers.xml. This file contains lots
+   of comments describing the structure of the file.
            
 OPTIONS:
    None
