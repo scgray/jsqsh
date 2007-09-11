@@ -1,0 +1,78 @@
+#!/bin/sh
+
+#
+# normalize_path <path>
+#
+# Takes a path name (either relative or fully qualified) and
+# normalizes it; gets rid of //, .., and . entries.
+#
+normalize_path()
+{
+	path=$1
+
+	first_char=`echo $path | cut -c1-1`
+	if [ "$first_char" = "/" ]; then
+		path=$path
+	else
+		path=`pwd`/$path
+	fi
+
+	npath=""
+	for dir in `echo $path | sed -e 's,/, ,g'`; do
+		if [ "$dir" = "." ]; then
+			npath=$npath
+		elif  [ "$dir" = ".." ]; then
+			npath=`echo $npath | sed -e 's,/[^/][^/]*$,,g'`
+		else
+			npath="$npath/$dir"
+		fi
+	done
+
+	echo $npath
+	return 0
+}
+
+#
+# find_home file
+#
+# Given the name of a file or partially or fully qualified path to 
+# the file returns the fully qualified path to the file.
+# 
+#
+find_home()
+{
+	dir_name=`dirname $1`
+	file_name=`basename $1`
+
+	rundir=
+	for dir in $dir_name `echo $PATH | sed -e 's,:, ,g'`
+	do
+		if [ -f "$dir/$file_name" ]; then
+			echo $dir
+			return 0
+		fi
+	done
+
+	echo ""
+	return 0
+}
+
+#
+# This should be the path to this shell script
+#
+BIN_DIR=`find_home "$0"`
+
+#
+# And the path to the root of the installation
+#
+ROOT_DIR=`normalize_path "$BIN_DIR/.."`
+
+#
+# Build up our classpath
+#
+for jar in "$ROOT_DIR/share/"*.jar; do
+    CLASSPATH="$CLASSPATH:$jar"
+done
+export CLASSPATH
+
+java org.sqsh.JSqsh $*
