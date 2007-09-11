@@ -1,0 +1,82 @@
+<Drivers>
+   <Driver name="sybase" 
+           target="Sybase"
+           class="com.sybase.jdbc2.jdbc.SybDriver"
+           analyzer="org.sqsh.analyzers.TSQLAnalyzer"
+           url="jdbc:sybase:Tds:${server}:${port}">
+           
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">4100</Variable>
+   </Driver>
+   
+   <Driver name="sybase-jtds" 
+           target="Sybase"
+           class="net.sourceforge.jtds.jdbc.Driver"
+           analyzer="org.sqsh.analyzers.TSQLAnalyzer"
+           url="jdbc:jtds:sybase://${server}:${port}">
+           
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">4100</Variable>
+   </Driver>
+   
+   <Driver name="mssql" 
+           target="MS SQL Server"
+           class="com.microsoft.sqlserver.jdbc.SQLServerDriver"
+           analyzer="org.sqsh.analyzers.TSQLAnalyzer"
+           url="jdbc:microsoft:sqlserver://${server}:${port}">
+           
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">1433</Variable>
+   </Driver>
+   
+   <Driver name="mssql-jtds" 
+           target="MS SQL Server"
+           class="net.sourceforge.jtds.jdbc.Driver"
+           analyzer="org.sqsh.analyzers.TSQLAnalyzer"
+           url="jdbc:jtds:sqlserver://${server}:${port}">
+           
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">1433</Variable>
+   </Driver>
+   
+   <Driver name="oracle" 
+           target="Oracle"
+           class="oracle.jdbc.driver.OracleDriver"
+           analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+           url="jdbc:oracle:thin:@${server}:${port}:${SID}">
+           
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">1521</Variable>
+       <Variable name="SID">ORCL</Variable>
+   </Driver>
+   
+   <Driver name="db2" 
+           target="IBM DB2"
+           class="COM.ibm.db2.jdbc.net.DB2Driver"
+           analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+           url="jdbc:db2://${server}:${port}">
+           
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">6789</Variable>
+   </Driver>
+   
+   <Driver name="mysql" 
+           target="MySQL"
+           class="org.gjt.mm.mysql.Driver"
+           analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+           url="jdbc:mysql://${server}:${port}">
+           
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">3306</Variable>
+   </Driver>
+   
+   <Driver name="pgsql" 
+           target="PostgreSQL"
+           class="org.postgresql.Driver"
+           analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+           url="jdbc:postgresql://${server}:${port}">
+           
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">5432</Variable>
+   </Driver>
+</Drivers>
