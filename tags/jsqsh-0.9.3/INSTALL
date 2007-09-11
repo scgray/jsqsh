@@ -1,0 +1,110 @@
+                           Building JSqsh
+                      -=-=-=-=-=-=-=-=-=-=-=-=-
+
+Compiling
+=========
+
+As an end-user I'm hoping that you won't need to read this section, as 
+I will try to keep pre-compiled distributions available at:
+
+   http://sourceforge.net/project/showfiles.php?group_id=205193
+
+However, I will need help maintaining current builds for various
+platforms, so please feel free to donate builds.
+
+Requirements
+------------
+
+To build jsqsh you'll need the following:
+
+   1. Sun Java >= 1.5 JDK (http://java.sun.com)
+   2. Ant >= 1.6 (http://ant.apache.org/)
+
+The following are required if you wish to build sqsh's JNI layer:
+
+   1. cygwin (http://www.cygwin.com - only for Windows)
+   2. gcc >= 3.x
+   3. gnu make >= 3.x
+   4. The gcc-mingw-core cygwin package (Windows only)
+
+Java
+----
+
+To build the core jsqsh java code is easy:
+
+   $ ant jar
+
+This should leave you with a file called build/jsqsh-<version>.jar. Having
+this jar, plus all of the jars in lib/ is sufficient to run jsqsh. 
+
+You can also directly run jsqsh from the build tree by doing:
+
+   $ ant run
+
+Note that the JNI layer will not be available when running in this mode.
+
+JNI Code
+--------
+
+On all UNIX/POSIX platforms compiling the JNI layer _should_ be as easy
+as doing:
+
+   $ cd src/jni
+   $ ./configure
+   $ ./make
+
+after this process completes you should find the resulting shared library
+in src/jni/.libs/libjsqsh.so.
+
+For Windows (with cygwin), I compile the JNI layer with:
+
+   $ cd src/jni
+   $ ./Windows_Make.sh
+
+More details can be found in src/jni/README.
+
+Distributing
+============
+
+Distributions are packages that can be easily installed on a particular 
+platform (e.g. .rpm, .deb, .zip, etc.). The following distributioning
+schemes are currently available:
+
+Platform Indepentant (.zip)
+---------------------------
+The ant task 'dist' creates a distribution that is platform independant
+(and thus does not include any of the jsqsh JNI layer components). 
+
+   $ ant dist
+
+This should leave you with a file called build/jsqsh-<version>.zip.
+When unpacked the zip file should include:
+
+   jsqsh-<version>/
+       bin/jsqsh      - Shell scrip to launch jsqsh
+       share/*.jar    - Jars required to execute jsqsh
+
+Debian/Ubuntu (.deb)
+--------------------
+The ant task 'dist_deb' builds a Debian install package:
+
+   $ ant dist_deb
+
+This should leave you with a file called build/jsqsh-<version>.deb
+after it completes. 
+
+Please note that this task requires that you have everything required
+to build the jsqsh JNI layer as it will attempt to build and package
+the shared library as well.
+
+Windows (.zip)
+--------------
+The ant task 'dist_win' builds a distribution suitable for running on
+Microsoft Windows (XP or later). This task requires that you have 
+Launch4j installed on your system (http://launch4j.sourceforge.net).
+
+To build the distribution, execute:
+
+  $ ant -Dlaunch4j.dir="C:/Program Files/Lunch4j" dist_win
+
+(replace the path to Launch4j as appropriate for your system).

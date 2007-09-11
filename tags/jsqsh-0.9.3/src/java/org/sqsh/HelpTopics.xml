@@ -1,0 +1,188 @@
+<Help>
+	<Topic name="jni">
+		<Description>Features provided by the sqsh JNI layer</Description>
+		<HelpText><![CDATA[
+SQSH JNI LAYER
+    Sqsh is written in almost 100% java code, making it very 
+    portable between platforms, however there are a few places 
+    where java just does not provide enough functionality to 
+    implement certain features that are needed by sqsh, so sqsh 
+    can optinally load  a shared library (or DLL) that provides
+    this additional  functionality. This shared library is
+    written using the Java Native Interface (JNI) and on UNIX
+    platforms is typically called 'libjsqsh.so' and on
+    Windows is 'libjsqsh.dll'.
+            
+    The sqsh shared library is not available on all platforms, and
+    sqsh will generate a warning upon startup if it is unable to
+    load its JNI interface.  Lack of JNI causes the following
+    behavior:
+            
+    - Operating system commands that are piped to (e.g. "go | grep ...")
+      will not have direct access to the console (in the UNIX world
+      this is called "tty" access). This means that these commands 
+      cannot perform any console operations. Specifically, commands
+      such as "more" will not function properly because "more" needs
+      to query the console as to its size and will be unable to do so.
+              
+    - Similarly, the editor launched by \buf-edit will not have access
+      to the console, so text-based editors such as 'vi' or 'emacs' 
+      will not work properly. In this case, you will need to use a 
+      graphical editor such as "notepad.exe" or "gvim".
+		]]></HelpText>
+</Topic>
+
+<Topic name="welcome">
+		<Description>The sqsh welcome message</Description>
+		<HelpText><![CDATA[
+WELCOME TO SQSH!
+            
+    It looks like this is the first time that you've run sqsh (or
+    you just typed '\help welcome' at the sqsh prompt). If this is
+    the first time you have run sqsh, you will find that you have
+    a shiney new directory called '.jsqsh' in your home directory
+    and that this directory contains a couple of files that you
+    should be aware of:
+            
+    drivers.xml - Sqsh comes pre-defined to understand how to use
+       a fixed number of JDBC drivers, however this file may be
+       used to teach it how to recognize other JDBC drivers. The
+       file is pretty well commented, so hopefully it is enough
+       to get you started.
+               
+    sqshrc - Everything contained in this file is executed just
+       as if you had typed commands at the sqsh prompt and is 
+       the place where you can set variables and configure sqsh
+       to your likings.
+               
+    Sqsh is intended to be self-documenting. If you would like
+    to see this information again, then type '\help welcome' at 
+    the sqsh prompt, or run '\help' to see a list of all help
+    topics that are available.
+	  ]]></HelpText>
+</Topic>
+
+<Topic name="buffers">
+		<Description>SQL buffers and how they are referenced.</Description>
+		<HelpText><![CDATA[
+SQSH SQL BUFFERS
+    
+    Each time you create and execute a SQL statement, that statement is saved
+    away into your SQL buffer history. The list of prior SQL statements 
+    can be displayed using the '\history' command.
+    
+    Many sqsh command allow you to refer to SQL buffers via special syntax,
+    each starting with an esclamation character (!).  This syntax allows for
+    the following forms:
+    
+    !.   Refers to the current SQL buffer that you are currently 
+         typing in to (but have not yet executed).
+         
+    !..  Refers to the most recently executed SQL buffer.
+    
+    !!   A synonym for "!..". In addition, typing "!!" at the prompt
+         causes the current SQL buffer ("!.") to be appended with the
+         most recently executed SQL statement. This is a useful feature
+         for re-executing the previous statment. For example, to re-execute
+         the most recently executed SQL statement:
+         
+           1> !!
+           ...
+           5> \go
+           
+         The "!!" appends the previously executed statement to the current
+         buffer (which was empty) and the \go, obviously, executes the
+         statement.
+    
+    !... Refers to the statement you executed two executions prior. Additional
+         periods may be provided to continue moving back through executions 
+         (e.g. !....... refers to the statement executed 6 executions prior).
+         
+    !N   This syntax allows you to refer to SQL statements executed a specific
+         number of executions prior. For example "!0" refers to the current
+         buffer (that has not yet been executed), "!1" refers to the 
+         most recently execute statements, "!2" the one before that and so on.
+         
+EXAMPLES
+    Examples of commands that utilize this syntax are \buf-edit, \but-copy,
+    and \buf-append.  For example:
+    
+       \buf-edit !!
+       
+    indicats that the most recently executed statement should be edited.
+	  ]]></HelpText>
+</Topic>
+
+<Topic name="license">
+		<Description>Displays the sqsh license</Description>
+		<HelpText><![CDATA[
+SQSH GNU PUBLIC LICENSE		
+
+   JSqsh, Copyright (C) 2007 by Scott C. Gray
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+
+   GNU General Public License for more details.
+   You should have received a copy of the GNU General Public License
+   along with this program. If not, write to the Free Software
+   Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+	  ]]></HelpText>
+</Topic>
+
+<Topic name="readline">
+		<Description>Describes sqsh's use of GNU Readline</Description>
+		<HelpText><![CDATA[
+GNU READLINE SUPPORT
+
+   The GNU Readline library provides support for command line editing features,
+   allowing the user to scroll back and forth through the history of lines
+   that they have typed and remembering those lines between sessions with
+   sqsh.  
+   
+   The readline library is a native C library that sqsh utilizes 
+   via JNI (Java Native Interface) and may or may not be available or
+   installed on your platform. If the library is not installed or sqsh
+   cannot load it you will receive a message:
+   
+     WARNING: Unable to load GNU Readline library (no JavaReadline in
+        java.library.path). Run '\help readline' for details.
+        
+   If you receive this message, then you first want to ensure that you have
+   the readline library installed on your system. The library is available
+   from:
+   
+      http://tiswww.case.edu/php/chet/readline/rltop.html
+      
+   You'll also want to refer to the site above for details on configuration
+   and utilization of readline.
+      
+   All Linux systems and most other UNIX systems should already have this
+   library installed or readily installable via your distributions package
+   manager (on Debian distributions the package is 'libreadline5')
+   
+   Next, you'll need to ensure that you have the readline JNI library 
+   installed on your system. This library is available from:
+   
+      http://java-readline.sourceforge.net/
+      
+   Again, many Linux distributions have this library available in a pre-
+   packaged version (on Debian distributions, the package is 
+   'libreadline-java').
+   
+   Finally, you'll need to ensure that both libraries can be found by sqsh.
+   On most UNIX distributions, this means setting your LD_LIBRARY_PATH
+   environment variable to point to the directories containing the libraries.
+   On my Ubuntu distribution, my LD_LIBRARY_PATH contains:
+   
+        LD_LIBRARY_PATH=/usr/lib/jni
+	  ]]></HelpText>
+</Topic>
+
+</Help>
