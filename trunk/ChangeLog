@@ -1,4 +1,10 @@
+Release 0.9.4
+
+* Added '-m style' flag to the \go command.
+* Added new display style 'csv'.
+* Fixed documentation for the \connect command
+
 Release 0.9.3
 
-    * Initial release. Seems stable enough (I use it every day), but
-      warrants some shakedown before 1.0 release
+* Initial release. Seems stable enough (I use it every day), but
+  warrants some shakedown before 1.0 release
