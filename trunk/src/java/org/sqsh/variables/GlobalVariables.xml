@@ -415,6 +415,10 @@ DESCRIPTION
    pretty   - This is visually identical to 'perfect' except that it does not
         attempt to perform a perfect fit on the data before display and,
         thus, does not need to hold the results in memory during display.
+        
+   csv      - Displays the output as a set of comma separated values suitable
+        for loading into, say, Excel. The results displayed attempts to 
+        conform to: http://www.creativyst.com/Doc/Articles/CSV/CSV01.htm.
  
 SEE ALSO
    maxrows, maxlen
