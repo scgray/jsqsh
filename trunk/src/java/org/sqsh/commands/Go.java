@@ -22,7 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.Option;
 import org.sqsh.BufferManager;
+import org.sqsh.CannotSetValueError;
 import org.sqsh.Command;
 import org.sqsh.SQLContext;
 import org.sqsh.SQLRenderer;
@@ -33,6 +35,9 @@ public class Go
     extends Command {
     
    private static class Options {
+       
+       @Option(name="-m",usage="Sets the display style for output")
+           public String style = null;
         
         @Argument
             public List<String> arguments = new ArrayList<String>();
@@ -43,6 +48,7 @@ public class Go
         throws Exception {
         
         Options options = new Options();
+        String origStyle = null;
         int rc = parseOptions(session, argv, options);
         if (rc != 0) {
             
@@ -55,6 +61,23 @@ public class Go
             session.err.println("You are not currently connect to a server. "
                 + "Use the \\connect command to create a new connection.");
             return 1;
+        }
+        
+        if (options.style != null) {
+            
+            origStyle = session.getRendererManager().getDefaultRenderer();
+            
+            try {
+                
+                session.getRendererManager().setDefaultRenderer(options.style);
+            }
+            catch (CannotSetValueError e) {
+                
+                session.err.println("Display style '" + options.style 
+                    + "' is not a valid display style. See '\\help style' "
+                    + "for list of available styles");
+                return 1;
+            }
         }
         
         BufferManager bufferMan = session.getBufferManager();
@@ -82,6 +105,13 @@ public class Go
         catch (SQLException e) {
             
             printException(session.err, e);
+        }
+        finally {
+            
+            if (origStyle != null) {
+                
+                session.getRendererManager().setDefaultRenderer(origStyle);
+            }
         }
         
         return 0;
