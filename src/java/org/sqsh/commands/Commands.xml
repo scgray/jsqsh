@@ -120,7 +120,7 @@ OPTIONS:
         ]]></Description>
             <Help><![CDATA[
 SYNOPSIS
-  \connect [options] [driver-name|jdbc-url]
+  \connect [options] [jdbc-url]
               
 DESCRIPTION
   The \connect command attempts to establish a JDBC connection
@@ -146,6 +146,11 @@ OPTIONS:
   if the driver you want to use utilizes the variable, use
   the \drivers command. If a connection is successfully established
   these properties will be available to the session.
+
+  -d driver   The name of the jsqsh driver definition that will
+              be used for the connection (use \drivers to see
+              a list). If this flag is not supplied, the value
+              of ${driver} will be used.
               
   -S server   Sets the ${server} property. This typically defines
               the hostname of the server you wish to connect to.
@@ -179,12 +184,10 @@ OPTIONS:
    -n         Create a new session for this connect without
               closing the connection in the current session.
                           
-   driver-name Provides the name of the JDBC driver definition
-              that will be utilized for the connection. The
-              list of drivers can be determined with \drivers.
-               
    jdbc-url   An explicit JDBC url to be utilized for the 
-              connection
+              connection. In most cases it will be necessary
+              to provide the implementing JDBC class name 
+              with the -c flag when providing an explicit URL.
                
 ]]></Help>
 </Command>
@@ -196,13 +199,17 @@ OPTIONS:
            
     <Help><![CDATA[
 SYNOPSIS
-  \go 
+  \go [-m style]
               
 DESCRIPTION
-   Executes the current buffer.
+   Executes the SQL statement contained in the current buffer.
            
 OPTIONS:
-   None.
+   -m style  Specifies a custom display style for showing the results
+             of the execution. The available styles may be found by
+             running '\help style'.
+SEE ALSO
+   style
         ]]></Help>
     </Command>
     
