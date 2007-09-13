@@ -216,7 +216,7 @@ public class SqshContext {
          */
         try {
             
-            Readline.setWordBreakCharacters("\n");
+            Readline.setWordBreakCharacters(" \t,/.()<>=?");
         	Readline.setCompleter(new TabCompleter(this));
         }
         catch (Exception e) {
