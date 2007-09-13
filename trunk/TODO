@@ -1,8 +1,8 @@
 The following is an informal TODO list for jsqsh:
 
-- Create an org.sqsh.SQLAnalyzer for Oracle so that semicolon can 
-  properly be used as a terminator (I'm not a PL/SQL guy, so I could
-  use some help with this one).
-- Allow an internal sqsh CLASSPATH environment variable so that making
-  JDBC jars available is easier.
+- Implement tab completions for object names
+- Create \macro command treating the current buffer as if it was full
+  of velocimacros. That is, don't execute the SQL, but run it through the
+  velocity engine so that the user can build up a library of useful 
+  velocitimacros.
 - Create .rpm distribution

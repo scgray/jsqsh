@@ -446,8 +446,13 @@ public class SQLDriverManager {
             }
             else {
                 
-                return new String(PasswordInput.getPassword(
-                    System.in, prompt + ": "));
+                char[] pwd = PasswordInput.getPassword(System.in, prompt + ": ");
+                if (pwd == null) {
+                    
+                    return null;
+                }
+                
+                return new String(pwd);
             }
         }
         catch (IOException e) {
