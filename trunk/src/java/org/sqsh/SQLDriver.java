@@ -32,6 +32,7 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.sqsh.analyzers.ANSIAnalyzer;
+import org.sqsh.analyzers.NullAnalyzer;
 
 public class SQLDriver 
     implements Comparable {
@@ -54,7 +55,7 @@ public class SQLDriver
     private boolean isInternal = false;
     private boolean isAvailable = false;
     private Map<String, String> variables = new HashMap<String, String>();
-    private SQLAnalyzer analyzer = null;
+    private SQLAnalyzer analyzer = new NullAnalyzer();
     
     public SQLDriver() {
         
@@ -131,6 +132,16 @@ public class SQLDriver
     public boolean isAvailable() {
         
         return isAvailable;
+    }
+    
+    /**
+     * Sets whether or not the driver is available.
+     * 
+     * @param isAvailable
+     */
+    public void setAvailable (boolean isAvailable) {
+        
+        this.isAvailable = isAvailable;
     }
     
     /**

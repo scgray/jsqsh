@@ -135,11 +135,16 @@ public class Connect
             
             if (options.arguments.size() > 0) {
                 
-                url = options.arguments.get(0);
+                sqlContext = session.getDriverManager().connect(
+                    options.driverClass, options.arguments.get(0), session,
+                    properties);
+            }
+            else {
+                
+                sqlContext = session.getDriverManager().connect(
+                	options.driverName, session, properties);
             }
             
-            sqlContext = session.getDriverManager().connect(
-                options.driverName, session, properties, url);
             
             /*
              * If we are asked to create a new session, then we will do so.

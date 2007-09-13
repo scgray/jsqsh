@@ -2,6 +2,8 @@ Release 0.9.4
 
 * Added '-m style' flag to the \go command.
 * Added new display style 'csv'.
+* Added new ${classpath} configuration variable to allow the user to
+  specify additional jar locations for JDBC drivers.
 * Fixed documentation for the \connect command
 
 Release 0.9.3
