@@ -42,7 +42,6 @@
    <Driver name="oracle" 
            target="Oracle"
            class="oracle.jdbc.driver.OracleDriver"
-           analyzer="org.sqsh.analyzers.ANSIAnalyzer"
            url="jdbc:oracle:thin:@${server}:${port}:${SID}">
            
        <Variable name="server">localhost</Variable>

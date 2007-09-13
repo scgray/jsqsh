@@ -67,25 +67,29 @@ DESCRIPTION
 
    Sqsh comes bundled with one JDBC driver (jtds) which should
    be sufficient to communicate with Microsoft SQL Server or Sybase
-   ASE. Additional drivers can be made available by ensuring that
-   the driver is contained in your CLASSPATH environment variable,
-   e.g., for UNIX or cygwin:
-
-      $ CLASSPATH=/path/to/some/jdbc/driver.jar:"$CLASSPATH"
-      $ export CLASSPATH
-
-   or, for Windows:
+   ASE. Additional drivers can be made available in one of three ways:
    
-      C:\> set CLASSPATH=/path/to/some/jdbc/driver.jar; %CLASSPATH%
+   1. Setting the ${classpath} sqsh variable to a location containing
+      JDBC jar(s) for the driver(s) you want (see '\help classpath').
+   
+   2. Making sure the driver is  contained in your CLASSPATH environment
+      variable, e.g., for UNIX or cygwin:
 
-   Alternatively, you can add a JDBC driver implementation to sqsh's
-   startup jar directory. The path to this directory can vary from
-   platform to platform but can typically be found in one of the
-   following locations relative to where the jsqsh binary is located:
+        $ CLASSPATH=/path/to/some/jdbc/driver.jar:"$CLASSPATH"
+        $ export CLASSPATH
 
-      ../lib
-      ../share
-      ../share/jsqsh
+     or, for Windows:
+   
+        C:\> set CLASSPATH=/path/to/some/jdbc/driver.jar; %CLASSPATH%
+        
+   3. Alternatively, you can add a JDBC driver implementation to sqsh's
+      startup jar directory. The path to this directory can vary from
+      platform to platform but can typically be found in one of the
+      following locations relative to where the jsqsh binary is located:
+
+         ../lib
+         ../share
+         ../share/jsqsh
 
 DRIVER DEFINITION FILE
    Sqsh comes with a bunch of pre-defined driver definitions built-in,
@@ -95,6 +99,9 @@ DRIVER DEFINITION FILE
            
 OPTIONS:
    None
+   
+SEE ALSO
+   classpath
            ]]></Help>
         </Command>
     

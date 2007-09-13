@@ -24,12 +24,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -46,14 +49,11 @@ public class SQLDriverManager {
     private static final Logger LOG = 
         Logger.getLogger(SQLDriverManager.class.getName());
     
-    private Map<String, SQLDriver> drivers = new HashMap<String, SQLDriver>();
-    
     /**
-     * This is the "generic" driver. It is not added to the list of drivers
-     * because I don't want it shown on the UI.
+     * This is the map of logical driver names to driver defitions.
      */
-    private SQLDriver genericDriver = 
-        new SQLDriver("generic", null, null);
+    private Map<String, SQLDriver> drivers =
+        new HashMap<String, SQLDriver>();
     
     /**
      * If not null, this controls the default database that connections 
@@ -67,10 +67,15 @@ public class SQLDriverManager {
      */
     private boolean defaultAutoCommit = true;
     
+    /**
+     * This is the class loader that is used to attempt to load our JDBC
+     * drivers. Initially we will have no locations defined, but additional
+     * locations can be added by the user by calling setClasspath();
+     */
+    private URLClassLoader classLoader = new URLClassLoader(
+        new URL[0], getClass().getClassLoader());
+    
     public SQLDriverManager() {
-        
-        genericDriver.setAnalyzer(
-            org.sqsh.analyzers.ANSIAnalyzer.class.getName());
         
         /*
          * Load the internal drivers.
@@ -139,6 +144,134 @@ public class SQLDriverManager {
     }
     
     /**
+     * Sets a new classpath that will be used to search for JDBC drivers.
+     * 
+     * @param classpath A delimited list of jars or directories containing
+     *   jars. The delimiter that is used should be your system's path
+     *   delimiter.
+     * 
+     * @throws IOException if there is a problem
+     */
+    public void setClasspath(String classpath)
+        throws IOException {
+        
+        List<URL> urls = new ArrayList<URL>();
+        
+        /*
+         * Split up our classpath based upon the system's path separator.
+         */
+        String []locations = classpath.split(System.getProperty(
+            "path.separator"));
+        
+        for (String location : locations) {
+            
+            File file = new File(location);
+            
+            /*
+             * If the provided location was a directory, then look inside
+             * of it can suck up every .jar file.
+             */
+            if (file.isDirectory()) {
+                
+                File []dirContents = file.listFiles();
+                for (File subFile : dirContents) {
+                    
+                    if (subFile.isFile()
+                            && subFile.getName().endsWith(".jar")) {
+                        
+                        urls.add(subFile.toURI().toURL());
+                    }
+                }
+            }
+            else if (file.exists()) {
+                
+                urls.add(file.toURI().toURL());
+            }
+        }
+        
+        classLoader = new URLClassLoader(urls.toArray(new URL[0]),
+            this.getClass().getClassLoader());
+        
+        checkDriverAvailability();
+    }
+    
+    /**
+     * Used to check whether or not all of the currently registered
+     * JDBC drivers is available in the current classloader.
+     */
+    private void checkDriverAvailability() {
+        
+        for (SQLDriver driver : drivers.values()) {
+            
+            try {
+                
+                Class.forName(driver.getDriverClass(), true, classLoader);
+                driver.setAvailable(true);
+            }
+            catch (Exception e) {
+                
+                driver.setAvailable(false);
+            }
+        }
+    }
+    
+    /**
+     * Returns the current classpath. The classpath will have been expanded
+     * of all jars contained in the directories specified by the original call
+     * to setClasspath().
+     * 
+     * @return the current classpath.
+     */
+    public String getClasspath() {
+        
+        URL []urls = classLoader.getURLs();
+        StringBuilder sb = new StringBuilder();
+        String sep = System.getProperty("path.separator");
+        
+        for (int i = 0; i < urls.length; i++) {
+            
+            if (i > 0) {
+                
+                sb.append(sep);
+            }
+            
+            sb.append(urls[i].toString());
+        }
+        
+        return sb.toString();
+    }
+    
+    /**
+     * Establishes a connection with an explicitly defined URL and class.
+     * 
+     * @param clazz The JDBC class.
+     * @param url The JDBC URL to connect to.
+     * @param session The session for which the connection is being 
+     *    established. This is used primarily as a source of variables.
+     * @param properties Connection properties to be utilized.
+     * @return A newly created connection.
+     * @throws SQLException Thrown if the connection could not be 
+     *    established.
+     */
+    public SQLContext connect (String clazz, String url, Session session,
+            Map<String, String>properties)
+        throws SQLException {
+        
+        SQLDriver d = new SQLDriver("__temp__", clazz, url);
+        drivers.put(d.getName(), d);
+        
+        try {
+            
+            return connect(d.getName(), session, properties);
+            
+        }
+        finally {
+            
+            drivers.remove(d);
+        }
+    }
+    
+    /**
      * Attempts to connect to the database utilizing a driver.
      * 
      * @param driver The name of the driver to utilize. The special
@@ -147,46 +280,35 @@ public class SQLDriverManager {
      * @param session The session for which the connection is being 
      *    established. This is used primarily as a source of variables.
      * @param properties Connection properties to be utilized.
-     * @param url If not null, this url will be utilized instead of the
-     *    one defined by the driver (when specifying "generic" a url 
-     *    must be specified). The url will have its variables expanded
-     *    in exactly the same way as the regular driver variables.
      * @return A newly created connection.
      * @throws SQLException Thrown if the connection could not be 
      *    established.
      */
     public SQLContext connect (String driver, Session session,
-            Map<String, String>properties, String url)
+            Map<String, String>properties)
         throws SQLException {
         
         SQLDriver sqlDriver = null;
         
-        if ("generic".equals(driver)) {
-            
-            sqlDriver = genericDriver;
-        }
-        else {
-            
-            sqlDriver = getDriver(driver);
-            if (sqlDriver == null) {
+        sqlDriver = getDriver(driver);
+        if (sqlDriver == null) {
                 
-                throw new SQLException("Sqsh has no driver registered under "
-                    + "the name '" + driver + "'. To see a list of available "
-                    + "drivers, use the \\drivers command");
-            }
+            throw new SQLException("Sqsh has no driver registered under "
+                + "the name '" + driver + "'. To see a list of available "
+                + "drivers, use the \\drivers command");
         }
         
         /*
          * Expand the url of its variables.
          */
-        url = getUrl(session, properties, sqlDriver.getVariables(),
-            (url != null ? url : sqlDriver.getUrl()));
+        String url = getUrl(session, properties, sqlDriver.getVariables(),
+            sqlDriver.getUrl());
         
         Connection conn = null;
         
         try {
             
-            Driver jdbcDriver = DriverManager.getDriver(url);
+            Driver jdbcDriver = getDriverFromUrl(url);
             
             /*
              * Similar to above, we'll iterate through the properties supported by
@@ -225,7 +347,7 @@ public class SQLDriverManager {
             }
             props.put(SQLDriver.PASSWORD_PROPERTY, s);
             
-            conn = DriverManager.getConnection(url, props);
+            conn = jdbcDriver.connect(url, props);
         }
         catch (SQLException e) {
             
@@ -266,6 +388,38 @@ public class SQLDriverManager {
         }
         
         return new SQLContext(conn, url, sqlDriver.getAnalyzer());
+    }
+    
+    /**
+     * Similar to DriverManager.getDriver() except that it searches
+     * through our shiny new classloader.
+     * 
+     * @param url
+     * @return
+     * @throws SQLException
+     */
+    private Driver getDriverFromUrl(String url)
+        throws SQLException {
+        
+        for (SQLDriver driver : drivers.values()) {
+            
+            try {
+                
+                Driver d = (Driver) Class.forName(driver.getDriverClass(), 
+                    true, classLoader).newInstance();
+                
+                if (d.acceptsURL(url)) {
+                    
+                    return d;
+                }
+            }
+            catch (Exception e) {
+                
+                /* IGNORED */
+            }
+        }
+        
+        return DriverManager.getDriver(url);
     }
     
     /**
@@ -465,4 +619,5 @@ public class SQLDriverManager {
             }
         }
     }
+    
 }
