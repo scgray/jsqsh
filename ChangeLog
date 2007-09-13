@@ -1,5 +1,7 @@
 Release 0.9.4
 
+* Added tab completion of object names. The logic is pretty smart too, and
+  understands "quoted object names" and [bracketed object names].
 * Added '-m style' flag to the \go command.
 * Added new display style 'csv'.
 * Added new ${classpath} configuration variable to allow the user to

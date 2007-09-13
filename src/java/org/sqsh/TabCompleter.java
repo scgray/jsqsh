@@ -17,11 +17,16 @@
  */
 package org.sqsh;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 
+import org.gnu.readline.Readline;
 import org.gnu.readline.ReadlineCompleter;
 
 /**
@@ -30,9 +35,13 @@ import org.gnu.readline.ReadlineCompleter;
  */
 public class TabCompleter
     implements ReadlineCompleter {
+    
+    protected enum QuoteType { NONE, BRACKET, QUOTES };
 
-    SqshContext sqshContext;
-    Iterator<String> iter = null;
+    private SqshContext sqshContext;
+    private Iterator<String> iter = null;
+    private QuoteType  quote = QuoteType.NONE;
+    
     
     public TabCompleter(SqshContext ctx) {
         
@@ -44,16 +53,17 @@ public class TabCompleter
      * for {@link org.gnu.readline.ReadlineCompleter} for how this
      * method is induced.
      * 
-     * @param line The text up to the word break character.
+     * @param word The text up to the word break character.
      * @param state 0=initial search request, >1 the request for the N'th
      *    completion entry.
      */
-    public String completer (String line, int state) {
+    public String completer (String word, int state) {
         
-        Session session = sqshContext.getCurrentSession();
-        if (line == null || session.getConnection() == null) {
+        Connection conn = sqshContext.getCurrentSession().getConnection();
+        if (word == null || conn == null) {
             
             iter = null;
+            return null;
         }
         
         /*
@@ -62,25 +72,248 @@ public class TabCompleter
          */
         if (state > 0) {
             
-            if (iter == null || iter.hasNext() == false) {
-                
-                return null;
-            }
+            return next();
+        }
+        
+        char ch = (word.length() == 0 ? 'x' : word.charAt(0));
+        if (ch == '[') {
             
-            return iter.next();
+            quote = QuoteType.BRACKET;
+        }
+        else if (ch == '"') {
+            
+            quote = QuoteType.QUOTES;
+        }
+        else {
+            
+            quote = QuoteType.NONE;
         }
         
         /*
-         * Upon setup, Readline was configured (in SqshContext) to use a
-         * "\n" as the word separator character. This was done so we can
-         * get a look at the whole line.
+         * The word that was found by our caller is not nearly enough
+         * to figure out the whole object name, so we will use the
+         * entire line to do our work.
          */
-        String []parts = doFindObject(line);
+         String wholeLine = Readline.getLineBuffer();
+        
+        /*
+         * Now, take the line and find the name of the object that the user
+         * is currently sitting on. Object names are multi-part because
+         * you can have "table" or "table.column" or "owner.table", etc.
+         */
+        String []parts = doFindObject(wholeLine);
+        if (parts.length == 0) {
+            
+            return null;
+        }
+        
+        /*
+         * Now we have the hard part. We have a list of object name parts
+         * that can be very ambiguous, so we may have to run a number of
+         * queries to determine what the user meant.
+         */
+        TreeSet<String> set = new TreeSet<String>();
+        
+        /*
+         * This may be needed a lot.
+         */
+        String catalog = getCurrentCatalog(conn);
+        
+        /*
+        System.out.println();
         for (int i = 0; i < parts.length; i++) {
             
-            System.out.println(parts[i]);
+            System.out.println("#" + i + " = " + parts[i]);
         }
+        */
+        
+        /*
+         * A single name could be:
+         *   1. Catalog name
+         *   2. Table name
+         */
+        if (parts.length == 1) {
+            
+            getCatalogs(set, conn, parts[0]);
+            getTables(set, conn, catalog, "%", parts[0]);
+        }
+        else if (parts.length == 2) {
+           
+            /*
+             * If we have two parts ("name.name") we could have:
+             * 
+             *    1. catalog.schema
+             *    2. table.column
+             *    
+             *  For now I am going to skip #1 since I don't have a convenient
+             *  way (in JDK 5) to ask for a list of schema in a catalog.
+             */
+            getColumns(set, conn, catalog, null, parts[0], parts[1]);
+        }
+        else if (parts.length == 3) {
+            
+            /*
+             * Three parts could be:
+             * 
+             *    1. catalog.schema.table
+             *    2. schema.table.column
+             */
+            getTables(set, conn, parts[0], parts[1], parts[2]);
+            getColumns(set, conn, catalog, parts[0], parts[1], parts[2]);
+        }
+        else if (parts.length == 4) {
+            
+            /*
+             * database.table.owner.column
+             */
+            getColumns(set, conn, parts[0], parts[1], parts[2], parts[3]);
+        }
+        
+        if (set.size() == 0) {
+            
+            return null;
+        }
+        
+        iter = set.iterator();
+        return next();
+    }
+    
+    /**
+     * Returns the next word.
+     * 
+     * @return the next word null if there are no more.
+     */
+    private String next() {
+        
+        if (iter == null || iter.hasNext() == false) {
+                
+            return null;
+        }
+            
+        String s = iter.next();
+        if (quote == QuoteType.BRACKET) {
+                
+            return "[" + s + "]";
+        }
+        else if (quote == QuoteType.QUOTES) {
+                
+            return '"' + s + '"';
+        }
+            
+        return s;
+    }
+    
+    /**
+     * Returns the current catalog for a connection.
+     * @param conn  The connection
+     * @return The current catalog or null if there is none.
+     */
+    private String getCurrentCatalog(Connection conn) {
+        
+        try {
+            
+            return conn.getCatalog();
+        }
+        catch (SQLException e) {
+            
+            /* IGNORED */
+        }
+        
         return null;
+    }
+    
+    /**
+     * Returns the set of catalogs that start with a name.
+     * 
+     * @param set The current set of object names.
+     * @param conn The connection to the database.
+     * @param name The prefix of the catalog name.
+     */
+    private void getCatalogs(Set<String> set, Connection conn, String name) {
+        
+        try {
+            
+            ResultSet results = conn.getMetaData().getCatalogs();
+            while (results.next()) {
+                
+                String catalog = results.getString(1);
+                if (catalog.startsWith(name)) {
+                    
+                    set.add(catalog);
+                }
+            }
+        }
+        catch (SQLException e) {
+            
+            /* IGNORED */
+        }
+    }
+    
+    /**
+     * Gathers the set of tables that matches requested criteria
+     * @param set The set that the table names will be added to.
+     * @param conn The connection to use.
+     * @param catalog The catalog to look in.
+     * @param schema The schema (owner) to look for
+     * @param tablePrefix The prefix of the table.
+     */
+    private void getTables(Set<String> set, Connection conn,
+            String catalog, String schema, String tablePrefix) {
+        
+        if (schema == null || schema.equals("")) {
+            
+            schema = "%";
+        }
+        
+        try {
+            
+            ResultSet results = conn.getMetaData().getTables(
+                catalog, schema, tablePrefix + "%", null);
+            
+            while (results.next()) {
+                
+                String table = results.getString(3);
+                set.add(table);
+            }
+        }
+        catch (SQLException e) {
+            
+            /* IGNORED */
+        }
+    }
+    
+    /**
+     * Gathers the set of columns that matches requested criteria
+     * @param set The set that the table names will be added to.
+     * @param conn The connection to use.
+     * @param catalog The catalog to look in.
+     * @param schema The schema (owner) to look for
+     * @param table The table name
+     * @param table The column prefix
+     */
+    private void getColumns(Set<String> set, Connection conn,
+            String catalog, String schema, String table, String columnPrefix) {
+        
+        if (schema == null || schema.equals("")) {
+            
+            schema = "%";
+        }
+        
+        try {
+            
+            ResultSet results = conn.getMetaData().getColumns(
+                catalog, schema, table, columnPrefix + "%");
+            
+            while (results.next()) {
+                
+                String column = results.getString(4);
+                set.add(column);
+            }
+        }
+        catch (SQLException e) {
+            
+            /* IGNORED */
+        }
     }
     
     /**
@@ -123,6 +356,10 @@ public class TabCompleter
             else if (ch == '.') {
                 
                 ++idx;
+                if (idx == len || line.charAt(idx) == '.') {
+                    
+                    parts.add("");
+                }
             }
             else {
                 
