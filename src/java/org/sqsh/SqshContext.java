@@ -192,7 +192,7 @@ public class SqshContext {
             
             try {
                 
-                System.err.println("WARNING: Unable to GNU Readline library. "
+                System.err.println("WARNING: Unable to load GNU Readline library. "
                     + "Run '\\help readline' for details.");
             
             	Readline.load(ReadlineLibrary.PureJava);
@@ -205,7 +205,25 @@ public class SqshContext {
         	}
         }
         
+        /*
+         * Initialize our chosen readline implementation.
+         */
         Readline.initReadline("JSqsh");
+        
+        /*
+         * Install our tab completer. This could fail if the underlying
+         * chosen implementation does not support completion.
+         */
+        try {
+            
+            Readline.setWordBreakCharacters("\n");
+        	Readline.setCompleter(new TabCompleter(this));
+        }
+        catch (Exception e) {
+            
+            /* IGNORED */
+        }
+        
         
         /*
          * Run the internal initializations cript.

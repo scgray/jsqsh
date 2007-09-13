@@ -4,6 +4,7 @@ Release 0.9.4
 * Added new display style 'csv'.
 * Added new ${classpath} configuration variable to allow the user to
   specify additional jar locations for JDBC drivers.
+* Added support for empty passwords
 * Fixed documentation for the \connect command
 
 Release 0.9.3
