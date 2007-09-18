@@ -224,7 +224,7 @@ public class Connect
         
         if (options.database != null) {
             
-            properties.put(SQLDriver.DATABASE_PROPERTY, options.SID);
+            properties.put(SQLDriver.DATABASE_PROPERTY, options.database);
         }
         
         return properties;
