@@ -106,6 +106,11 @@ public class SqshContext {
     private HelpManager helpManager = new HelpManager();
     
     /**
+     * Our string expander.
+     */
+    private StringExpander stringExpander = new StringExpander();
+    
+    /**
      * Handle to the current active session.
      */
     private Session currentSession = null;
@@ -344,6 +349,15 @@ public class SqshContext {
     public ShellManager getShellManager() {
         
         return shellManager;
+    }
+    
+    /**
+     * Returns the string expander for sqsh.
+     * @return the string expander for sqsh.
+     */
+    public StringExpander getStringExpander() {
+        
+        return stringExpander;
     }
     
     /**

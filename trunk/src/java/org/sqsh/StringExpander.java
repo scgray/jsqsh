@@ -44,24 +44,31 @@ public class StringExpander
     private static final Logger LOG = 
         Logger.getLogger(StringExpander.class.getName()); 
     
-    private Session session;
-    
     private VelocityEngine velocity;
     private VelocityContext context;
+    
+    /**
+     * This is the actual context used during expansion. All public
+     * methods will temporarily create this as necessary so that
+     * all private methods may refer to it.
+     */
+    private VelocityContext expandContext = null;
+    
+    /**
+     * This is temporary reference to the session for which the expansion
+     * is taking place and is populated by each public method before
+     * doing the actual expansion logic.
+     */
+    private Session session = null;
     
     private String IFS = null;
     
     /**
-     * Creates a string expander that will expand variables in the context
-     * of the provided session.
-     * 
-     * @param session The session that variables will be snagged from.
+     * Creates a string expander.
      */
-    public StringExpander (Session session) {
+    public StringExpander () {
         
         setIFS("\\s");
-        
-        this.session = session;
         
         try {
             
@@ -75,7 +82,6 @@ public class StringExpander
         }
         
         context = new VelocityContext(System.getenv());
-        context = new VelocityContext(session.getVariableManager(), context);
     }
     
     /**
@@ -153,21 +159,13 @@ public class StringExpander
      *   
      * @return the expanded version of the string.
      */
-    public String expand(String str) {
+    public String expand(Session session, String str) {
         
-        Writer writer = new StringWriter(str.length());
+        this.session = session;
+        this.expandContext = 
+            new VelocityContext(session.getVariableManager(), context);
         
-        try {
-            
-            velocity.evaluate(context, writer, "<string>", str);
-        }
-        catch (Exception e) {
-            
-            session.err.println("Error during variable expansion: "
-                + e.getMessage());
-        }
-        
-        return writer.toString();
+        return doExpand(str);
     }
     
     /**
@@ -180,22 +178,14 @@ public class StringExpander
      *   
      * @return the expanded version of the string.
      */
-    public String expand(Map variables, String str) {
+    public String expand(Session session, Map variables, String str) {
         
-        VelocityContext ctx = new VelocityContext(variables, context); 
-        Writer writer = new StringWriter(str.length());
+        this.session = session;
+        this.expandContext = 
+            new VelocityContext(variables, 
+                new VelocityContext(session.getVariableManager(), context));
         
-        try {
-            
-            velocity.evaluate(ctx, writer, "<string>", str);
-        }
-        catch (Exception e) {
-            
-            session.err.println("Error during variable expansion: "
-                + e.getMessage());
-        }
-        
-        return writer.toString();
+        return doExpand(str);
     }
     
     /**
@@ -208,13 +198,39 @@ public class StringExpander
      * @param str The string to be expanded.
      * @return The expanded string.
      */
-    public String expandWithQuotes(String str)
+    public String expandWithQuotes(Session session, String str)
         throws CommandLineSyntaxException {
+        
+        this.session = session;
+        this.expandContext = 
+            new VelocityContext(session.getVariableManager(), context);
         
         StringBuilder expanded = new StringBuilder();
         doUnquoted(expanded, str, 0);
         
         return expanded.toString();
+    }
+    
+    /**
+     * Performs the actual variable expansion.
+     * 
+     * @param str The string to expand
+     * @return The expanded string.
+     */
+    public String doExpand(String str) {
+        
+        Writer writer = new StringWriter(str.length());
+        try {
+            
+            velocity.evaluate(expandContext, writer, "<string>", str);
+        }
+        catch (Exception e) {
+            
+            session.err.println("Error during variable expansion: "
+                + e.getMessage());
+        }
+        
+        return writer.toString();
     }
     
     /**
@@ -241,7 +257,7 @@ public class StringExpander
                 case '\'':
                     if (buf.length() > 0) {
             
-                        expanded.append(expand(buf.toString()));
+                        expanded.append(doExpand(buf.toString()));
                         buf.setLength(0);
                     }
                     
@@ -251,7 +267,7 @@ public class StringExpander
                 case '\\':
                     if (buf.length() > 0) {
             
-                        expanded.append(expand(buf.toString()));
+                        expanded.append(doExpand(buf.toString()));
                         buf.setLength(0);
                     }
                     
@@ -261,7 +277,7 @@ public class StringExpander
                 case '"':
                     if (buf.length() > 0) {
             
-                        expanded.append(expand(buf.toString()));
+                        expanded.append(doExpand(buf.toString()));
                         buf.setLength(0);
                     }
                     
@@ -271,7 +287,7 @@ public class StringExpander
                 case '`':
                     if (buf.length() > 0) {
             
-                        expanded.append(expand(buf.toString()));
+                        expanded.append(doExpand(buf.toString()));
                         buf.setLength(0);
                     }
                     
@@ -286,7 +302,7 @@ public class StringExpander
         
         if (buf.length() > 0) {
             
-            expanded.append(expand(buf.toString()));
+            expanded.append(doExpand(buf.toString()));
         }
         
         return idx;
@@ -408,7 +424,7 @@ public class StringExpander
                 startIdx, str);
         }
         
-        expanded.append(expand(contents.toString()));
+        expanded.append(doExpand(contents.toString()));
         expanded.append('"');
         ++idx;
         
@@ -492,7 +508,7 @@ public class StringExpander
         
         if (buf.length() > 0) {
             
-            command.append(expand(buf.toString()));
+            command.append(doExpand(buf.toString()));
         }
         
         try {
