@@ -1,8 +1,5 @@
 The following is an informal TODO list for jsqsh:
 
-- Implement tab completions for object names
-- Create \macro command treating the current buffer as if it was full
-  of velocimacros. That is, don't execute the SQL, but run it through the
-  velocity engine so that the user can build up a library of useful 
-  velocitimacros.
+- Create a "bestfit" display style that will attempt to fit the results to
+  the console window size.
 - Create .rpm distribution
