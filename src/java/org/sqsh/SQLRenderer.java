@@ -17,12 +17,16 @@
  */
 package org.sqsh;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Date;
 import java.util.Set;
 
 public class SQLRenderer {
@@ -417,36 +421,44 @@ public class SQLRenderer {
         switch (type) {
             
             case Types.BIGINT:
-                value = formatter.formatLong(res.getLong(idx));
+                long longValue = res.getLong(idx);
+                value = res.wasNull() ?  formatter.getNull()
+                        :  formatter.formatLong(longValue);
                 break;
             
             case Types.BINARY:
             case Types.VARBINARY:
             case Types.LONGVARBINARY:
             case Types.BLOB:
-                value = formatter.formatBytes(res.getBytes(idx));
+                byte []binaryValue = res.getBytes(idx);
+                value = res.wasNull() ?  formatter.getNull()
+                        :  formatter.formatBytes(binaryValue);
                 break;
                 
             case Types.BIT:
-                value = formatter.formatShort(res.getByte(idx));
+                byte bitValue = res.getByte(idx);
+                value = res.wasNull() ?  formatter.getNull()
+                        :  formatter.formatShort(bitValue);
                 break;
                 
             case Types.BOOLEAN:
-                value = formatter.formatBoolean(res.getBoolean(idx));
+                boolean boolValue = res.getBoolean(idx);
+                value = res.wasNull() ?  formatter.getNull()
+                        :  formatter.formatBoolean(boolValue);
                 break;
                 
             case Types.CHAR:
             case Types.VARCHAR:
-                value = res.getString(idx);
-                break;
-                
+            case Types.LONGVARCHAR:
             /* case Types.NVARCHAR: */
             /* case Types.LONGNVARCHAR: */
-            case Types.LONGVARCHAR:
             /* case Types.NCHAR: */
                 value = res.getString(idx);
+                if (res.wasNull()) {
+                    
+                    value = formatter.getNull();
+                }
                 break;
-                
                 
             case Types.CLOB:
             /* case Types.NCLOB: */
@@ -454,44 +466,53 @@ public class SQLRenderer {
                 break;
                 
             case Types.DATE:
-                value = formatter.formatDate(res.getDate(idx));
+                Date dateValue = res.getDate(idx);
+                value = res.wasNull() ?  formatter.getNull()
+                        :  formatter.formatDate(dateValue);
                 break;
                 
             case Types.DECIMAL:
             case Types.NUMERIC:
-                value = formatter.formatBigDecimal(res.getBigDecimal(idx));
+                BigDecimal bigDecValue = res.getBigDecimal(idx);
+                value = res.wasNull() ?  formatter.getNull()
+                        :  formatter.formatBigDecimal(bigDecValue);
                 break;
                 
             case Types.DOUBLE:
             case Types.FLOAT:
             case Types.REAL:
-                value = formatter.formatDouble(res.getDouble(idx));
+                double doubleValue = res.getDouble(idx);
+                value = res.wasNull() ?  formatter.getNull()
+                        :  formatter.formatDouble(doubleValue);
                 break;
                 
             case Types.INTEGER:
-                value = formatter.formatInt(res.getInt(idx));
+                int intValue = res.getInt(idx);
+                value = res.wasNull() ?  formatter.getNull()
+                        :  formatter.formatInt(intValue);
                 break;
                 
             case Types.SMALLINT:
             case Types.TINYINT:
-                value = formatter.formatShort(res.getShort(idx));
+                short shortValue = res.getShort(idx);
+                value = res.wasNull() ?  formatter.getNull()
+                        :  formatter.formatShort(shortValue);
                 break;
                 
             case Types.TIME:
-                value = formatter.formatTime(res.getTime(idx));
+                Time timeValue = res.getTime(idx);
+                value = res.wasNull() ?  formatter.getNull()
+                        :  formatter.formatTime(timeValue);
                 break;
                 
             case Types.TIMESTAMP:
-                value = formatter.formatDatetime(res.getTimestamp(idx));
+                Timestamp tsValue = res.getTimestamp(idx);
+                value = res.wasNull() ?  formatter.getNull()
+                        :  formatter.formatDatetime(tsValue);
                 break;
                 
             default:
                 break;
-        }
-        
-        if (res.wasNull()) {
-            
-            value = formatter.getNull();
         }
         
         if (value == null) {
