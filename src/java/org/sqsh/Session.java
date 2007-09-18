@@ -96,11 +96,6 @@ public class Session
     private SqshContext sqshContext;
     
     /**
-     * Used to expand variables.
-     */
-    private StringExpander stringExpander;
-    
-    /**
      * The database connection used by the session and the URL that was
      * used to create it
      */
@@ -149,8 +144,6 @@ public class Session
             
             /* IGNORED */
         }
-        
-        stringExpander = new StringExpander(this);
     }
     
     /**
@@ -397,7 +390,7 @@ public class Session
      */
     public StringExpander getStringExpander() {
         
-        return stringExpander;
+        return sqshContext.getStringExpander();
     }
     
     /**
@@ -551,7 +544,7 @@ public class Session
      */
     public String expand(String str) {
         
-        return stringExpander.expand(str);
+        return getStringExpander().expand(this, str);
     }
     
     /**
@@ -563,7 +556,7 @@ public class Session
      */
     public String expand(Map variables, String str) {
         
-        return stringExpander.expand(variables, str);
+        return getStringExpander().expand(this, variables, str);
     }
     
     /**
@@ -706,7 +699,7 @@ public class Session
                             
                 String prompt = getVariableManager().get("prompt");
                 prompt =  (prompt == null)  
-            	    ? ">" : stringExpander.expand(prompt);
+            	    ? ">" : getStringExpander().expand(this, prompt);
                             
                 line = Readline.readline(prompt + " ", true);
                 if (line == null) {
@@ -869,7 +862,7 @@ public class Session
              */
             if (cmd.indexOf('$') >= 0) {
                 
-                cmd = stringExpander.expand(str);
+                cmd = getStringExpander().expand(this, str);
                 
                 /*
                  * And re-parse it because the expansion may have
@@ -916,7 +909,8 @@ public class Session
         
         try {
             
-            commandLine = stringExpander.expandWithQuotes(commandLine);
+            commandLine = 
+                getStringExpander().expandWithQuotes(this, commandLine);
         
         	Tokenizer tokenizer = new Tokenizer(commandLine);
             

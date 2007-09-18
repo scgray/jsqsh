@@ -101,7 +101,7 @@ public class PerfectPrettyRenderer
         printHeader();
         for (int i = 0; i < rows.size(); i++) {
             
-            if (session.out.checkError()) {
+            if (session.out.checkError() || Thread.interrupted()) {
                 
                 return false;
             }
