@@ -1,0 +1,26 @@
+This directory contains support files for distributing jsqsh 
+on a Windows platform.  There are a couple of notes here:
+
+jsqsh.dll - This is here for convenience. It should be
+  a copy of the latest output from building src/jni, but if you
+  are unsure you can always go build your own version.
+
+JavaGetline.dll - This DLL implements the Java Readline JNI
+  interface (http://java-readline.sourceforge.net/). Please note
+  that the JavaGetline.dll that comes with the java-readline
+  distribution didn't work for me, so I had to compile it myself
+  using cygwin. I compiled it using:
+
+   #!/bin/sh
+   JDK="/cygdrive/c/Program Files/Java/jdk1.5.0_12"
+
+   WIN32=MSC
+   export WIN32
+
+   gcc -mno-cygwin -I"$JDK/include" -I"$JDK/include/win32" \
+       -Wl,--add-stdcall-alias -shared  \
+       -DMSC -DJavaGetline -D__IBMC__ -g \
+       -o JavaGetline.dll *.c
+
+ This script should be run in the src/native directory that
+ comes with the java-readline distribution.

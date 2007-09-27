@@ -1,0 +1,88 @@
+<Variables>
+
+	<Property bean="session" name="id" property="id">
+        <Description>Contains the session id of the current session</Description>
+        <Help><![CDATA[
+VARIABLE
+   id - The session id of the current session.
+
+DESCRIPTION
+   The read-only ${id} variable contains the session id of the current
+   session and primarily useful for including in the prompt.
+   
+SEE ALSO
+   prompt, \sessions
+        ]]></Help>	
+	</Property>
+	
+	
+	<Property bean="session" name="connected" property="connected">
+        <Description>Indicates whether or not the current session is connected</Description>
+        <Help><![CDATA[
+VARIABLE
+   connected - Indicates whether or not the current session is connected
+
+DESCRIPTION
+   The read-only ${connected} variable will contain the value "true" if
+   the current session is connected to a server, otherwise "false". This
+   is primarily useful for including in the prompt.
+   
+SEE ALSO
+   prompt, \connect
+        ]]></Help>	
+	</Property>
+	
+	
+	<Property bean="session" name="rc" property="lastCommandResult"/>
+	<Property bean="session" name="IFS" property="stringExpander.IFS"/>
+	
+	<Property bean="session" name="database" property="connection.catalog" 
+	          settable="true" quiet="true">
+        <Description>Contains the connection's current database</Description>
+        <Help><![CDATA[
+VARIABLE
+   database - Contains the connection's current database
+
+DESCRIPTION
+   The ${database} variable will contain the name of the database
+   (or 'catalog' in JDBC terminology) of the current session if it connected
+   to a server. In addition, the database context of the current connection
+   can be changed by setting the ${database} variable to the desired 
+   database name.
+   
+SEE ALSO
+   \connect, dflt_database
+        ]]></Help>	
+	</Property>
+	
+	
+	<Property bean="session" name="autocommit" property="connection.autoCommit" 
+	          settable="true" quiet="false">
+        <Description>Contains the connection's current auto-commit status</Description>
+        <Help><![CDATA[
+VARIABLE
+   autocommit - Contains the connection's current auto-commit status
+
+DESCRIPTION
+   The ${autocommit} variable indicates whether or not the current connection
+   is in auto-commit mode. In addition, the connections autocommit mode can be 
+   altered by setting this variable.  To change the autocommit mode for
+   all future connections, use the ${dflt_autocommit} variable.
+   
+SEE ALSO
+   \connect, dflt_autocommit
+        ]]></Help>	
+	</Property>
+	          
+	<Property bean="session" name="interactive" property="interactive">
+        <Description>Whether or not the current session is interactive</Description>
+        <Help><![CDATA[
+VARIABLE
+   interactive - Indicates whether or not the current session is interactive
+
+DESCRIPTION
+   The read-only ${interactive} variable will contain "true" if the current
+   session is interactive, or "false" otherwise.
+        ]]></Help>	
+	</Property>
+</Variables>

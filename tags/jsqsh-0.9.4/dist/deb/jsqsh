@@ -1,0 +1,20 @@
+#!/bin/sh
+
+LD_LIBRARY_PATH=/usr/lib/jni
+export LD_LIBRARY_PATH
+
+for jar in /usr/share/jsqsh/*.jar; do
+    CLASSPATH="$CLASSPATH:$jar"
+done
+
+SHARE=/usr/share/java
+# CLASSPATH="$CLASSPATH:$SHARE/commons-beanutils.jar"
+# CLASSPATH="$CLASSPATH:$SHARE/commons-collections.jar"
+# CLASSPATH="$CLASSPATH:$SHARE/commons-digester.jar"
+# CLASSPATH="$CLASSPATH:$SHARE/commons-lang.jar"
+# CLASSPATH="$CLASSPATH:$SHARE/commons-logging.jar"
+# CLASSPATH="$CLASSPATH:$SHARE/velocity.jar"
+CLASSPATH="$CLASSPATH:$SHARE/libreadline-java.jar"
+export CLASSPATH
+
+java org.sqsh.JSqsh $*
