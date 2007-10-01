@@ -1,3 +1,7 @@
+Release 0.9.5
+* Fixed NullPointerException when running non-interactive scripts
+  of SQL via the -i flag.
+
 Release 0.9.4
 
 * Added tab completion of object names. The logic is pretty smart too, and
