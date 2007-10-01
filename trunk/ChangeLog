@@ -1,4 +1,7 @@
 Release 0.9.5
+* Added tab completion of procedure names.
+* Improved tab completion of object names to better understand
+  object owners and schemas.
 * Fixed NullPointerException when running non-interactive scripts
   of SQL via the -i flag.
 
