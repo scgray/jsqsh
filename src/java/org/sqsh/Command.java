@@ -155,6 +155,7 @@ public abstract class Command
         while (n != null) {
             
             indent += "    ";
+            sb.append("\n");
             sb.append(indent);
             sb.append("Nested exception [SQL state: ");
             sb.append(n.getSQLState());
@@ -163,7 +164,7 @@ public abstract class Command
             sb.append(indent);
             sb.append("Message: ").append(n.getMessage());
             
-            n = e.getNextException();
+            n = n.getNextException();
         }
         
         out.println(sb.toString());
