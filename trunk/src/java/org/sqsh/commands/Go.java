@@ -95,7 +95,7 @@ public class Go
         }
         else {
             
-            bufferMan.clear();
+            bufferMan.getCurrent().clear();
         }
         
         try {
