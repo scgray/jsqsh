@@ -131,11 +131,13 @@ public class TabCompleter
          * A single name could be:
          *   1. Catalog name
          *   2. Table name
+         *   3. Procedure name
          */
         if (parts.length == 1) {
             
             getCatalogs(set, conn, parts[0]);
             getTables(set, conn, catalog, "%", parts[0]);
+            getProcedures(set, conn, catalog, "%", parts[0]);
         }
         else if (parts.length == 2) {
            
@@ -144,11 +146,15 @@ public class TabCompleter
              * 
              *    1. catalog.schema
              *    2. table.column
+             *    3. schema.table
+             *    4. schema.procedure
              *    
              *  For now I am going to skip #1 since I don't have a convenient
              *  way (in JDK 5) to ask for a list of schema in a catalog.
              */
             getColumns(set, conn, catalog, null, parts[0], parts[1]);
+            getTables(set, conn, catalog, parts[0], parts[1]);
+            getProcedures(set, conn, catalog, parts[0], parts[1]);
         }
         else if (parts.length == 3) {
             
@@ -156,9 +162,11 @@ public class TabCompleter
              * Three parts could be:
              * 
              *    1. catalog.schema.table
-             *    2. schema.table.column
+             *    2. catalog.schema.procedure
+             *    3. schema.table.column
              */
             getTables(set, conn, parts[0], parts[1], parts[2]);
+            getProcedures(set, conn, parts[0], parts[1], parts[2]);
             getColumns(set, conn, catalog, parts[0], parts[1], parts[2]);
         }
         else if (parts.length == 4) {
@@ -308,6 +316,39 @@ public class TabCompleter
                 
                 String column = results.getString(4);
                 set.add(column);
+            }
+        }
+        catch (SQLException e) {
+            
+            /* IGNORED */
+        }
+    }
+    
+    /**
+     * Gathers the set of tables that matches requested criteria
+     * @param set The set that the table names will be added to.
+     * @param conn The connection to use.
+     * @param catalog The catalog to look in.
+     * @param schema The schema (owner) to look for
+     * @param tablePrefix The prefix of the table.
+     */
+    private void getProcedures(Set<String> set, Connection conn,
+            String catalog, String schema, String procPrefix) {
+        
+        if (schema == null || schema.equals("")) {
+            
+            schema = "%";
+        }
+        
+        try {
+            
+            ResultSet results = conn.getMetaData().getProcedures(
+                catalog, schema, procPrefix + "%");
+            
+            while (results.next()) {
+                
+                String proc = results.getString(3);
+                set.add(proc);
             }
         }
         catch (SQLException e) {
