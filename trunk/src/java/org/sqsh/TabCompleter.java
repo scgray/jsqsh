@@ -95,7 +95,7 @@ public class TabCompleter
          * entire line to do our work.
          */
          String wholeLine = Readline.getLineBuffer();
-        
+         
         /*
          * Now, take the line and find the name of the object that the user
          * is currently sitting on. Object names are multi-part because
