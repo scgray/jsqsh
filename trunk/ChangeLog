@@ -4,6 +4,9 @@ Release 0.9.5
 * Improved tab completion of object names to better understand
   object owners and schemas.
 * Added default aliases "vi" and "emacs" or \buf-edit
+* By default the \history command will now only show the first 10 lines of 
+  any SQL statement. The -a flag has been added to allow you to see the 
+  complete statements if you want.
 * Fixed OutOfMemoryError when nested SQL exceptions are returned by the server.
 * Fixed NullPointerException when running non-interactive scripts
   of SQL via the -i flag.

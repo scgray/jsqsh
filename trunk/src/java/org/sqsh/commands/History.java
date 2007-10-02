@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.Option;
 import org.sqsh.BufferManager;
 import org.sqsh.Command;
 import org.sqsh.Session;
@@ -34,10 +35,13 @@ public class History
     
    private static class Options {
         
+        @Option(name="-a",usage="Show all of every SQL statement")
+            public boolean showAll = false;
+        
         @Argument
             public List<String> arguments = new ArrayList<String>();
     }
-
+    
     @Override
     public int execute (Session session, String[] argv)
         throws Exception {
@@ -78,8 +82,17 @@ public class History
                     }
                 }
                 
-                sb.append(iter.next());
-                sb.append(lineSep);
+                if (options.showAll == false && line > 10) {
+                    
+                    sb.append("...");
+                    sb.append(lineSep);
+                    break;
+                }
+                else {
+                
+                    sb.append(iter.next());
+                    sb.append(lineSep);
+                }
             }
             
             session.out.print(sb.toString());
