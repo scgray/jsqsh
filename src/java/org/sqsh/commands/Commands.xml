@@ -660,4 +660,33 @@ SEE ALSO
    buffers
         ]]></Help>
     </Command>
+    
+    <Command name="\eval" class="org.sqsh.commands.Eval">
+        <Description>Read and execute an input file full of SQL</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \eval filename
+              
+DESCRIPTION
+   The \eval command reads in and processes a file full of SQL in the context
+   of the current session. That is, it treats the SQL and/or sqsh commands 
+   contained in the file as if you had typed them at the prompt. The one 
+   exception to this rule is that the SQL contained in the file will not be
+   added to your SQL history.
+   
+ALIASES
+   This command is automatically aliased to ":e", so that you may do:
+   
+      :e filename
+      
+   at the prompt.
+   
+OPTIONS
+   filename  The name of the file to execute.
+   
+SEE ALSO
+   \buf-load
+        ]]></Help>
+    </Command>
 </Commands>

@@ -1,4 +1,5 @@
 Release 0.9.5
+* Added \eval command to read and process the contents of a file.
 * Added tab completion of procedure names.
 * Improved tab completion of object names to better understand
   object owners and schemas.
