@@ -18,7 +18,11 @@
 package org.sqsh;
 
 import java.io.PrintStream;
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLWarning;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -130,56 +134,6 @@ public abstract class Command
         
         CmdLineParser parser = new CmdLineParser(options);
         parser.printUsage(session.err);
-    }
-    
-    /**
-     * Helper method to allow all commands to output SQLExceptions
-     * in a consistent fashion.
-     * 
-     * @param out The stream to write to.
-     * @param e The exception.
-     */
-    public void printException(PrintStream out, SQLException e) {
-        
-        StringBuilder sb = new StringBuilder();
-        String lineSep = System.getProperty("line.separator");
-        int indent;
-        int start;
-        
-        sb.append("SQL Exception(s) Encountered: ").append(lineSep);
-        while (e != null) {
-            
-            start = sb.length();
-            sb.append("[State: ");
-            sb.append(e.getSQLState());
-        	sb.append("][Code: ");
-        	sb.append(e.getErrorCode() + "]: ");
-        	
-        	indent = sb.length() - start;
-        	
-        	LineIterator iter = new WordWrapLineIterator(e.getMessage(),
-        	    79 - indent);
-        	
-        	int line = 0;
-        	while (iter.hasNext()) {
-        	    
-        	    if (line > 0) {
-        	        
-        	        for (int i = 0; i < indent; i++) {
-        	            
-        	            sb.append(' ');
-        	        }
-        	    }
-        	    
-        	    sb.append(iter.next());
-        	    sb.append(lineSep);
-        	    ++line;
-        	}
-            
-            e = e.getNextException();
-        }
-        
-        out.println(sb.toString());
     }
     
     /**

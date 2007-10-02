@@ -17,7 +17,6 @@
  */
 package org.sqsh.commands;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,12 +26,11 @@ import java.util.Map;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.sqsh.Command;
-import org.sqsh.SQLAnalyzer;
 import org.sqsh.SQLContext;
 import org.sqsh.SQLDriver;
+import org.sqsh.SQLTools;
 import org.sqsh.Session;
 import org.sqsh.SqshContextSwitchMessage;
-import org.sqsh.analyzers.ANSIAnalyzer;
 
 public class Connect
     extends Command {
@@ -173,7 +171,7 @@ public class Connect
         }
         catch (SQLException e) {
             
-            printException(session.err, e);
+            SQLTools.printException(session.err, e);
         }
         
         return 0;

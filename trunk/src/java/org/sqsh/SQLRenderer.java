@@ -121,6 +121,8 @@ public class SQLRenderer {
         try {
             
             statement = conn.createStatement();
+            SQLTools.printWarnings(session.err, conn);
+            
             if (maxRows > 0) {
                 
                 statement.setMaxRows(maxRows);
@@ -134,9 +136,13 @@ public class SQLRenderer {
             session.getSignalManager().push(sigHandler);
             
             statement.execute(sql);
+            SQLTools.printWarnings(session.err, statement);
+            
             while (!done) {
                 
                 resultSet = statement.getResultSet();
+                SQLTools.printWarnings(session.err, statement);
+                
                 if (resultSet != null) {
                     
                     nRows = displayResults(session, resultSet, null);
@@ -158,6 +164,8 @@ public class SQLRenderer {
                 else {
                     
                     nRows = statement.getUpdateCount();
+                    SQLTools.printWarnings(session.err, statement);
+                    
                     if (nRows >= 0) {
                         
                         session.out.print(nRows + " row"
@@ -172,7 +180,8 @@ public class SQLRenderer {
                 
                 if (statement.getMoreResults() == false
                         && statement.getUpdateCount() < 0) {
-                        
+                    
+                    SQLTools.printWarnings(session.err, statement);
                     endTime = System.currentTimeMillis();
                     
                     if (firstRowTime > 0L) {
@@ -201,32 +210,8 @@ public class SQLRenderer {
                 session.getSignalManager().pop();
             }
             
-            /*
-             * Clean up our statement and result set.
-             */
-            if (statement != null) {
-                
-                try {
-                    
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    
-                    /* IGNORED */
-                }
-            }
-            
-            if (resultSet != null) {
-                
-                try {
-                    
-                    resultSet.close();
-                }
-                catch (SQLException e) {
-                    
-                    /* IGNORED */
-                }
-            }
+            SQLTools.close(resultSet);
+            SQLTools.close(statement);
         }
     }
     
@@ -243,6 +228,8 @@ public class SQLRenderer {
             Set<Integer>displayCols)
         throws SQLException {
         
+        SQLTools.printWarnings(session.err, resultSet);
+        
         ColumnDescription []columns = getDescription(resultSet, displayCols);
         int nCols = resultSet.getMetaData().getColumnCount();
         Renderer  renderer = 
@@ -251,6 +238,8 @@ public class SQLRenderer {
         int rowCount = 0;
         
         while (resultSet.next()) {
+            
+            SQLTools.printWarnings(session.err, resultSet);
             
             ++rowCount;
             if (firstRowTime == 0L && rowCount == 1) {
