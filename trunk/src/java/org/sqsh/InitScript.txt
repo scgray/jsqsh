@@ -3,6 +3,8 @@
 ## standard settings.
 ##
 \alias '\edit=\buf-edit'
+\alias 'vi=\buf-edit'
+\alias 'emacs=\buf-edit'
 \alias 'quit=\quit'
 \alias 'go=\go'
 \alias '\dbs=\databases'

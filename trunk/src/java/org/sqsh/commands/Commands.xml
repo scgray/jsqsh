@@ -409,6 +409,9 @@ DESCRIPTION
    operating system in which sqsh is executing. Specifically, windows
    platforms will attempt to execute 'notepad.exe' while other platforms
    will attempt to run 'vi'.
+ 
+ALIASES 
+   By default the \buf-edit command is aliased to 'vi' and 'emacs'.
            
 OPTIONS
    src-buf   Indicates which buffer should be edited. If no src-buf is 
