@@ -28,6 +28,7 @@ import org.sqsh.CannotSetValueError;
 import org.sqsh.Command;
 import org.sqsh.SQLContext;
 import org.sqsh.SQLRenderer;
+import org.sqsh.SQLTools;
 import org.sqsh.Session;
 
 
@@ -104,7 +105,7 @@ public class Go
         }
         catch (SQLException e) {
             
-            printException(session.err, e);
+            SQLTools.printException(session.err, e);
         }
         finally {
             

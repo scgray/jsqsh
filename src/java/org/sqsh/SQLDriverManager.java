@@ -348,6 +348,7 @@ public class SQLDriverManager {
             props.put(SQLDriver.PASSWORD_PROPERTY, s);
             
             conn = jdbcDriver.connect(url, props);
+            SQLTools.printWarnings(session.err, conn);
         }
         catch (SQLException e) {
             
@@ -369,6 +370,7 @@ public class SQLDriverManager {
             try {
                 
                 conn.setCatalog(database);
+                SQLTools.printWarnings(session.err, conn);
             }
             catch (SQLException e) {
                 
@@ -380,6 +382,7 @@ public class SQLDriverManager {
         try {
                 
             conn.setAutoCommit(defaultAutoCommit);
+            SQLTools.printWarnings(session.err, conn);
         }
         catch (SQLException e) {
             
