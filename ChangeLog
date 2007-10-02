@@ -3,6 +3,7 @@ Release 0.9.5
 * Added tab completion of procedure names.
 * Improved tab completion of object names to better understand
   object owners and schemas.
+* Added default aliases "vi" and "emacs" or \buf-edit
 * Fixed OutOfMemoryError when nested SQL exceptions are returned by the server.
 * Fixed NullPointerException when running non-interactive scripts
   of SQL via the -i flag.
