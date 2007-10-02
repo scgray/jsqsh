@@ -111,13 +111,15 @@ SEE ALSO
         ]]></Description>
             <Help><![CDATA[
 SYNOPSIS
-   \history
+   \history [-a]
               
 DESCRIPTION
    Displays a history of SQL statements executed.
            
 OPTIONS:
-   None
+   -a    Show all of every SQL statement executed. If this flag is not
+         provided only the first 10 lines of any SQL statement will be
+         displayed.
            ]]></Help>
     </Command>
     
