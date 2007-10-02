@@ -7,6 +7,7 @@
 \alias 'go=\go'
 \alias '\dbs=\databases'
 \alias ':r=\buf-load'
+\alias ':e=\eval'
 ##
 ## The version number is set by the ant build process that packages
 ## this file up into a jar.
