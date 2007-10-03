@@ -86,6 +86,16 @@ public class Go
         String sql = bufferMan.getCurrent().toString();
         
         /*
+        SQLTools.TableReference []refs =
+            SQLTools.getTableReferences(sql, false);
+        for (int i = 0; i < refs.length; i++) {
+            
+            System.out.println(refs[i].getTable() + " as " 
+                + refs[i].getAlias());
+        }
+        */
+        
+        /*
          * If this is an interactive session, then we create a new
          * buffer to work with, otherwise we just re-use the current
          * buffer.

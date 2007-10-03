@@ -23,7 +23,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
-
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class provides a bunch of static methods that help process
@@ -279,5 +280,246 @@ public class SQLTools {
         
         out.print(sb.toString());
         out.flush();
+    }
+    
+    /**
+     * Given a SQL statement or batch of SQL statements, this method
+     * performs a <b>very</b> loose parse of the SQL attempting to determine
+     * tables that are referenced within the INSERT, SELECT, UPDATE, and
+     * DELETE clauses contained therein. I must stress the looseness of
+     * this parsing, it is very sloppy and is only a best-guess logic
+     * at best.
+     * 
+     * @param sql The SQL statement to be parsed.
+     * @param allStatements If true, then table names referenced in all
+     *   SQL statements will be returned, otherwise just the last statement
+     *   in the batch will be considered.
+     * @return A list of tables references in the SQL (if they can be found)
+     * and empty list will be returned otherwise.
+     */
+    public static TableReference[] getTableReferences(String sql,
+            boolean allStatements) {
+        
+        List<TableReference> tableRefs = new ArrayList<TableReference>();
+        SimpleSQLTokenizer tokenizer = new SimpleSQLTokenizer(sql);
+        
+        /*
+         * We keep track of whether or not we are nested in a set of
+         * parentheses. If we are, then we assume we could be part of
+         * a sub-query. If we are not, then we clear our current set of
+         * table references for each new INSERT/UPDATE/DELETE/SELECT we
+         * hit.
+         */
+        int parenCount = 0;
+        
+        String token = tokenizer.next();
+        while (token != null) {
+            
+            if ("DELETE".compareToIgnoreCase(token) == 0) {
+                
+                if (allStatements == false
+                        && parenCount == 0) {
+                    
+                    tableRefs.clear();
+                }
+                doDelete(tableRefs, tokenizer);
+            }
+            else if ("SELECT".compareToIgnoreCase(token) == 0) {
+                
+                if (allStatements == false
+                        && parenCount == 0) {
+                    
+                    tableRefs.clear();
+                }
+            }
+            else if ("UPDATE".compareToIgnoreCase(token) == 0
+                    || "INSERT".compareToIgnoreCase(token) == 0) {
+                
+                if (allStatements == false 
+                        && parenCount == 0) {
+                    
+                    tableRefs.clear();
+                }
+                
+                doInsertUpdate(tableRefs, tokenizer);
+            }
+            else if ("FROM".compareToIgnoreCase(token) == 0) {
+                
+                doFrom(tableRefs, tokenizer);
+            }
+            else if ("(".equals(token)) {
+                
+                ++parenCount;
+            }
+            else if (")".equals(token)) {
+                
+                --parenCount;
+            }
+            
+            token = tokenizer.next();
+        }
+        
+        return tableRefs.toArray(new TableReference[0]);
+    }
+    
+    /**
+     * Called after the tokenizer hits a DELETE statement and attempts
+     * to determine the table name that is being deleted.
+     * 
+     * @param tableRefs The list of references found thus far.
+     * @param tokenizer The current parsing state.
+     */
+    private static void doDelete(List<TableReference>tableRefs, 
+            SimpleSQLTokenizer tokenizer) {
+        
+        String token = tokenizer.next();
+        if (token != null && "FROM".compareToIgnoreCase(token) == 0) {
+            
+            token = tokenizer.next();
+        }
+        
+        if (token != null) {
+            
+            tableRefs.add(new TableReference(
+                doObjectName(tokenizer, token), null));
+        }
+    }
+    
+    /**
+     * Called after the tokenizer hits an INSERT/UPDATE statement and attempts
+     * to determine the table name that is being updated or inserted into.
+     * 
+     * @param tableRefs The list of references found thus far.
+     * @param tokenizer The current parsing state.
+     */
+    private static void doInsertUpdate(List<TableReference>tableRefs, 
+            SimpleSQLTokenizer tokenizer) {
+        
+        String token = tokenizer.next();
+        if (token != null) {
+            
+            tableRefs.add(new TableReference(
+                doObjectName(tokenizer, token), null));
+        }
+    }
+    
+    /**
+     * Called after the tokenizer hits a FROM clause and attempts
+     * to determine the tables that are being selected from. Currently
+     * this parser cannot understand ANSI inner/outer join syntax.
+     * 
+     * @param tableRefs The list of references found thus far.
+     * @param tokenizer The current parsing state.
+     */
+    private static void doFrom(List<TableReference>tableRefs, 
+            SimpleSQLTokenizer tokenizer) {
+        
+        String token = tokenizer.next();
+        boolean done = false;
+        while (token != null && !done) {
+            
+            String table = null;
+            String alias = null;
+            
+            char ch = token.charAt(0);
+            if (Character.isLetter(ch) || ch == '_') {
+                
+                table = doObjectName(tokenizer, token);
+                
+                token = tokenizer.next();
+                if (token != null && "as".compareToIgnoreCase(token) == 0) {
+                    
+                    token = tokenizer.next();
+                }
+                
+                if (token != null) {
+                    
+                    alias = token;
+                }
+                
+                token = tokenizer.next();
+                if (!token.equals(",")) {
+                    
+                    done = true;
+                }
+                
+                tableRefs.add(new TableReference(table, alias));
+            }
+            else {
+                
+                done = true;
+            }
+        }
+        
+        if (token != null) {
+            
+            tokenizer.unget(token);
+        }
+    }
+    
+    
+    /**
+     * Called when the parser has hit an object it thinks is the name of
+     * a database object. This purpose of this method is to try to see
+     * if the object is a multi.part.name and will take care of sucking
+     * in the rest of the name.
+     * 
+     * @param tokenizer The tokenizer
+     * @param name The object name (or at least the first part)
+     * @return The full object.name.
+     */
+    private static String doObjectName(
+            SimpleSQLTokenizer tokenizer, String name) {
+        
+        String token = tokenizer.next();
+        if (token != null && token.equals(".")) {
+            
+            StringBuilder sb = new StringBuilder(name);
+            while (token != null && token.equals(".")) {
+                
+                sb.append('.');
+                token = tokenizer.next();
+                if (token != null) {
+                    
+                    sb.append(token);
+                }
+                
+                token = tokenizer.next();
+            }
+            
+            name = sb.toString();
+        }
+        
+        if (token != null) {
+            
+            tokenizer.unget(token);
+        }
+        return name;
+    }
+    
+    /**
+     * This class is used by getTableReferences() to return the set
+     * of tables that are referenced by a SQL statement.
+     */
+    public static class TableReference {
+        
+        private String table;
+        private String alias;
+        
+        public TableReference (String table, String alias) {
+            
+            this.table = table;
+            this.alias = alias;
+        }
+        
+        public String getTable() {
+            
+            return table;
+        }
+        
+        public String getAlias() {
+            
+            return alias;
+        }
     }
 }
