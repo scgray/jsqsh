@@ -21,8 +21,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -41,7 +43,6 @@ public class TabCompleter
     private SqshContext sqshContext;
     private Iterator<String> iter = null;
     private QuoteType  quote = QuoteType.NONE;
-    
     
     public TabCompleter(SqshContext ctx) {
         
@@ -94,8 +95,46 @@ public class TabCompleter
          * to figure out the whole object name, so we will use the
          * entire line to do our work.
          */
-         String wholeLine = Readline.getLineBuffer();
-         
+        String wholeLine = Readline.getLineBuffer();
+        
+        /*
+         * Now for the hard part. We need to try to figure out where 
+         * the user is currently sitting in the line. There is a native
+         * readline call to do this, but it hasn't been exposed via JNI, so
+         * I'll try to make a guess m'self.
+         */
+        if (word != null && word.length() > 0) {
+            
+            /*
+             * Our logic to find the location of our word is to start at the
+             * end of the entire line and search backwards looking for it.
+             * When we find the word we ensure that the character previous
+             * to the word is one of the word separators that we declared
+             * in SqshContext.java. If it is not one of those characters 
+             * we keep moving backwards.
+             */
+            boolean done = false;
+            int idx = wholeLine.lastIndexOf(word);
+            while (!done && idx >= 0) {
+                
+                if (idx == 0
+                   || " \t,/.()<>=?".indexOf(wholeLine.charAt(idx-1)) >= 0) {
+                    
+                    done = true;
+                }
+                else {
+                
+                    idx = wholeLine.lastIndexOf(word, idx - 1);
+                }
+            }
+            
+            if (idx >= 0) {
+                
+                idx += word.length();
+                wholeLine = wholeLine.substring(0, idx);
+            }
+        }
+        
         /*
          * Now, take the line and find the name of the object that the user
          * is currently sitting on. Object names are multi-part because
