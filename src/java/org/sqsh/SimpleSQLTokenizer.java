@@ -195,8 +195,6 @@ public class SimpleSQLTokenizer {
             char ch = sql.charAt(idx);
             if (ch == quote) {
                 
-                ++idx;
-                
                 /*
                  * If we hit a doubled quote (e.g. '' or "") then it
                  * is escaped and we aren't done yet.
@@ -204,10 +202,11 @@ public class SimpleSQLTokenizer {
                 if (nextChar() == quote) {
                     
                     sb.append(quote);
-                    ++idx;
+                    idx += 2;
                 }
                 else {
                     
+                    ++idx;
                     done = true;
                 }
             }
