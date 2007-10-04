@@ -28,6 +28,7 @@ import java.util.TreeSet;
 
 import org.gnu.readline.Readline;
 import org.gnu.readline.ReadlineCompleter;
+import org.sqsh.parser.TableReference;
 
 /**
  * Responsible for doing completion when the user hits the completion key.
@@ -103,8 +104,7 @@ public class TabCompleter
          */
         String sql =  sqshContext.getCurrentSession().getBufferManager()
             .getCurrent().toString() + wholeLine;
-        SQLTools.TableReference []tableRefs = 
-            SQLTools.getTableReferences(sql, false);
+        TableReference []tableRefs = new TableReference[0];
         
         /*
          * Now for the hard part. We need to try to figure out where 
@@ -399,10 +399,10 @@ public class TabCompleter
      * @param columnPrefix the portion of the column name entered so far.
      */
     private void getColumns(Set<String> set, Connection conn,
-            String catalog,  SQLTools.TableReference []tableRefs,
+            String catalog,  TableReference []tableRefs,
             String alias, String columnPrefix) {
         
-        for (SQLTools.TableReference ref : tableRefs) {
+        for (TableReference ref : tableRefs) {
             
             if (alias == null
                     || (alias != null && alias.equals(ref.getAlias()))) {

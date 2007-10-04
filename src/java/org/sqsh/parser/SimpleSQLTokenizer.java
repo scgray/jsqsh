@@ -15,7 +15,7 @@
  * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
  * Cambridge, MA 02139, USA.
  */
-package org.sqsh;
+package org.sqsh.parser;
 
 import java.util.Stack;
 
@@ -30,6 +30,11 @@ public class SimpleSQLTokenizer {
     private String sql;
     private int len;
     private int idx;
+    
+    /**
+     * How far nested in parentheses are we?
+     */
+    private int parenCount = 0;
     
     private Stack<String> tokens = new Stack<String>();
     
@@ -50,7 +55,17 @@ public class SimpleSQLTokenizer {
         
         if (tokens.isEmpty() == false) {
             
-            return tokens.pop();
+            String s = tokens.pop();
+            if (s.equals("(")) {
+                
+                ++parenCount;
+            }
+            else if (s.equals(")")) {
+                
+                --parenCount;
+            }
+            
+            return s;
         }
         
         /*
@@ -95,6 +110,15 @@ public class SimpleSQLTokenizer {
         }
         else {
             
+            if (ch == '(') {
+                
+                ++parenCount;
+            }
+            else if (ch == ')') {
+                
+                --parenCount;
+            }
+            
             StringBuilder sb = new StringBuilder(1);
             sb.append(ch);
             ++idx;
@@ -109,7 +133,36 @@ public class SimpleSQLTokenizer {
      */
     public void unget(String token) {
         
+        /*
+         * By "ungetting" an open paren, then means we have to undo
+         * our nesting depth.
+         */
+        if (token.equals("(")) {
+            
+            if (parenCount > 0) {
+                
+                --parenCount;
+            }
+        }
+        else if (token.equals(")")) {
+            
+            /*
+             * Same for the closing paren.
+             */
+            ++parenCount;
+        }
+        
         tokens.push(token);
+    }
+    
+    /**
+     * Returns how far nested inside of parentheses the parser is.
+     * 
+     * @return The parentheses nesting level.
+     */
+    public int getParenCount() {
+        
+        return parenCount;
     }
     
     /**
