@@ -21,10 +21,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -98,6 +96,17 @@ public class TabCompleter
         String wholeLine = Readline.getLineBuffer();
         
         /*
+         * To make our tab completion a little bit smarter we are going to 
+         * try to parse out the current SQl statement and pull out the 
+         * tables that it is referencing. From these we can smartly 
+         * complete column names.
+         */
+        String sql =  sqshContext.getCurrentSession().getBufferManager()
+            .getCurrent().toString() + wholeLine;
+        SQLTools.TableReference []tableRefs = 
+            SQLTools.getTableReferences(sql, false);
+        
+        /*
          * Now for the hard part. We need to try to figure out where 
          * the user is currently sitting in the line. There is a native
          * readline call to do this, but it hasn't been exposed via JNI, so
@@ -159,24 +168,23 @@ public class TabCompleter
         String catalog = getCurrentCatalog(conn);
         
         /*
-        System.out.println();
-        for (int i = 0; i < parts.length; i++) {
-            
-            System.out.println("#" + i + " = " + parts[i]);
-        }
-        */
-        
-        /*
          * A single name could be:
          *   1. Catalog name
          *   2. Table name
          *   3. Procedure name
+         *   4. Column name (only if we have enough SQL to actually reference 
+         *        the table that the SQL is referring to).
          */
         if (parts.length == 1) {
             
             getCatalogs(set, conn, parts[0]);
             getTables(set, conn, catalog, "%", parts[0]);
             getProcedures(set, conn, catalog, "%", parts[0]);
+            
+            if (tableRefs.length > 0) {
+                
+                getColumns(set, conn, catalog, tableRefs, null, parts[0]);
+            }
         }
         else if (parts.length == 2) {
            
@@ -187,13 +195,20 @@ public class TabCompleter
              *    2. table.column
              *    3. schema.table
              *    4. schema.procedure
+             *    5. alias.column (only if we have a FROM clause
+             *         that could have defined the table alias) 
              *    
              *  For now I am going to skip #1 since I don't have a convenient
              *  way (in JDK 5) to ask for a list of schema in a catalog.
              */
-            getColumns(set, conn, catalog, null, parts[0], parts[1]);
+            getColumns(set, conn, catalog, (String) null, parts[0], parts[1]);
             getTables(set, conn, catalog, parts[0], parts[1]);
             getProcedures(set, conn, catalog, parts[0], parts[1]);
+            
+            if (tableRefs.length > 0) {
+                
+                getColumns(set, conn, catalog, tableRefs, parts[0], parts[1]);
+            }
         }
         else if (parts.length == 3) {
             
@@ -362,6 +377,44 @@ public class TabCompleter
             /* IGNORED */
         }
     }
+    
+    /**
+     * This method is used to look up available columns based upon tables
+     * that are referenced within the current SQL statement.  That is,
+     * if the user does:
+     * <pre>
+     *   select count(*) from master..sysobjects as o where o.i<tab>
+     * </pre>
+     * this logic will see the 'o.' as a reference to the alias to 
+     * master..sysobjects and will attempt to look for all columns 
+     * that start with 'i'.
+     * 
+     * @param set The set that the table names will be added to.
+     * @param conn The connection to use.
+     * @param catalog The catalog to look in.
+     * @param tableRefs The set of table names and aliases that are
+     *   contained in the SQL
+     * @param alias If non-null the alias name by which the table
+     *   is being referred.
+     * @param columnPrefix the portion of the column name entered so far.
+     */
+    private void getColumns(Set<String> set, Connection conn,
+            String catalog,  SQLTools.TableReference []tableRefs,
+            String alias, String columnPrefix) {
+        
+        for (SQLTools.TableReference ref : tableRefs) {
+            
+            if (alias == null
+                    || (alias != null && alias.equals(ref.getAlias()))) {
+                
+                getColumns(set, conn, 
+                    (ref.getDatabase() == null ? catalog : ref.getDatabase()),
+                    (ref.getOwner() == null ? "%" : ref.getOwner()),
+                    ref.getTable(),  columnPrefix);
+            }
+        }
+    }
+    
     
     /**
      * Gathers the set of tables that matches requested criteria

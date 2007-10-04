@@ -380,8 +380,7 @@ public class SQLTools {
         
         if (token != null) {
             
-            tableRefs.add(new TableReference(
-                doObjectName(tokenizer, token), null));
+            tableRefs.add(doObjectName(tokenizer, token));
         }
     }
     
@@ -398,8 +397,7 @@ public class SQLTools {
         String token = tokenizer.next();
         if (token != null) {
             
-            tableRefs.add(new TableReference(
-                doObjectName(tokenizer, token), null));
+            tableRefs.add(doObjectName(tokenizer, token));
         }
     }
     
@@ -418,32 +416,70 @@ public class SQLTools {
         boolean done = false;
         while (token != null && !done) {
             
-            String table = null;
-            String alias = null;
+            TableReference table = null;
             
+            /*
+             * The starting token is expected to be the name of an
+             * object that we are selecting from.
+             */
             char ch = token.charAt(0);
             if (Character.isLetter(ch) || ch == '_') {
                 
                 table = doObjectName(tokenizer, token);
                 
+                /*
+                 * Next we could have the keyword 'as', if so, ignore it.
+                 */
                 token = tokenizer.next();
-                if (token != null && "as".compareToIgnoreCase(token) == 0) {
+                if (token != null
+                        && "AS".compareToIgnoreCase(token) == 0) {
                     
                     token = tokenizer.next();
                 }
                 
-                if (token != null) {
+                /*
+                 * Next we could have the alias for the table.
+                 */
+                if (token != null
+                        && "WHERE".compareToIgnoreCase(token) != 0
+                        && (token.charAt(0) == '_'
+                            || Character.isLetter(token.charAt(0)))) {
                     
-                    alias = token;
+                    table.setAlias(token);
+                    token = tokenizer.next();
                 }
                 
-                token = tokenizer.next();
-                if (!token.equals(",")) {
+                /*
+                 * At this point we have parsed:
+                 *     FROM table [AS alias]
+                 * At this point I am going to skip forward until I hit 
+                 * a comma or a WHERE. I do this because some databases
+                 * allow for hints and various other alterations following
+                 * the table name and I don't want to worry about the 
+                 * specifics of that syntax.
+                 * 
+                 * Basically, this allows for logic that handles:
+                 * 
+                 *    FROM table [AS ALIAS] [STUFF], table ...
+                 */
+                while (token != null 
+                        && "WHERE".compareToIgnoreCase(token) != 0
+                        && token.equals(",") == false) {
+                            
+                    token = tokenizer.next();
+                }
+                
+                if (token != null
+                        && token.equals(",")) {
+                    
+                    token = tokenizer.next();
+                }
+                else {
                     
                     done = true;
                 }
                 
-                tableRefs.add(new TableReference(table, alias));
+                tableRefs.add(table);
             }
             else {
                 
@@ -468,33 +504,60 @@ public class SQLTools {
      * @param name The object name (or at least the first part)
      * @return The full object.name.
      */
-    private static String doObjectName(
+    private static TableReference doObjectName(
             SimpleSQLTokenizer tokenizer, String name) {
+        
+        List<String> parts = new ArrayList<String>();
+        parts.add(name);
         
         String token = tokenizer.next();
         if (token != null && token.equals(".")) {
             
-            StringBuilder sb = new StringBuilder(name);
             while (token != null && token.equals(".")) {
                 
-                sb.append('.');
                 token = tokenizer.next();
                 if (token != null) {
                     
-                    sb.append(token);
+                    if (token.equals(".")) {
+                        
+                        parts.add("");
+                        tokenizer.unget(token);
+                    }
+                    else {
+                        
+                        parts.add(token);
+                    }
+                    
+                    token = tokenizer.next();
                 }
-                
-                token = tokenizer.next();
             }
-            
-            name = sb.toString();
         }
         
         if (token != null) {
             
             tokenizer.unget(token);
         }
-        return name;
+        
+        String catalog = null;
+        String owner = null;
+        String table = null;
+        if (parts.size() == 1) {
+            
+            table = parts.get(0);
+        }
+        else if (parts.size() == 2) {
+            
+            owner = parts.get(0);
+            table = parts.get(1);
+        }
+        else if (parts.size() == 3) {
+            
+            catalog = parts.get(0);
+            owner = parts.get(1);
+            table = parts.get(2);
+        }
+        
+        return new TableReference(catalog, owner, table);
     }
     
     /**
@@ -503,13 +566,26 @@ public class SQLTools {
      */
     public static class TableReference {
         
+        private String database;
+        private String owner;
         private String table;
         private String alias;
         
-        public TableReference (String table, String alias) {
+        public TableReference (String database, String owner, String table) {
             
+            this.database = database;
+            this.owner = owner;
             this.table = table;
-            this.alias = alias;
+        }
+    
+        public String getDatabase() {
+            
+            return database;
+        }
+        
+        public String getOwner() {
+            
+            return owner;
         }
         
         public String getTable() {
@@ -520,6 +596,11 @@ public class SQLTools {
         public String getAlias() {
             
             return alias;
+        }
+        
+        public void setAlias(String alias) {
+            
+            this.alias = alias;
         }
     }
 }
