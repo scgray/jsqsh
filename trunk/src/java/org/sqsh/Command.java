@@ -17,15 +17,6 @@
  */
 package org.sqsh;
 
-import java.io.PrintStream;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.SQLWarning;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.logging.Logger;
 
 import org.kohsuke.args4j.CmdLineException;

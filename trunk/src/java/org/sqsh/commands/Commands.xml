@@ -695,22 +695,17 @@ SEE ALSO
         ]]></Help>
     </Command>
     
-    <Command name="\table-refs" class="org.sqsh.commands.TableRefs">
+    <Command name="\parse" class="org.sqsh.commands.Parse">
         <Description>(Internal) Used to test SQL parsing</Description>
            
         <Help><![CDATA[
 SYNOPSIS
-   \table-refs
+   \parse
               
 DESCRIPTION
-   The \table-refs command is used internally for sqsh development. It
-   is used to parse the contents of the current SQL buffer to try to determine
-   the name of the table(s) that are being referenced by the current SQL 
-   statement.  This logic is used during tab completion; when you hit the tab
-   key, the same logic attempts to find the tables that are  referenced 
-   by the current SQL statement so that the completion of column names can
-   be smarter.  This command exists so that I can easily test the behavior
-   of this parsing logic.
+   The \parse command is used internally for sqsh development. It
+   is used to parse the contents of the current SQL buffer which is
+   a component of the tab completion logic.
    
 OPTIONS
    None.
