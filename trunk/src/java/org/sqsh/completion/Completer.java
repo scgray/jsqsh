@@ -94,5 +94,5 @@ public abstract class Completer {
      * @return The next available completion word or null if no more
      *   words are to be found.
      */
-    abstract String next();
+    public abstract String next();
 }
