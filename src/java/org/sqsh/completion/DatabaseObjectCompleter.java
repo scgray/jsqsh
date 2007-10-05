@@ -116,10 +116,18 @@ public class DatabaseObjectCompleter
             
             completions = getAllCompletions(nameParts);
         }
+        else {
+            
+            completions = getReferencedCompletions(tableRefs, nameParts);
+        }
         
         if (completions != null) {
             
             iter = completions.iterator();
+        }
+        else {
+            
+            iter = null;
         }
     }
     
@@ -160,63 +168,284 @@ public class DatabaseObjectCompleter
         String catalog = getCurrentCatalog(conn);
         
         /*
-         * A single name could be:
-         *   1. Catalog name
-         *   2. Table name
-         *   3. Procedure name
+         * If nothing was entered, then it could be anything, really.
          */
         if (nameParts.length == 0) {
             
+            getReferencedAliases(set, tableRefs, null);
             getReferencedCatalogs(set, tableRefs, null);
+            getReferencedSchemas(set, tableRefs, null, null);
+            getReferencedTables(set, tableRefs, null, null, null);
+            getReferencedColumns(set, tableRefs, null, null, null, null);
         }
         else  if (nameParts.length == 1) {
             
-            getCatalogs(set, conn, nameParts[0]);
-            getTables(set, conn, catalog, "%", nameParts[0]);
-            getProcedures(set, conn, catalog, "%", nameParts[0]);
+            /*
+             * 1. alias
+             * 2. catalog
+             * 3. schema
+             * 4. table
+             * 5. column
+             */
+            getReferencedAliases(set, tableRefs, nameParts[0]);
+            getReferencedCatalogs(set, tableRefs, nameParts[0]);
+            getReferencedSchemas(set, tableRefs, null, nameParts[0]);
+            getReferencedTables(set, tableRefs, null, null, nameParts[0]);
+            getReferencedColumns(set, tableRefs, null, null, null, nameParts[0]);
         }
         else if (nameParts.length == 2) {
            
             /*
-             * If we have two parts ("name.name") we could have:
-             * 
-             *    1. catalog.schema
-             *    2. table.column
-             *    3. schema.table
-             *    4. schema.procedure
-             *    
-             *  For now I am going to skip #1 since I don't have a convenient
-             *  way (in JDK 5) to ask for a list of schema in a catalog.
+             * 1. alias.column
+             * 2. catalog.schema
+             * 2. schema.table
+             * 3. table.column
              */
-            getColumns(set, conn, catalog, (String) null, nameParts[0],
-                nameParts[1]);
-            getTables(set, conn, catalog, nameParts[0], nameParts[1]);
-            getProcedures(set, conn, catalog, nameParts[0], nameParts[1]);
+            getReferencedColumns(set, tableRefs, nameParts[0], nameParts[1]);
+            getReferencedSchemas(set, tableRefs, nameParts[0], nameParts[1]);
+            getReferencedTables(set, tableRefs, null, nameParts[0], nameParts[1]);
+            getReferencedColumns(set, tableRefs, null, null,
+                nameParts[0], nameParts[1]);
         }
         else if (nameParts.length == 3) {
             
             /*
-             * Three parts could be:
-             * 
-             *    1. catalog.schema.table
-             *    2. catalog.schema.procedure
-             *    3. schema.table.column
+             * 1. catalog.schema.table
+             * 2. schema.table.column
              */
-            getTables(set, conn, nameParts[0], nameParts[1], nameParts[2]);
-            getProcedures(set, conn, nameParts[0], nameParts[1], nameParts[2]);
-            getColumns(set, conn, catalog, nameParts[0], nameParts[1],
-                nameParts[2]);
+            getReferencedTables(set, tableRefs,
+                nameParts[0], nameParts[1], nameParts[2]);
+            getReferencedColumns(set, tableRefs, null, 
+                nameParts[0], nameParts[1], nameParts[2]);
         }
         else if (nameParts.length == 4) {
             
-            /*
-             * database.table.owner.column
-             */
-            getColumns(set, conn, nameParts[0], nameParts[1], nameParts[2],
-                nameParts[3]);
+            getReferencedColumns(set, tableRefs, 
+                nameParts[0], nameParts[1], nameParts[2], nameParts[3]);
         }
         
         return set;
+    }
+    
+    /**
+     * Returns the set of database/catalog names that are referenced in 
+     * the current query that start with the supplied name.
+     * 
+     * @param set The place to put matches.
+     * @param tableRefs The set of tables referenced by the current query.
+     * @param name The name of the catalog the user is typing or null if
+     *   none has been entered yet.
+     */
+    protected void getReferencedCatalogs(Set<String> set, 
+            TableReference []tableRefs, String name) {
+        
+        if ("".equals(name)) {
+            
+            name = null;
+        }
+        
+        for (TableReference ref : tableRefs) {
+            
+            if (ref.getDatabase() != null) {
+                
+                if (name == null 
+                        || ref.getDatabase().startsWith(name)) {
+                
+                    set.add(ref.getDatabase());
+                }
+            }
+        }
+    }
+    
+    /**
+     * Returns the set of aliases that start with the supplied name
+     * 
+     * @param set The place to put matches.
+     * @param tableRefs The set of tables referenced by the current query.
+     */
+    protected void getReferencedAliases(Set<String> set, 
+            TableReference []tableRefs, String alias) {
+        
+        if ("".equals(alias)) {
+            
+            alias = null;
+        }
+        
+        for (TableReference ref : tableRefs) {
+            
+            if (ref.getAlias() != null) {
+                
+                if (alias == null 
+                        || ref.getAlias().startsWith(alias)) {
+                
+                    set.add(ref.getAlias());
+                }
+            }
+        }
+    }
+    
+    /**
+     * Returns the set of schema names that are referenced in 
+     * the current query that start with the supplied name.
+     * 
+     * @param set The place to put matches.
+     * @param tableRefs The set of tables referenced by the current query.
+     */
+    protected void getReferencedSchemas(Set<String> set,
+            TableReference []tableRefs, String catalog, String schema) {
+        
+        if ("".equals(catalog)) {
+            
+            catalog = null;
+        }
+        if ("".equals(schema)) {
+            
+            schema = null;
+        }
+        
+        for (TableReference ref : tableRefs) {
+            
+            if (ref.getOwner() != null) {
+            
+                if ((catalog == null && ref.getDatabase() == null)
+                    || catalog != null && catalog.equals(ref.getDatabase())) {
+                
+                    if (schema == null 
+                        || (ref.getOwner().startsWith(schema))) {
+                    
+                        set.add(ref.getOwner());
+                    }
+            	}
+            }
+        }
+    }
+    
+    /**
+     * Returns the set of schema names that are referenced in 
+     * the current query that start with the supplied name.
+     * 
+     * @param set The place to put matches.
+     * @param tableRefs The set of tables referenced by the current query.
+     */
+    protected void getReferencedTables(Set<String> set,
+            TableReference []tableRefs,
+            String catalog, String schema, String table) {
+        
+        if ("".equals(catalog)) {
+            
+            catalog = null;
+        }
+        if ("".equals(schema)) {
+            
+            schema = null;
+        }
+        if ("".equals(table)) {
+            
+            table = null;
+        }
+        
+        for (TableReference ref : tableRefs) {
+            
+            if ((catalog == null && ref.getDatabase() == null)
+                    || catalog != null && catalog.equals(ref.getDatabase())) {
+                
+                if ((schema == null && ref.getOwner() == null)
+                    || schema != null && schema.equals(ref.getOwner())) {
+                    
+                    if (table == null
+                            || ref.getTable().startsWith(table)) {
+                        
+                        set.add(ref.getTable());
+                    }
+            	}
+            }
+        }
+    }
+    
+    /**
+     * Returns the set of columns that could belong to the current request.
+     * 
+     * @param set The set of completions found thus far.
+     * @param tableRefs The tables referenced by the query.
+     * @param catalog The catalog the user listed, or null is none was provided.
+     * @param schema The schema the user listed, or null is none was provided.
+     * @param table The table the user listed, or null is none was provided.
+     * @param column The portion of the column name the user provided or null
+     *    if none was provided.
+     */
+    protected void getReferencedColumns(Set<String> set,
+            TableReference []tableRefs,
+            String catalog, String schema, String table, String column) {
+        
+        Connection conn = session.getConnection();
+        
+        if ("".equals(catalog)) {
+            
+            catalog = null;
+        }
+        if ("".equals(schema)) {
+            
+            schema = null;
+        }
+        if ("".equals(table)) {
+            
+            table = null;
+        }
+        if ("".equals(column)) {
+            
+            column = null;
+        }
+        
+        for (TableReference ref : tableRefs) {
+            
+            if (catalog == null
+                    || (catalog != null && catalog.equals(ref.getDatabase()))) {
+                
+                if (schema == null
+                    || schema != null && schema.equals(ref.getOwner())) {
+                    
+                    if (table == null
+                            || ref.getTable().equals(table)) {
+                        
+                        catalog = (catalog == null ?
+                                getCurrentCatalog(conn) : catalog);
+                        schema = (schema == null ? "%" : schema);
+                        table = ref.getTable();
+                        column = (column == null ? "" : column);
+                        
+                        getColumns(set, conn, catalog, schema, table, column);
+                    }
+            	}
+            }
+        }
+    }
+    
+    /**
+     * Another method for looking up column names.
+     * @param set
+     * @param tableRefs
+     * @param alias
+     * @param column
+     */
+    protected void getReferencedColumns(Set<String> set,
+            TableReference []tableRefs, String alias, String column) {
+        
+        Connection conn = session.getConnection();
+        
+        for (TableReference ref : tableRefs) {
+            
+            if (ref.getAlias() != null
+                    && ref.getAlias().equals(alias)) {
+                
+                String catalog = (ref.getDatabase() == null 
+                        ? getCurrentCatalog(conn) : ref.getDatabase());
+                String schema = (ref.getOwner() == null
+                        ? "%" : ref.getOwner());
+                String table = ref.getTable();
+                
+                getColumns(set, conn, catalog, schema, table, column);
+            }
+        }
     }
     
     /**
@@ -347,97 +576,6 @@ public class DatabaseObjectCompleter
         }
     }
     
-    /**
-     * Returns the set of database/catalog names that are referenced in 
-     * the current query that start with the supplied name.
-     * 
-     * @param set The place to put matches.
-     * @param tableRefs The set of tables referenced by the current query.
-     * @param name The name of the catalog the user is typing or null if
-     *   none has been entered yet.
-     */
-    protected void getReferencedCatalogs(Set<String> set, 
-            TableReference []tableRefs, String name) {
-        
-        if ("".equals(name)) {
-            
-            name = null;
-        }
-        
-        for (TableReference ref : tableRefs) {
-            
-            if (ref.getDatabase() != null) {
-                
-                if (name == null 
-                        || ref.getDatabase().startsWith(name)) {
-                
-                    set.add(ref.getDatabase());
-                }
-            }
-        }
-    }
-    
-    /**
-     * Returns the set of schema names that are referenced in 
-     * the current query that start with the supplied name.
-     * 
-     * @param set The place to put matches.
-     * @param tableRefs The set of tables referenced by the current query.
-     */
-    protected void getReferencedSchemas(Set<String> set,
-            TableReference []tableRefs, String catalog, String schema) {
-        
-        if ("".equals(catalog)) {
-            
-            catalog = null;
-        }
-        if ("".equals(schema)) {
-            
-            schema = null;
-        }
-        
-        for (TableReference ref : tableRefs) {
-            
-            if (ref.getOwner() != null) {
-            
-                if ((catalog == null && ref.getDatabase() == null)
-                    || catalog != null && catalog.equals(ref.getDatabase())) {
-                
-                    if (schema == null 
-                        || (ref.getOwner().startsWith(schema))) {
-                    
-                        set.add(ref.getOwner());
-                    }
-            	}
-            }
-        }
-    }
-    
-    /**
-     * Returns the set of schema names that are referenced in 
-     * the current query that start with the supplied name.
-     * 
-     * @param set The place to put matches.
-     * @param tableRefs The set of tables referenced by the current query.
-     */
-    protected void getReferencedTables(Set<String> set,
-            TableReference []tableRefs,
-            String catalog, String schema, String table) {
-        
-        for (TableReference ref : tableRefs) {
-            
-            if ((catalog == null && ref.getDatabase() == null)
-                    || catalog != null && catalog.equals(ref.getDatabase())) {
-                
-                if (ref.getOwner() != null
-                        && (schema == null || 
-                                ref.getOwner().startsWith(schema))) {
-                    
-                    set.add(ref.getOwner());
-                }
-            }
-        }
-    }
     
     /**
      * Gathers the set of tables that matches requested criteria
