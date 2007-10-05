@@ -33,7 +33,7 @@
            target="MS SQL Server"
            class="net.sourceforge.jtds.jdbc.Driver"
            analyzer="org.sqsh.analyzers.TSQLAnalyzer"
-           url="jdbc:jtds:sqlserver://${server}:${port}">
+           url="jdbc:jtds:sqlserver://${server}:${port}#if($domain);domain=${domain}#end">
            
        <Variable name="server">localhost</Variable>
        <Variable name="port">1433</Variable>

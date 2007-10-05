@@ -192,6 +192,11 @@ OPTIONS:
                           
    -n         Create a new session for this connect without
               closing the connection in the current session.
+              
+   -w domain  For Windows based authentication, specifies the
+              windows domain to be utilized when establishing
+              the connection. Not all JDBC drivers support this
+              functionality.
                           
    jdbc-url   An explicit JDBC url to be utilized for the 
               connection. In most cases it will be necessary

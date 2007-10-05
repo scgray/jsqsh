@@ -17,18 +17,9 @@
  */
 package org.sqsh;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.DriverPropertyInfo;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.sqsh.analyzers.ANSIAnalyzer;
@@ -46,6 +37,7 @@ public class SQLDriver
     public static String PORT_PROPERTY = "port";
     public static String DATABASE_PROPERTY = "database";
     public static String SID_PROPERTY = "SID";
+    public static String DOMAIN_PROPERTY = "domain";
     
     private SQLDriverManager driverMan = null;
     private String name = null;
