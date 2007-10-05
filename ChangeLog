@@ -1,4 +1,9 @@
 Release 0.9.5
+* Dramatically improved tab completion. It is now contextual to your position
+  within the SQL statement being written. If the FROM clause has been written
+  or the target of the INSERT/UPDATE/DELETE has been specified, then the
+  completion will restrict itself to that context. This was more difficult
+  than I expected!
 * Added \eval command to read and process the contents of a file.
 * Added tab completion of procedure names.
 * Added handling/display of SQL warnings.
