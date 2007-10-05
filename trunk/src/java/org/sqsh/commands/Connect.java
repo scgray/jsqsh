@@ -64,6 +64,9 @@ public class Connect
         @Option(name="-d",usage="Name of driver to utilize for the connection")
             public String driverName = null;
         
+        @Option(name="-w",usage="Domain to used for authentication")
+            public String domain = null;
+        
         @Argument
             public List<String> arguments = new ArrayList<String>();
     }
@@ -223,6 +226,11 @@ public class Connect
         if (options.database != null) {
             
             properties.put(SQLDriver.DATABASE_PROPERTY, options.database);
+        }
+        
+        if (options.domain != null) {
+            
+            properties.put(SQLDriver.DOMAIN_PROPERTY, options.domain);
         }
         
         return properties;
