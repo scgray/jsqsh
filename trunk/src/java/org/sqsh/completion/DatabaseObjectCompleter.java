@@ -112,7 +112,9 @@ public class DatabaseObjectCompleter
          * is still sitting in the from clause, then generate all possible
          * completions.
          */
-        if (tableRefs.length == 0 || info.isInFromClause()) {
+        if (tableRefs.length == 0 
+                || info.getCurrentClause() == null
+                || "FROM".equals(info.getCurrentClause())) {
             
             completions = getAllCompletions(nameParts);
         }
@@ -925,26 +927,25 @@ public class DatabaseObjectCompleter
         private Stack<List<TableReference>> refStack
             = new Stack<List<TableReference>>();
         
-        /**
-         * This flag is used to keep track of whether or not the FROM
-         * clause is complete. If the user is currently inside of the FROM
-         * clause then we still want to allow completion of all object
-         * names, not just names the query is referencing.
+        /*
+         * A place to push the clause in whcih a subquery is located.
          */
-        private boolean isInFromClause =  false;
+        private Stack<String> clauseStack 
+            = new Stack<String>();
+        
+        /**
+         * The name of the clause the user is currently sitting in.
+         */
+        private String clause = null;
         
         public StatementInfo() {
             
             refStack.push(new ArrayList<TableReference>());
         }
         
-        /**
-         * @return true if the user was in the process of entering the
-         * from clause of the last query.
-         */
-        public boolean isInFromClause() {
+        public String getCurrentClause() {
             
-            return isInFromClause;
+            return clause;
         }
         
         /**
@@ -977,6 +978,7 @@ public class DatabaseObjectCompleter
              * our stack.
              */
             refStack.push(new ArrayList<TableReference>());
+            clauseStack.push(clause);
         }
 
         public void exitedSubquery (SQLParser parser) {
@@ -985,14 +987,17 @@ public class DatabaseObjectCompleter
              * And it gets discarded as we leave the subquery.
              */
             refStack.pop();
+            clause = clauseStack.pop();
         }
 
         public void foundClause (SQLParser parser, String clause) {
 
-            isInFromClause = "FROM".equals(clause);
+            this.clause = clause;
         }
 
         public void foundStatement (SQLParser parser, String statement) {
+            
+            clause = null;
 
             /*
              * Each time we hit a new statement we discard any context
