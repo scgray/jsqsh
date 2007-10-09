@@ -311,17 +311,17 @@
        -->
      <target name="dist-rpm-install" depends="jar">
 
-        <mkdir dir="${basedir}/build/usr/bin"/>
-        <mkdir dir="${basedir}/build/usr/lib"/>
-        <mkdir dir="${basedir}/build/usr/lib/jni"/>
-        <mkdir dir="${basedir}/build/usr/share/jsqsh"/>
+        <mkdir dir="${basedir}/build/rpm/usr/bin"/>
+        <mkdir dir="${basedir}/build/rpm/usr/lib"/>
+        <mkdir dir="${basedir}/build/rpm/usr/lib/jni"/>
+        <mkdir dir="${basedir}/build/rpm/usr/share/jsqsh"/>
 
         <!--
           == Our shared library will be installed in build/usr, but we'll
           == copy it to its final location when finished.
           -->
         <antcall target="make-install">
-           <param name="prefix" value="${basedir}/build/usr"/>
+           <param name="prefix" value="${basedir}/build/rpm/usr"/>
         </antcall>
 
         <!--
@@ -330,7 +330,7 @@
           == requires that the appropriate Debian package that includes
           == it (and its .so) already be in place.
           -->
-        <copy todir="${basedir}/build/usr/share/jsqsh">
+        <copy todir="${basedir}/build/rpm/usr/share/jsqsh">
             <fileset dir="lib">
                 <include name="**/*.jar"/>
                 <exclude name="**/*readline*.jar"/>
@@ -339,6 +339,10 @@
                 <include name="*.jar"/>
             </fileset>
         </copy>
+
+        <copy file="dist/rpm/jsqsh" todir="${basedir}/build/rpm/usr/bin"/>
+
+        <chmod file="${basedir}/build/rpm/usr/bin/jsqsh" perm="u=rwx,go=rx"/>
      </target>
 
      <!-- 
