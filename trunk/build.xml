@@ -232,7 +232,7 @@
 
         <exec dir="${basedir}/build/rpm" 
               executable="rpmbuild">
-            <arg value="-bb"/>
+            <arg value="-ba"/>
             <arg value="${basedir}/build/rpm/SPECS/jsqsh-${version}.spec"/>
         </exec>
 
