@@ -5,7 +5,7 @@ Release: 1
 Group: Applications/Databases
 License: GPL
 Source0: jsqsh-@VERSION@-src.tar.gz
-BuildRoot: %{_builddir}/jsqsh-@VERSION@/build/usr
+BuildRoot: %{_builddir}/jsqsh-@VERSION@/build/rpm
 Requires: libreadline-java >= 0.8.0
 
 %description
@@ -28,3 +28,8 @@ echo Move along, there is nothing to see here
 ant dist-rpm-install
 
 %clean
+ant dist-rpm-clean
+
+%files
+%defattr(-,root,root)
+/usr
