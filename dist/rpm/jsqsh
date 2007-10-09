@@ -31,10 +31,10 @@ done
 # Next, we need to find out where the java readline 
 # library is installed.
 #
-RL_IMPLS="/usr/lib/java/libreadline-java.jar /usr/share/java"
-for file in $RL_IMPLS; do
-    if [ -e "$file" ]; then
-        CLASSPATH="$CLASSPATH:$file"
+RL_IMPLS="/usr/lib/java /usr/share/java"
+for dir in $RL_IMPLS; do
+    if [ -e "$dir/libreadline-java.jar" ]; then
+        CLASSPATH="$CLASSPATH:$dir/libreadline-java.jar"
     fi
 done
 export CLASSPATH
