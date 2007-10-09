@@ -2,10 +2,11 @@ Summary: Command line shell for working with SQL databases
 Name: jsqsh
 Version: @VERSION@
 Release: 1
-Copyright: GPL
 Group: Applications/Databases
-Source: http://sourceforge.net/sourceforge/jsqsh/jsqsh-@VERSION@-src.zip
-Requires: libreadline-java >= 0.7.3
+License: GPL
+Source0: jsqsh-@VERSION@-src.tar.gz
+BuildRoot: %{_builddir}/jsqsh-@VERSION@/build/usr
+Requires: libreadline-java >= 0.8.0
 
 %description
 JSqsh (pronounced J-skwish) is short for Java SQshelL
@@ -21,7 +22,9 @@ extend and add functionality.
 %setup -q
 
 %build
+echo Move along, there is nothing to see here
 
 %install
+ant dist-rpm-install
 
 %clean

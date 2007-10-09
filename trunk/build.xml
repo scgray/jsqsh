@@ -16,7 +16,7 @@
           == This is the one and only place that the jsqsh version number is 
           == defined. 
           -->
-        <property name="version" value="0.9.5-SNAPSHOT"/>
+        <property name="version" value="0.9.5"/>
 
 	<!--
           == This is used by the launch4j task that generates an
@@ -138,14 +138,18 @@
 
      <!-- 
        == ************************************************************
-       == dist_deb - Creates a Debian installation distribution
+       == dist-deb - Creates a Debian installation distribution
        ==
        == This task packages a Debian distribution file (.deb)
        == that can be found in build/jsqsh-${version}.deb. It 
        == requires that you have dpkg installed.
        == ************************************************************
        -->
-     <target name="dist_deb" depends="clean,_init,jar,make">
+     <target name="dist-deb" depends="clean,_init,jar">
+
+        <antcall target="make-install">
+           <param name="prefix" value="${basedir}/build/jsqsh-${version}/usr"/>
+        </antcall>
 
         <mkdir dir="build/jsqsh-${version}/DEBIAN"/>
         <mkdir dir="build/jsqsh-${version}/usr"/>
@@ -201,10 +205,145 @@
         </exec>
      </target>
 
+     <!-- 
+       == ************************************************************
+       == dist-rpm - Creates an RPM distribution
+       ==
+       == This task packages an RPM distribution file (.rpm)
+       == ************************************************************
+       -->
+     <target name="dist-rpm" depends="dist-rpm-setup,_init">
+
+        <!--
+          == This is awwwwful. I need to set the %_topdir macro and the
+          == only way I can figure out how to do that effectively is to
+          == replace the user's current .rpmmacro file.
+          -->
+        <copy file="${user.home}/.rpmmacros"
+              tofile="${user.home}/.rpmmacros-orig"
+              failonerror="false"/>
+
+        <copy file="dist/rpm/rpmmacros"
+              tofile="${user.home}/.rpmmacros">
+            <filterset>
+                <filter token="JSQSH_RPM_DIR" value="${basedir}/build/rpm"/>
+            </filterset>
+        </copy>
+
+        <exec dir="${basedir}/build/rpm" 
+              executable="rpmbuild">
+            <arg value="-bb"/>
+            <arg value="${basedir}/build/rpm/SPECS/jsqsh-${version}.spec"/>
+        </exec>
+
+        <copy tofile="${user.home}/.rpmmacros"
+              file="${user.home}/.rpmmacros-orig"
+              failonerror="false"/>
+     </target>
 
      <!-- 
        == ************************************************************
-       == dist_win - Builds the windows distribution
+       == dist-rpm-setup - Prepares an RPM build environment
+       ==
+       == This task is suitable for calling by people who want to take
+       == the jsqsh SPEC file and source bundle and put it into their
+       == own distribution environment. It creates the following directory
+       == structure and files.
+       ==
+       ==     build/rpm/
+       ==        SPECS/
+       ==           jsqsh-<version>.spec
+       ==        SOURCES
+       ==           jsqsh-<version>-src.tar.gz
+       ==        BUILD
+       ==        RPMS
+       ==           i386
+       ==        SRPMS
+       == ************************************************************
+       -->
+     <target name="dist-rpm-setup" depends="dist-rpm-clean,_init">
+	<!--
+          == Create directory structure required for packaging
+          -->
+        <mkdir dir="build/rpm/BUILD"/>
+        <mkdir dir="build/rpm/RPMS/i386"/>
+        <mkdir dir="build/rpm/SOURCES"/>
+        <mkdir dir="build/rpm/SPECS"/>
+        <mkdir dir="build/rpm/SRPMS"/>
+
+        <tar compression="gzip" 
+             destfile="build/rpm/SOURCES/jsqsh-${version}-src.tar.gz">
+           <tarfileset dir="${basedir}" prefix="jsqsh-${version}">
+               <include name="**/*"/>
+               <exclude name="**/.svn"/>
+               <exclude name="**/configure"/>
+               <exclude name="build/**/*"/>
+               <exclude name="bin/**/*"/>
+           </tarfileset>
+           <tarfileset dir="${basedir}" prefix="jsqsh-${version}" mode="755">
+               <include name="**/configure"/>
+           </tarfileset>
+        </tar>
+
+        <!--
+          == Copy in the spec file, replacing the version number in 
+          == the process.
+          -->
+        <copy file="dist/rpm/jsqsh.spec"
+              tofile="build/rpm/SPECS/jsqsh-${version}.spec">
+            <filterset>
+                <filter token="VERSION" value="${version}"/>
+            </filterset>
+        </copy>
+     </target>
+
+     <target name="dist-rpm-clean" depends="clean">
+        <antcall target="make-clean"/>
+     </target>
+
+     <!-- 
+       == ************************************************************
+       == _dist_rpm_build - Called by rpmbuild to do the actual build
+       ==       and installation.
+       ==
+       == This task packages an RPM distribution file (.rpm)
+       == ************************************************************
+       -->
+     <target name="dist-rpm-install" depends="jar">
+
+        <mkdir dir="${basedir}/build/usr/bin"/>
+        <mkdir dir="${basedir}/build/usr/lib"/>
+        <mkdir dir="${basedir}/build/usr/lib/jni"/>
+        <mkdir dir="${basedir}/build/usr/share/jsqsh"/>
+
+        <!--
+          == Our shared library will be installed in build/usr, but we'll
+          == copy it to its final location when finished.
+          -->
+        <antcall target="make-install">
+           <param name="prefix" value="${basedir}/build/usr"/>
+        </antcall>
+
+        <!--
+          == Copy our dependant jar into usr/share/jsqsh. Note that
+          == the readline jar is not copied because the install package
+          == requires that the appropriate Debian package that includes
+          == it (and its .so) already be in place.
+          -->
+        <copy todir="${basedir}/build/usr/share/jsqsh">
+            <fileset dir="lib">
+                <include name="**/*.jar"/>
+                <exclude name="**/*readline*.jar"/>
+            </fileset>
+            <fileset dir="build">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+     </target>
+
+     <!-- 
+       == ************************************************************
+       == dist-win - Builds the windows distribution
        ==
        == This target builds the windows distribution as a zip file
        == (at least until I get a property installer). This target
@@ -213,7 +352,7 @@
        == executable.
        == ***********************************************************
        -->
-     <target name="dist_win" depends="clean,jar">
+     <target name="dist-win" depends="clean,jar">
 
         <!-- Create directory structure -->
         <mkdir dir="build/jsqsh-${version}/bin"/>
@@ -285,21 +424,37 @@
        == placed in ${basedir}/build/jsqsh-${version}/usr/lib/jni
        == ************************************************************
        -->
-     <target name="make" depends="_init">
-        <exec dir="${basedir}/src/jni" 
-              executable="make">
-            <arg value="clean"/>
-        </exec>
+     <target name="make-configure" depends="_init">
         <exec dir="${basedir}/src/jni" 
               executable="${basedir}/src/jni/configure">
-            <arg value="--prefix=${basedir}/build/jsqsh-${version}/usr"/>
-            <arg value="--libdir=${basedir}/build/jsqsh-${version}/usr/lib/jni"/>
+            <arg value="--prefix=${prefix}"/>
+            <arg value="--libdir=${prefix}/lib/jni"/>
         </exec>
+     </target>
+
+     <target name="make-build" depends="make-configure,_init">
+        <exec dir="${basedir}/src/jni" 
+              executable="make">
+            <arg value="-f"/>
+            <arg value="${basedir}/src/jni/Makefile"/>
+        </exec>
+     </target>
+
+     <target name="make-install" depends="make-build,_init">
         <exec dir="${basedir}/src/jni" 
               executable="make">
             <arg value="-f"/>
             <arg value="${basedir}/src/jni/Makefile"/>
             <arg value="install"/>
+        </exec>
+     </target>
+
+     <target name="make-clean" depends="_init">
+        <exec dir="${basedir}/src/jni" 
+              executable="make">
+            <arg value="-f"/>
+            <arg value="${basedir}/src/jni/Makefile"/>
+            <arg value="distclean"/>
         </exec>
      </target>
 
