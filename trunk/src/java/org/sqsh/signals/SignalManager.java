@@ -30,8 +30,8 @@ public class SignalManager
     
     private static final String[] SIGNAL_IMPLEMENTATIONS = {
         
-        "org.sqsh.signals.SunSignalHandler",
-        "org.sqsh.signals.NullSignalHandler",
+        "org.sqsh.signals.SunSignalCatcher",
+        "org.sqsh.signals.NullSignalCatcher",
     };
     
     private static Stack<SigHandler> handlers = new Stack<SigHandler>();
@@ -64,10 +64,12 @@ public class SignalManager
                          sigClass.getConstructor(SignalManager.class);
                     handlerImpl = (AbstractSignalCatcher)
                         constructor.newInstance(instance);
+                    done = true;
                 }
                 catch (Exception e) {
                     
                     /* IGNORED */
+                    e.printStackTrace();
                 }
             }
         }
