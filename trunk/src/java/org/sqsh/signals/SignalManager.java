@@ -69,7 +69,6 @@ public class SignalManager
                 catch (Exception e) {
                     
                     /* IGNORED */
-                    e.printStackTrace();
                 }
             }
         }
