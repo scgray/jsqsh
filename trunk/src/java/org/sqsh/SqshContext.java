@@ -191,7 +191,7 @@ public class SqshContext {
         	}
         	catch (Throwable e) {
 	            
-        	    errors.append("[Readline: ").append(e.getMessage()).append("]");
+        	    errors.append("[Getline: ").append(e.getMessage()).append("]");
         	}
         }
         
