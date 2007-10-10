@@ -35,6 +35,8 @@ import org.gnu.readline.Readline;
 import org.sqsh.jni.Shell;
 import org.sqsh.jni.ShellException;
 import org.sqsh.jni.ShellManager;
+import org.sqsh.signals.FlaggingSignalHandler;
+import org.sqsh.signals.SignalManager;
 
 /**
  * Represents an active session in sqsh. A session is the complete

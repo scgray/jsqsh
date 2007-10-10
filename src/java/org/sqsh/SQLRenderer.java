@@ -29,6 +29,8 @@ import java.sql.Types;
 import java.util.Date;
 import java.util.Set;
 
+import org.sqsh.signals.CancelingSignalHandler;
+
 public class SQLRenderer {
     
     SqshContext sqshContext;

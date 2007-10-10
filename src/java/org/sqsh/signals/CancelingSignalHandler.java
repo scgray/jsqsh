@@ -15,33 +15,34 @@
  * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
  * Cambridge, MA 02139, USA.
  */
-package org.sqsh;
+package org.sqsh.signals;
 
-import sun.misc.Signal;
+import java.sql.SQLException;
+import java.sql.Statement;
 
-/**
- * Generic signal handler used to send a thread an interrupt.
- */
-public class InterruptingSignalHandler
+public class CancelingSignalHandler
     extends FlaggingSignalHandler {
     
-    private Thread interruptThread;
-    
-    public InterruptingSignalHandler () {
+    private Statement statement;
+
+    public CancelingSignalHandler (Statement statement) {
         
-        interruptThread = Thread.currentThread();
+        this.statement = statement;
     }
+
+    public void signal (Sig sig) {
     
-    public InterruptingSignalHandler (Thread thread) {
-        
-        interruptThread = thread;
-    }
-    
-    public void handle (Signal sig) {
-        
         System.err.println("^C");
-        interruptThread.interrupt();
         
+        try {
+            
+            statement.cancel();
+        }
+        catch (SQLException e) {
+            
+            /* IGNORED */
+        }
+    
         triggered = true;
     }
 }

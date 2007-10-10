@@ -15,36 +15,37 @@
  * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
  * Cambridge, MA 02139, USA.
  */
-package org.sqsh;
-
-import java.sql.SQLException;
-import java.sql.Statement;
+package org.sqsh.signals;
 
 import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
-public class CancelingSignalHandler
-    extends FlaggingSignalHandler {
+/**
+ * An implementation of a signal handler that utilizes the 
+ * sun.misc.SignalHandler interface.
+ */
+public class SunSignalCatcher
+    extends AbstractSignalCatcher
+    implements SignalHandler {
     
-    private Statement statement;
-
-    public CancelingSignalHandler (Statement statement) {
+    /**
+     * Creates a signal handler for handling Sun JVM signals.
+     * 
+     * @param manager The manager that created us.
+     */
+    public SunSignalCatcher(SignalManager manager) {
         
-        this.statement = statement;
+        super(manager);
+        Signal sig = new Signal("INT");
+        Signal.handle(sig, this);
     }
-
+    
+    /**
+     * Called by the VM when a signal is encountered.
+     */
     public void handle (Signal sig) {
-    
-        System.err.println("^C");
         
-        try {
-            
-            statement.cancel();
-        }
-        catch (SQLException e) {
-            
-            /* IGNORED */
-        }
-    
-        triggered = true;
+        Sig signal = new Sig(sig.getName());
+        getManager().signal(signal);
     }
 }
