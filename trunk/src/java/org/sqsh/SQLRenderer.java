@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.Set;
 
 import org.sqsh.signals.CancelingSignalHandler;
+import org.sqsh.signals.SigHandler;
 
 public class SQLRenderer {
     
@@ -135,7 +136,7 @@ public class SQLRenderer {
              * if the user hits CTRL-C.
              */
             sigHandler = new CancelingSignalHandler(statement);
-            session.getSignalManager().push(sigHandler);
+            session.getSignalManager().push((SigHandler) sigHandler);
             
             statement.execute(sql);
             SQLTools.printWarnings(session.err, statement);
