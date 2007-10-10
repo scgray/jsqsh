@@ -158,6 +158,7 @@ public class SqshContext {
         
         boolean haveReadline = false;
         
+        StringBuffer errors = new StringBuffer();
         try {
             
             Readline.load(ReadlineLibrary.GnuReadline);
@@ -165,7 +166,7 @@ public class SqshContext {
         }
         catch (Throwable e) {
             
-            /* IGNORED */
+            errors.append("[GNU Readline: ").append(e.getMessage()).append("]");
         }
         
         if (haveReadline == false) {
@@ -177,7 +178,7 @@ public class SqshContext {
         	}
         	catch (Throwable e) {
 	            
-        	    /* IGNORED */
+        	    errors.append("[Editline: ").append(e.getMessage()).append("]");
         	}
         }
         
@@ -190,7 +191,7 @@ public class SqshContext {
         	}
         	catch (Throwable e) {
 	            
-        	    /* IGNORED */
+        	    errors.append("[Readline: ").append(e.getMessage()).append("]");
         	}
         }
         
@@ -198,8 +199,10 @@ public class SqshContext {
             
             try {
                 
-                System.err.println("WARNING: Unable to load GNU Readline library. "
-                    + "Run '\\help readline' for details.");
+                System.err.println("WARNING: Unable to load readline library. "
+                    + "(Reasons: "
+                    + errors.toString() 
+                    + "). Run '\\help readline' for details.");
             
             	Readline.load(ReadlineLibrary.PureJava);
             	haveReadline = true;
