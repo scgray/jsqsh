@@ -12,11 +12,20 @@
 #
 RL_JNI="/usr/lib/jni /usr/lib /usr/lib/libreadline-java"
 for dir in $RL_JNI; do
-    FILES=`ls $dir/libJavaReadline*.so`
-    if [ "$FILES" != "" ]; then
-       LD_LIBRARY_PATH="$RL_JNI:$LD_LIBRARY_PATH"
+    READLINE_FILES=`ls $dir/libJavaReadline*.so 2>/dev/null`
+    if [ "$READLINE_FILES" != "" ]; then
+       LD_LIBRARY_PATH="$dir:$LD_LIBRARY_PATH"
+    else
+       EDITLINE_FILES=`ls $dir/libJavaEditline*.so 2>/dev/null`
+       if [ "$EDITLINE_FILES" != "" ]; then
+          LD_LIBRARY_PATH="$dir:$LD_LIBRARY_PATH"
+       fi
     fi
-fi
+    JSQSH_FILES=`ls $dir/libjsqsh*.so 2>/dev/null`
+    if [ "$JSQSH_FILES" != "" ]; then
+       LD_LIBRARY_PATH="$dir:$LD_LIBRARY_PATH"
+    fi
+done
 export LD_LIBRARY_PATH
 
 #
