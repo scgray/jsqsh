@@ -36,6 +36,6 @@ public class NullSignalCatcher
         System.out.println(
             "WARNING: This JVM does not support signal handling. This means "
                  + "that CTRL-C cannot be used to cancel queries. Currently "
-                 + "only the Sun JVM (http://java.sun.com) are supported.");
+                 + "only the Sun JVM (http://java.sun.com) is supported.");
     }
 }
