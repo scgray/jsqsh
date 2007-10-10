@@ -10,9 +10,10 @@ Release 0.9.5
 * Added \eval command to read and process the contents of a file.
 * Added tab completion of procedure names.
 * Added handling/display of SQL warnings.
-* Improved tab completion of object names to better understand
-  object owners and schemas.
 * Improved formatting of error messages.
+* Added testing of JVM support for catching CTRL-C. If it is not support
+  (i.e. the gcj JVM), then a warning message is issued.
+* Added support for gij (gcj's JVM) 1.5.0
 * Added default aliases "vi" and "emacs" or \buf-edit
 * By default the \history command will now only show the first 10 lines of 
   any SQL statement. The -a flag has been added to allow you to see the 
