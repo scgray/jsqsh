@@ -1,4 +1,10 @@
 #!/bin/sh
+#
+# jsqsh - This shell script attempts to launch org.sqsh.JSqsh. 
+#   it does its best to try to figure out where various files
+#   reside (shared libraries, jar's, etc) across multiple 
+#   distributions of Linux (Ubundu, Fedora, RedHad ES).
+#
 
 #
 # The debian distributions like to put the JNI DLL's
@@ -31,7 +37,7 @@ done
 # Next, we need to find out where the java readline 
 # library is installed.
 #
-RL_IMPLS="/usr/lib/java /usr/share/java"
+RL_IMPLS="/usr/lib/java /usr/share/java /usr/lib/libreadline-java"
 for dir in $RL_IMPLS; do
     if [ -e "$dir/libreadline-java.jar" ]; then
         CLASSPATH="$CLASSPATH:$dir/libreadline-java.jar"

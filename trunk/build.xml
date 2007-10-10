@@ -189,7 +189,8 @@
           == For now I just install a shell script to launch it. 
           == I'm considering the use of Launch4j here as well.
           -->
-        <copy file="dist/deb/jsqsh" todir="build/jsqsh-${version}/usr/bin"/>
+        <copy file="dist/unix/jsqsh.sh"
+              tofile="build/jsqsh-${version}/usr/bin/jsqsh"/>
 
         <!--
           == Make sure its executable.
@@ -340,7 +341,8 @@
             </fileset>
         </copy>
 
-        <copy file="dist/rpm/jsqsh" todir="${basedir}/build/rpm/usr/bin"/>
+        <copy file="dist/unix/jsqsh.sh"
+              tofile="${basedir}/build/rpm/usr/bin/jsqsh"/>
 
         <chmod file="${basedir}/build/rpm/usr/bin/jsqsh" perm="u=rwx,go=rx"/>
      </target>
