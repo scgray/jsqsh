@@ -10,19 +10,13 @@
 # The debian distributions like to put the JNI DLL's
 # under /usr/lib/jni
 #
-if [ -d /usr/lib/jni ]; then
-    LD_LIBRARY_PATH="/usr/lib/jni:$LD_LIBRARY_PATH"
+RL_JNI="/usr/lib/jni /usr/lib /usr/lib/libreadline-java"
+for dir in $RL_JNI; do
+    FILES=`ls $dir/libJavaReadline*.so`
+    if [ "$FILES" != "" ]; then
+       LD_LIBRARY_PATH="$RL_JNI:$LD_LIBRARY_PATH"
+    fi
 fi
-
-#
-# On redhat/fedora/centos distributions, the JNI DLL's
-# are typically found under /usr/lib. BTW, I don't agree
-# with this location.
-#
-if [ -e /usr/lib/libJavaReadline.so ]; then
-    LD_LIBRARY_PATH="/usr/lib:$LD_LIBRARY_PATH"
-fi
-
 export LD_LIBRARY_PATH
 
 #
