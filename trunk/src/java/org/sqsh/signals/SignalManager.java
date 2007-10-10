@@ -15,12 +15,10 @@
  * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
  * Cambridge, MA 02139, USA.
  */
-package org.sqsh;
+package org.sqsh.signals;
 
+import java.lang.reflect.Constructor;
 import java.util.Stack;
-
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
 
 /**
  * The SignalManager is a singleton responsible for catching a user's
@@ -28,10 +26,17 @@ import sun.misc.SignalHandler;
  * appropriate registered listener for handling.
  */
 public class SignalManager
-    implements SignalHandler {
+    implements SigHandler {
     
-    private static Stack<SignalHandler> handlers = new Stack<SignalHandler>();
+    private static final String[] SIGNAL_IMPLEMENTATIONS = {
+        
+        "org.sqsh.signals.SunSignalHandler",
+        "org.sqsh.signals.NullSignalHandler",
+    };
+    
+    private static Stack<SigHandler> handlers = new Stack<SigHandler>();
     private static SignalManager instance = null;
+    private static AbstractSignalCatcher handlerImpl = null;
     private static int signalCount = 0;
     
     private SignalManager() {
@@ -49,8 +54,22 @@ public class SignalManager
             
             instance = new SignalManager();
             
-            Signal sig = new Signal("INT");
-            Signal.handle(sig, instance);
+            boolean done = false;
+            for (int i = 0; !done && i < SIGNAL_IMPLEMENTATIONS.length; i++) {
+                
+                try {
+                    
+                    Class sigClass = Class.forName(SIGNAL_IMPLEMENTATIONS[i]);
+                    Constructor constructor = 
+                         sigClass.getConstructor(SignalManager.class);
+                    handlerImpl = (AbstractSignalCatcher)
+                        constructor.newInstance(instance);
+                }
+                catch (Exception e) {
+                    
+                    /* IGNORED */
+                }
+            }
         }
         
         return instance;
@@ -63,11 +82,10 @@ public class SignalManager
      * 
      * @param handler The new handler.
      */
-    public static synchronized void push(SignalHandler handler) {
+    public static synchronized void push(SigHandler handler) {
         
         signalCount = 0;
         handlers.push(handler);
-        
     }
     
     /**
@@ -76,7 +94,7 @@ public class SignalManager
      * 
      * @return The current handler.
      */
-    public static synchronized SignalHandler pop() {
+    public static synchronized SigHandler pop() {
         
         signalCount = 0;
         return handlers.pop();
@@ -93,15 +111,15 @@ public class SignalManager
     /**
      * Called by the VM when a signal is encountered.
      */
-    public void handle (Signal sig) {
+    public void signal (Sig sig) {
         
         ++signalCount;
         if (signalCount == 1) {
             
-            SignalHandler handler = handlers.peek();
+            SigHandler handler = handlers.peek();
             if (handler != null) {
                 
-                handler.handle(sig);
+                handler.signal(sig);
             }
             else {
                 

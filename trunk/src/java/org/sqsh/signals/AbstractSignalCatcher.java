@@ -15,46 +15,32 @@
  * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
  * Cambridge, MA 02139, USA.
  */
-package org.sqsh;
+package org.sqsh.signals;
 
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
-
-
-public class FlaggingSignalHandler
-    implements SignalHandler {
+/**
+ * All signal handlers must extend this class.
+ */
+public class AbstractSignalCatcher {
     
-    protected volatile boolean triggered = false;
+    private SignalManager manager;
     
-    public FlaggingSignalHandler () {
+    /**
+     * Creates a signal handler for handling Sun JVM signals.
+     * 
+     * @param manager The manager that created us.
+     */
+    public AbstractSignalCatcher(SignalManager manager) {
         
+        this.manager = manager;
     }
     
     /**
-     * Tests whether or not the signal was triggered. If it was, then
-     * the triggered flag is reset.
+     * Returns the manager of this handler.
      * 
-     * @return whether or not the handler was triggered.
+     * @return The manager of this handler.
      */
-    public boolean isTriggered() {
+    public SignalManager getManager() {
         
-        boolean b = triggered;
-        triggered = false;
-        
-        return b;
+        return manager;
     }
-    
-    public void clear() {
-        
-        triggered = false;
-    }
-
-    public void handle (Signal sig) {
-        
-        System.err.print("[Interrupted. Hit enter to continue...]");
-        System.err.flush();
-        
-        triggered = true;
-    }
-
 }

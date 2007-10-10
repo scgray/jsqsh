@@ -33,6 +33,7 @@ import java.util.List;
 import org.gnu.readline.Readline;
 import org.gnu.readline.ReadlineLibrary;
 import org.sqsh.jni.ShellManager;
+import org.sqsh.signals.SignalManager;
 
 /**
  * This class represents the global sqsh environment, including all active
