@@ -18,6 +18,7 @@
 package org.sqsh;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.LinkedList;
@@ -230,7 +231,7 @@ public class BufferManager
         
         try {
             
-            out = new PrintStream(file);
+            out = new PrintStream(new FileOutputStream(file));
             out.println("<Buffers>");
             
             for (int i = 1; i < buffers.size(); i++) {
