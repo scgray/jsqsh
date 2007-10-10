@@ -21,6 +21,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -693,7 +694,7 @@ public class SqshContext {
             BufferedReader src = 
                 new BufferedReader(new InputStreamReader(in));
             
-            out = new PrintStream(dest);
+            out = new PrintStream(new FileOutputStream(dest));
             String line = src.readLine();
             while (line != null) {
                 
