@@ -13,22 +13,29 @@ import org.sqsh.Session;
 public class CSVRenderer
     extends Renderer {
     
-    public CSVRenderer(Session session, RendererManager renderMan,
-            ColumnDescription []columns) {
+    public CSVRenderer(Session session, RendererManager renderMan) {
         
-        super(session, renderMan, columns);
+        super(session, renderMan);
+    }
+    
+    public void header (ColumnDescription []columns) {
         
-        String []row = new String[columns.length];
-        for (int i = 0; i < columns.length; i++) {
+        super.header(columns);
+        
+        if (manager.isShowHeaders()) {
             
-            row[i] = columns[i].getName();
-            if (row[i] == null) {
+            String []row = new String[columns.length];
+            for (int i = 0; i < columns.length; i++) {
                 
-                row[i] = "";
+                row[i] = columns[i].getName();
+                if (row[i] == null) {
+                    
+                    row[i] = "";
+                }
             }
+            
+            row(row);
         }
-        
-        row(row);
     }
 
     /** {@inheritDoc} */
@@ -84,5 +91,4 @@ public class CSVRenderer
         session.out.println(line);
         return (session.out.checkError() == false);
     }
-
 }

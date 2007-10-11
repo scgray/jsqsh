@@ -78,8 +78,9 @@ public class Set
             columns[1] = new ColumnDescription("Value", -1);
             
             Renderer renderer = 
-                session.getRendererManager().getCommandRenderer(
-                    session, columns);
+                session.getRendererManager().getCommandRenderer(session);
+            
+            renderer.header(columns);
             
             for (int i = 0; i < vars.length; i++) {
                 

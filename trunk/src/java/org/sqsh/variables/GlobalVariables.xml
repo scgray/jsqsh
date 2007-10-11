@@ -449,4 +449,38 @@ SEE ALSO
    \drivers
         ]]></Help>
     </Property>
+    
+    <Property bean="global" name="headers"
+              property="rendererManager.showHeaders">
+        <Description>Controls column header display</Description>
+        <Help><![CDATA[
+VARIABLE
+   headers - Controls the display of column headers
+   
+DESCRIPTION
+   The ${headers} variable can be used to turn on or off the display of
+   column header information in query results.  The default value is "true".
+   
+SEE ALSO
+   footers
+        ]]></Help>
+    </Property>
+    
+    <Property bean="global" name="footers"
+              property="rendererManager.showFooters">
+        <Description>Controls query footer information</Description>
+        <Help><![CDATA[
+VARIABLE
+   footers - Controls the display of query footer information
+   
+DESCRIPTION
+   The ${footers} variable can be used to turn on or off the display of
+   query footer information in query results. Footer information includes
+   the row count, update count, and query timing that is normally displayed
+   after each result set is displayed. The default value is "true".
+   
+SEE ALSO
+   headers
+        ]]></Help>
+    </Property>
 </Variables>

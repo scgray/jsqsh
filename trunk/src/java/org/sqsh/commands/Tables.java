@@ -11,6 +11,7 @@ import java.util.List;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.sqsh.Command;
+import org.sqsh.Renderer;
 import org.sqsh.SQLContext;
 import org.sqsh.SQLRenderer;
 import org.sqsh.Session;
@@ -113,8 +114,10 @@ public class Tables
             result = meta.getTables(con.getCatalog(),
                 options.schemaPattern, options.tablePattern, types);
             
-            SQLRenderer renderer = session.getSQLRenderer();
-            renderer.displayResults(session, result, cols);
+            SQLRenderer sqlRenderer = session.getSQLRenderer();
+            Renderer renderer = 
+                session.getRendererManager().getCommandRenderer(session);
+            sqlRenderer.displayResults(renderer, session, result, cols);
         }
         catch (SQLException e) {
             

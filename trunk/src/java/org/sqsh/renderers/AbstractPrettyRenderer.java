@@ -32,10 +32,9 @@ public abstract class AbstractPrettyRenderer
      */
     private LineIterator []iterators = null;
     
-    public AbstractPrettyRenderer(Session session, RendererManager renderMan,
-            ColumnDescription []columns) {
+    public AbstractPrettyRenderer(Session session, RendererManager renderMan) {
         
-        super(session, renderMan, columns);
+        super(session, renderMan);
     }
     
     /**
@@ -48,6 +47,7 @@ public abstract class AbstractPrettyRenderer
          */
         if (manager.isShowHeaders() == false) {
             
+            printHorizontalLine();
             return;
         }
         

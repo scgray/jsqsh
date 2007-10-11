@@ -45,10 +45,16 @@ public class PerfectPrettyRenderer
      *    {@link ColumnDescription#getWidth()} will be ignored and calculated
      *    prior to displaying the results.
      */
-    public PerfectPrettyRenderer(Session session, RendererManager renderMan,
-            ColumnDescription []columns) {
+    public PerfectPrettyRenderer(Session session, RendererManager renderMan) {
         
-        super(session, renderMan, columns);
+        super(session, renderMan);
+    }
+    
+    @Override
+    public void header (ColumnDescription []columns) {
+    
+        super.header(columns);
+        
         for (int i = 0; i < columns.length; i++) {
             
             ColumnDescription col = columns[i];

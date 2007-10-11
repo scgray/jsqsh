@@ -37,10 +37,14 @@ public class PrettyRenderer
      *    {@link ColumnDescription#getWidth()} will be ignored and calculated
      *    prior to displaying the results.
      */
-    public PrettyRenderer(Session session, RendererManager renderMan,
-            ColumnDescription []columns) {
+    public PrettyRenderer(Session session, RendererManager renderMan) {
         
-        super(session, renderMan, columns);
+        super(session, renderMan);
+    }
+    
+    public void header (ColumnDescription []columns) {
+        
+        super.header(columns);
         
         /*
          * The columns as provided by the caller should already be wide 
@@ -53,9 +57,9 @@ public class PrettyRenderer
             
             ColumnDescription col = columns[i];
             if (col.getWidth() <= 0 
-                    || col.getWidth() > renderMan.getMaxColumnWidth()) {
+                    || col.getWidth() > manager.getMaxColumnWidth()) {
                 
-                col.setWidth(renderMan.getMaxColumnWidth());
+                col.setWidth(manager.getMaxColumnWidth());
             }
             
             /*

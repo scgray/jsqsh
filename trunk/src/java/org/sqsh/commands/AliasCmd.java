@@ -69,8 +69,9 @@ public class AliasCmd
             columns[2] = new ColumnDescription("Text", -1);
             
             Renderer renderer = 
-                session.getRendererManager().getCommandRenderer(
-                    session, columns);
+                session.getRendererManager().getCommandRenderer(session);
+            
+            renderer.header(columns);
             
             for (Alias alias : aliases) {
                     

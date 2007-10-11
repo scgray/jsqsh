@@ -35,6 +35,7 @@ public class RendererManager {
         Logger.getLogger(RendererManager.class.getName());
     
     private boolean showHeaders = true;
+    private boolean showFooters = true;
     private int maxColumnWidth = 35;
     private String defaultRenderer = "perfect";
     
@@ -64,13 +65,11 @@ public class RendererManager {
      * Returns the renderer that should be used by commands when displaying
      * their output.
      * 
-     * @param columns The columns that will be rendered..
      * @return The renderer.
      */
-    public Renderer getCommandRenderer(Session session,
-            ColumnDescription []columns) {
+    public Renderer getCommandRenderer(Session session) {
         
-        return getRenderer(session, "perfect", columns);
+        return getRenderer(session, "perfect");
     }
     
     /**
@@ -78,36 +77,34 @@ public class RendererManager {
      * 
      * @return an instance of the default renderer.
      */
-    public Renderer getRenderer(Session session, ColumnDescription []columns) {
+    public Renderer getRenderer(Session session) {
         
-        return getRenderer(session, defaultRenderer, columns);
+        return getRenderer(session, defaultRenderer);
     }
     
     /**
-     * Creates an instance of the renderer name that is provided. If an
-     *   invalid name is provided then the default renderer is returned.
+     * Returns a renderer by name.
      * 
-     * @param name
-     * @return The new renderer.
+     * @param session The session that the renderer is to render to.
+     * @param name The name of the renderer to create
+     * @return A newly created renderer.
      */
-    public Renderer getRenderer(Session session,
-            String name, ColumnDescription []columns) {
+    public Renderer getRenderer(Session session, String name) {
         
         Class renderer = renderers.get(name);
         try {
             
             Constructor<Renderer> constructor = 
-                renderer.getConstructor(Session.class,
-                    RendererManager.class, columns.getClass());
+                renderer.getConstructor(Session.class, RendererManager.class);
             
-            return constructor.newInstance(session, this, columns);
+            return constructor.newInstance(session, this);
         }
         catch (Exception e) {
             
             LOG.severe("Unable to instantiate renderer '"
                 + name + "': " + e.getMessage());
             
-            return new PerfectPrettyRenderer(session, this, columns);
+            return new PerfectPrettyRenderer(session, this);
         }
     }
     
@@ -152,6 +149,24 @@ public class RendererManager {
     public void setShowHeaders (boolean showHeaders) {
     
         this.showHeaders = showHeaders;
+    }
+    
+    /**
+     * @return whether or not the results will show "footer" information
+     *   (row counts, query timings, etc).
+     */
+    public boolean isShowFooters () {
+    
+        return showFooters;
+    }
+
+    /**
+     * @param showFooters Sets whether or not the results will
+     *   show "footer" information (row counts, query timings, etc).
+     */
+    public void setShowFooters (boolean showFooters) {
+    
+        this.showFooters = showFooters;
     }
 
     /**
