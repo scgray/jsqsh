@@ -91,4 +91,12 @@ public class CSVRenderer
         session.out.println(line);
         return (session.out.checkError() == false);
     }
+    
+    @Override
+    public void footer (String footer) {
+        
+        /*
+         * This style will never display footer information.
+         */
+    }
 }
