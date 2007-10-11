@@ -4,6 +4,8 @@ Release 0.9.5
   or the target of the INSERT/UPDATE/DELETE has been specified, then the
   completion will restrict itself to that context. This was more difficult
   than I expected!
+* Added $headers and $footers configuration variables to control display
+  of result header/footer information
 * Added "-w domain" flag to \connect so that domain based authentication
   can be used when connecting. Currently only the mssql-jtds driver 
   recognizes this option. 
