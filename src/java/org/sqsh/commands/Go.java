@@ -26,6 +26,7 @@ import org.kohsuke.args4j.Option;
 import org.sqsh.BufferManager;
 import org.sqsh.CannotSetValueError;
 import org.sqsh.Command;
+import org.sqsh.RendererManager;
 import org.sqsh.SQLContext;
 import org.sqsh.SQLRenderer;
 import org.sqsh.SQLTools;
@@ -39,6 +40,12 @@ public class Go
        
        @Option(name="-m",usage="Sets the display style for output")
            public String style = null;
+       
+       @Option(name="-h",usage="Toggles display of result header information")
+           public boolean toggleHeaders = false;
+       
+       @Option(name="-f",usage="Toggles display of result footer information")
+           public boolean toggleFooters = false;
         
         @Argument
             public List<String> arguments = new ArrayList<String>();
@@ -48,6 +55,7 @@ public class Go
     public int execute (Session session, String[] argv)
         throws Exception {
         
+        RendererManager renderMan = session.getRendererManager();
         Options options = new Options();
         String origStyle = null;
         int rc = parseOptions(session, argv, options);
@@ -66,7 +74,7 @@ public class Go
         
         if (options.style != null) {
             
-            origStyle = session.getRendererManager().getDefaultRenderer();
+            origStyle = renderMan.getDefaultRenderer();
             
             try {
                 
@@ -99,6 +107,18 @@ public class Go
             bufferMan.getCurrent().clear();
         }
         
+        boolean origHeaders = renderMan.isShowFooters();
+        boolean origFooters = renderMan.isShowFooters();
+        
+        if (options.toggleFooters) {
+            
+            renderMan.setShowFooters(!origFooters);
+        }
+        if (options.toggleHeaders) {
+            
+            renderMan.setShowHeaders(!origHeaders);
+        }
+        
         try {
             
             sqlRenderer.execute(session, sql);
@@ -111,8 +131,11 @@ public class Go
             
             if (origStyle != null) {
                 
-                session.getRendererManager().setDefaultRenderer(origStyle);
+                renderMan.setDefaultRenderer(origStyle);
             }
+            
+            renderMan.setShowHeaders(origHeaders);
+            renderMan.setShowFooters(origFooters);
         }
         
         return 0;

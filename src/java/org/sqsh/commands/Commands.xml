@@ -213,7 +213,7 @@ OPTIONS:
            
     <Help><![CDATA[
 SYNOPSIS
-  \go [-m style]
+  \go [-h] [-f] [-m style]
               
 DESCRIPTION
    Executes the SQL statement contained in the current buffer.
@@ -222,8 +222,14 @@ OPTIONS:
    -m style  Specifies a custom display style for showing the results
              of the execution. The available styles may be found by
              running '\help style'.
+   -h        Toggles the display of column header information  This flag 
+             effectively flips the  value of ${header} for the duration
+             of the query execution.
+   -f        Toggles the display of result footer information (row count
+             and timing information). This flag effectively flips the 
+             value of ${footer} for the duration of the query execution.
 SEE ALSO
-   style
+   style, header, footer
         ]]></Help>
     </Command>
     
