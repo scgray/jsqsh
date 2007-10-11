@@ -6,6 +6,8 @@ Release 0.9.5
   than I expected!
 * Added $headers and $footers configuration variables to control display
   of result header/footer information
+* Added -h and -f to the \go command to toggle the display of result 
+  header and footer information respectively.
 * Added "-w domain" flag to \connect so that domain based authentication
   can be used when connecting. Currently only the mssql-jtds driver 
   recognizes this option. 
@@ -13,10 +15,11 @@ Release 0.9.5
 * Added tab completion of procedure names.
 * Added handling/display of SQL warnings.
 * Improved formatting of error messages.
-* Added testing of JVM support for catching CTRL-C. If it is not support
+* Added testing of JVM support for catching CTRL-C. If it is not supported
   (i.e. the gcj JVM), then a warning message is issued.
 * Added support for gij (gcj's JVM) 1.5.0
 * Added default aliases "vi" and "emacs" or \buf-edit
+* Removed 'csv' display of footer information (rowcounts).
 * By default the \history command will now only show the first 10 lines of 
   any SQL statement. The -a flag has been added to allow you to see the 
   complete statements if you want.
