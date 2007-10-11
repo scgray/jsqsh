@@ -141,6 +141,14 @@ public class SQLRenderer {
             statement.execute(sql);
             SQLTools.printWarnings(session.err, statement);
             
+            /*
+             * Get ahold of the renderer that will be used for this
+             * session.
+             */
+            Renderer  renderer = 
+                sqshContext.getRendererManager().getRenderer(session);
+            StringBuilder footer = new StringBuilder();
+            
             while (!done) {
                 
                 resultSet = statement.getResultSet();
@@ -148,7 +156,7 @@ public class SQLRenderer {
                 
                 if (resultSet != null) {
                     
-                    nRows = displayResults(session, resultSet, null);
+                    nRows = displayResults(renderer, session, resultSet, null);
                     
                     /*
                      * A negative value here indicates that the results
@@ -160,7 +168,7 @@ public class SQLRenderer {
                         return;
                     }
                     
-                    session.out.print(nRows + " row"
+                    footer.append(nRows + " row"
                         + ((nRows != 0) ? "s" : "")
                         + " in results");
                 }
@@ -171,13 +179,13 @@ public class SQLRenderer {
                     
                     if (nRows >= 0) {
                         
-                        session.out.print(nRows + " row"
+                        footer.append(nRows + " row"
                             + ((nRows != 0) ? "s" : "")
                         	+ " affected");
                     } 
                     else {
                         
-                        session.out.print("ok.");
+                        footer.append("ok.");
                     }
                 }
                 
@@ -188,21 +196,23 @@ public class SQLRenderer {
                     endTime = System.currentTimeMillis();
                     
                     if (firstRowTime > 0L) {
-                        session.out.println(" (first row: "
+                        footer.append(" (first row: "
                             + (firstRowTime - startTime) + "ms; total: "
                         	+ (endTime - startTime) + "ms)");
                     }
                     else {
                         
-                        session.out.println(" (total: "
+                        footer.append(" (total: "
                             + (endTime - startTime) + "ms)");
                     }
                     
                     done = true;
                 }
-                else {
+                
+                if (footer.length() > 0) {
                     
-                    session.out.println();
+                    renderer.footer(footer.toString());
+                    footer.setLength(0);
                 }
             }
         }
@@ -227,18 +237,20 @@ public class SQLRenderer {
      * @return The number of rows displayed.
      * @throws SQLException Thrown if something bad happens.
      */
-    public int displayResults(Session session, ResultSet resultSet,
-            Set<Integer>displayCols)
+    public int displayResults(Renderer renderer, Session session,
+            ResultSet resultSet, Set<Integer>displayCols)
         throws SQLException {
         
         SQLTools.printWarnings(session.err, resultSet);
-        
         ColumnDescription []columns = getDescription(resultSet, displayCols);
         int nCols = resultSet.getMetaData().getColumnCount();
-        Renderer  renderer = 
-            sqshContext.getRendererManager().getRenderer(session, columns);
         ResultSetMetaData meta = resultSet.getMetaData();
         int rowCount = 0;
+        
+        /*
+         * Display the header
+         */
+        renderer.header(columns);
         
         while (resultSet.next()) {
             

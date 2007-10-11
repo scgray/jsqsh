@@ -49,7 +49,8 @@ public class Drivers
         columns[3] = new ColumnDescription("Class", -1);
         
         Renderer renderer = 
-            session.getRendererManager().getCommandRenderer(session, columns);
+            session.getRendererManager().getCommandRenderer(session);
+        renderer.header(columns);
         
         for (int i = 0; i < drivers.length; i++) {
             

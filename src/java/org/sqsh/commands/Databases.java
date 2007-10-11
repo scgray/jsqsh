@@ -5,6 +5,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.sqsh.Command;
+import org.sqsh.Renderer;
 import org.sqsh.SQLContext;
 import org.sqsh.SQLRenderer;
 import org.sqsh.Session;
@@ -35,8 +36,11 @@ public class Databases
             
             result = meta.getCatalogs();
             
-            SQLRenderer renderer = session.getSQLRenderer();
-            renderer.displayResults(session, result, null);
+            SQLRenderer sqlRenderer = session.getSQLRenderer();
+            Renderer renderer = session.getRendererManager()
+                .getCommandRenderer(session);
+            
+            sqlRenderer.displayResults(renderer, session, result, null);
         }
         catch (SQLException e) {
             

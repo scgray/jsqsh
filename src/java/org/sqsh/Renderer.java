@@ -34,7 +34,7 @@ public abstract class Renderer {
     /**
      * Formatting description for the columns that are to be displayed.
      */
-    protected ColumnDescription []columns;
+    protected ColumnDescription []columns = null;
     
     /**
      * The parent manager that created this renderer. This provides
@@ -47,14 +47,11 @@ public abstract class Renderer {
      * 
      * @param session The session for the renderer
      * @param manager The manager for this renderer
-     * @param columns Description of the columns to be rendered.
      */
-    public Renderer (Session session, RendererManager manager, 
-            ColumnDescription []columns) {
+    public Renderer (Session session, RendererManager manager) {
         
         this.session = session;
         this.manager = manager;
-        this.columns = columns;
     }
     
     /**
@@ -67,7 +64,7 @@ public abstract class Renderer {
      * @param column The column that is being displayed.
      * @param str A single line of text (no new-lines!)
      */
-    public void printColumnValue(ColumnDescription column,
+    protected void printColumnValue(ColumnDescription column,
             String str) {
         
         int padding = column.getWidth() - str.length();
@@ -100,7 +97,7 @@ public abstract class Renderer {
      * @param str The string to be iterated.
      * @return The newly created iterator.
      */
-    public LineIterator getLineIterator(ColumnDescription column, String str) {
+    protected LineIterator getLineIterator(ColumnDescription column, String str) {
         
         /*
          * We'll use a truncating iterator if explicitly requested or 
@@ -126,7 +123,7 @@ public abstract class Renderer {
      * @param str The string to test.
      * @return The longest line length.
      */
-    public int getMaxLineWidth(ColumnDescription column, String str) {
+    protected int getMaxLineWidth(ColumnDescription column, String str) {
         
         LineIterator iter =  new TruncatingLineIterator(str, -1);
         int maxWidth = 0;
@@ -141,6 +138,17 @@ public abstract class Renderer {
         }
         
         return maxWidth;
+    }
+    
+    /**
+     * This method is called before {@link #row(String[])} to describe
+     * the result set that is about to come. 
+     * 
+     * @param columns Description of the columns to be displayed
+     */
+    public void header (ColumnDescription []columns) {
+        
+        this.columns = columns;
     }
     
     /**
@@ -168,4 +176,24 @@ public abstract class Renderer {
      *   could not be flushed.
      */
     public abstract boolean flush();
+    
+    /**
+     * Called to display the footer string. The default implementation
+     * will only display the footer string if 
+     * {@link RendererManager#isShowFooters()} is true.
+     * 
+     * <p>As a note, this current implementation is very silly. The "right"
+     * way to do this is to pass an object that represents metrics about the
+     * results and allow the renderer to format it however it feels fit. I
+     * may do this later if the mood strikes me.
+     * 
+     * @param footer The footer string.
+     */
+    public void footer (String footer) {
+        
+        if (manager.isShowFooters()) {
+            
+            session.out.println(footer);
+        }
+    }
 }
