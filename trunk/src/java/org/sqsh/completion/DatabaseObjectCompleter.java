@@ -413,7 +413,7 @@ public class DatabaseObjectCompleter
                                 getCurrentCatalog(conn) : catalog);
                         schema = (schema == null ? "%" : schema);
                         table = ref.getTable();
-                        column = (column == null ? "" : column);
+                        column = (column == null ? "%" : column);
                         
                         getColumns(set, conn, catalog, schema, table, column);
                     }
