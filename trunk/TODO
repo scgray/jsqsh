@@ -2,4 +2,9 @@ The following is an informal TODO list for jsqsh:
 
 - Create a "bestfit" display style that will attempt to fit the results to
   the console window size.
-- Create .rpm distribution
+- Fix
+    select * from db..table where <tab>
+  this should list columns in table but doesn't yet.
+- Fix -w flag to \connect
+- Add flag to go to suppress headers/footers
+- Make csv style automagically supress footers
