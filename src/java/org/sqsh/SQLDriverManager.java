@@ -479,6 +479,7 @@ public class SQLDriverManager {
             Map<String, String>vars, String url) {
         
         Map<String, String> connProperties = new HashMap<String, String>();
+        connProperties.putAll(properties);
         
         if (vars != null) {
             
