@@ -1,0 +1,4 @@
+The following is an informal TODO list for jsqsh:
+
+- Create a "bestfit" display style that will attempt to fit the results to
+  the console window size.

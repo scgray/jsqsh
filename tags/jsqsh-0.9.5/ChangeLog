@@ -1,0 +1,47 @@
+Release 0.9.5
+* Dramatically improved tab completion. It is now contextual to your position
+  within the SQL statement being written. If the FROM clause has been written
+  or the target of the INSERT/UPDATE/DELETE has been specified, then the
+  completion will restrict itself to that context. This was more difficult
+  than I expected!
+* Added $headers and $footers configuration variables to control display
+  of result header/footer information
+* Added -h and -f to the \go command to toggle the display of result 
+  header and footer information respectively.
+* Added "-w domain" flag to \connect so that domain based authentication
+  can be used when connecting. Currently only the mssql-jtds driver 
+  recognizes this option. 
+* Added \eval command to read and process the contents of a file.
+* Added tab completion of procedure names.
+* Added handling/display of SQL warnings.
+* Improved formatting of error messages.
+* Added testing of JVM support for catching CTRL-C. If it is not supported
+  (i.e. the gcj JVM), then a warning message is issued.
+* Added support for gij (gcj's JVM) 1.5.0
+* Added default aliases "vi" and "emacs" or \buf-edit
+* Removed 'csv' display of footer information (rowcounts).
+* By default the \history command will now only show the first 10 lines of 
+  any SQL statement. The -a flag has been added to allow you to see the 
+  complete statements if you want.
+* Fixed OutOfMemoryError when nested SQL exceptions are returned by the server.
+* Fixed NullPointerException when running non-interactive scripts
+  of SQL via the -i flag.
+
+Release 0.9.4
+
+* Added tab completion of object names. The logic is pretty smart too, and
+  understands "quoted object names" and [bracketed object names].
+* Added '-m style' flag to the \go command.
+* Added new display style 'csv'.
+* Added new ${classpath} configuration variable to allow the user to
+  specify additional jar locations for JDBC drivers.
+* Added support for empty passwords
+* Added new \macro command for defining velocimacros
+* Fixed documentation for the \connect command
+* Fixed "-D" flag for the \connect command
+* Fixed handling of NULL values for binary data types.
+
+Release 0.9.3
+
+* Initial release. Seems stable enough (I use it every day), but
+  warrants some shakedown before 1.0 release
