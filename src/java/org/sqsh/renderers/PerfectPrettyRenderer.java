@@ -55,6 +55,11 @@ public class PerfectPrettyRenderer
     
         super.header(columns);
         
+        /*
+         * We need to throw away the previous result set.
+         */
+        rows.clear();
+        
         for (int i = 0; i < columns.length; i++) {
             
             ColumnDescription col = columns[i];

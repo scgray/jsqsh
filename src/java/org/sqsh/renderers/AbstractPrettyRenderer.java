@@ -37,6 +37,18 @@ public abstract class AbstractPrettyRenderer
         super(session, renderMan);
     }
     
+    /** {@inheritDoc} */
+    public void header (ColumnDescription[] columns) {
+        
+        super.header(columns);
+        
+        /*
+         * Throw away our column iterators since we have a new result set
+         * comine.
+         */
+        iterators = null;
+    }
+    
     /**
      * Helper method to print the header row.
      */
