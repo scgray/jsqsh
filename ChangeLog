@@ -1,3 +1,7 @@
+Release 0.9.6
+* Fixed bug #1816504 - Queries returning multiple result sets were getting
+  fouled.
+
 Release 0.9.5
 * Dramatically improved tab completion. It is now contextual to your position
   within the SQL statement being written. If the FROM clause has been written
