@@ -59,6 +59,8 @@ public class RendererManager {
             org.sqsh.renderers.PerfectPrettyRenderer.class);
         renderers.put("csv",
             org.sqsh.renderers.CSVRenderer.class);
+        renderers.put("insert",
+            org.sqsh.renderers.InsertRenderer.class);
     }
     
     /**
