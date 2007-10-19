@@ -37,6 +37,11 @@ public class ColumnDescription {
     public enum OverflowBehavior { TRUNCATE, WRAP };
     
     /**
+     * Represents a basic datatype for the column.
+     */
+    public enum Type { NUMBER, STRING };
+    
+    /**
      * Name of the column
      */
     private String name;
@@ -45,6 +50,11 @@ public class ColumnDescription {
      * Display alignment of the column
      */
     private Alignment alignment = Alignment.LEFT;
+    
+    /**
+     * The basic type of the column.
+     */
+    private Type type = Type.STRING;
     
     /**
      * The display width of the column.
@@ -134,6 +144,24 @@ public class ColumnDescription {
     public void setOverflowBehavior (OverflowBehavior overflowBehavior) {
     
         this.overflowBehavior = overflowBehavior;
+    }
+    
+    /**
+     * Sets the basic type of the column.
+     * 
+     * @param type The type.
+     */
+    public void setType (Type type) {
+        
+        this.type = type;
+    }
+    
+    /**
+     * Returns the basic type of the column.
+     */
+    public Type getType() {
+        
+        return type;
     }
     
     /**

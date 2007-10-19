@@ -311,10 +311,7 @@ public class SQLRenderer {
             
             if (displayCols == null || displayCols.contains(i)) {
                 
-                colDesc[idx] = new ColumnDescription(meta.getColumnLabel(i),
-                	getColumnWidth(meta, i), getColumnAlignment(meta, i),
-                	ColumnDescription.OverflowBehavior.WRAP);
-                
+                colDesc[idx] = getDescription(meta, i);
                 ++idx;
             }
         }
@@ -323,37 +320,52 @@ public class SQLRenderer {
     }
     
     /**
-     * Returns the number of characters that will be required to display
-     * a column.
+     * Returns a description of a column.
      * @param meta Metadata about the column.
      * @param idx Index of the column.
-     * @return The size
+     * @return The description
      * @throws SQLException Thrown if the type cannot be displayed.
      */
-    private int getColumnWidth(ResultSetMetaData meta, int idx)
+    private ColumnDescription getDescription(ResultSetMetaData meta, int idx)
         throws SQLException {
         
         DataFormatter formatter = sqshContext.getDataFormatter();
+        int width = -1;
+        ColumnDescription.Type colType =
+            ColumnDescription.Type.STRING;
+        ColumnDescription.Alignment alignment =
+            ColumnDescription.Alignment.LEFT;
         
         int type = meta.getColumnType(idx);
         switch (type) {
             
             case Types.BIGINT:
-                return formatter.getLongWidth();
+                width = formatter.getLongWidth();
+                colType = ColumnDescription.Type.NUMBER;
+                alignment = ColumnDescription.Alignment.RIGHT;
+                break;
             
             case Types.BINARY:
             case Types.VARBINARY:
             case Types.LONGVARBINARY:
-                return formatter.getBytesWidth(meta.getColumnDisplaySize(idx));
+                width = formatter.getBytesWidth(meta.getColumnDisplaySize(idx));
+                colType = ColumnDescription.Type.NUMBER;
+                alignment = ColumnDescription.Alignment.RIGHT;
+                break;
                 
             case Types.BIT:
-                return formatter.getShortWidth();
+                width = formatter.getShortWidth();
+                colType = ColumnDescription.Type.NUMBER;
+                alignment = ColumnDescription.Alignment.RIGHT;
+                break;
                 
             case Types.BLOB:
-                return -1;
+                width = -1;
+                break;
                 
             case Types.BOOLEAN:
-                return formatter.getBooleanWidth();
+                width = formatter.getBooleanWidth();
+                break;
                 
             case Types.CHAR:
             case Types.VARCHAR:
@@ -361,51 +373,79 @@ public class SQLRenderer {
             /* case Types.LONGNVARCHAR: */
             case Types.LONGVARCHAR:
             /* case Types.NCHAR: */
-                return meta.getColumnDisplaySize(idx);
+                width = meta.getColumnDisplaySize(idx);
+                break;
                 
             case Types.CLOB:
             /* case Types.NCLOB: */
-                return -1;
+                width = -1;
+                break;
                 
             case Types.DATE:
-                return formatter.getDateWidth();
+                width = formatter.getDateWidth();
+                break;
                 
             case Types.DECIMAL:
             case Types.NUMERIC:
                 int precision = meta.getPrecision(idx);
                 int scale = meta.getScale(idx);
                 
-                return formatter.getBigDecimalWidth(precision, scale);
+                width = formatter.getBigDecimalWidth(precision, scale);
+                colType = ColumnDescription.Type.NUMBER;
+                alignment = ColumnDescription.Alignment.RIGHT;
+                break;
                 
             case Types.DOUBLE:
             case Types.FLOAT:
             case Types.REAL:
-                return formatter.getDoubleWidth();
+                width = formatter.getDoubleWidth();
+                colType = ColumnDescription.Type.NUMBER;
+                alignment = ColumnDescription.Alignment.RIGHT;
+                break;
                 
             case Types.INTEGER:
-                return formatter.getIntWidth();
+                width = formatter.getIntWidth();
+                colType = ColumnDescription.Type.NUMBER;
+                alignment = ColumnDescription.Alignment.RIGHT;
+                break;
             
             case Types.SMALLINT:
             case Types.TINYINT:
-                return formatter.getShortWidth();
+                width = formatter.getShortWidth();
+                colType = ColumnDescription.Type.NUMBER;
+                alignment = ColumnDescription.Alignment.RIGHT;
+                break;
                 
             case Types.TIME:
-                return formatter.getTimeWidth();
+                width = formatter.getTimeWidth();
+                break;
                 
             case Types.TIMESTAMP:
-                return formatter.getDatetimeWidth();
+                width = formatter.getDatetimeWidth();
+                break;
                 
             default:
+                width = -1;
                 break;
         }
         
-        throw new SQLException(
-            "Column #" + idx 
-                + (meta.getColumnLabel(idx) == null 
-                    ? ": "
-                    : " [" + meta.getColumnLabel(idx) + "]: ")
-                + "Datatype is not currently supported by sqsh "
-                + "(type #" + type + ")");
+        if (width == -1) {
+            
+            throw new SQLException(
+                "Column #" + idx 
+                    + (meta.getColumnLabel(idx) == null 
+                        ? ": "
+                        : " [" + meta.getColumnLabel(idx) + "]: ")
+                    + "Datatype is not currently supported by sqsh "
+                    + "(type #" + type + ")");
+        }
+        
+        ColumnDescription c = new ColumnDescription(
+            meta.getColumnLabel(idx),  width, alignment,
+            ColumnDescription.OverflowBehavior.WRAP);
+        c.setType(colType);
+        
+        return c;
     }
     
     private String getFormattedValue(ResultSet res, 
@@ -531,28 +571,5 @@ public class SQLRenderer {
         }
         
         return value;
-    }
-    
-    private ColumnDescription.Alignment getColumnAlignment(
-            ResultSetMetaData meta, int idx)
-        throws SQLException {
-        
-        int type = meta.getColumnType(idx);
-        switch (type) {
-            
-            case Types.BIGINT:
-            case Types.DECIMAL:
-            case Types.NUMERIC:
-            case Types.DOUBLE:
-            case Types.FLOAT:
-            case Types.REAL:
-            case Types.INTEGER:
-            case Types.SMALLINT:
-            case Types.TINYINT:
-                return ColumnDescription.Alignment.RIGHT;
-                
-            default:
-                return ColumnDescription.Alignment.LEFT;
-        }
     }
 }
