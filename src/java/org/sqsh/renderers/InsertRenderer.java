@@ -13,6 +13,7 @@ public class InsertRenderer
 
     private String table = "TABLE";
     private StringBuilder sb = new StringBuilder();
+    private String insert = null;
 
     public InsertRenderer(Session session, RendererManager manager) {
 
@@ -24,7 +25,7 @@ public class InsertRenderer
             table = tab;
         }
     }
-
+    
     /* (non-Javadoc)
      * @see org.sqsh.Renderer#header(org.sqsh.ColumnDescription[])
      */
@@ -32,16 +33,12 @@ public class InsertRenderer
     public void header (ColumnDescription[] columns) {
 
         super.header(columns);
-    }
-    
-    @Override
-    public boolean row (String[] row) {
         
-        sb.setLength(0);
+        StringBuilder sb = new StringBuilder();
         sb.append("INSERT ")
-            .append(table)
-            .append(" (");
-
+          .append(table)
+          .append(" (");
+        
         for (int i = 0; i < columns.length; i++) {
             
             ColumnDescription col = columns[i];
@@ -51,10 +48,43 @@ public class InsertRenderer
                 sb.append(", ");
             }
             
-            sb.append(col.getName());
+            String name = col.getName();
+            if (name == null) {
+                
+                name = "NONAME";
+            }
+            
+            int len = name.length();
+            boolean needQuotes = false;
+            for (int j = 0; needQuotes == false && j < len; j++) {
+                
+                char ch = name.charAt(j);
+                if (!(Character.isLetter(ch)
+                        || Character.isDigit(ch)
+                        || ch == '_')) {
+                    
+                    needQuotes = true;
+                }
+            }
+            
+            if (needQuotes) {
+                
+                sb.append('"').append(name).append('"');
+            }
+            else {
+                
+                sb.append(name);
+            }
         }
         
         sb.append(") VALUES (");
+        insert = sb.toString();
+    }
+    
+    @Override
+    public boolean row (String[] row) {
+        
+        sb.append(insert);
         
         for (int i = 0; i < row.length; i++) {
             
@@ -70,13 +100,44 @@ public class InsertRenderer
             }
             else {
                 
-                sb.append('"').append(row[i]).append('"');
+                sb.append('\'').append(quote(row[i])).append('\'');
             }
         }
         sb.append(")");
         
         session.out.println(sb.toString());
         return (session.out.checkError() == false);
+    }
+    
+    /**
+     * Protects single quotes in a string.
+     * 
+     * @param str The string that may or may not have single quotes.
+     * @return The string with the quotes escaped.
+     */
+    private String quote (String str) {
+        
+        if (str.indexOf('\'') < 0)  {
+            
+            return str;
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        int len = str.length();
+        for (int i = 0; i < len; i++) {
+            
+            char ch = str.charAt(i);
+            if (ch == '\'') {
+                
+                sb.append("''");
+            }
+            else {
+                
+                sb.append(ch);
+            }
+        }
+        
+        return sb.toString();
     }
 
     @Override
