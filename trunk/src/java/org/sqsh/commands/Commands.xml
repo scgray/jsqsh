@@ -219,6 +219,9 @@ DESCRIPTION
    Executes the SQL statement contained in the current buffer.
            
 OPTIONS:
+   -i table  Causes the results to be generated as INSERT statements for
+             the specified table name. This flag causes the value provided
+             by "-m" to be ignored.
    -m style  Specifies a custom display style for showing the results
              of the execution. The available styles may be found by
              running '\help style'.

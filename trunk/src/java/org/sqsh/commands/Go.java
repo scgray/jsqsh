@@ -41,6 +41,9 @@ public class Go
        @Option(name="-m",usage="Sets the display style for output")
            public String style = null;
        
+       @Option(name="-i",usage="Generates INSERT statements for specified table")
+           public String insertTable = null;
+       
        @Option(name="-h",usage="Toggles display of result header information")
            public boolean toggleHeaders = false;
        
@@ -58,6 +61,7 @@ public class Go
         RendererManager renderMan = session.getRendererManager();
         Options options = new Options();
         String origStyle = null;
+        String origNull = null;
         int rc = parseOptions(session, argv, options);
         if (rc != 0) {
             
@@ -72,7 +76,23 @@ public class Go
             return 1;
         }
         
+        /*
+         * If we are being asked to generate INSERT statements then we need to
+         * switch the NULL display to be a form of NULL that works in SQL.
+         */
+        if (options.insertTable != null) {
+            
+            options.style = "insert";
+            session.setVariable("insert_table", options.insertTable);
+        }
+        
         if (options.style != null) {
+            
+            if (options.style.equals("insert")) {
+                
+                origNull = session.getDataFormatter().getNull();
+            	session.getDataFormatter().setNull("NULL");
+            }
             
             origStyle = renderMan.getDefaultRenderer();
             
@@ -128,6 +148,11 @@ public class Go
             SQLTools.printException(session.err, e);
         }
         finally {
+            
+            if (origNull != null) {
+                
+                session.getDataFormatter().setNull(origNull);
+            }
             
             if (origStyle != null) {
                 
