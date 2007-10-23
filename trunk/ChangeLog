@@ -1,4 +1,10 @@
 Release 0.9.6
+* Added '-i' flag to GO to allow you to generate INSERT statements from a 
+  result set.
+* Commands that edit or alter the current SQL buffer will also affect the
+  readline history as if the user had just typed in the buffer. E.g. if you
+  hit '!3' at the prompt to re-load the third oldest query, the readline
+  history will look as if you just typed that query. 
 * Fixed bug #1816504 - Queries returning multiple result sets were getting
   fouled.
 

@@ -807,6 +807,15 @@ public class Session
             out.print(' ');
             out.println(str);
             
+            /*
+             * As we display the buffer, make sure the readline history
+             * is kept in sync.
+             */
+            if (this.interactive) {
+                
+                Readline.addToHistory(str);
+            }
+            
             buf.addLine(str);
         }
     }
