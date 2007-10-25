@@ -331,6 +331,7 @@ public class SQLRenderer {
         
         DataFormatter formatter = sqshContext.getDataFormatter();
         int width = -1;
+        boolean supported = true;
         ColumnDescription.Type colType =
             ColumnDescription.Type.STRING;
         ColumnDescription.Alignment alignment =
@@ -360,7 +361,7 @@ public class SQLRenderer {
                 break;
                 
             case Types.BLOB:
-                width = -1;
+                width = Integer.MAX_VALUE;
                 break;
                 
             case Types.BOOLEAN:
@@ -378,7 +379,7 @@ public class SQLRenderer {
                 
             case Types.CLOB:
             /* case Types.NCLOB: */
-                width = -1;
+                width = Integer.MAX_VALUE;
                 break;
                 
             case Types.DATE:
@@ -425,11 +426,11 @@ public class SQLRenderer {
                 break;
                 
             default:
-                width = -1;
+                supported = false;
                 break;
         }
         
-        if (width == -1) {
+        if (supported == false) {
             
             throw new SQLException(
                 "Column #" + idx 
@@ -494,6 +495,7 @@ public class SQLRenderer {
             case Types.CHAR:
             case Types.VARCHAR:
             case Types.LONGVARCHAR:
+            case Types.CLOB:
             /* case Types.NVARCHAR: */
             /* case Types.LONGNVARCHAR: */
             /* case Types.NCHAR: */
@@ -502,11 +504,6 @@ public class SQLRenderer {
                     
                     value = formatter.getNull();
                 }
-                break;
-                
-            case Types.CLOB:
-            /* case Types.NCLOB: */
-                value = "*CLOB*";
                 break;
                 
             case Types.DATE:
