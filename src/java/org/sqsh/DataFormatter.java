@@ -467,20 +467,14 @@ public class DataFormatter {
      */
     public int getBigDecimalWidth(int precision, int scale) {
         
-        StringBuilder val = new StringBuilder(precision+2);
-        
-        val.append("-");
-        for (int i = 0; i < precision; i++) {
-            
-            if (i == (precision - scale)) {
-                
-                val.append('.');
-            }
-            
-            val.append("9");
-        }
-        
-        return formatBigDecimal(new BigDecimal(val.toString())).length();
+        /*
+         * This kind of sucks. I thought I understood NUMERIC columns
+         * until I ran into Oracle's NUMBER type with all of its complex
+         * rules. Since actually attempting to figure out a proper maximum
+         * size of the numeric is damn near impossible, I'll punt and
+         * just treat it like a double.
+         */
+        return getDoubleWidth();
     }
     
     /**
