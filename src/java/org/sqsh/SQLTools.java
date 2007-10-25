@@ -118,28 +118,10 @@ public class SQLTools {
             sb.append("[State: ");
             sb.append(e.getSQLState());
             sb.append("][Code: ");
-            sb.append(e.getErrorCode() + "]: ");
-            
-            indent = sb.length() - start;
-            
-            LineIterator iter = new WordWrapLineIterator(e.getMessage(),
-                79 - indent);
-            
-            int line = 0;
-            while (iter.hasNext()) {
-                
-                if (line > 0) {
-                    
-                    for (int i = 0; i < indent; i++) {
-                        
-                        sb.append(' ');
-                    }
-                }
-                
-                sb.append(iter.next());
-                sb.append(lineSep);
-                ++line;
-            }
+            sb.append(e.getErrorCode());
+            sb.append("]: ");
+            sb.append(e.getMessage());
+            sb.append(lineSep);
             
             e = e.getNextException();
         }
@@ -258,25 +240,8 @@ public class SQLTools {
             	sb.append(w.getErrorCode() + "]: ");
             }
             
-            indent = sb.length() - start;
-            LineIterator iter = new WordWrapLineIterator(w.getMessage(),
-                79 - indent);
-            
-            int line = 0;
-            while (iter.hasNext()) {
-                
-                if (line > 0) {
-                    
-                    for (int i = 0; i < indent; i++) {
-                        
-                        sb.append(' ');
-                    }
-                }
-                
-                sb.append(iter.next());
-                sb.append(lineSep);
-                ++line;
-            }
+            sb.append(w.getMessage());
+            sb.append(lineSep);
             
             w = w.getNextWarning();
         }
