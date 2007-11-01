@@ -242,6 +242,8 @@ public class SQLRenderer {
         throws SQLException {
         
         SQLTools.printWarnings(session.err, resultSet);
+        
+        DataFormatter formatter = sqshContext.getDataFormatter();
         ColumnDescription []columns = getDescription(resultSet, displayCols);
         int nCols = resultSet.getMetaData().getColumnCount();
         ResultSetMetaData meta = resultSet.getMetaData();
@@ -268,7 +270,16 @@ public class SQLRenderer {
                 
                 if (displayCols == null || displayCols.contains(i)) {
                     
-                    row[idx] = getFormattedValue(resultSet, meta, i);
+                    Object value = resultSet.getObject(i);
+                    if (resultSet.wasNull()) {
+                        
+                        row[idx] = formatter.getNull();
+                    }
+                    else {
+                        
+                        row[idx] = columns[idx].getFormatter().format(value);
+                    }
+                    
                     ++idx;
                 }
             }
@@ -330,18 +341,18 @@ public class SQLRenderer {
         throws SQLException {
         
         DataFormatter formatter = sqshContext.getDataFormatter();
-        int width = -1;
         boolean supported = true;
         ColumnDescription.Type colType =
             ColumnDescription.Type.STRING;
         ColumnDescription.Alignment alignment =
             ColumnDescription.Alignment.LEFT;
+        Formatter format = null;
         
         int type = meta.getColumnType(idx);
         switch (type) {
             
             case Types.BIGINT:
-                width = formatter.getLongWidth();
+                format = formatter.getLongFormatter();
                 colType = ColumnDescription.Type.NUMBER;
                 alignment = ColumnDescription.Alignment.RIGHT;
                 break;
@@ -349,23 +360,24 @@ public class SQLRenderer {
             case Types.BINARY:
             case Types.VARBINARY:
             case Types.LONGVARBINARY:
-                width = formatter.getBytesWidth(meta.getColumnDisplaySize(idx));
+                format = formatter.getByteFormatter(
+                    meta.getColumnDisplaySize(idx));
                 colType = ColumnDescription.Type.NUMBER;
                 alignment = ColumnDescription.Alignment.RIGHT;
                 break;
                 
             case Types.BIT:
-                width = formatter.getShortWidth();
+                format = formatter.getBitFormatter();
                 colType = ColumnDescription.Type.NUMBER;
                 alignment = ColumnDescription.Alignment.RIGHT;
                 break;
                 
             case Types.BLOB:
-                width = Integer.MAX_VALUE;
+                format = formatter.getBlobFormatter();
                 break;
                 
             case Types.BOOLEAN:
-                width = formatter.getBooleanWidth();
+                format = formatter.getBooleanFormatter();
                 break;
                 
             case Types.CHAR:
@@ -374,16 +386,17 @@ public class SQLRenderer {
             /* case Types.LONGNVARCHAR: */
             case Types.LONGVARCHAR:
             /* case Types.NCHAR: */
-                width = meta.getColumnDisplaySize(idx);
+                format = formatter.getStringFormatter(
+                    meta.getColumnDisplaySize(idx));
                 break;
                 
             case Types.CLOB:
             /* case Types.NCLOB: */
-                width = Integer.MAX_VALUE;
+                format = formatter.getClobFormatter();
                 break;
                 
             case Types.DATE:
-                width = formatter.getDateWidth();
+                format = formatter.getDateFormatter();
                 break;
                 
             case Types.DECIMAL:
@@ -391,38 +404,48 @@ public class SQLRenderer {
                 int precision = meta.getPrecision(idx);
                 int scale = meta.getScale(idx);
                 
-                width = formatter.getBigDecimalWidth(precision, scale);
+                format = formatter.getBigDecimalFormatter(precision, scale);
                 colType = ColumnDescription.Type.NUMBER;
                 alignment = ColumnDescription.Alignment.RIGHT;
                 break;
                 
             case Types.DOUBLE:
             case Types.FLOAT:
-            case Types.REAL:
-                width = formatter.getDoubleWidth();
                 colType = ColumnDescription.Type.NUMBER;
                 alignment = ColumnDescription.Alignment.RIGHT;
+                format = formatter.getDoubleFormatter();
+                break;
+                
+            case Types.REAL:
+                colType = ColumnDescription.Type.NUMBER;
+                alignment = ColumnDescription.Alignment.RIGHT;
+                format = formatter.getFloatFormatter();
                 break;
                 
             case Types.INTEGER:
-                width = formatter.getIntWidth();
+                format = formatter.getIntFormatter();
                 colType = ColumnDescription.Type.NUMBER;
                 alignment = ColumnDescription.Alignment.RIGHT;
                 break;
             
             case Types.SMALLINT:
+                format = formatter.getShortFormatter();
+                colType = ColumnDescription.Type.NUMBER;
+                alignment = ColumnDescription.Alignment.RIGHT;
+                break;
+            
             case Types.TINYINT:
-                width = formatter.getShortWidth();
+                format = formatter.getTinyIntFormatter();
                 colType = ColumnDescription.Type.NUMBER;
                 alignment = ColumnDescription.Alignment.RIGHT;
                 break;
                 
             case Types.TIME:
-                width = formatter.getTimeWidth();
+                format = formatter.getTimeFormatter();
                 break;
                 
             case Types.TIMESTAMP:
-                width = formatter.getDatetimeWidth();
+                format = formatter.getDatetimeFormatter();
                 break;
                 
             default:
@@ -442,131 +465,11 @@ public class SQLRenderer {
         }
         
         ColumnDescription c = new ColumnDescription(
-            meta.getColumnLabel(idx),  width, alignment,
+            meta.getColumnLabel(idx),  format.getMaxWidth(), alignment,
             ColumnDescription.OverflowBehavior.WRAP);
         c.setType(colType);
+        c.setFormatter(format);
         
         return c;
-    }
-    
-    private String getFormattedValue(ResultSet res, 
-            ResultSetMetaData meta, int idx)
-        throws SQLException {
-        
-        DataFormatter formatter = sqshContext.getDataFormatter();
-        
-        int type = meta.getColumnType(idx);
-        String value = null;
-        
-        /*
-         * Types that are commented out below are because it appears that
-         * only java 6 supports them and I don't want to force it on
-         * the world yet.
-         */
-        switch (type) {
-            
-            case Types.BIGINT:
-                long longValue = res.getLong(idx);
-                value = res.wasNull() ?  formatter.getNull()
-                        :  formatter.formatLong(longValue);
-                break;
-            
-            case Types.BINARY:
-            case Types.VARBINARY:
-            case Types.LONGVARBINARY:
-            case Types.BLOB:
-                byte []binaryValue = res.getBytes(idx);
-                value = res.wasNull() ?  formatter.getNull()
-                        :  formatter.formatBytes(binaryValue);
-                break;
-                
-            case Types.BIT:
-                byte bitValue = res.getByte(idx);
-                value = res.wasNull() ?  formatter.getNull()
-                        :  formatter.formatShort(bitValue);
-                break;
-                
-            case Types.BOOLEAN:
-                boolean boolValue = res.getBoolean(idx);
-                value = res.wasNull() ?  formatter.getNull()
-                        :  formatter.formatBoolean(boolValue);
-                break;
-                
-            case Types.CHAR:
-            case Types.VARCHAR:
-            case Types.LONGVARCHAR:
-            case Types.CLOB:
-            /* case Types.NVARCHAR: */
-            /* case Types.LONGNVARCHAR: */
-            /* case Types.NCHAR: */
-                value = res.getString(idx);
-                if (res.wasNull()) {
-                    
-                    value = formatter.getNull();
-                }
-                break;
-                
-            case Types.DATE:
-                Date dateValue = res.getDate(idx);
-                value = res.wasNull() ?  formatter.getNull()
-                        :  formatter.formatDate(dateValue);
-                break;
-                
-            case Types.DECIMAL:
-            case Types.NUMERIC:
-                BigDecimal bigDecValue = res.getBigDecimal(idx);
-                value = res.wasNull() ?  formatter.getNull()
-                        :  formatter.formatBigDecimal(bigDecValue);
-                break;
-                
-            case Types.DOUBLE:
-            case Types.FLOAT:
-            case Types.REAL:
-                double doubleValue = res.getDouble(idx);
-                value = res.wasNull() ?  formatter.getNull()
-                        :  formatter.formatDouble(doubleValue);
-                break;
-                
-            case Types.INTEGER:
-                int intValue = res.getInt(idx);
-                value = res.wasNull() ?  formatter.getNull()
-                        :  formatter.formatInt(intValue);
-                break;
-                
-            case Types.SMALLINT:
-            case Types.TINYINT:
-                short shortValue = res.getShort(idx);
-                value = res.wasNull() ?  formatter.getNull()
-                        :  formatter.formatShort(shortValue);
-                break;
-                
-            case Types.TIME:
-                Time timeValue = res.getTime(idx);
-                value = res.wasNull() ?  formatter.getNull()
-                        :  formatter.formatTime(timeValue);
-                break;
-                
-            case Types.TIMESTAMP:
-                Timestamp tsValue = res.getTimestamp(idx);
-                value = res.wasNull() ?  formatter.getNull()
-                        :  formatter.formatDatetime(tsValue);
-                break;
-                
-            default:
-                break;
-        }
-        
-        if (value == null) {
-            
-            throw new SQLException(
-                "Column #" + idx 
-                    + (meta.getColumnLabel(idx) == null 
-                        ? ": "
-                        : " [" + meta.getColumnLabel(idx) + "]: ")
-                    + "Datatype is not currently supported by sqsh "
-                    + "(type #" + type + ")");
-        }
-        
-        return value;
     }
 }

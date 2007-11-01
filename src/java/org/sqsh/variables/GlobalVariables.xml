@@ -117,54 +117,20 @@ SEE ALSO
 	
 	
 	
-	<Property bean="global" name="fmt_int" property="dataFormatter.intFormat">
-		<Description>Controls the representation of integer values</Description>
+	<Property bean="global" name="precision" property="dataFormatter.scale">
+		<Description>Controls the decimal place precision of values</Description>
         <Help><![CDATA[
 VARIABLE
-   fmt_float - Controls the representation of integer values.
+   precision - Controls the decimal place precision of numeric values
 
 DESCRIPTION
-   The ${fmt_int} variable contains a format string that is utilized
-   when display columns containing  non-floating point value (short,
-   int, bigint, etc.).  This variable follows java number formatting rules
-   as documented here:
-   
-      http://java.sun.com/j2se/1.5.0/docs/api/java/text/DecimalFormat.html
-      
-   The default is '#' which displays the number with no special formatting
-   (e.g. no number grouping or decimal places).
-   
-SEE ALSO
-   fmt_float
+   The ${precision} variable controls the number of decimal places that
+   will be displayed for floating point values. This applies to real, float,
+   and double datatypes only. Numbers defined as NUMERIC or NUMBER (or
+   similar fixed precision and scale values) are displayed as they are 
+   defined in the database.
         ]]></Help>
 	</Property>
-	
-	
-	
-	<Property bean="global" name="fmt_float" property="dataFormatter.doubleFormat">
-		<Description>Controls the representation of floating point values</Description>
-        <Help><![CDATA[
-VARIABLE
-   fmt_float - Controls the representation of floating point values.
-
-DESCRIPTION
-   The ${fmt_float} variable contains a format string that is utilized
-   when display columns containing a floating point value (real, double,
-   float, etc.).  This variable follows java number formatting rules
-   as documented here:
-   
-      http://java.sun.com/j2se/1.5.0/docs/api/java/text/DecimalFormat.html
-      
-   The default is '###.000000' indicating that all numbers will be displayed
-   with six digits of precision.
-   
-SEE ALSO
-   fmt_int
-        ]]></Help>
-	</Property>
-	
-	
-	
 	
 	<Property bean="global" name="fmt_date" property="dataFormatter.dateFormat">
 		<Description>Controls the representation of date</Description>
