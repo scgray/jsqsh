@@ -3,6 +3,9 @@ Release 0.9.6
   result set.
 * Added support for CLOB and BLOB datatypes (bug #1820183). Current support
   requires holding the entire object in memory so be careful!
+* Improved formatting of number datatypes (tinyint, int, short, bigint,
+  float, double, etc.) to minimize the amount of space required for display
+  wherever possible.
 * Fixed the driver definition for the DB2 JDBC driver.
 * Commands that edit or alter the current SQL buffer will also affect the
   readline history as if the user had just typed in the buffer. E.g. if you
@@ -11,9 +14,7 @@ Release 0.9.6
 * Fixed bug #1816504 - Queries returning multiple result sets were getting
   fouled.
 * Fixed bug #1820182 - Handling of Oracle NUMBER columns failing during
-  formatting. My current solution isn't elegant as it basically just formats
-  the NUMBER as using the double format regardless of the actual precision
-  or scale. A better fix will be done if requested.
+  formatting. 
 
 Release 0.9.5
 * Dramatically improved tab completion. It is now contextual to your position
