@@ -68,6 +68,13 @@ public class ColumnDescription {
     private OverflowBehavior overflowBehavior = OverflowBehavior.WRAP;
     
     /**
+     * This may or may not actually be used, but is here for a convenience
+     * to carry around the object that is used to turn a raw value (e.g.
+     * a Double) to a formatted value.
+     */
+    private Formatter formatter = null;
+    
+    /**
      * Creates a column descriptor that will be left-aligned and will
      * wrap its output as necessary.
      * 
@@ -98,6 +105,22 @@ public class ColumnDescription {
         this.overflowBehavior = overflowBehavior;
     }
     
+    /**
+     * @return the formatter
+     */
+    public Formatter getFormatter () {
+    
+        return formatter;
+    }
+    
+    /**
+     * @param formatter the formatter to set
+     */
+    public void setFormatter (Formatter formatter) {
+    
+        this.formatter = formatter;
+    }
+
     /**
      * @return the alignment
      */
