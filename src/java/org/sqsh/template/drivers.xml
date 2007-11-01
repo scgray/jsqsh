@@ -31,6 +31,11 @@
      ==               Microsoft SQL Server. The terminator will be ignored
      ==               when contained in double-quotes, single quotes, 
      ==               comments, or between BEGIN/END blocks.
+     ==            org.sqsh.analyzers.PLSQLAnalyzer - Used with the Oracle
+     ==               driver and attempts to analyze the SQL being entered
+     ==               for PL/SQL keywords. If the SQL is determined to be
+     ==               PL/SQL and the terminator is a semicolon, then 
+     ==               the semicolon must be doubled or on a line by itself.
      ==            org.sqsh.analyzers.ANSIAnalyzer - A generic analyzer
      ==               that ignores terminator contained in double-quotes,
      ==               single quotes, or comments. This is the default if
