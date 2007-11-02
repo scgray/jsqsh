@@ -271,6 +271,23 @@ SEE ALSO
         ]]></Help>
 	</Property>
 	
+	<Property bean="global" name="show_meta" property="SQLRenderer.showMetadata">
+		<Description>Controls display of result set descriptions</Description>
+        <Help><![CDATA[
+VARIABLE
+   show_meta - Controls the display of result set metadata.
+
+DESCRIPTION
+   The ${show_meta} variable causes result set metadata (column names, 
+   data types, etc.) to be displayed as a separate result set just before
+   the actual row results. This feature is primarily intended as a debugging
+   tool for jsqsh development and/or developers that want to diagnose 
+   issues with result handling in their applications.
+   
+SEE ALSO
+   \go
+        ]]></Help>
+	</Property>
 	
 	
 	<Property bean="global" name="shell" property="shellManager.shellCommand">
