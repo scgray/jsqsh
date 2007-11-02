@@ -17,16 +17,12 @@
  */
 package org.sqsh;
 
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.Date;
 import java.util.Set;
 
 import org.sqsh.signals.CancelingSignalHandler;
@@ -35,6 +31,11 @@ import org.sqsh.signals.SigHandler;
 public class SQLRenderer {
     
     SqshContext sqshContext;
+    
+    /**
+     * If set to true, then result set metadata 
+     */
+    private boolean showMetadata = false;
     
     /**
      * Whether or not variable expansion will take place.
@@ -75,6 +76,23 @@ public class SQLRenderer {
     public void setExpand (boolean expand) {
     
         this.expand = expand;
+    }
+    
+    /**
+     * @return whether or not result set metadata is displayed.
+     */
+    public boolean isShowMetadata () {
+    
+        return showMetadata;
+    }
+    
+    /**
+     * @param showMetadata Sets whether or not result set metadata is
+     *   displayed as a separate result set.
+     */
+    public void setShowMetadata (boolean showMetadata) {
+    
+        this.showMetadata = showMetadata;
     }
 
     /**
@@ -155,6 +173,11 @@ public class SQLRenderer {
                 SQLTools.printWarnings(session.err, statement);
                 
                 if (resultSet != null) {
+                    
+                    if (showMetadata) {
+                        
+                        displayMetadata(session, resultSet);
+                    }
                     
                     nRows = displayResults(renderer, session, resultSet, null);
                     
@@ -296,6 +319,63 @@ public class SQLRenderer {
         }
         
         return rowCount;
+    }
+    
+    /**
+     * Called to render the result set metadata as a table. This is
+     * primarily for debugging purposes.
+     * 
+     * @param session The session.
+     * @param resultSet The result set.
+     */
+    private void displayMetadata(Session session, ResultSet resultSet) {
+        
+        Renderer renderer = session.getRendererManager().getCommandRenderer(
+            session);
+        ColumnDescription []cols = new ColumnDescription[8];
+        
+        cols[0] = new ColumnDescription("NAME", -1);
+        cols[1] = new ColumnDescription("LABEL", -1);
+        cols[2] = new ColumnDescription("TYPE", -1);
+        cols[3] = new ColumnDescription("SIZE", -1, 
+            ColumnDescription.Alignment.RIGHT,
+            ColumnDescription.OverflowBehavior.TRUNCATE);
+        cols[4] = new ColumnDescription("PREC", -1,
+            ColumnDescription.Alignment.RIGHT,
+            ColumnDescription.OverflowBehavior.TRUNCATE);
+        cols[5] = new ColumnDescription("SCALE", -1,
+            ColumnDescription.Alignment.RIGHT,
+            ColumnDescription.OverflowBehavior.TRUNCATE);
+        cols[6] = new ColumnDescription("SCHEMA", -1);
+        cols[7] = new ColumnDescription("TABLE", -1);
+        
+        renderer.header(cols);
+        
+        try {
+            
+            ResultSetMetaData meta = resultSet.getMetaData();
+            
+            for (int i = 1; i <= meta.getColumnCount(); i++) {
+                
+                String row[] = new String[8];
+                row[0] = meta.getColumnName(i);
+                row[1] = meta.getColumnLabel(i);
+                row[2] = meta.getColumnTypeName(i);
+                row[3] = Integer.toString(meta.getColumnDisplaySize(i));
+                row[4] = Integer.toString(meta.getPrecision(i));
+                row[5] = Integer.toString(meta.getScale(i));
+                row[6] = meta.getSchemaName(i);
+                row[7] = meta.getTableName(i);
+                
+                renderer.row(row);
+            }
+            
+            renderer.flush();
+        }
+        catch (SQLException e) {
+            
+            SQLTools.printException(session.out, e);
+        }
     }
     
     /**
