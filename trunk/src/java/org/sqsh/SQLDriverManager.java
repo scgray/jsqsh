@@ -315,19 +315,29 @@ public class SQLDriverManager {
              * the driver and set them as necessary.
              */
             Properties props = new Properties();
-            DriverPropertyInfo []supportedProperties =
-                jdbcDriver.getPropertyInfo(url, null);
             
-            for (int i = 0; i < supportedProperties.length; i++) {
+            try {
                 
-                String name = supportedProperties[i].name;
-                String value = getProperty(session, properties,
-                    sqlDriver.getVariables(), name);
+                DriverPropertyInfo []supportedProperties =
+                    jdbcDriver.getPropertyInfo(url, null);
                 
-                if (value != null) {
+                for (int i = 0; i < supportedProperties.length; i++) {
                     
-                    props.put(name, value);
+                    String name = supportedProperties[i].name;
+                    String value = getProperty(session, properties,
+                        sqlDriver.getVariables(), name);
+                    
+                    if (value != null) {
+                        
+                        props.put(name, value);
+                    }
                 }
+            }
+            catch (Exception e) {
+                
+                session.err.println("WARNING: Failed to retrieve JDBC driver "
+                    + "supported connection property list ("
+                    + e.getMessage() + ")");
             }
             
             String s = getProperty(session, properties,
