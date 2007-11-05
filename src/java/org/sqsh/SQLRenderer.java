@@ -33,6 +33,32 @@ public class SQLRenderer {
     SqshContext sqshContext;
     
     /**
+     * Used by setRowLimitMethod() to indicate that the result set size
+     * should be limited by the JDBC driver's {@link Statement#setMaxRows(int)}
+     * method. For some implementations this method has side effects such
+     * as limiting number of rows affected by an update/delete as well.
+     */
+    public static final int LIMIT_DRIVER  = 1;
+    
+    /**
+     * Used by setRowLimitMethod() to indicate that result set size
+     * should be limited by canceling the current query. This method
+     * can have negative effects when calling stored procedures or
+     * SQL that returns multiple result sets as it will completely stop
+     * execution of the entire batch.
+     */
+    public static final int LIMIT_CANCEL  = 2;
+    
+    /**
+     * Used by setRowLimitMethod() to indicate that result set size
+     * should be limited by silently discarding rows beyond the specified
+     * row limit. This is the safest method but can take extra time to 
+     * process and discard unwanted rows.
+     */
+    public static final int LIMIT_DISCARD = 3;
+    
+    
+    /**
      * If set to true, then result set metadata 
      */
     private boolean showMetadata = false;
@@ -47,6 +73,12 @@ public class SQLRenderer {
      * will provide unlimited output.
      */
     private int maxRows = 500;
+    
+    /**
+     * Specifies the mechanism that will be used to limit the rowcount
+     * specified by {@link #setMaxRows(int)}.
+     */
+    private int rowLimitMethod = LIMIT_DISCARD;
     
     private long startTime;
     private long firstRowTime;
@@ -117,6 +149,76 @@ public class SQLRenderer {
     }
     
     /**
+     * @return The current mechanism to be used to limit rows specified
+     * by {@link #setMaxRows(int)}.
+     */
+    public int getRowLimitMethod () {
+    
+        return rowLimitMethod;
+    }
+    
+    /**
+     * @return Returns the mechanism used to limit result rows as a displayable
+     *      string.
+     */
+    public String getRowLimitMethodName() {
+        
+        switch (rowLimitMethod) {
+            
+            case LIMIT_DRIVER: return "driver";
+            case LIMIT_CANCEL: return "cancel";
+            default:
+                return "discard";
+        }
+    }
+
+    /**
+     * @param rowLimitMethod Sets the mechanism to be used to limit 
+     * rows specified by {@link #setMaxRows(int)}. Valid values are
+     * {@link #LIMIT_CANCEL}, {@link #LIMIT_DISCARD}, or {@link #LIMIT_DRIVER}.
+     */
+    public void setRowLimitMethod (int rowLimitMethod) {
+    
+        if (rowLimitMethod != LIMIT_CANCEL
+                && rowLimitMethod != LIMIT_DRIVER
+                && rowLimitMethod != LIMIT_DISCARD) {
+            
+            throw new IllegalArgumentException("Invalid method ("
+                + rowLimitMethod + ")");
+        }
+        
+        this.rowLimitMethod = rowLimitMethod;
+    }
+    
+    /**
+     * Sets the row limiting method.
+     * @param name The name of the method. Valid values are "cancel",
+     * "discard", or "driver".
+     */
+    public void setRowLimitMethodName (String name) {
+        
+        name = name.toLowerCase();
+        if ("cancel".equals(name)) {
+            
+            setRowLimitMethod(LIMIT_CANCEL);
+        }
+        else if ("discard".equals(name)) {
+            
+            setRowLimitMethod(LIMIT_DISCARD);
+        }
+        else if ("driver".equals(name)) {
+            
+            setRowLimitMethod(LIMIT_DRIVER);
+        }
+        else {
+            
+            throw new IllegalArgumentException("Invalid method ("
+                + name + "): Valid values are 'cancel', 'discard', "
+                + "or 'driver'");
+        }
+    }
+
+    /**
      * Executes the provided SQL.
      * @param sql The SQL to be executed.
      */
@@ -144,7 +246,12 @@ public class SQLRenderer {
             statement = conn.createStatement();
             SQLTools.printWarnings(session.err, conn);
             
-            if (maxRows > 0) {
+            /*
+             * If we have a row limit and it is to be driver enforced, then
+             * set it on the statement.
+             */
+            if (rowLimitMethod == LIMIT_DRIVER 
+                    && maxRows > 0) {
                 
                 statement.setMaxRows(maxRows);
             }
@@ -191,9 +298,33 @@ public class SQLRenderer {
                         return;
                     }
                     
-                    footer.append(nRows + " row"
-                        + ((nRows != 0) ? "s" : "")
-                        + " in results");
+                    footer.append(nRows);
+                    footer.append(" row");
+                    if (nRows != 1) {
+                            
+                        footer.append('s');
+                    }
+                    footer.append(" in results");
+                    
+                    /*
+                     * If the row count is greater than our max then the
+                     * query results were limited in some fashion, so we
+                     * let the user know.
+                     */
+                    if (maxRows > 0 && nRows > maxRows) {
+                        
+                        if (rowLimitMethod == LIMIT_CANCEL) {
+                            
+                            footer.append(", query cancelled to limit results");
+                            done = true;
+                        }
+                        else {
+                            
+                            footer.append(", first ");
+                        	footer.append(maxRows);
+                        	footer.append(" rows shown");
+                        }
+                    }
                 }
                 else {
                     
@@ -212,7 +343,8 @@ public class SQLRenderer {
                     }
                 }
                 
-                if (statement.getMoreResults() == false
+                if (done == false
+                        && statement.getMoreResults() == false
                         && statement.getUpdateCount() < 0) {
                     
                     SQLTools.printWarnings(session.err, statement);
@@ -285,6 +417,23 @@ public class SQLRenderer {
             if (firstRowTime == 0L && rowCount == 1) {
                 
                 firstRowTime = System.currentTimeMillis();
+            }
+            
+            /*
+             * Check to see if we have hit the limit on the number of
+             * rows we are to process.
+             */
+            if (maxRows > 0 && rowCount > maxRows) {
+                
+                if (rowLimitMethod == LIMIT_CANCEL) {
+                    
+                    resultSet.getStatement().cancel();
+                    break;
+                }
+                else if (rowLimitMethod == LIMIT_DISCARD) {
+                    
+                    continue;
+                }
             }
             
             String row[] = new String[columns.length];
