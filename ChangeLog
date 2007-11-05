@@ -11,6 +11,7 @@ Release 1.0
 * Added \procs command to display list of procedures in the current database.
 * Added PL/SQL analyzer so that semicolon termination can be used against
   Oracle. 
+* The \describe command will now describe stored procedure parameters.
 * Improved formatting of number datatypes (tinyint, int, short, bigint,
   float, double, etc.) to minimize the amount of space required for display
   wherever possible.
