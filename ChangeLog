@@ -5,6 +5,9 @@ Release 1.0
   requires holding the entire object in memory so be careful!
 * Added $show_meta variable to display JDBC result set metadata as a separate
   result set when executing queries.
+* Added $maxrows_method variable that is used to control the mechanism that
+  jsqsh uses to limit row results. This added because I discovered that 
+  setting the row limit in some JDBC drivers caused unwanted side effects.
 * Added PL/SQL analyzer so that semicolon termination can be used against
   Oracle. 
 * Improved formatting of number datatypes (tinyint, int, short, bigint,
