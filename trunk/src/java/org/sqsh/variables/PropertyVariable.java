@@ -17,6 +17,8 @@
  */
 package org.sqsh.variables;
 
+import java.lang.reflect.InvocationTargetException;
+
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.sqsh.CannotSetValueError;
@@ -119,12 +121,13 @@ public class PropertyVariable
                 Object o = getManager().getBean(bean);
                 BeanUtils.setProperty(o, property, value);
             }
+            catch (InvocationTargetException e) {
+                
+                failure = e.getTargetException().getMessage();
+            }
             catch (Throwable e) {
                 
-                if (quiet == false) {
-                    
-                    failure = e.getMessage();
-                }
+                failure = e.getMessage();
             }
         }
         
