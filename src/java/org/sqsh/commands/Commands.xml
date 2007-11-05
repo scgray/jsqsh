@@ -595,6 +595,30 @@ SEE ALSO
         ]]></Help>
     </Command>
     
+    <Command name="\procs" class="org.sqsh.commands.Procs">
+        <Description>Displays stored procedures</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \procs [-p proc_pattern] [-s schema_pattern]
+              
+DESCRIPTION
+   Displays information about procedures that are available within the 
+   current database (catalog). This function requires that the JDBC 
+   driver  support meta-data lookup functionality, which not all 
+   drivers support (although most do).
+   
+OPTIONS
+   -p proc_pattern  - A SQL pattern to be used to filter the set of object
+        names that are displayed.
+   -s schema_pattern - A SQL pattern to be used to filter the set of object
+        schema names that are displayed. For most databases, the "schema
+        name" refers to the name of the owner of the object.
+SEE ALSO
+   \databases, \describe, \tables
+        ]]></Help>
+    </Command>
+    
     <Command name="\databases" class="org.sqsh.commands.Databases">
         <Description>Displays set of available databases (catalogs)</Description>
            
