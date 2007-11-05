@@ -97,18 +97,37 @@ public class Describe
             DatabaseMetaData meta = con.getMetaData();
             HashSet<Integer> cols = null;
             
-            if (options.showAll == false) {
+            if (isTable(meta, catalog, schema, name)) {
                 
-                cols = new HashSet<Integer>();
-                cols.add(2); /* owner */
-                cols.add(4); /* column */
-                cols.add(6); /* type */
-                cols.add(7); /* size */
-                cols.add(9); /* decimal digits */
-                cols.add(18); /* nullable? */
+                if (options.showAll == false) {
+                    
+                    cols = new HashSet<Integer>();
+                    cols.add(2); /* owner */
+                    cols.add(4); /* column */
+                    cols.add(6); /* type */
+                    cols.add(7); /* size */
+                    cols.add(9); /* decimal digits */
+                    cols.add(18); /* nullable? */
+                }
+                
+                result = meta.getColumns(catalog, schema, name, null);
+            }
+            else {
+                
+                if (options.showAll == false) {
+                    
+                    cols = new HashSet<Integer>();
+                    cols.add(2); /* owner */
+                    cols.add(4); /* column */
+                    cols.add(7); /* type */
+                    cols.add(8); /* precision */
+                    cols.add(9); /* length */
+                    cols.add(10); /* scale */
+                }
+                
+                result = meta.getProcedureColumns(catalog, schema, name, null);
             }
             
-            result = meta.getColumns(catalog, schema, name, null);
             SQLRenderer sqlRenderer = session.getSQLRenderer();
             Renderer renderer = session.getRendererManager()
                 .getCommandRenderer(session);
@@ -139,4 +158,34 @@ public class Describe
         
         return 0;
     }
+    
+    /**
+     * Does a crappy test to determine of an object name is a table.
+     * @param meta Database metadata descriptor.
+     * @param catalog The database name
+     * @param schema The schema of the object
+     * @param name The name of the object.
+     * @return True if it is a table.
+     */
+    private boolean isTable(DatabaseMetaData meta, String catalog,
+            String schema, String name) {
+        
+        int nRows = 0;
+        
+        try {
+            
+            ResultSet result = meta.getColumns(catalog, schema, name, null);
+            while (result.next()) {
+                
+                ++nRows;
+            }
+        }
+        catch (SQLException e) {
+            
+            /* IGNORED */
+        }
+        
+        return (nRows > 0);
+    }
+    
 }
