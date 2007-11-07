@@ -67,5 +67,15 @@ public interface SQLParserListener {
      *   table reference was found.
      * @param tableRef The table that was encountered.
      */
-    void foundTableReference(SQLParser parser, TableReference tableRef);
+    void foundTableReference(SQLParser parser, DatabaseObject tableRef);
+    
+    /**
+     * Called when the parser hits a stored procedure execution request
+     * EXEC[UTE] [@return_code =] PROCEDURE 
+     * 
+     * @param parser The current state of the parser at the point the 
+     *   procedure reference was found.
+     * @param procRef The name of the procedure.
+     */
+    void foundProcedureExecution(SQLParser parser, DatabaseObject procRef);
 }
