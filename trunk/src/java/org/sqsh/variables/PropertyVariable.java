@@ -123,11 +123,17 @@ public class PropertyVariable
             }
             catch (InvocationTargetException e) {
                 
-                failure = e.getTargetException().getMessage();
+                if (quiet == false) {
+                    
+                    failure = e.getTargetException().getMessage();
+                }
             }
             catch (Throwable e) {
                 
-                failure = e.getMessage();
+                if (quiet == false) {
+                    
+                    failure = e.getMessage();
+                }
             }
         }
         
