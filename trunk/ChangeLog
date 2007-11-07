@@ -1,4 +1,6 @@
 Release 1.0
+* Tab completion now recognizes stored procedure execution requests and
+  will attempt to complete parameter names and procedure names.
 * Added '-i' flag to GO to allow you to generate INSERT statements from a 
   result set.
 * Added support for CLOB and BLOB datatypes (bug #1820183). Current support
