@@ -35,7 +35,7 @@ public class SQLDriver
     public static String PASSWORD_PROPERTY = "password";
     public static String SERVER_PROPERTY = "server";
     public static String PORT_PROPERTY = "port";
-    public static String DATABASE_PROPERTY = "database";
+    public static String DATABASE_PROPERTY = "db";
     public static String SID_PROPERTY = "SID";
     public static String DOMAIN_PROPERTY = "domain";
     
