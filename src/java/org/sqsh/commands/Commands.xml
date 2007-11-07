@@ -169,7 +169,7 @@ OPTIONS:
               connect to. Most drivers will provide a default
               value for this property if it is not supplied.
                           
-  -D database Sets the ${database} property. This will cause 
+  -D database Sets the ${db} property. This will cause 
               the database context to be set to the provided
               database following connection to the server (in 
               the JDBC world the database context is known as 
