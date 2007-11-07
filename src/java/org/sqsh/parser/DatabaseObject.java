@@ -20,23 +20,23 @@ package org.sqsh.parser;
 /**
  * Represents a table name that is referenced by a SQL statement.
  */
-public class TableReference {
+public class DatabaseObject {
 
     private String database;
     private String owner;
-    private String table;
+    private String name;
     private String alias;
     
-    public TableReference (String database, String owner, String table) {
+    public DatabaseObject (String database, String owner, String name) {
         
         this.database = database;
         this.owner = owner;
-        this.table = table;
+        this.name = name;
     }
 
     /**
-     * @return the database containing the table that is referenced.
-     *   or null if the table is unknown.
+     * @return the database containing the object that is referenced.
+     *   or null if the object is unknown.
      */
     public String getDatabase() {
         
@@ -44,7 +44,7 @@ public class TableReference {
     }
     
     /**
-     * @return the table owner of the table that is referenced.
+     * @return the owner of the object that is referenced.
      *   or null if the owner is unknown.
      */
     public String getOwner() {
@@ -53,11 +53,11 @@ public class TableReference {
     }
     
     /**
-     * @return the table name.
+     * @return the object name.
      */
-    public String getTable() {
+    public String getName() {
         
-        return table;
+        return name;
     }
     
     /**
@@ -71,5 +71,36 @@ public class TableReference {
     public void setAlias(String alias) {
         
         this.alias = alias;
+    }
+    
+    public String toString() {
+        
+        StringBuilder sb = new StringBuilder();
+        if (database != null) {
+            
+            sb.append('[')
+                .append(database)
+                .append(']')
+                .append('.');
+        }
+        if (owner != null) {
+            
+            sb.append('[')
+                .append(owner)
+                .append(']')
+                .append('.');
+        }
+        sb.append('[')
+            .append(name)
+            .append(']');
+        
+        if (alias != null) {
+            
+            sb.append(" [as ");
+            sb.append(alias);
+            sb.append("]");
+        }
+        
+        return sb.toString();
     }
 }

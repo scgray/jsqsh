@@ -141,6 +141,12 @@ public class SQLParser {
                         listener.foundStatement(this, keyword);
                     }
                 }
+                else if ("EXEC".equals(keyword)
+                        || "EXECUTE".equals(keyword)) {
+                    
+                    listener.foundStatement(this, "EXECUTE");
+                    doExecuteProcedure();
+                }
                 else {
                     
                     inDML = false;
@@ -188,7 +194,7 @@ public class SQLParser {
         if (token != null) {
             
             listener.foundTableReference(this,
-                doTableReference(tokenizer, token));
+                doObjectReference(tokenizer, token));
         }
     }
     
@@ -255,7 +261,7 @@ public class SQLParser {
         boolean done = false;
         while (token != null && !done) {
             
-            TableReference table = null;
+            DatabaseObject table = null;
             
             /*
              * The starting token is expected to be the name of an
@@ -264,7 +270,7 @@ public class SQLParser {
             char ch = token.charAt(0);
             if (Character.isLetter(ch) || ch == '_') {
                 
-                table = doTableReference(tokenizer, token);
+                table = doObjectReference(tokenizer, token);
                 
                 /*
                  * Next we could have the keyword 'as', if so, ignore it.
@@ -356,7 +362,52 @@ public class SQLParser {
         if (token != null) {
             
             listener.foundTableReference(this,
-                doTableReference(tokenizer, token));
+                doObjectReference(tokenizer, token));
+        }
+    }
+    
+    /**
+     * Called after the tokenizer hits a EXEC[UTE] statement and attempts
+     * to determine the procedure name that is being deleted.
+     * 
+     * <p>A procedure execution looks like:
+     * <pre>
+     *    EXEC[UTE] [@return_code = ] [procedure_name | @variable]
+     * </pre>
+     */
+    private void doExecuteProcedure() {
+        
+        String token = tokenizer.next();
+        
+        /*
+         * If there is an '@' sign in front of the next token, it is
+         * either the @return_code or the procedure's name in a 
+         * @variable.
+         */
+        if (token != null && token.charAt(0) == '@') {
+            
+            String n = tokenizer.next();
+            if (n != null && n.equals("=")) {
+                
+                token = tokenizer.next();
+            }
+            else {
+                
+                token = n;
+            }
+        }
+        
+        if (token != null && token.charAt(0) != '@') {
+            
+            listener.foundProcedureExecution(this,
+                doObjectReference(tokenizer, token));
+        }
+        else {
+            
+            if (token != null) {
+                
+                tokenizer.unget(token);
+            }
         }
     }
     
@@ -370,7 +421,7 @@ public class SQLParser {
      * @param name The object name (or at least the first part)
      * @return The full object.name.
      */
-    private static TableReference doTableReference(
+    private static DatabaseObject doObjectReference(
             SimpleSQLTokenizer tokenizer, String name) {
         
         List<String> parts = new ArrayList<String>();
@@ -423,6 +474,6 @@ public class SQLParser {
             table = parts.get(2);
         }
         
-        return new TableReference(catalog, owner, table);
+        return new DatabaseObject(catalog, owner, table);
     }
 }

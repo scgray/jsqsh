@@ -49,7 +49,13 @@ public class AbstractParserListener
     }
 
     /** {@inheritDoc} */
-    public void foundTableReference (SQLParser parser, TableReference tableRef) {
+    public void foundTableReference (SQLParser parser, DatabaseObject tableRef) {
+
+        /* IGNORED */
+    }
+    
+    public void foundProcedureExecution (SQLParser parser,
+            DatabaseObject procRef) {
 
         /* IGNORED */
     }

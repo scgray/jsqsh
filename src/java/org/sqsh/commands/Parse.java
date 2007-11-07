@@ -7,7 +7,7 @@ import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.parser.SQLParser;
 import org.sqsh.parser.SQLParserListener;
-import org.sqsh.parser.TableReference;
+import org.sqsh.parser.DatabaseObject;
 
 /**
  * Implements the \parse command.
@@ -79,38 +79,21 @@ public class Parse
         }
 
         /**
-         * @see org.sqsh.parser.SQLParserListener#foundTableReference(org.sqsh.parser.SQLParser, org.sqsh.parser.TableReference)
+         * @see org.sqsh.parser.SQLParserListener#foundTableReference(org.sqsh.parser.SQLParser, org.sqsh.parser.DatabaseObject)
          */
         public void foundTableReference (SQLParser parser,
-                TableReference tableRef) {
+                DatabaseObject tableRef) {
             
-            StringBuilder sb = new StringBuilder();
-            if (tableRef.getDatabase() != null) {
-                
-                sb.append('[')
-                    .append(tableRef.getDatabase())
-                    .append(']')
-                    .append('.');
-            }
-            if (tableRef.getOwner() != null) {
-                
-                sb.append('[')
-                    .append(tableRef.getOwner())
-                    .append(']')
-                    .append('.');
-            }
-            sb.append('[')
-                .append(tableRef.getTable())
-                .append(']');
+            out.println("   TABLE-REF: " + tableRef.toString());
+        }
+        
+        /**
+         * @see org.sqsh.parser.SQLParserListener#foundTableReference(org.sqsh.parser.SQLParser, org.sqsh.parser.DatabaseObject)
+         */
+        public void foundProcedureExecution (SQLParser parser,
+                DatabaseObject procRef) {
             
-            if (tableRef.getAlias() != null) {
-                
-                sb.append(" [as ");
-                sb.append(tableRef.getAlias());
-                sb.append("]");
-            }
-            
-            out.println("   TABLE-REF: " + sb.toString());
+            out.println("   PROC-EXEC: " + procRef.toString());
         }
     }
 }
