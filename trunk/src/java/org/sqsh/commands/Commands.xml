@@ -749,4 +749,20 @@ OPTIONS
    None.
         ]]></Help>
     </Command>
+    
+    <Command name="\debug" class="org.sqsh.commands.Debug">
+        <Description>(Internal) Used to enable debugging</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \debug class [class ...]
+              
+DESCRIPTION
+   The \debug command is used internally for jsqsh development to 
+   enable debugging messages for specific jsqsh classes.
+   
+OPTIONS
+   None.
+        ]]></Help>
+    </Command>
 </Commands>

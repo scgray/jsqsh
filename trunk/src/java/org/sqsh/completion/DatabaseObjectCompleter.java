@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.sqsh.Session;
 import org.sqsh.parser.AbstractParserListener;
@@ -46,6 +48,9 @@ import org.sqsh.parser.DatabaseObject;
 public class DatabaseObjectCompleter
     extends Completer {
     
+    private static final Logger LOG = 
+        Logger.getLogger("org.sqsh.completion.DatabaseObjectCompleter");
+    
     /**
      * Used internally to keep track of what sort of quoting was taking
      * place on the object name that the user was completing.
@@ -63,6 +68,13 @@ public class DatabaseObjectCompleter
             String line, int position, String word) {
         
         super(session, line, position, word);
+        
+        if (LOG.isLoggable(Level.FINE)) {
+
+            LOG.fine("Completing '"
+                + line + "' at position "
+                + position + ", current word '" + word + "'");
+        }
         
         /*
          * Take a look at the first character in the word that the user is
@@ -92,6 +104,23 @@ public class DatabaseObjectCompleter
          */
         String nameParts[] = getObjectName(line.substring(0, position));
         
+        if (LOG.isLoggable(Level.FINE)) {
+
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < nameParts.length; i++) {
+                
+                if (i > 0) {
+                    
+                    sb.append('.');
+                }
+                sb.append('[');
+                sb.append(nameParts[i]);
+                sb.append(']');
+            }
+            
+            LOG.fine("   Parsed object name is: " + sb.toString());
+        }
+        
         /*
          * Our total SQL statement is what the user has entered to date
          * plus the line of input that the user is working on.
@@ -105,6 +134,27 @@ public class DatabaseObjectCompleter
         StatementInfo info = new StatementInfo();
         SQLParser parser = new SQLParser(info);
         parser.parse(sql);
+        
+        if (LOG.isLoggable(Level.FINE)) {
+
+            LOG.fine("   Parsing state:");
+            LOG.fine("      Statement  = " + info.getStatement());
+            LOG.fine("      Clause     = " + info.getCurrentClause());
+            
+            StringBuilder sb = new StringBuilder();
+            int idx = 0;
+            for (DatabaseObject o : info.getObjectReferences()) {
+                
+                if (idx > 0) {
+                    
+                    sb.append(", ");
+                }
+                ++idx;
+                
+                sb.append(o.toString());
+            }
+            LOG.fine("      References = " + sb.toString());
+        }
         
         /*
          * Grab ahold of the tables that are being referenced by the
