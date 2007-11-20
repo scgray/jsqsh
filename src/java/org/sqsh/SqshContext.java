@@ -26,10 +26,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import org.gnu.readline.Readline;
 import org.gnu.readline.ReadlineLibrary;
@@ -42,11 +43,17 @@ import org.sqsh.signals.SignalManager;
  */
 public class SqshContext {
     
+    private static final Logger LOG = 
+        Logger.getLogger("org.sqsh.SqshContext");
+    
     /**
      * Path to the built-in file full of variable definitions.
      */
     private static final String CONTEXT_VARS
         = "org/sqsh/variables/GlobalVariables.xml";
+    
+    private static final String LOGGING_CONFIG
+        = "org/sqsh/logging.properties";
     
     /**
      * This objects instantiates all commands and manages all of the
@@ -128,6 +135,8 @@ public class SqshContext {
     private List<Session> sessions = new ArrayList<Session>();
     
     public SqshContext() {
+        
+        configureLogging();
         
         InputStream in = 
             getClass().getClassLoader().getResourceAsStream(CONTEXT_VARS);
@@ -846,5 +855,32 @@ public class SqshContext {
         bufferManager.save(history);
         
         saveReadlineHistory(homedir);
+    }
+    
+    /**
+     * Reads in the java logging configuration information.
+     */
+    private void configureLogging() {
+        
+        InputStream in = 
+            getClass().getClassLoader().getResourceAsStream(LOGGING_CONFIG);
+        if (in == null) {
+            
+            System.err.println("WARNING: Cannot find resource " 
+                + LOGGING_CONFIG);
+            return;
+        }
+        
+        try {
+            
+            LogManager logMan = LogManager.getLogManager();
+            logMan.readConfiguration(in);
+            in.close();
+        }
+        catch (IOException e) {
+            
+            System.err.println("WARNING: Unable to read logging "
+                + "properties " + LOGGING_CONFIG + ": " + e.getMessage());
+        }
     }
 }
