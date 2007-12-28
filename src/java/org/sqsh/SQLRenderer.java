@@ -325,6 +325,9 @@ public class SQLRenderer {
                         	footer.append(" rows shown");
                         }
                     }
+                    
+                    SQLTools.close(resultSet);
+                    resultSet = null;
                 }
                 else {
                     
@@ -689,8 +692,9 @@ public class SQLRenderer {
                     + (meta.getColumnLabel(idx) == null 
                         ? ": "
                         : " [" + meta.getColumnLabel(idx) + "]: ")
-                    + "Datatype is not currently supported by sqsh "
-                    + "(type #" + type + ")");
+                    + "Datatype is not currently supported by jsqsh "
+                    + "(type "
+                    + meta.getColumnTypeName(idx) + ", #" + type + ")");
         }
         
         ColumnDescription c = new ColumnDescription(
