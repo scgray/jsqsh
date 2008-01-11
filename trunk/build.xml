@@ -16,7 +16,7 @@
           == This is the one and only place that the jsqsh version number is 
           == defined. 
           -->
-        <property name="version" value="1.0-SNAPSHOT"/>
+        <property name="version" value="1.1-SNAPSHOT"/>
 
 	<!--
           == This is used by the launch4j task that generates an
