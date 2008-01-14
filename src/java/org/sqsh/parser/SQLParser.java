@@ -43,6 +43,7 @@ public class SQLParser {
         STATEMENTS.add("SELECT");
         STATEMENTS.add("UPDATE");
         STATEMENTS.add("WHILE");
+        STATEMENTS.add("USE");
     }
     
     /**
