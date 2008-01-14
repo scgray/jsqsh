@@ -765,4 +765,27 @@ OPTIONS
    None.
         ]]></Help>
     </Command>
+    
+    <Command name="\diff" class="org.sqsh.commands.Diff">
+        <Description>Compares results from multiple sessions</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \diff session_id [session_id ...]
+              
+DESCRIPTION
+   The \diff command executes the current SQL buffer in the current
+   session as well as all of the sessions specified as arguments and
+   compares the results to determine if they are identical.
+   
+   The comparison includes:
+   
+   * Exceptions thrown must be identical
+   * Meta-data for results must be identical
+   * Values in rows must be identical
+   
+OPTIONS
+   None.
+        ]]></Help>
+    </Command>
 </Commands>
