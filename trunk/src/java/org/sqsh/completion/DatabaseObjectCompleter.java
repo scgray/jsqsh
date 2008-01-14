@@ -231,7 +231,19 @@ public class DatabaseObjectCompleter
          * is still sitting in the from clause, then generate all possible
          * completions.
          */
-        if (tableRefs.length == 0 
+        if ("USE".equals(info.getStatement())) {
+            
+            Set<String> set = new TreeSet<String>();
+            String db = "";
+            if (nameParts.length > 0) {
+                
+                db = nameParts[0];
+            }
+            
+            getCatalogs(set, session.getConnection(), db);
+            return set;
+        }
+        else if (tableRefs.length == 0 
                 || info.getCurrentClause() == null
                 || "FROM".equals(info.getCurrentClause())) {
             
