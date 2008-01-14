@@ -686,6 +686,19 @@ public class Session
     }
     
     /**
+     * Compares two sessions to see if they are the same.
+     */
+    public boolean equals(Object o) {
+        
+        if (!(o instanceof Session)) {
+            
+            return false;
+        }
+        
+        return (((Session) o).getId() == this.getId());
+    }
+    
+    /**
      * Reads a line of input from the user.
      * 
      * @param input Where to read input.
