@@ -18,11 +18,14 @@
 package org.sqsh;
 
 import java.io.PrintStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -248,5 +251,44 @@ public class SQLTools {
         
         out.print(sb.toString());
         out.flush();
+    }
+    
+    /**
+     * This method is used to convert a {@link java.sql.Type} datatype
+     * value to a displayable string. This conversion is done by reflecting
+     * the {@link java.sql.Type} class.  The reason this method exists
+     * is that the actual string returned by 
+     * {@link java.sql.ResultSetMetaData#getColumnTypeName(int)} is dependant
+     * upon the driver and does not reflect the actual JDBC datatype.
+     * 
+     * @param type The type id
+     * @return The name of the type
+     */
+    public static String getTypeName(int type) {
+        
+        Field []fields = Types.class.getFields();
+        for (int i = 0; i < fields.length; i++) {
+            
+            int flags = fields[i].getModifiers();
+            if (Modifier.isPublic(flags)
+                    && Modifier.isStatic(flags)
+                    && fields[i].getType() == Integer.TYPE) {
+                
+                try {
+                    
+                    int typeValue = fields[i].getInt(null);
+                	if (typeValue == type) {
+                    
+                    	return fields[i].getName();
+                	}
+                }
+                catch (IllegalAccessException e) {
+                    
+                    /* IGNORED */
+                }
+            }
+        }
+        
+        return "[TYPE #" + type + "]";
     }
 }

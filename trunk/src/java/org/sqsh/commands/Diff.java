@@ -585,7 +585,7 @@ public class Diff
                 	sb.append("Type #")
                 	    .append(meta.getColumnType(c))
                 	    .append(" (")
-                	    .append(meta.getColumnTypeName(c))
+                	    .append(SQLTools.getTypeName(meta.getColumnType(c)))
                 	    .append(")");
                 	
                 	if (meta.getColumnType(c) == Types.NUMERIC
