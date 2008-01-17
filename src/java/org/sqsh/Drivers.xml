@@ -1,7 +1,7 @@
 <Drivers>
    <Driver name="sybase" 
            target="Sybase"
-           class="com.sybase.jdbc2.jdbc.SybDriver"
+           class="com.sybase.jdbc3.jdbc.SybDriver"
            analyzer="org.sqsh.analyzers.TSQLAnalyzer"
            url="jdbc:sybase:Tds:${server}:${port}">
            
