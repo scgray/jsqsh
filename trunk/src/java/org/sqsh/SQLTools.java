@@ -138,17 +138,17 @@ public class SQLTools {
      * associated with a connection. The set of warnings is cleared
      * after display.
      * 
-     * @param out The output stream to write warnings to.
+     * @param session The session to use for writing
      * @param conn The connection that may, or may not, contain warnings.
      */
-    static public void printWarnings(PrintStream out, Connection conn) {
+    static public void printWarnings(Session session, Connection conn) {
         
         try {
             
             SQLWarning w = conn.getWarnings();
             if (w != null) {
                 
-                printWarnings(out, w);
+                printWarnings(session, w);
                 conn.clearWarnings();
             }
         }
@@ -163,17 +163,17 @@ public class SQLTools {
      * associated with a statement. The set of warnings is cleared
      * after display.
      * 
-     * @param out The output stream to write warnings to.
+     * @param session The session to use for writing
      * @param statement The statement that may, or may not, contain warnings.
      */
-    static public void printWarnings(PrintStream out, Statement statement) {
+    static public void printWarnings(Session session, Statement statement) {
         
         try {
             
             SQLWarning w = statement.getWarnings();
             if (w != null) {
                 
-                printWarnings(out, w);
+                printWarnings(session, w);
                 statement.clearWarnings();
             }
         }
@@ -188,17 +188,17 @@ public class SQLTools {
      * associated with a ResultSet. The set of warnings is cleared
      * after display.
      * 
-     * @param out The output stream to write warnings to.
+     * @param session The session to use for writing
      * @param results The ResultSet that may, or may not, contain warnings.
      */
-    static public void printWarnings(PrintStream out, ResultSet results) {
+    static public void printWarnings(Session session, ResultSet results) {
         
         try {
             
             SQLWarning w = results.getWarnings();
             if (w != null) {
                 
-                printWarnings(out, w);
+                printWarnings(session, w);
                 results.clearWarnings();
             }
         }
@@ -213,15 +213,16 @@ public class SQLTools {
      * may have occured due to a JDBC call. This method will dump
      * nothing if no warnings have ocurred.
      * 
-     * @param out The stream to write to.
+     * @param session The session to use for writing
      * @param w The warning.
      */
-    static private void printWarnings(PrintStream out, SQLWarning w) {
+    static private void printWarnings(Session session, SQLWarning w) {
         
         StringBuilder sb = new StringBuilder();
         String lineSep = System.getProperty("line.separator");
         int indent;
         int start;
+        boolean isError = false;
         
         while (w != null) {
             
@@ -237,6 +238,8 @@ public class SQLTools {
             if (state != null 
                     && "01000".equals(state) == false) {
                 
+                isError = true;
+                
                 sb.append("WARN [State: ");
             	sb.append(w.getSQLState());
             	sb.append("][Code: ");
@@ -249,8 +252,17 @@ public class SQLTools {
             w = w.getNextWarning();
         }
         
-        out.print(sb.toString());
-        out.flush();
+        if (isError) {
+            
+            session.err.print(sb.toString());
+            session.err.flush();
+        }
+        else {
+            
+            session.out.print(sb.toString());
+            session.out.flush();
+        }
+        
     }
     
     /**
