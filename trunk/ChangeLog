@@ -2,6 +2,9 @@ Release 1.1-SNAPSHOT
 * Added \diff command to compare results from SQL executed across 
   multiple session.
 * Tab completion now recognizes the TSQL "use" statement.
+* Fixed bug with way getUpdateCount() is being called that was causing
+  Sybase's jConnect driver to complain.
+* Updated driver definition to use the jConnect 6.x driver for Sybase
   
 Release 1.0
 * Tab completion now recognizes stored procedure execution requests and
