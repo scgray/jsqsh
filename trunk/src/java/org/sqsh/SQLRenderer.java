@@ -348,7 +348,7 @@ public class SQLRenderer {
                 
                 if (done == false
                         && statement.getMoreResults() == false
-                        && statement.getUpdateCount() < 0) {
+                        && nRows < 0) {
                     
                     SQLTools.printWarnings(session.err, statement);
                     endTime = System.currentTimeMillis();
