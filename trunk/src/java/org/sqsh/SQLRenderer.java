@@ -694,7 +694,8 @@ public class SQLRenderer {
                         : " [" + meta.getColumnLabel(idx) + "]: ")
                     + "Datatype is not currently supported by jsqsh "
                     + "(type "
-                    + meta.getColumnTypeName(idx) + ", #" + type + ")");
+                    + SQLTools.getTypeName(meta.getColumnType(idx))
+                    + ", #" + type + ")");
         }
         
         ColumnDescription c = new ColumnDescription(
