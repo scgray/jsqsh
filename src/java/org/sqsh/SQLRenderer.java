@@ -244,7 +244,7 @@ public class SQLRenderer {
         try {
             
             statement = conn.createStatement();
-            SQLTools.printWarnings(session.err, conn);
+            SQLTools.printWarnings(session, conn);
             
             /*
              * If we have a row limit and it is to be driver enforced, then
@@ -264,7 +264,7 @@ public class SQLRenderer {
             session.getSignalManager().push((SigHandler) sigHandler);
             
             statement.execute(sql);
-            SQLTools.printWarnings(session.err, statement);
+            SQLTools.printWarnings(session, statement);
             
             /*
              * Get ahold of the renderer that will be used for this
@@ -277,7 +277,7 @@ public class SQLRenderer {
             while (!done) {
                 
                 resultSet = statement.getResultSet();
-                SQLTools.printWarnings(session.err, statement);
+                SQLTools.printWarnings(session, statement);
                 
                 if (resultSet != null) {
                     
@@ -332,7 +332,7 @@ public class SQLRenderer {
                 else {
                     
                     nRows = statement.getUpdateCount();
-                    SQLTools.printWarnings(session.err, statement);
+                    SQLTools.printWarnings(session, statement);
                     
                     if (nRows >= 0) {
                         
@@ -350,7 +350,7 @@ public class SQLRenderer {
                         && statement.getMoreResults() == false
                         && nRows < 0) {
                     
-                    SQLTools.printWarnings(session.err, statement);
+                    SQLTools.printWarnings(session, statement);
                     endTime = System.currentTimeMillis();
                     
                     if (firstRowTime > 0L) {
@@ -399,7 +399,7 @@ public class SQLRenderer {
             ResultSet resultSet, Set<Integer>displayCols)
         throws SQLException {
         
-        SQLTools.printWarnings(session.err, resultSet);
+        SQLTools.printWarnings(session, resultSet);
         
         DataFormatter formatter = sqshContext.getDataFormatter();
         ColumnDescription []columns = getDescription(resultSet, displayCols);
@@ -414,7 +414,7 @@ public class SQLRenderer {
         
         while (resultSet.next()) {
             
-            SQLTools.printWarnings(session.err, resultSet);
+            SQLTools.printWarnings(session, resultSet);
             
             ++rowCount;
             if (firstRowTime == 0L && rowCount == 1) {
