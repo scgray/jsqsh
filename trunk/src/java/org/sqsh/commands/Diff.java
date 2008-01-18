@@ -27,9 +27,32 @@ public class Diff
     
     private static class Options {
         
+        /*
+         * 0  - Don't check update counts
+         * 1  - Only check non-zero update counts
+         * >  - Check and compare update counts
+         */
+        @Option(name="-u",usage="Stringency for update count checks")
+            public int updateStringency = 2;
+        
+        /*
+         * 0  - Check that an exception was thrown
+         * 1  - Check that the text of the exception is the same
+         * 2  - Check the SQLStatus of the exception
+         * >  - Check the error code
+         */
+        @Option(name="-e",usage="Stringency for exception checking")
+            public int exceptionStringency = 1;
+        
          @Argument
              public List<String> arguments = new ArrayList<String>();
      }
+    
+    /**
+     * The currently elected set of options. This is local to this
+     * instance so we don't need to pass it around.
+     */
+    private Options opts = null;
 
     @Override
     public int execute (Session session, String[] argv)
@@ -37,8 +60,9 @@ public class Diff
         
         ArrayList<Session> sessions = new ArrayList<Session>();
         SqshContext ctx = session.getContext();
-        Options options = new Options();
-        int rc = parseOptions(session, argv, options);
+        
+        opts = new Options();
+        int rc = parseOptions(session, argv, opts);
         if (rc != 0) {
             
             return rc;
@@ -53,12 +77,12 @@ public class Diff
          * Iterate through the remaining arguments. These should all be 
          * session numbers that are to be used for the comparison.
          */
-        for (int i = 0; i < options.arguments.size(); i++) {
+        for (int i = 0; i < opts.arguments.size(); i++) {
             
             boolean ok = true;
             try {
                 
-                int id = Integer.parseInt(options.arguments.get(i));
+                int id = Integer.parseInt(opts.arguments.get(i));
                 Session nextSession = ctx.getSession(id);
                 if (nextSession == null) {
                     
@@ -79,7 +103,7 @@ public class Diff
             
             if (!ok) {
                 
-                session.err.println("Session '" + options.arguments.get(i)
+                session.err.println("Session '" + opts.arguments.get(i)
                     + "' is not a valid session identifier. Use \\session to "
                     + "view a list of active sessions.");
                 return 1;
@@ -127,8 +151,10 @@ public class Diff
         
         Statement []statements = new Statement[sessions.length];
         ResultSet []results = new ResultSet[sessions.length];
+        int []updateCounts = new int[sessions.length];
+        boolean []moreResults = new boolean[sessions.length];
         SQLException []exceptions = new SQLException[sessions.length];
-        SQLWarning []warnings = new SQLWarning[sessions.length];
+        String []resultState = new String[sessions.length];
         boolean gotException = false;
         boolean ok =  true;
         
@@ -207,13 +233,57 @@ public class Diff
              */
             for (int i = 0; i < statements.length; i++) {
                 
+                exceptions[i] = null;
+                
                 try {
                     
-                    results[i] = statements[i].getResultSet();
-                    if (results[i] != null) {
+                    /*
+                     * This loop will attempt to "seek" forward to the
+                     * next relevant piece of information we want from
+                     * the result set, because upon the updateStringency
+                     * value.
+                     * 
+                     *   0  - Will seek until it finds row results
+                     *   1  - Will seek until it hits a > 0 update count
+                     *   >1 - Will stop at rows or update counts.
+                     */
+                    do {
                         
-                        haveResults = true;
+                        /*
+                     	 * Get the next result set.
+                     	 */
+                    	results[i] = statements[i].getResultSet();
+                    	if (results[i] != null) {
+	                        
+                        	updateCounts[i] = -999;
+                        	moreResults[i] = true;
+                    	}
+                    	else {
+                        
+                    	    /*
+                    	     * If we have no result sets, then fetch the
+                    	     * update count.
+                    	     */
+                        	results[i] = null;
+                        	updateCounts[i] = statements[i].getUpdateCount();
+                        	moreResults[i] = true;
+                        
+                        	/*
+                         	 * If the update count is -1 then check to see if
+                         	 * there are more results pending.
+                         	 */
+                        	if (updateCounts[i] == -1) {
+	                            
+                            	moreResults[i] =
+                            	    statements[i].getMoreResults();
+                        	}
+                    	}
                     }
+                    while (results[i] == null 
+                        && moreResults[i] == true
+                        && (opts.updateStringency == 0
+                                || (opts.updateStringency == 1
+                                        && updateCounts[i] <= 0)));
                 }
                 catch (SQLException e) {
                     
@@ -222,43 +292,91 @@ public class Diff
                 }
             }
             
-            ok = compareExceptions(sessions, exceptions);
+            /*
+             * Ok. At this point, we have either 
+             * 
+             *   1. An exception
+             *   2. A result set set
+             *   3. An update count
+             *   4. End of results
+             *   
+             * The first step it to determine that each session is at the
+             * same point.
+             */
+            if (ok) {
+                
+                for (int i = 0; i < sessions.length; i++) {
+                    
+                    if (exceptions[i] != null) {
+                        
+                        resultState[i] = "Exception";
+                    }
+                    else if (results[i] != null) {
+                        
+                        resultState[i] = "Row results";
+                    }
+                    else if (moreResults[i] == false) {
+                        
+                        resultState[i] = "Query complete";
+                    }
+                    else if (updateCounts[i] != -999) {
+                        
+                        resultState[i] = "Update count";
+                    }
+                    else {
+                        
+                        /*
+                         * Unless the logic above is fubar, then this
+                         * should never be hit.
+                         */
+                        resultState[i] = "Unknown";
+                    }
+                    
+                    if (i > 0 &&
+                            resultState[i].equals(resultState[0]) == false) {
+                        
+                        ok = false;
+                    }
+                }
+                
+                if (!ok) {
+                    
+                    System.err.println("Query state differs:");
+                    for (int i = 0; i < sessions.length; i++) {
+                        
+                        System.err.println("   Session #"
+                            + sessions[i].getId() + ": " 
+                            + resultState[i]);
+                    }
+                }
+            }
             
             /*
-             * If the everything checked out thus far and we have
-             * a result set, then compare them.
+             * If every session is in the same state, then check the
+             * contents of whatever that state is.
              */
-            if (ok && haveResults) {
+            if (ok) {
+                
+                ok = compareExceptions(sessions, exceptions);
+            }
+            
+            if (ok && !gotException) {
+                
+                ok = compareUpdateCount(sessions, updateCounts);
+            }
+            
+            if (ok && !gotException) {
+                
+                ok = compareMoreResults(sessions, moreResults);
+            }
+            
+            if (ok && !gotException && results[0] != null) {
                 
                 ok = compareResults(sessions, results);
                 close(results);
             }
             
-            int nRows = -1;
-            boolean isMore = false;
-            
-            if (ok) {
-                
-                nRows = compareUpdateCount(sessions, statements);
-                if (nRows == -999) {
-                    
-                    ok = false;
-                }
-                else {
-                    
-                    int m = compareMoreResults(sessions, statements);
-                    if (m == -1) {
-                        
-                        ok = false;
-                    }
-                    else {
-                        
-                        isMore = (m == 1);
-                    }
-                }
-            }
-            
-            if (ok && isMore == false && nRows < 0) {
+            if (ok && !gotException && moreResults[0] == false) {
                 
                 done = true;
             }
@@ -282,6 +400,13 @@ public class Diff
         
         SQLException []exceptions = new SQLException[sessions.length];
         
+        ResultSetMetaData meta;
+        int ncols;
+        boolean ok = true;
+        boolean done = false;
+        boolean gotException = false;
+        int rowCount = 0;
+        
         /*
          * First, make sure that the metadata is the same across all
          * of our result sets. No bother comparing data if they don't
@@ -292,13 +417,6 @@ public class Diff
             return false;
         }
         
-        ResultSetMetaData meta;
-        int ncols;
-        
-        boolean ok = true;
-        boolean done = false;
-        boolean gotException = false;
-        int rowCount = 0;
         
         while (ok && !done) {
             
@@ -639,93 +757,70 @@ public class Diff
      * Compares the update counts of a set of statements.
      * 
      * @param sessions The sessions
-     * @param statements The statements to check
-     * @return The actual update count(s) or -999 if they differ.
+     * @param updateCounts The update counts for the sessions.
+     * @return True if they are the same
      */
-    private int compareUpdateCount(Session []sessions,
-            Statement []statements) {
+    private boolean compareUpdateCount(Session []sessions,
+            int []updateCounts) {
         
         boolean ok = true;
-        int c = -1;
-        try {
-            
-            c = statements[0].getUpdateCount();
-            for (int i = 1; ok && i < sessions.length; i++) {
+        for (int i = 1; ok && i < sessions.length; i++) {
                 
-                if (statements[i].getUpdateCount() != c) {
+            if (updateCounts[i] != updateCounts[0]) {
                     
-                    ok = false;
-                }
-            }
-            
-            if (!ok) {
-                
-                System.err.println("Update count differs:");
-                for (int i = 0; i < statements.length; i++) {
-                
-                	System.err.println("   Session #"
-                    	+ sessions[i].getId() + ": " 
-                    	+ statements[i].getUpdateCount()
-                    	+ " row(s)");
-            	}
-                
-                return -999;
+                ok = false;
             }
         }
-        catch (SQLException e) {
             
-            /* IGNORED */
+        if (!ok) {
+                
+            System.err.println("Update count differs:");
+            for (int i = 0; i < updateCounts.length; i++) {
+                
+            	System.err.println("   Session #"
+                	+ sessions[i].getId() + ": " 
+                	+ updateCounts[i]
+                	+ " row(s)");
+        	}
         }
         
-        return c;
+        return ok;
     }
     
     /**
      * Checks to see if there are more results.
      * 
      * @param sessions The sessions
-     * @param statements The statements to check
-     * @return 1 if there are more, 0 if there aren't, and -1
+     * @param moreResults The more results flags for the sessions.
+     * @return true if they match, false if they don't
      *   if the statements differ about ti.
      */
-    private int compareMoreResults(Session []sessions,
-            Statement []statements) {
+    private boolean compareMoreResults(Session []sessions,
+            boolean []moreResults) {
         
         boolean ok = true;
-        boolean isMore = false;
-        
-        try {
-            
-            isMore = statements[0].getMoreResults();
-            for (int i = 1; ok && i < sessions.length; i++) {
+        for (int i = 1; ok && i < sessions.length; i++) {
                 
-                if (statements[i].getMoreResults() != isMore) {
+            if (moreResults[i] != moreResults[0]) {
                     
-                    ok = false;
-                }
-            }
-            
-            if (!ok) {
-                
-                System.err.println("Number of result sets differ:");
-                for (int i = 0; i < statements.length; i++) {
-                
-                	System.err.println("   Session #"
-                    	+ sessions[i].getId() + ": " 
-                    	+ (statements[i].getMoreResults()
-                    	        ? "Results pending"
-                    	        : "No more results"));
-            	}
-                
-                return -1;
+                ok = false;
             }
         }
-        catch (SQLException e) {
             
-            /* IGNORED */
+        if (!ok) {
+                
+            System.err.println("Number of result sets differ:");
+            for (int i = 0; i < sessions.length; i++) {
+                
+            	System.err.println("   Session #"
+                	+ sessions[i].getId() + ": " 
+                	+ (moreResults[i]
+                	        ? "Results pending"
+                	        : "No more results"));
+        	}
         }
         
-        return (isMore ? 1 : 0);
+        return ok;
     }
     
     /**
@@ -738,29 +833,56 @@ public class Diff
             SQLException []exceptions) {
         
         boolean ok = true;
-        SQLException e = exceptions[0];
+        String []descriptions = new String[exceptions.length];
         
-        for (int i = 1; i < exceptions.length; i++) {
+        for (int i = 0; i < exceptions.length; i++) {
             
-            if ((e != null || exceptions[i] != null)
-               && ((e == null && exceptions[i] != null)
-                  || (e != null && exceptions[i] == null)
-                  || !(e.getMessage().equals(exceptions[i].getMessage())))) {
+            if (exceptions[i] == null) {
+                
+                descriptions[i] = "null";
+            }
+            else {
+                
+                StringBuilder sb = new StringBuilder();
+                
+                if (opts.exceptionStringency == 0) {
+                    
+                    sb.append("exception");
+                }
+                else if (opts.exceptionStringency > 1) {
+                    
+                    sb.append("[State ")
+                        .append(exceptions[i].getSQLState())
+                        .append("]: ");
+                }
+                else if (opts.exceptionStringency > 2) {
+                    
+                    sb.append("[Code ")
+                        .append(exceptions[i].getErrorCode())
+                        .append("]: ");
+                }
+                
+                if (opts.exceptionStringency > 0) {
+                    
+                    sb.append(exceptions[i].getMessage());
+                }
+                
+                descriptions[i] = sb.toString();
+            }
+            
+            if (i > 0 && !descriptions[0].equals(descriptions[i])) {
                 
                 ok = false;
-                break;
             }
         }
-        
         if (!ok) {
             
             System.err.println("SQL exceptions differ:");
             for (int i = 0; i < exceptions.length; i++) {
                 
-                e = exceptions[i];
                 System.err.println("   Session #"
                     + sessions[i].getId() + ": " 
-                    + (e == null ? "<none>" : e.getMessage()));
+                    + descriptions[i]);
             }
         }
         
