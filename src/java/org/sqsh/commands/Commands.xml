@@ -771,7 +771,7 @@ OPTIONS
            
         <Help><![CDATA[
 SYNOPSIS
-   \diff session_id [session_id ...]
+   \diff [-e [0-2]] [-u [0-3]] session_id [session_id ...]
               
 DESCRIPTION
    The \diff command executes the current SQL buffer in the current
@@ -785,7 +785,17 @@ DESCRIPTION
    * Values in rows must be identical
    
 OPTIONS
-   None.
+   -e N  Specifies the stringency level to be used when comparing
+         exceptions between results:
+            0 - Compared presence of an exception 
+            1 - The text of the exceptions must be the same
+            2 - The SQL Status of the exceptions must be the same
+            3 - The SQL Error Code of the exceptions must be the same
+   -u N  Specifies the stringency level to be used when comparing
+         the update counts (the "rows affected") returned between results. 
+            0 - Update counts are not compared
+            1 - Only compare non-zero update counts
+            3 - Update counts must be identical.
         ]]></Help>
     </Command>
 </Commands>
