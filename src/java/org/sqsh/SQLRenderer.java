@@ -228,7 +228,6 @@ public class SQLRenderer {
         Connection conn = session.getSQLContext().getConnection();
         ResultSet resultSet = null;
         Statement statement = null;
-        int nRows = 0;
         boolean done = false;
         CancelingSignalHandler sigHandler = null;
         
@@ -275,6 +274,12 @@ public class SQLRenderer {
             StringBuilder footer = new StringBuilder();
             
             while (!done) {
+                
+                /*
+                 * Record the number of rows returned. -1 indicates no
+                 * rows were displayed.
+                 */
+                int nRows = -1;
                 
                 resultSet = statement.getResultSet();
                 SQLTools.printWarnings(session, statement);
@@ -329,15 +334,18 @@ public class SQLRenderer {
                     SQLTools.close(resultSet);
                     resultSet = null;
                 }
-                else {
+                
+                int updateCount = statement.getUpdateCount();
+                boolean moreResults = statement.getMoreResults();
+                
+                if (nRows < 0) {
                     
-                    nRows = statement.getUpdateCount();
                     SQLTools.printWarnings(session, statement);
                     
-                    if (nRows >= 0) {
+                    if (updateCount >= 0) {
                         
-                        footer.append(nRows + " row"
-                            + ((nRows != 0) ? "s" : "")
+                        footer.append(updateCount + " row"
+                            + ((updateCount != 1) ? "s" : "")
                         	+ " affected");
                     } 
                     else {
@@ -347,8 +355,8 @@ public class SQLRenderer {
                 }
                 
                 if (done == false
-                        && statement.getMoreResults() == false
-                        && nRows < 0) {
+                        && moreResults == false
+                        && updateCount < 0) {
                     
                     SQLTools.printWarnings(session, statement);
                     endTime = System.currentTimeMillis();
