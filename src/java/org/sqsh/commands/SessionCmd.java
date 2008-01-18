@@ -50,26 +50,34 @@ public class SessionCmd
             Session newSession = null;
             int id;
             
-            try {
+            /*
+             * The special id of "-" will cause a null session id
+             * to be thrown back to the SqshContext which will request
+             * it to switch to the previous session.
+             */
+            if (!argv[0].equals("-")) {
                 
-                id = Integer.parseInt(argv[0]);
-                newSession = ctx.getSession(id);
-                if (newSession == null) {
+                try {
+                    
+                    id = Integer.parseInt(argv[0]);
+                    newSession = ctx.getSession(id);
+                    if (newSession == null) {
+                        
+                        ok = false;
+                    }
+                }
+                catch (Exception e) {
                     
                     ok = false;
                 }
-            }
-            catch (Exception e) {
                 
-                ok = false;
-            }
-            
-            if (ok == false) {
-                
-                session.err.println("Invalid session number '" 
-                    + argv[0] + "'. Run \\session with no arguments to "
-                    + "see a list of available sessions.");
-                return 1;
+                if (ok == false) {
+                    
+                    session.err.println("Invalid session number '" 
+                        + argv[0] + "'. Run \\session with no arguments to "
+                        + "see a list of available sessions.");
+                    return 1;
+                }
             }
             
             throw new SqshContextSwitchMessage(session, newSession);
