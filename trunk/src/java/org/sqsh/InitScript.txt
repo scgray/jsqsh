@@ -3,6 +3,7 @@
 ## standard settings.
 ##
 \alias '\edit=\buf-edit'
+\alias '\session=\s'
 \alias 'vi=\buf-edit'
 \alias 'emacs=\buf-edit'
 \alias 'quit=\quit'

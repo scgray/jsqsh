@@ -125,6 +125,12 @@ public class SqshContext {
     private Session currentSession = null;
     
     /**
+     * This keeps track of the previous session id used by the
+     * user.
+     */
+    private int prevSessionId = 1;
+    
+    /**
      * This is the next available session id.
      */
     private int nextSessionId = 1;
@@ -259,6 +265,14 @@ public class SqshContext {
          * configuration directory.
          */
         loadConfigDirectory();
+        
+        /*
+         * Some of the activities above created sessions to do their
+         * work. Just for the sake of "prettyness" to the user, I'll
+         * re-set the session numbers so they start at 1.
+         */
+        nextSessionId = 1;
+        prevSessionId = 1;
     }
     
     /**
@@ -405,11 +419,11 @@ public class SqshContext {
      */
     public Session newSession() {
         
-        currentSession = new Session(this, nextSessionId);
+        Session session = new Session(this, nextSessionId);
         ++nextSessionId;
         
-        sessions.add(currentSession);
-        return currentSession;
+        sessions.add(session);
+        return session;
     }
     
     /**
@@ -424,11 +438,12 @@ public class SqshContext {
     public Session newSession(InputStream in, 
             PrintStream out, PrintStream err) {
         
-        currentSession = new Session(this, nextSessionId, in, out, err);
+        Session session =
+            new Session(this, nextSessionId, in, out, err);
         ++nextSessionId;
         
-        sessions.add(currentSession);
-        return currentSession;
+        sessions.add(session);
+        return session;
     }
     
     /**
@@ -545,6 +560,11 @@ public class SqshContext {
         
         boolean done = false;
         
+        if (currentSession == null && sessions.size() > 0) {
+            
+            currentSession = sessions.get(0);
+        }
+        
         String version = variableManager.get("version");
         if (currentSession.isInteractive()) {
             
@@ -577,6 +597,22 @@ public class SqshContext {
                 catch (SqshContextSwitchMessage e) {
                     
                     Session target = e.getTargetSession();
+                    
+                    /*
+                     * If no target was supplied, then try to switch
+                     * to the previous session.
+                     */
+                    if (target == null 
+                            && prevSessionId >= 0
+                            && currentSession.getId() != prevSessionId) {
+                        
+                        target = getSession(prevSessionId);
+                    }
+                    
+                    /*
+                     * No previous session? Then just grab the next 
+                     * available.
+                     */
                     if (target == null) {
                         
                         for (Session session : sessions) {
@@ -592,6 +628,11 @@ public class SqshContext {
                     if (e.isEndingCurrent()) {
                         
                         removeSession(currentSession.getId());
+                        prevSessionId = -1;
+                    }
+                    else {
+                        
+                        prevSessionId = currentSession.getId();
                     }
                     
                     currentSession = target;

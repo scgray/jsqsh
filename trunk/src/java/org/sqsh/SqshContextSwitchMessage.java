@@ -37,7 +37,8 @@ public class SqshContextSwitchMessage
      */
     public SqshContextSwitchMessage (Session session, Session targetSession) {
         
-        super(session, "Please switch to session #" + targetSession.getId());
+        super(session,  "Please switch to session #" 
+            + (targetSession != null ? targetSession.getId() : "<prev>"));
         this.targetSession = targetSession;
     } 
     
