@@ -219,10 +219,31 @@ public class SQLRenderer {
     }
 
     /**
-     * Executes the provided SQL.
-     * @param sql The SQL to be executed.
+     * Executes a SQL statement using the default renderer.
+     * @param session The session to be used as an output handle
+     *  (and where the database connection comes from).
+     * @param sql  The SQL to execute
+     * @throws SQLException Thrown when...well, you know.
      */
     public void execute (Session session, String sql)
+        throws SQLException {
+        
+        execute(
+            session.getContext().getRendererManager().getRenderer(session),
+            session, sql);
+    }
+    
+    /**
+     * Executes a SQL statement.
+     * 
+     * @param renderer The renderer to be used to physically render
+     *  the result set(s).
+     * @param session The session to be used as an output handle
+     *  (and where the database connection comes from).
+     * @param sql  The SQL to execute
+     * @throws SQLException Thrown when...well, you know.
+     */
+    public void execute (Renderer renderer, Session session, String sql)
         throws SQLException {
         
         Connection conn = session.getSQLContext().getConnection();
@@ -265,12 +286,6 @@ public class SQLRenderer {
             statement.execute(sql);
             SQLTools.printWarnings(session, statement);
             
-            /*
-             * Get ahold of the renderer that will be used for this
-             * session.
-             */
-            Renderer  renderer = 
-                sqshContext.getRendererManager().getRenderer(session);
             StringBuilder footer = new StringBuilder();
             
             while (!done) {

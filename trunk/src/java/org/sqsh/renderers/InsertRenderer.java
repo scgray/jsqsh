@@ -1,8 +1,13 @@
 package org.sqsh.renderers;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+
 import org.sqsh.ColumnDescription;
 import org.sqsh.Renderer;
 import org.sqsh.RendererManager;
+import org.sqsh.SQLTools;
 import org.sqsh.Session;
 
 /**
@@ -13,6 +18,11 @@ public class InsertRenderer
 
     private String table = "TABLE";
     private String insert = null;
+    private int batchSize = 50;
+    private Connection conn = null;
+    private StringBuilder insertBatch = new StringBuilder();
+    
+    private int rowCount = 0;
 
     public InsertRenderer(Session session, RendererManager manager) {
 
@@ -25,6 +35,55 @@ public class InsertRenderer
         }
     }
     
+    /**
+     * @return the name of the table that will be used
+     * in the INSERT statements.
+     */
+    public String getTable () {
+    
+        return table;
+    }
+    
+    /**
+     * @param table The table name that will be used for the
+     * INSERT statements.
+     */
+    public void setTable (String table) {
+    
+        this.table = table;
+    }
+    
+    /**
+     * @return Returns the number of rows that will be  inserted 
+     * before the batch is executed.
+     */
+    public int getBatchSize () {
+    
+        return batchSize;
+    }
+    
+    /**
+     * @param batchSize The number of rows that will be inserted before the 
+     * batch is executed.
+     */
+    public void setBatchSize (int batchSize) {
+    
+        this.batchSize = batchSize;
+    }
+    
+    /**
+     * This method provides a database connection to the renderer that will
+     * be used to actually execute the INSERT statements. If no connection
+     * is provided, the statements will be printed to the screen instead.
+     * 
+     * @param conn the connection.
+     */
+    public void setConnection (Connection conn) {
+    
+        this.conn = conn;
+    }
+
+
     /* (non-Javadoc)
      * @see org.sqsh.Renderer#header(org.sqsh.ColumnDescription[])
      */
@@ -39,8 +98,8 @@ public class InsertRenderer
         }
         
         StringBuilder sb = new StringBuilder();
-        sb.append("INSERT ")
-          .append(table)
+        sb.append("INSERT INTO ")
+          .append(quoteIdentifier(table))
           .append(" (");
         
         for (int i = 0; i < columns.length; i++) {
@@ -58,27 +117,7 @@ public class InsertRenderer
                 name = "NONAME";
             }
             
-            int len = name.length();
-            boolean needQuotes = false;
-            for (int j = 0; needQuotes == false && j < len; j++) {
-                
-                char ch = name.charAt(j);
-                if (!(Character.isLetter(ch)
-                        || Character.isDigit(ch)
-                        || ch == '_')) {
-                    
-                    needQuotes = true;
-                }
-            }
-            
-            if (needQuotes) {
-                
-                sb.append('"').append(name).append('"');
-            }
-            else {
-                
-                sb.append(name);
-            }
+            sb.append(quoteIdentifier(name));
         }
         
         sb.append(") VALUES (");
@@ -88,6 +127,7 @@ public class InsertRenderer
     @Override
     public boolean row (String[] row) {
         
+        boolean ok = true;
         StringBuilder sb = new StringBuilder();
         sb.append(insert);
         
@@ -110,14 +150,135 @@ public class InsertRenderer
         }
         sb.append(")");
         
-        session.out.println(sb.toString());
-        return (session.out.checkError() == false);
+        ++rowCount;
+        ok = insertRow(sb.toString());
+        if (ok && (rowCount % batchSize) == 0) {
+            
+            ok = insertGo();
+        }
+        
+        return ok;
+    }
+    
+    /**
+     * Attempts to execute the INSERT statement(s) against
+     * a database connection.
+     * 
+     * @param str String containing an insert statement. 
+     * @return true if the insert succeeded, false otherwise
+     */
+    private boolean insertRow (String str) {
+        
+        /*
+         * If there is no connection, then just print the
+         * INSERT statement to the screen.
+         */
+        if (conn == null) {
+            
+            session.out.println(str);
+            return (session.out.checkError() == false);
+        }
+        
+        /*
+         * We have a connection, so buffer the statement.
+         */
+        if (insertBatch.length() > 0) {
+            
+            insertBatch.append('\n');
+        }
+        insertBatch.append(str);
+        return true;
+    }
+        
+    /**
+     * Called when the batch is to be executed via a "go".
+     * 
+     * @return true if it worked, false otherwise.
+     */
+    private boolean insertGo() {
+        
+        /*
+         * If there is no connection, then just print the
+         * word "go" to the screen.
+         */
+        if (conn == null) {
+            
+            session.out.println("go");
+            return true;
+        }
+        
+        /*
+         * If our batch is empty then nothing to do.
+         */
+        if (insertBatch.length() == 0) {
+            
+            return true;
+        }
+        
+        /*
+         * Otherwise, attempt to execute.
+         */
+        try {
+            
+            Statement statement = conn.createStatement();
+            statement.execute(insertBatch.toString());
+            statement.getUpdateCount();
+            statement.close();
+            
+            conn.commit();
+        }
+        catch (SQLException e) {
+            
+            SQLTools.printException(session.err, e);
+            
+            insertBatch.setLength(0);
+            return false;
+        }
+        
+        insertBatch.setLength(0);
+        return true;
+    }
+    
+    /**
+     * Given a string that contains the name of an database
+     * object (table/column), quotes the string if necessary.
+     * 
+     * @param str The string to check.
+     * @return The quoted version of the string.
+     */
+    private String quoteIdentifier (String str) {
+
+        int len = str.length();
+        boolean needQuotes = false;
+        for (int j = 0; needQuotes == false && j < len; j++) {
+
+            char ch = str.charAt(j);
+            if (!(Character.isLetter(ch)
+                    || Character.isDigit(ch)
+                    || ch == '_')) {
+
+                needQuotes = true;
+            }
+        }
+        
+        if (needQuotes) {
+            
+            StringBuilder sb = new StringBuilder();
+            sb.append('"')
+                .append(str)
+                .append('"');
+            
+            return sb.toString();
+        }
+        
+        return str;
     }
     
     /**
      * Protects single quotes in a string.
      * 
-     * @param str The string that may or may not have single quotes.
+     * @param str
+     *            The string that may or may not have single quotes.
      * @return The string with the quotes escaped.
      */
     private String quote (String str) {
@@ -158,7 +319,6 @@ public class InsertRenderer
     @Override
     public void footer (String footer) {
 
-        /* NO FOOTERS */
+        insertGo();
     }
-
 }
