@@ -12,7 +12,6 @@ public class InsertRenderer
     extends Renderer {
 
     private String table = "TABLE";
-    private StringBuilder sb = new StringBuilder();
     private String insert = null;
 
     public InsertRenderer(Session session, RendererManager manager) {
@@ -33,6 +32,11 @@ public class InsertRenderer
     public void header (ColumnDescription[] columns) {
 
         super.header(columns);
+
+        if (insert != null) {
+
+           return;
+        }
         
         StringBuilder sb = new StringBuilder();
         sb.append("INSERT ")
@@ -84,6 +88,7 @@ public class InsertRenderer
     @Override
     public boolean row (String[] row) {
         
+        StringBuilder sb = new StringBuilder();
         sb.append(insert);
         
         for (int i = 0; i < row.length; i++) {
