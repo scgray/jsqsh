@@ -74,6 +74,18 @@ public class Diff
         sessions.add(session);
         
         /*
+         * If no arguments were received, then we are comparing all 
+         * sessions.
+         */
+        if (opts.arguments.size() < 1) {
+            
+            for (Session s : ctx.getSessions()) {
+                
+                opts.arguments.add(Integer.toString(s.getId()));
+            }
+        }
+        
+        /*
          * Iterate through the remaining arguments. These should all be 
          * session numbers that are to be used for the comparison.
          */
@@ -155,6 +167,7 @@ public class Diff
         boolean []moreResults = new boolean[sessions.length];
         SQLException []exceptions = new SQLException[sessions.length];
         String []resultState = new String[sessions.length];
+        int []resultCount = new int[sessions.length];
         boolean gotException = false;
         boolean ok =  true;
         
@@ -162,6 +175,8 @@ public class Diff
          * First, create our statements.
          */
         for (int i = 0; i < sessions.length; i++) {
+            
+            resultCount[i] = 0;
             
             try {
                 
@@ -226,8 +241,6 @@ public class Diff
         boolean done = (ok == false || gotException);
         while (ok && !done) {
             
-            boolean haveResults = false;
-            
             /*
              * Fetch the next result set.
              */
@@ -250,34 +263,36 @@ public class Diff
                     do {
                         
                         /*
-                     	 * Get the next result set.
-                     	 */
-                    	results[i] = statements[i].getResultSet();
-                    	if (results[i] != null) {
-	                        
-                        	updateCounts[i] = -999;
-                        	moreResults[i] = true;
-                    	}
-                    	else {
+                         * If we have already grabbed a result set, then
+                         * check to see if there are any more results
+                         * available.
+                         */
+                        moreResults[i] = (resultCount[i] > 0
+                                ? statements[i].getMoreResults()
+                                : true);
+                        results[i] = null;
+                        updateCounts[i] = -999;
                         
-                    	    /*
-                    	     * If we have no result sets, then fetch the
-                    	     * update count.
-                    	     */
-                        	results[i] = null;
-                        	updateCounts[i] = statements[i].getUpdateCount();
-                        	moreResults[i] = true;
                         
-                        	/*
-                         	 * If the update count is -1 then check to see if
-                         	 * there are more results pending.
-                         	 */
-                        	if (updateCounts[i] == -1) {
-	                            
-                            	moreResults[i] =
-                            	    statements[i].getMoreResults();
+                        /*
+                         * If there are more results, then deal with them.
+                         */
+                        if (moreResults[i]) {
+                            
+                            results[i] = statements[i].getResultSet();
+                            ++resultCount[i];
+                    	
+                        	if (results[i] == null) {
+    	                        
+                        	    /*
+                        	     * If we have no result sets, then fetch the
+                        	     * update count.
+                        	     */
+                            	results[i] = null;
+                            	updateCounts[i] =
+                            	    statements[i].getUpdateCount();
                         	}
-                    	}
+                        }
                     }
                     while (results[i] == null 
                         && moreResults[i] == true
