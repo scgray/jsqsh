@@ -17,6 +17,8 @@
  */
 package org.sqsh.commands;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -145,7 +147,6 @@ public class Connect
                 sqlContext = session.getDriverManager().connect(
                 	options.driverName, session, properties);
             }
-            
             
             /*
              * If we are asked to create a new session, then we will do so.
