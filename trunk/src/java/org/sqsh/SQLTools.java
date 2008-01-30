@@ -38,6 +38,7 @@ import org.sqsh.parser.SimpleSQLTokenizer;
  */
 public class SQLTools {
     
+    
     /**
      * Silently close a result set, ignoring any SQLExceptions.
      * 
@@ -302,5 +303,133 @@ public class SQLTools {
         }
         
         return "[TYPE #" + type + "]";
+    }
+    
+    /**
+     * Used to parse a database object name of the forms:
+     * <pre>
+     *    a
+     *    a.b
+     *    a.b.c
+     *    a.b.c.d
+     * </pre>
+     * and does its best to determine which part of the name is
+     * what (e.g. "a.b" is assumed to be "schema.name".
+     * 
+     * <p>Currently the parsing logic doesn't deal with any sort of
+     * quoting, such as [my schema].[my table] or "my schema"."my table";
+     * it simply looks at the dots and does the work.
+     * 
+     * @param name The name to be parsed.
+     * @return A parsed version of the name.
+     */
+    public static ObjectDescription parseObjectName (String name) {
+        
+        return new ObjectDescription(name);
+    }
+    
+    /**
+     * Returned by parseObjectName() as an object description.
+     */
+    public static class ObjectDescription {
+        
+        private String name = null;
+        private String column = null;
+        private String schema = null;
+        private String catalog = null;
+        
+        /**
+         * Creates a new object description by parsing the 
+         * provided name.
+         */
+        protected ObjectDescription (String str) {
+            
+            String []parts = str.split("\\.");
+            
+            switch (parts.length) {
+                
+                case 0 :
+                    break;
+                
+                case 1 : 
+                    name = parts[0];
+                    break;
+                
+                case 2 :
+                    schema = parts[0];
+                    name = parts[1];
+                    break;
+                    
+                case 3 :
+                    catalog = parts[0];
+                    schema = parts[1];
+                    name = parts[2];
+                    break;
+                    
+                case 4 :
+                default :
+                    catalog = parts[0];
+                    schema = parts[1];
+                    name = parts[2];
+                    column = parts[3];
+                    break;
+            }
+        }
+
+        
+        /**
+         * @return the name
+         */
+        public String getName () {
+        
+            return name;
+        }
+
+        /**
+         * @return the column
+         */
+        public String getColumn () {
+        
+            return column;
+        }
+
+        /**
+         * @return the schema
+         */
+        public String getSchema () {
+        
+            return schema;
+        }
+        
+        /**
+         * @return the catalog
+         */
+        public String getCatalog () {
+        
+            return catalog;
+        }
+        
+        public String toString() {
+            
+            StringBuilder sb = new StringBuilder();
+            if (catalog != null) {
+                
+                sb.append("[").append(catalog).append("]");
+            }
+            if (schema != null) {
+                
+                sb.append("[").append(schema).append("]");
+            }
+            if (schema != null) {
+                
+                sb.append("[").append(name).append("]");
+            }
+            if (column != null) {
+                
+                sb.append("[").append(column).append("]");
+            }
+            
+            return sb.toString();
+        }
     }
 }

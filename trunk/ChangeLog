@@ -2,6 +2,8 @@ Release 1.1-SNAPSHOT
 * Added \insert command, this displays the results of the current SQL
   query as INSERT statements or executes the INSERT statements in 
   another session.
+* Added \select command to generate select statements and joins from
+  table definitions.
 * Added \diff command to compare results from SQL executed across 
   multiple session.
 * Tab completion now recognizes the TSQL "use" statement.
