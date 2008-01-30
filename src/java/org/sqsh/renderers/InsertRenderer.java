@@ -23,10 +23,17 @@ public class InsertRenderer
     private StringBuilder insertBatch = new StringBuilder();
     
     private int rowCount = 0;
+    private String nullRepresentation = null;
 
     public InsertRenderer(Session session, RendererManager manager) {
 
         super(session, manager);
+        
+        /*
+         * This is used below in a hack to determine if I am looking
+         * at the NULL string representation used by the data formatter.
+         */
+        nullRepresentation = session.getDataFormatter().getNull();
 
         String tab = session.getVariable("insert_table");
         if (tab != null) {
@@ -133,19 +140,46 @@ public class InsertRenderer
         
         for (int i = 0; i < row.length; i++) {
             
+            /*
+             * COMPLETE AND UTTER HACK: The values for the row
+             * have been formatted for us by our caller (presumably
+             * the SQLRenderer, by using the DataFormatter class). Because
+             * of this, NULL values will be returned as a string that was
+             * provided by the DataFormatter.getNull() method. Because of this
+             * we need to "reverse" this process and actually spit a NULL
+             * into our INSERT statement. 
+             * 
+             * This is a hack because if the current NULL representation is
+             * too common a value, we may accidentally null a column that 
+             * wasn't really null. This could be worked around, but would
+             * require more effort than I really want to put in.
+             */
+            if (row[i] != null
+                    && nullRepresentation.equals(row[i])) {
+                
+                row[i] = null;
+            }
+            
             if (i > 0) {
                 
                 sb.append(", ");
             }
             
-            ColumnDescription col = columns[i];
-            if (col.getType() != ColumnDescription.Type.STRING) {
+            if (row[i] == null) {
                 
-                sb.append(row[i]);
+                sb.append("NULL");
             }
             else {
+            
+                ColumnDescription col = columns[i];
+            	if (col.getType() != ColumnDescription.Type.STRING) {
                 
-                sb.append('\'').append(quote(row[i])).append('\'');
+                	sb.append(row[i]);
+            	}
+            	else {
+                
+                	sb.append('\'').append(quote(row[i])).append('\'');
+            	}
             }
         }
         sb.append(")");
