@@ -117,7 +117,7 @@ public class Select
                 
                 query.append(table.alias)
                     .append('.')
-                    .append(table.columns[j].name);
+                    .append(SQLTools.quoteIdentifier(table.columns[j].name));
             }
         }
         
@@ -224,11 +224,11 @@ public class Select
                     
                     join.append(table1.alias)
                         .append('.')
-                        .append(rs.getString(4))
+                        .append(SQLTools.quoteIdentifier(rs.getString(4)))
                         .append(" = ")
                         .append(table2.alias)
                         .append('.')
-                        .append(rs.getString(8));
+                        .append(SQLTools.quoteIdentifier(rs.getString(8)));
                     
                     ++joinCount;
                 }
@@ -272,11 +272,11 @@ public class Select
                                 
                             join.append(table1.alias)
                                 .append('.')
-                                .append(c1.name)
+                                .append(SQLTools.quoteIdentifier(c1.name))
                                 .append(" = ")
                                 .append(table2.alias)
                                 .append('.')
-                                .append(c2.name);
+                                .append(SQLTools.quoteIdentifier(c2.name));
                                 
                             ++joinCount;
                         }

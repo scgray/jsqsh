@@ -106,7 +106,7 @@ public class InsertRenderer
         
         StringBuilder sb = new StringBuilder();
         sb.append("INSERT INTO ")
-          .append(quoteIdentifier(table))
+          .append(SQLTools.quoteIdentifier(table))
           .append(" (");
         
         for (int i = 0; i < columns.length; i++) {
@@ -124,7 +124,7 @@ public class InsertRenderer
                 name = "NONAME";
             }
             
-            sb.append(quoteIdentifier(name));
+            sb.append(SQLTools.quoteIdentifier(name));
         }
         
         sb.append(") VALUES (");
@@ -271,41 +271,6 @@ public class InsertRenderer
         
         insertBatch.setLength(0);
         return true;
-    }
-    
-    /**
-     * Given a string that contains the name of an database
-     * object (table/column), quotes the string if necessary.
-     * 
-     * @param str The string to check.
-     * @return The quoted version of the string.
-     */
-    private String quoteIdentifier (String str) {
-
-        int len = str.length();
-        boolean needQuotes = false;
-        for (int j = 0; needQuotes == false && j < len; j++) {
-
-            char ch = str.charAt(j);
-            if (!(Character.isLetter(ch)
-                    || Character.isDigit(ch)
-                    || ch == '_')) {
-
-                needQuotes = true;
-            }
-        }
-        
-        if (needQuotes) {
-            
-            StringBuilder sb = new StringBuilder();
-            sb.append('"')
-                .append(str)
-                .append('"');
-            
-            return sb.toString();
-        }
-        
-        return str;
     }
     
     /**
