@@ -267,6 +267,46 @@ public class SQLTools {
     }
     
     /**
+     * Given a database object identifier (the name of an object)
+     * attempts to determine if the identifier needs quotes around
+     * it. The rule is pretty simple, if the identifier contains
+     * anything other than letters, digits, or an underscore, it is
+     * quoted.
+     * 
+     * @param identifier The identifier to check
+     * @return The identifier or the identifier with quotes, if 
+     *   necessary.
+     */
+    public static String quoteIdentifier (String identifier) {
+
+        int len = identifier.length();
+        boolean needQuotes = false;
+        for (int j = 0; needQuotes == false && j < len; j++) {
+
+            char ch = identifier.charAt(j);
+            if (!(Character.isLetter(ch)
+                    || Character.isDigit(ch)
+                    || ch == '_')) {
+
+                needQuotes = true;
+            }
+        }
+        
+        if (needQuotes) {
+            
+            StringBuilder sb = new StringBuilder();
+            sb.append('"')
+                .append(identifier)
+                .append('"');
+            
+            return sb.toString();
+        }
+        
+        return identifier;
+    }
+    
+    
+    /**
      * This method is used to convert a {@link java.sql.Type} datatype
      * value to a displayable string. This conversion is done by reflecting
      * the {@link java.sql.Type} class.  The reason this method exists
