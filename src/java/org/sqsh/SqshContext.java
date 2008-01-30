@@ -568,7 +568,8 @@ public class SqshContext {
         String version = variableManager.get("version");
         if (currentSession.isInteractive()) {
             
-            currentSession.out.println("JSqsh Release " + version + ", Copyright (C) 2007, Scott C. Gray");
+            currentSession.out.println("JSqsh Release " + version 
+                + ", Copyright (C) 2007-2008, Scott C. Gray");
             currentSession.out.println("Type \\help for available help topics");
         }
         
