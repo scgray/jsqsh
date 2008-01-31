@@ -1,20 +1,20 @@
 <Help>
 	<Topic name="jni">
-		<Description>Features provided by the sqsh JNI layer</Description>
+		<Description>Features provided by the jsqsh JNI layer</Description>
 		<HelpText><![CDATA[
-SQSH JNI LAYER
-    Sqsh is written in almost 100% java code, making it very 
+JSQSH JNI LAYER
+    JSqsh is written in almost 100% java code, making it very 
     portable between platforms, however there are a few places 
     where java just does not provide enough functionality to 
-    implement certain features that are needed by sqsh, so sqsh 
+    implement certain features that are needed by jsqsh, so jsqsh 
     can optinally load  a shared library (or DLL) that provides
     this additional  functionality. This shared library is
     written using the Java Native Interface (JNI) and on UNIX
     platforms is typically called 'libjsqsh.so' and on
     Windows is 'libjsqsh.dll'.
             
-    The sqsh shared library is not available on all platforms, and
-    sqsh will generate a warning upon startup if it is unable to
+    The jsqsh shared library is not available on all platforms, and
+    jsqsh will generate a warning upon startup if it is unable to
     load its JNI interface.  Lack of JNI causes the following
     behavior:
             
@@ -33,18 +33,18 @@ SQSH JNI LAYER
 </Topic>
 
 <Topic name="welcome">
-		<Description>The sqsh welcome message</Description>
+		<Description>The jsqsh welcome message</Description>
 		<HelpText><![CDATA[
-WELCOME TO SQSH!
+WELCOME TO JSQSH!
             
-    It looks like this is the first time that you've run sqsh (or
-    you just typed '\help welcome' at the sqsh prompt). If this is
-    the first time you have run sqsh, you will find that you have
+    It looks like this is the first time that you've run jsqsh (or
+    you just typed '\help welcome' at the jsqsh prompt). If this is
+    the first time you have run jsqsh, you will find that you have
     a shiney new directory called '.jsqsh' in your home directory
     and that this directory contains a couple of files that you
     should be aware of:
             
-    drivers.xml - Sqsh comes pre-defined to understand how to use
+    drivers.xml - JSqsh comes pre-defined to understand how to use
        a fixed number of JDBC drivers, however this file may be
        used to teach it how to recognize other JDBC drivers. The
        file is pretty well commented, so hopefully it is enough
@@ -55,9 +55,9 @@ WELCOME TO SQSH!
        the place where you can set variables and configure sqsh
        to your likings.
                
-    Sqsh is intended to be self-documenting. If you would like
+    JSqsh is intended to be self-documenting. If you would like
     to see this information again, then type '\help welcome' at 
-    the sqsh prompt, or run '\help' to see a list of all help
+    the jsqsh prompt, or run '\help' to see a list of all help
     topics that are available.
 	  ]]></HelpText>
 </Topic>
@@ -65,13 +65,13 @@ WELCOME TO SQSH!
 <Topic name="buffers">
 		<Description>SQL buffers and how they are referenced.</Description>
 		<HelpText><![CDATA[
-SQSH SQL BUFFERS
+JSQSH SQL BUFFERS
     
     Each time you create and execute a SQL statement, that statement is saved
     away into your SQL buffer history. The list of prior SQL statements 
     can be displayed using the '\history' command.
     
-    Many sqsh command allow you to refer to SQL buffers via special syntax,
+    Many jsqsh command allow you to refer to SQL buffers via special syntax,
     each starting with an esclamation character (!).  This syntax allows for
     the following forms:
     
@@ -114,9 +114,9 @@ EXAMPLES
 </Topic>
 
 <Topic name="license">
-		<Description>Displays the sqsh license</Description>
+		<Description>Displays the jsqsh license</Description>
 		<HelpText><![CDATA[
-SQSH GNU PUBLIC LICENSE		
+JSQSH GNU PUBLIC LICENSE		
 
    JSqsh, Copyright (C) 2007 by Scott C. Gray
 
@@ -137,18 +137,18 @@ SQSH GNU PUBLIC LICENSE
 </Topic>
 
 <Topic name="readline">
-		<Description>Describes sqsh's use of GNU Readline</Description>
+		<Description>Describes jsqsh's use of GNU Readline</Description>
 		<HelpText><![CDATA[
 GNU READLINE SUPPORT
 
    The GNU Readline library provides support for command line editing features,
    allowing the user to scroll back and forth through the history of lines
    that they have typed and remembering those lines between sessions with
-   sqsh.  
+   jsqsh.  
    
-   The readline library is a native C library that sqsh utilizes 
+   The readline library is a native C library that jsqsh utilizes 
    via JNI (Java Native Interface) and may or may not be available or
-   installed on your platform. If the library is not installed or sqsh
+   installed on your platform. If the library is not installed or jsqsh
    cannot load it you will receive a message:
    
      WARNING: Unable to load GNU Readline library (no JavaReadline in
@@ -176,12 +176,31 @@ GNU READLINE SUPPORT
    packaged version (on Debian distributions, the package is 
    'libreadline-java').
    
-   Finally, you'll need to ensure that both libraries can be found by sqsh.
+   Finally, you'll need to ensure that both libraries can be found by jsqsh.
    On most UNIX distributions, this means setting your LD_LIBRARY_PATH
    environment variable to point to the directories containing the libraries.
    On my Ubuntu distribution, my LD_LIBRARY_PATH contains:
    
         LD_LIBRARY_PATH=/usr/lib/jni
+	  ]]></HelpText>
+</Topic>
+
+<Topic name="contributors">
+		<Description>Individuals who have contributed to jsqsh</Description>
+		<HelpText><![CDATA[
+JSQSH CONTRIBUTORS
+
+   The following individuals have contributed to the development of
+   jsqsh either by direct contribution of code, suggestions, or 
+   inspiration.
+   
+   Henner Zeller <h.zeller at acm.org>
+       Developer of HenPlus (http://henplus.sourceforge.net/). HenPlus was
+       the inspiration for development of jsqsh--a demonstration that a
+       reasonable command line interface can be built with Java.
+       
+   Walter Jordan <walter.gator at gmail.com>
+       Patches and useful suggestions.
 	  ]]></HelpText>
 </Topic>
 
