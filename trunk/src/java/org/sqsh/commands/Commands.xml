@@ -38,14 +38,14 @@ OPTIONS:
 <Command name="\quit" class="org.sqsh.commands.Quit">
         
         <Description><![CDATA[
-           Exits sqsh
+           Exits jsqsh
         ]]></Description>
             <Help><![CDATA[
 SYNOPSIS
    \quit
               
 DESCRIPTION
-   Exits sqsh
+   Exits jsqsh
            
 OPTIONS:
    None.
@@ -54,7 +54,7 @@ OPTIONS:
     
     <Command name="\drivers" class="org.sqsh.commands.Drivers">
         <Description><![CDATA[
-           Displays a list of JDBC drivers known by sqsh.
+           Displays a list of JDBC drivers known by jsqsh.
         ]]></Description>
             <Help><![CDATA[
 SYNOPSIS
@@ -62,14 +62,14 @@ SYNOPSIS
               
 DESCRIPTION
    Displays a list of drivers that are currently registered with
-   sqsh. An asterisk (*) will be displayed next to drivers for
+   jsqsh. An asterisk (*) will be displayed next to drivers for
    which the actual JDBC implementation (.jar file) is available.
 
-   Sqsh comes bundled with one JDBC driver (jtds) which should
+   JSqsh comes bundled with one JDBC driver (jtds) which should
    be sufficient to communicate with Microsoft SQL Server or Sybase
    ASE. Additional drivers can be made available in one of three ways:
    
-   1. Setting the ${classpath} sqsh variable to a location containing
+   1. Setting the ${classpath} jsqsh variable to a location containing
       JDBC jar(s) for the driver(s) you want (see '\help classpath').
    
    2. Making sure the driver is  contained in your CLASSPATH environment
@@ -82,7 +82,7 @@ DESCRIPTION
    
         C:\> set CLASSPATH=/path/to/some/jdbc/driver.jar; %CLASSPATH%
         
-   3. Alternatively, you can add a JDBC driver implementation to sqsh's
+   3. Alternatively, you can add a JDBC driver implementation to jsqsh's
       startup jar directory. The path to this directory can vary from
       platform to platform but can typically be found in one of the
       following locations relative to where the jsqsh binary is located:
@@ -92,7 +92,7 @@ DESCRIPTION
          ../share/jsqsh
 
 DRIVER DEFINITION FILE
-   Sqsh comes with a bunch of pre-defined driver definitions built-in,
+   JSqsh comes with a bunch of pre-defined driver definitions built-in,
    however you can provide your own additional definitions if you wish
    by editing the $HOME/.jsqsh/drivers.xml. This file contains lots
    of comments describing the structure of the file.
@@ -185,7 +185,7 @@ OPTIONS:
   -s SID      Sets the ${SID} property, and provides the Oracle 
               SID that will be used when connecting to Oracle.
                
-  -c class    When utilizing a direct JDBC url (and not a sqsh
+  -c class    When utilizing a direct JDBC url (and not a jsqsh
               driver definition), this should be utilized to
               define which JDBC driver class will be utilized
               for the connection.
@@ -271,7 +271,7 @@ OPTIONS:
    all variables is displayed.
               
    -x  Will cause the variable to be exported to the environment
-       of any processes that are spawned by sqsh during its
+       of any processes that are spawned by jsqsh during its
        execution.
    -l  Sets the value of the variable local to the current session
        only. No other sessions will see it and it will mask 
@@ -281,7 +281,7 @@ OPTIONS:
     
     <Command name="\unset" class="org.sqsh.commands.Unset">
         <Description><![CDATA[
-           Removes a sqsh variable.
+           Removes a jsqsh variable.
         ]]></Description>
            
         <Help><![CDATA[
@@ -289,10 +289,10 @@ SYNOPSIS
   \unset var_name
               
 DESCRIPTION
-  Unsets a sqsh variable. It is important to note that
+  Unsets a jsqsh variable. It is important to note that
   it will not prevent you from removing "special" variables
   (such as $lineno). If you do inadvertantly remove a special
-  variable, you'll need to quit and re-start sqsh to get it
+  variable, you'll need to quit and re-start jsqsh to get it
   back.
               
   Removing a session-local variable (created with \set -x),
@@ -306,7 +306,7 @@ OPTIONS:
     
     <Command name="\help" class="org.sqsh.commands.Help">
         <Description><![CDATA[
-           Displays help for a sqsh command
+           Displays help for a jsqsh command
         ]]></Description>
            
         <Help><![CDATA[
@@ -314,7 +314,7 @@ SYNOPSIS
   help [command]
               
 DESCRIPTION
-  Displays help for a sqsh command
+  Displays help for a jsqsh command
            
 OPTIONS:
   If a command name is provided, then help is displayed for that
@@ -324,7 +324,7 @@ OPTIONS:
     
     <Command name="\wrap" class="org.sqsh.commands.Wrap">
         <Description><![CDATA[
-           Used internally for testing of sqsh's word-wrapping facility.
+           Used internally for testing of jsqsh's word-wrapping facility.
         ]]></Description>
            
         <Help><![CDATA[
@@ -422,7 +422,7 @@ DESCRIPTION
    with an external text editor.  The external editor can be defined
    using the variable ${EDITOR} or ${VISUAL}. If neither of these variables
    is defined, then an appropriate text editor is chosen based upon the
-   operating system in which sqsh is executing. Specifically, windows
+   operating system in which jsqsh is executing. Specifically, windows
    platforms will attempt to execute 'notepad.exe' while other platforms
    will attempt to run 'vi'.
  
@@ -452,8 +452,8 @@ SYNOPSIS
    \alias [-g] [name=text]
               
 DESCRIPTION
-   An alias in sqsh is slightly different (and potentially more dangerous
-   if misused) than the UNIX shell equivalent. In sqsh, an alias defines a 
+   An alias in jsqsh is slightly different (and potentially more dangerous
+   if misused) than the UNIX shell equivalent. In jsqsh, an alias defines a 
    piece of text that, when encountered in a user's input, is replaced with
    another piece of text. 
    
@@ -466,8 +466,8 @@ DESCRIPTION
    
        1> exit
        
-   to quit sqsh (note single quotes around the '\quit'. The single quotes
-   prevent sqsh from trying to interpret and remove the back-slash).
+   to quit jsqsh (note single quotes around the '\quit'. The single quotes
+   prevent jsqsh from trying to interpret and remove the back-slash).
    
    Another common use of \alias may be to provide pre-argumented commands.
    For example:
@@ -542,7 +542,7 @@ SYNOPSIS
               
 DESCRIPTION
    The \buf-load command reads the contents of an external file into
-   a SQL buffer. By default sqsh will come with an alias for \buf-load
+   a SQL buffer. By default jsqsh will come with an alias for \buf-load
    of ":r", so that you can do:
    
       1> :r filename.sql
@@ -632,7 +632,7 @@ DESCRIPTION
    instances, so the command may fail in these circumstances.
    
 ALIASES
-   Sqsh automatically aliases this command as "\dbs".
+   JSqsh automatically aliases this command as "\dbs".
    
 OPTIONS
    None.
@@ -713,7 +713,7 @@ SYNOPSIS
               
 DESCRIPTION
    The \eval command reads in and processes a file full of SQL in the context
-   of the current session. That is, it treats the SQL and/or sqsh commands 
+   of the current session. That is, it treats the SQL and/or jsqsh commands 
    contained in the file as if you had typed them at the prompt. The one 
    exception to this rule is that the SQL contained in the file will not be
    added to your SQL history.
@@ -741,7 +741,7 @@ SYNOPSIS
    \parse
               
 DESCRIPTION
-   The \parse command is used internally for sqsh development. It
+   The \parse command is used internally for jsqsh development. It
    is used to parse the contents of the current SQL buffer which is
    a component of the tab completion logic.
    
