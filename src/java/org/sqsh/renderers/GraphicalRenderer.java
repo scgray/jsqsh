@@ -18,9 +18,12 @@
 package org.sqsh.renderers;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.JFrame;
@@ -29,11 +32,17 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.event.TableModelEvent;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
 import org.sqsh.ColumnDescription;
 import org.sqsh.Renderer;
 import org.sqsh.RendererManager;
 import org.sqsh.Session;
+import org.sqsh.variables.DimensionVariable;
 
 /**
  * The GraphicalRenderer displays row results using a swing graphical
@@ -95,6 +104,17 @@ public class GraphicalRenderer
     @Override
     public void footer (String footer) {
         
+        int width = 600;
+        int height = 400;
+        
+        DimensionVariable v = (DimensionVariable) session.getVariableManager()
+            .getVariable("window_size");
+        if (v != null) {
+            
+            width = v.getWidth();
+            height = v.getHeight();
+        }
+        
         if (columns == null) {
             
             return;
@@ -112,17 +132,26 @@ public class GraphicalRenderer
         
         // Set the frame characteristics
         frame.setTitle("Query Results");
-        frame.setSize(500, 250);
+        frame.setSize(width, height);
         frame.setLocationByPlatform(true);
 
         // Create a panel to hold all other components
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BorderLayout());
         frame.getContentPane().add(topPanel);
+        
+        SortableTableModel tableModel = new SortableTableModel(data, columns,
+            session.getDataFormatter().getNull());
 
         // Create a new table instance
-        JTable table = new JTable(data, columnNames);
+        JTable table = new JTable();
+        table.setModel(tableModel);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        
+        JTableHeader header = table.getTableHeader();
+        header.setUpdateTableInRealTime(true);
+        header.addMouseListener(tableModel.new ColumnListener(table));
+        header.setReorderingAllowed(true);
 
         // Add the table to a scrolling pane
         JScrollPane scrollPane = new JScrollPane(table,
@@ -144,5 +173,188 @@ public class GraphicalRenderer
 
         // TODO Auto-generated method stub
         return true;
+    }
+    
+    private static class SortableTableModel
+        extends AbstractTableModel {
+        
+        private ColumnDescription []columns;
+        private String [][]data;
+        private int sortedColumn = -1;
+        private String nullRepresentation;
+        private boolean isAscending = false;
+        
+        public SortableTableModel (String [][]data,
+                ColumnDescription []columns,
+                String nullRepresentation) {
+            
+            this.data = data;
+            this.columns = columns;
+            this.nullRepresentation = nullRepresentation;
+        }
+
+        public int getColumnCount () {
+
+            return columns.length;
+        }
+
+        public int getRowCount () {
+
+            return data.length;
+        }
+
+        public Object getValueAt (int row, int col) {
+
+            return data[row][col];
+        }
+
+        public boolean isCellEditable (int row, int col) {
+
+            return false;
+        }
+        
+        public String getColumnName(int col) {
+            
+            String name = columns[col].getName();
+            if (name == null) {
+                
+                name = "";
+            }
+            
+            if (col == sortedColumn) {
+                
+                name = name + (isAscending ? " <<" : " >>");
+            }
+            
+            return name;
+        }
+    
+        private class ColumnListener
+            extends MouseAdapter {
+
+            protected JTable table;
+
+            public ColumnListener(JTable t) {
+
+                table = t;
+            }
+
+            public void mouseClicked (MouseEvent e) {
+
+                TableColumnModel colModel = table.getColumnModel();
+                int columnModelIndex = colModel.getColumnIndexAtX(e.getX());
+                int modelIndex = colModel.getColumn(columnModelIndex)
+                        .getModelIndex();
+
+                if (modelIndex < 0) {
+
+                    return;
+                }
+
+                if (sortedColumn == modelIndex) {
+
+                    isAscending = !isAscending;
+                }
+                else {
+
+                    sortedColumn = modelIndex;
+                    isAscending = true;
+                }
+
+                for (int i = 0; i < columns.length; i++) {
+
+                    TableColumn column = colModel.getColumn(i);
+                    column.setHeaderValue(getColumnName(
+                        column.getModelIndex()));
+                }
+
+                table.getTableHeader().repaint();
+
+                Arrays.sort(data, new ColumnComparator(modelIndex,
+                    isAscending,  columns[modelIndex], nullRepresentation));
+
+                table.tableChanged(new TableModelEvent(
+                    SortableTableModel.this));
+                table.repaint();
+            }
+        }
+    }
+    
+    private static class ColumnComparator
+        implements Comparator {
+        
+        private int idx;
+        private boolean isAscending;
+        private ColumnDescription columnDescription;
+        String nullRepresentation;
+        
+        public ColumnComparator (int idx,
+                boolean isAscending,
+                ColumnDescription columnDescription,
+                String nullRepresentation) {
+            
+            this.idx = idx;
+            this.isAscending = isAscending;
+            this.columnDescription = columnDescription;
+            this.nullRepresentation = nullRepresentation;
+        }
+
+        public int compare (Object o1, Object o2) {
+            
+            String []row1 = (String[])o1;
+            String []row2 = (String[])o2;
+            int r = 0;
+            
+            /*
+             * First handle the case of nulls. We treat null as the
+             * "lowest" sort.
+             */
+            if (nullRepresentation.equals(row1[idx])) {
+                
+                if (nullRepresentation.equals(row2[idx])) {
+                    
+                    r = 0;
+                }
+                
+                r = -1;
+            }
+            else if (nullRepresentation.equals(row2[idx])) {
+                
+                r = 1;
+            }
+            else if (columnDescription.getType()
+                    == ColumnDescription.Type.NUMBER) {
+                
+                double diff =  Double.parseDouble(row2[idx])
+                    - Double.parseDouble(row1[idx]);
+                
+                if (diff < 0) {
+                    
+                    r = -1;
+                }
+                else if (diff > 0) {
+                    
+                    r = 1;
+                }
+                else {
+                
+                    r = 0;
+                }
+            }
+            else {
+                
+                r = row1[idx].compareTo(row2[idx]);
+            }
+            
+            if (r != 0) {
+                
+                if (!isAscending) {
+                    
+                    r = -(r);
+                }
+            }
+            
+            return r;
+        }
     }
 }

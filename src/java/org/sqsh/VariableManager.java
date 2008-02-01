@@ -498,7 +498,7 @@ public class VariableManager
             digester.addCallParam(path, 0, "name");
         digester.addCallMethod(path, 
             "setValue", 1, new Class[] { java.lang.String.class });
-            digester.addCallParam(path, 0);
+            digester.addCallParam(path, 0, "value");
             
         path = "Variables/Property";
         digester.addObjectCreate(path,  "org.sqsh.variables.PropertyVariable");

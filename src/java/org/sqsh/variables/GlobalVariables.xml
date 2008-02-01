@@ -1,4 +1,21 @@
 <Variables>
+	<Dynamic class="org.sqsh.variables.DimensionVariable"  
+	         name="window_size" value="600x400">
+        <Description>Size of the window opened in graphical mode</Description>
+        <Help><![CDATA[
+VARIABLE
+   window_size - Size of window opened in graphical mode.
+
+DESCRIPTION
+   The ${window_size} variable defines the width and height of the window
+   opened when jsqsh is asked to display in graphical mode. The default
+   value is 600x400.
+   
+SEE ALSO
+   style
+        ]]></Help>
+    </Dynamic> 
+	         
 	<String name="prompt" value="#if($connected==true)[$server][$user] #end$lineno>">
         <Description>Defines the query prompt</Description>
         <Help><![CDATA[
@@ -90,7 +107,6 @@ SEE ALSO
    \reset
         ]]></Help>
 	</Property>
-	
 	
 	
 	<Property bean="global" name="histsize" property="bufferManager.maxBuffers">
@@ -442,6 +458,9 @@ DESCRIPTION
         crude as I'm not very familiar with GUI development. Anyone that
         would like to contribute time to making this a nicer interface,
         it'd be greatly appreciated.
+        
+        Note: the variable ${window_size} can be used to control the size
+        of the window that is opened to display results.
    
    graph    - A synonym for "graphical".     
         
