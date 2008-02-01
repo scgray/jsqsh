@@ -17,21 +17,15 @@
  */
 package org.sqsh.completion;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Stack;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.sqsh.Session;
-import org.sqsh.parser.AbstractParserListener;
 import org.sqsh.parser.SQLParser;
 import org.sqsh.parser.DatabaseObject;
 
@@ -50,6 +44,28 @@ public class DatabaseObjectCompleter
     
     private static final Logger LOG = 
         Logger.getLogger("org.sqsh.completion.DatabaseObjectCompleter");
+    
+    /**
+     * This is a list of available completers. Each completer can identify
+     * a statement and (optionally) a clause for which it applies. The first
+     * matching completer based upon where the user is in the query will be
+     * used.
+     */
+    private static final List<SQLStatementCompleter>
+        STATEMENT_COMPLETERS = new ArrayList<SQLStatementCompleter>();
+    
+    static {
+        
+        STATEMENT_COMPLETERS.add(new QueryStatementCompleter("SELECT"));
+        STATEMENT_COMPLETERS.add(new QueryStatementCompleter("INSERT"));
+        STATEMENT_COMPLETERS.add(new QueryStatementCompleter("UPDATE"));
+        STATEMENT_COMPLETERS.add(new QueryStatementCompleter("DELETE"));
+        STATEMENT_COMPLETERS.add(
+            new GenericStatementCompleter("USE", null, 
+                GenericStatementCompleter.CATALOGS));
+        
+        STATEMENT_COMPLETERS.add(new ExecProcedureStatementCompleter());
+    }
     
     /**
      * Used internally to keep track of what sort of quoting was taking
@@ -131,7 +147,7 @@ public class DatabaseObjectCompleter
          * Now, we will parse the SQL and accumulate information about the
          * statement that the user is currently working on.
          */
-        StatementInfo info = new StatementInfo();
+        SQLParseState info = new SQLParseState();
         SQLParser parser = new SQLParser(info);
         parser.parse(sql);
         
@@ -161,22 +177,29 @@ public class DatabaseObjectCompleter
          * current SQL statement.
          */
         DatabaseObject []tableRefs = info.getObjectReferences();
-        Set completions = null;
+        Set<String> completions = new TreeSet<String>();
         
+        /*
+         * Now that we have everything we need we will begin searching
+         * for which completer to utilize.
+         */
         if (info.getStatement() != null) {
             
-            if ("EXECUTE".equals(info.getStatement())) {
+            for (SQLStatementCompleter completer : STATEMENT_COMPLETERS) {
                 
-                completions = getExecuteCompletions(info, tableRefs, nameParts);
-            }
-            else {
-                
-                completions = getQueryCompletions(info, tableRefs, nameParts);
+                if (completer.getStatement().equals(info.getStatement())
+                    && (completer.getClause() == null
+                       || completer.getClause().equals(info.getCurrentClause()))) {
+                    
+                    completer.getCompletions(completions, 
+                        session.getConnection(), nameParts, info);
+                    break;
+                }
             }
         }
         
         
-        if (completions != null) {
+        if (completions.size() > 0) {
             
             iter = completions.iterator();
         }
@@ -209,735 +232,6 @@ public class DatabaseObjectCompleter
         }
             
         return s;
-    }
-    
-    /**
-     * Used to process completions for SELECT, INSERT, UPDATE, or
-     * DELETE statements.
-     * 
-     * @param info The state of the query.
-     * 
-     * @param tableRefs The set of tables that are referenced by the
-     *    query.
-     * @param nameParts The name that the user is currently typing in.
-     * @return The set of completions.
-     */
-    private Set<String> getQueryCompletions(StatementInfo info,
-        DatabaseObject []tableRefs, String []nameParts) {
-        
-        /*
-         * If the user hasn't completed enough of the statement to
-         * know which tables the query is referencing, or if the user
-         * is still sitting in the from clause, then generate all possible
-         * completions.
-         */
-        if ("USE".equals(info.getStatement())) {
-            
-            Set<String> set = new TreeSet<String>();
-            String db = "";
-            if (nameParts.length > 0) {
-                
-                db = nameParts[0];
-            }
-            
-            getCatalogs(set, session.getConnection(), db);
-            return set;
-        }
-        else if (tableRefs.length == 0 
-                || info.getCurrentClause() == null
-                || "FROM".equals(info.getCurrentClause())) {
-            
-            return getAllCompletions(nameParts);
-        }
-        else {
-            
-            return getReferencedCompletions(tableRefs, nameParts);
-        }
-    }
-    
-    /**
-     * Determines possible completions for an EXECUTE statement. These
-     * can be procedure names or column names.
-     * 
-     * @param info Information about the current state of the parsed
-     *   SQL.
-     * @param objectRefs The objects that are referenced so far in 
-     *   the SQL. This could be empty or the procedure name.
-     * @param nameParts The name(s) that the user has entered so far.
-     * @return The completion set.
-     */
-    private Set<String> getExecuteCompletions(StatementInfo info,
-        DatabaseObject []objectRefs, String []nameParts) {
-        
-        Set<String> set = new TreeSet<String>();
-        Connection conn = session.getConnection();
-        
-        /*
-         * If the parser found the name of the procedure then we
-         * are working on completing a parameter name...
-         */
-        if (objectRefs.length > 0) {
-            
-            DatabaseObject o = objectRefs[0];
-            getProcedureParameters(set, o, 
-                (nameParts.length > 0 ? nameParts[0] : null));
-        }
-        
-        /*
-         * I have a small problem here. If there user hits:
-         * 
-         *    EXEC proc<tab>
-         *    
-         * I don't have enough information at my disposal to tell 
-         * the different between this:
-         * 
-         *    EXEC proc <tab>
-         * 
-         * In the first case the user was trying to complete the 
-         * procedure name and in the second case the user was trying
-         * to complete the parameters for the procedure.
-         * 
-         * Since I can't tell the difference, I am going to try to
-         * guess. If I cannot find any parameters for "proc" then I
-         * assume that the procedure doesn't exist and that we are 
-         * trying to complete it.
-         */
-        if (set.size() == 0) {
-            
-            String catalog = getCurrentCatalog(conn);
-            
-            if (nameParts.length == 0) {
-                
-                getCatalogs(set, conn, "%");
-                getProcedures(set, conn, catalog, "%", "%");
-            }
-            else if (nameParts.length == 1) {
-                
-                getCatalogs(set, conn, nameParts[0]);
-                getProcedures(set, conn, catalog, "%", nameParts[0]);
-            }
-            else if (nameParts.length == 2) {
-                
-                getProcedures(set, conn, catalog, nameParts[0], nameParts[1]);
-            }
-            else {
-                
-                getProcedures(set, conn,
-                    nameParts[0], nameParts[1], nameParts[2]);
-            }
-        }
-        
-        return set;
-    }
-    
-    
-    private Set<String> getReferencedCompletions(DatabaseObject []tableRefs,
-        String []nameParts) {
-        
-        Set<String> set = new TreeSet<String>();
-        Connection conn = session.getConnection();
-        
-        /*
-         * This may be needed a lot.
-         */
-        String catalog = getCurrentCatalog(conn);
-        
-        /*
-         * If nothing was entered, then it could be anything, really.
-         */
-        if (nameParts.length == 0) {
-            
-            getReferencedAliases(set, tableRefs, null);
-            getReferencedCatalogs(set, tableRefs, null);
-            getReferencedSchemas(set, tableRefs, null, null);
-            getReferencedTables(set, tableRefs, null, null, null);
-            getReferencedColumns(set, tableRefs, null, null, null, null);
-        }
-        else  if (nameParts.length == 1) {
-            
-            /*
-             * 1. alias
-             * 2. catalog
-             * 3. schema
-             * 4. table
-             * 5. column
-             */
-            getReferencedAliases(set, tableRefs, nameParts[0]);
-            getReferencedCatalogs(set, tableRefs, nameParts[0]);
-            getReferencedSchemas(set, tableRefs, null, nameParts[0]);
-            getReferencedTables(set, tableRefs, null, null, nameParts[0]);
-            getReferencedColumns(set, tableRefs, null, null, null, nameParts[0]);
-        }
-        else if (nameParts.length == 2) {
-           
-            /*
-             * 1. alias.column
-             * 2. catalog.schema
-             * 2. schema.table
-             * 3. table.column
-             */
-            getReferencedColumns(set, tableRefs, nameParts[0], nameParts[1]);
-            getReferencedSchemas(set, tableRefs, nameParts[0], nameParts[1]);
-            getReferencedTables(set, tableRefs, null, nameParts[0], nameParts[1]);
-            getReferencedColumns(set, tableRefs, null, null,
-                nameParts[0], nameParts[1]);
-        }
-        else if (nameParts.length == 3) {
-            
-            /*
-             * 1. catalog.schema.table
-             * 2. schema.table.column
-             */
-            getReferencedTables(set, tableRefs,
-                nameParts[0], nameParts[1], nameParts[2]);
-            getReferencedColumns(set, tableRefs, null, 
-                nameParts[0], nameParts[1], nameParts[2]);
-        }
-        else if (nameParts.length == 4) {
-            
-            getReferencedColumns(set, tableRefs, 
-                nameParts[0], nameParts[1], nameParts[2], nameParts[3]);
-        }
-        
-        return set;
-    }
-    
-    /**
-     * Returns the set of database/catalog names that are referenced in 
-     * the current query that start with the supplied name.
-     * 
-     * @param set The place to put matches.
-     * @param tableRefs The set of tables referenced by the current query.
-     * @param name The name of the catalog the user is typing or null if
-     *   none has been entered yet.
-     */
-    protected void getReferencedCatalogs(Set<String> set, 
-            DatabaseObject []tableRefs, String name) {
-        
-        if ("".equals(name)) {
-            
-            name = null;
-        }
-        
-        for (DatabaseObject ref : tableRefs) {
-            
-            if (ref.getDatabase() != null) {
-                
-                if (name == null 
-                        || ref.getDatabase().startsWith(name)) {
-                
-                    set.add(ref.getDatabase());
-                }
-            }
-        }
-    }
-    
-    /**
-     * Returns the set of aliases that start with the supplied name
-     * 
-     * @param set The place to put matches.
-     * @param tableRefs The set of tables referenced by the current query.
-     */
-    protected void getReferencedAliases(Set<String> set, 
-            DatabaseObject []tableRefs, String alias) {
-        
-        if ("".equals(alias)) {
-            
-            alias = null;
-        }
-        
-        for (DatabaseObject ref : tableRefs) {
-            
-            if (ref.getAlias() != null) {
-                
-                if (alias == null 
-                        || ref.getAlias().startsWith(alias)) {
-                
-                    set.add(ref.getAlias());
-                }
-            }
-        }
-    }
-    
-    /**
-     * Returns the set of schema names that are referenced in 
-     * the current query that start with the supplied name.
-     * 
-     * @param set The place to put matches.
-     * @param tableRefs The set of tables referenced by the current query.
-     */
-    protected void getReferencedSchemas(Set<String> set,
-            DatabaseObject []tableRefs, String catalog, String schema) {
-        
-        if ("".equals(catalog)) {
-            
-            catalog = null;
-        }
-        if ("".equals(schema)) {
-            
-            schema = null;
-        }
-        
-        for (DatabaseObject ref : tableRefs) {
-            
-            if (ref.getOwner() != null) {
-            
-                if ((catalog == null && ref.getDatabase() == null)
-                    || catalog != null && catalog.equals(ref.getDatabase())) {
-                
-                    if (schema == null 
-                        || (ref.getOwner().startsWith(schema))) {
-                    
-                        set.add(ref.getOwner());
-                    }
-            	}
-            }
-        }
-    }
-    
-    /**
-     * Returns the set of schema names that are referenced in 
-     * the current query that start with the supplied name.
-     * 
-     * @param set The place to put matches.
-     * @param tableRefs The set of tables referenced by the current query.
-     */
-    protected void getReferencedTables(Set<String> set,
-            DatabaseObject []tableRefs,
-            String catalog, String schema, String table) {
-        
-        if ("".equals(catalog)) {
-            
-            catalog = null;
-        }
-        if ("".equals(schema)) {
-            
-            schema = null;
-        }
-        if ("".equals(table)) {
-            
-            table = null;
-        }
-        
-        for (DatabaseObject ref : tableRefs) {
-            
-            if ((catalog == null && ref.getDatabase() == null)
-                    || catalog != null && catalog.equals(ref.getDatabase())) {
-                
-                if ((schema == null && ref.getOwner() == null)
-                    || schema != null && schema.equals(ref.getOwner())) {
-                    
-                    if (table == null
-                            || ref.getName().startsWith(table)) {
-                        
-                        set.add(ref.getName());
-                    }
-            	}
-            }
-        }
-    }
-    
-    /**
-     * Returns the set of columns that could belong to the current request.
-     * 
-     * @param set The set of completions found thus far.
-     * @param tableRefs The tables referenced by the query.
-     * @param catalog The catalog the user listed, or null is none was provided.
-     * @param schema The schema the user listed, or null is none was provided.
-     * @param table The table the user listed, or null is none was provided.
-     * @param column The portion of the column name the user provided or null
-     *    if none was provided.
-     */
-    protected void getReferencedColumns(Set<String> set,
-            DatabaseObject []tableRefs,
-            String catalog, String schema, String table, String column) {
-        
-        Connection conn = session.getConnection();
-        
-        if ("".equals(catalog)) {
-            
-            catalog = null;
-        }
-        if ("".equals(schema)) {
-            
-            schema = null;
-        }
-        if ("".equals(table)) {
-            
-            table = null;
-        }
-        if ("".equals(column)) {
-            
-            column = null;
-        }
-        
-        for (DatabaseObject ref : tableRefs) {
-            
-            if (catalog == null
-                    || (catalog != null && catalog.equals(ref.getDatabase()))) {
-                
-                if (schema == null
-                    || schema != null && schema.equals(ref.getOwner())) {
-                    
-                    if (table == null
-                            || ref.getName().equals(table)) {
-                        
-                        catalog = (catalog == null ?
-                                getCurrentCatalog(conn) : catalog);
-                        schema = (schema == null ? "%" : schema);
-                        table = ref.getName();
-                        column = (column == null ? "%" : column);
-                        
-                        getColumns(set, conn, catalog, schema, table, column);
-                    }
-            	}
-            }
-        }
-    }
-    
-    /**
-     * Another method for looking up column names.
-     * @param set
-     * @param tableRefs
-     * @param alias
-     * @param column
-     */
-    protected void getReferencedColumns(Set<String> set,
-            DatabaseObject []tableRefs, String alias, String column) {
-        
-        Connection conn = session.getConnection();
-        
-        for (DatabaseObject ref : tableRefs) {
-            
-            if (ref.getAlias() != null
-                    && ref.getAlias().equals(alias)) {
-                
-                String catalog = (ref.getDatabase() == null 
-                        ? getCurrentCatalog(conn) : ref.getDatabase());
-                String schema = (ref.getOwner() == null
-                        ? "%" : ref.getOwner());
-                String table = ref.getName();
-                
-                getColumns(set, conn, catalog, schema, table, column);
-            }
-        }
-    }
-    
-    /**
-     * Returns all possible completions for the partially qualified object
-     * name provided.
-     * 
-     * @param nameParts The name of a database object to be completed.
-     * @return The list of completions or null if none are avialable.
-     */
-    private Set<String> getAllCompletions(String []nameParts) {
-        
-        Set<String> set = new TreeSet<String>();
-        Connection conn = session.getConnection();
-        
-        /*
-         * The completion list would be way to large without any 
-         * qualifiers.
-         */
-        if (nameParts.length == 0) {
-            
-            return null;
-        }
-        
-        /*
-         * This may be needed a lot.
-         */
-        String catalog = getCurrentCatalog(conn);
-        
-        /*
-         * A single name could be:
-         *   1. Catalog name
-         *   2. Table name
-         *   3. Procedure name
-         */
-        if (nameParts.length == 1) {
-            
-            getCatalogs(set, conn, nameParts[0]);
-            getTables(set, conn, catalog, "%", nameParts[0]);
-            getProcedures(set, conn, catalog, "%", nameParts[0]);
-        }
-        else if (nameParts.length == 2) {
-           
-            /*
-             * If we have two parts ("name.name") we could have:
-             * 
-             *    1. catalog.schema
-             *    2. table.column
-             *    3. schema.table
-             *    4. schema.procedure
-             *    
-             *  For now I am going to skip #1 since I don't have a convenient
-             *  way (in JDK 5) to ask for a list of schema in a catalog.
-             */
-            getColumns(set, conn, catalog, (String) null, nameParts[0],
-                nameParts[1]);
-            getTables(set, conn, catalog, nameParts[0], nameParts[1]);
-            getProcedures(set, conn, catalog, nameParts[0], nameParts[1]);
-        }
-        else if (nameParts.length == 3) {
-            
-            /*
-             * Three parts could be:
-             * 
-             *    1. catalog.schema.table
-             *    2. catalog.schema.procedure
-             *    3. schema.table.column
-             */
-            getTables(set, conn, nameParts[0], nameParts[1], nameParts[2]);
-            getProcedures(set, conn, nameParts[0], nameParts[1], nameParts[2]);
-            getColumns(set, conn, catalog, nameParts[0], nameParts[1],
-                nameParts[2]);
-        }
-        else if (nameParts.length == 4) {
-            
-            /*
-             * database.table.owner.column
-             */
-            getColumns(set, conn, nameParts[0], nameParts[1], nameParts[2],
-                nameParts[3]);
-        }
-        
-        return set;
-    }
-    
-    /**
-     * Returns the set of parameters available for a given stored
-     * procedure.
-     * 
-     * @param set The current completion set.
-     * @param proc The name of the procedure.
-     * @param paramPart The part of the parameter name that the
-     *   user has typed so far.
-     */
-    protected void getProcedureParameters(Set<String> set,
-            DatabaseObject proc, String paramPart) {
-        
-        Connection conn = session.getConnection();
-        String catalog = getCurrentCatalog(conn);
-        String schema = "%";
-        
-        if (proc.getDatabase() != null) {
-            
-            catalog = proc.getDatabase();
-        }
-        if (proc.getOwner() != null && proc.getOwner().length() > 0) {
-            
-            schema = proc.getOwner();
-        }
-        if (paramPart == null) {
-            
-            paramPart = "%";
-        }
-        else {
-            
-            paramPart = paramPart + "%";
-        }
-        
-        try {
-            
-            ResultSet results = conn.getMetaData().getProcedureColumns(
-                catalog, schema, proc.getName(), paramPart);
-            
-            while (results.next()) {
-                
-                String name = results.getString(4);
-                set.add(name);
-            }
-        }
-        catch (SQLException e) {
-            
-            /* IGNORED */
-        }
-    }
-    
-    /**
-     * Returns the current catalog for a connection.
-     * @param conn  The connection
-     * @return The current catalog or null if there is none.
-     */
-    protected String getCurrentCatalog(Connection conn) {
-        
-        try {
-            
-            return conn.getCatalog();
-        }
-        catch (SQLException e) {
-            
-            /* IGNORED */
-        }
-        
-        return null;
-    }
-    
-    /**
-     * Returns the set of catalogs that start with a name.
-     * 
-     * @param set The current set of object names.
-     * @param conn The connection to the database.
-     * @param name The prefix of the catalog name.
-     */
-    protected void getCatalogs(Set<String> set, Connection conn, String name) {
-        
-        try {
-            
-            ResultSet results = conn.getMetaData().getCatalogs();
-            while (results.next()) {
-                
-                String catalog = results.getString(1);
-                if (catalog.startsWith(name)) {
-                    
-                    set.add(catalog);
-                }
-            }
-        }
-        catch (SQLException e) {
-            
-            /* IGNORED */
-        }
-    }
-    
-    
-    /**
-     * Gathers the set of tables that matches requested criteria
-     * @param set The set that the table names will be added to.
-     * @param conn The connection to use.
-     * @param catalog The catalog to look in.
-     * @param schema The schema (owner) to look for
-     * @param tablePrefix The prefix of the table.
-     */
-    protected void getTables(Set<String> set, Connection conn,
-            String catalog, String schema, String tablePrefix) {
-        
-        if (schema == null || schema.equals("")) {
-            
-            schema = "%";
-        }
-        
-        try {
-            
-            ResultSet results = conn.getMetaData().getTables(
-                catalog, schema, tablePrefix + "%", null);
-            
-            while (results.next()) {
-                
-                String table = results.getString(3);
-                set.add(table);
-            }
-        }
-        catch (SQLException e) {
-            
-            /* IGNORED */
-        }
-    }
-    
-    /**
-     * Gathers the set of columns that matches requested criteria
-     * @param set The set that the table names will be added to.
-     * @param conn The connection to use.
-     * @param catalog The catalog to look in.
-     * @param schema The schema (owner) to look for
-     * @param table The table name
-     * @param table The column prefix
-     */
-    protected void getColumns(Set<String> set, Connection conn,
-            String catalog, String schema, String table, String columnPrefix) {
-        
-        if (schema == null || schema.equals("")) {
-            
-            schema = "%";
-        }
-        
-        try {
-            
-            ResultSet results = conn.getMetaData().getColumns(
-                catalog, schema, table, columnPrefix + "%");
-            
-            while (results.next()) {
-                
-                String column = results.getString(4);
-                set.add(column);
-            }
-        }
-        catch (SQLException e) {
-            
-            /* IGNORED */
-        }
-    }
-    
-    /**
-     * This method is used to look up available columns based upon tables
-     * that are referenced within the current SQL statement.  That is,
-     * if the user does:
-     * <pre>
-     *   select count(*) from master..sysobjects as o where o.i<tab>
-     * </pre>
-     * this logic will see the 'o.' as a reference to the alias to 
-     * master..sysobjects and will attempt to look for all columns 
-     * that start with 'i'.
-     * 
-     * @param set The set that the table names will be added to.
-     * @param conn The connection to use.
-     * @param catalog The catalog to look in.
-     * @param tableRefs The set of table names and aliases that are
-     *   contained in the SQL
-     * @param alias If non-null the alias name by which the table
-     *   is being referred.
-     * @param columnPrefix the portion of the column name entered so far.
-     */
-    protected void getColumns(Set<String> set, Connection conn,
-            String catalog,  DatabaseObject []tableRefs,
-            String alias, String columnPrefix) {
-        
-        for (DatabaseObject ref : tableRefs) {
-            
-            if (alias == null
-                    || (alias != null && alias.equals(ref.getAlias()))) {
-                
-                getColumns(set, conn, 
-                    (ref.getDatabase() == null ? catalog : ref.getDatabase()),
-                    (ref.getOwner() == null ? "%" : ref.getOwner()),
-                    ref.getName(),  columnPrefix);
-            }
-        }
-    }
-    
-    
-    /**
-     * Gathers the set of tables that matches requested criteria
-     * @param set The set that the table names will be added to.
-     * @param conn The connection to use.
-     * @param catalog The catalog to look in.
-     * @param schema The schema (owner) to look for
-     * @param tablePrefix The prefix of the table.
-     */
-    protected void getProcedures(Set<String> set, Connection conn,
-            String catalog, String schema, String procPrefix) {
-        
-        if (schema == null || schema.equals("")) {
-            
-            schema = "%";
-        }
-        
-        try {
-            
-            ResultSet results = conn.getMetaData().getProcedures(
-                catalog, schema, procPrefix + "%");
-            
-            while (results.next()) {
-                
-                String proc = results.getString(3);
-                set.add(proc);
-            }
-        }
-        catch (SQLException e) {
-            
-            /* IGNORED */
-        }
     }
     
     /**
@@ -1000,7 +294,25 @@ public class DatabaseObjectCompleter
             }
         }
         
-        return parts.toArray(new String[0]);
+        /*
+         * Before we return our list of name parts, I want to convert
+         * all of the empty parts to nulls. I do this because I perfer
+         * code that does 
+         *    if (nameParts[x] == null)
+         * over 
+         *    if (nameParts[x].equals(""))
+         * but thats just me. 
+         */
+        String []nameParts = parts.toArray(new String[0]);
+        for (int i = 0; i < nameParts.length; i++) {
+            
+            if (nameParts[i].length() == 0) {
+                
+                nameParts[i] = null;
+            }
+        }
+        
+        return nameParts;
     }
     
     /**
@@ -1134,148 +446,5 @@ public class DatabaseObjectCompleter
         
         parts.add(word.toString());
         return idx;
-    }
-    
-    /**
-     * This class is used to accumulate information about the SQL statement
-     * that the user is entering. 
-     */
-    private static class StatementInfo
-        extends AbstractParserListener {
-        
-        /**
-         * I maintain table references for the queries in stack to allow
-         * for subqueries. As we nest into a subquery a new list of 
-         * references is added which is discarded when we leave the
-         * context of the subquery.
-         */
-        private Stack<List<DatabaseObject>> refStack
-            = new Stack<List<DatabaseObject>>();
-        
-        /*
-         * A place to push the clause in whcih a subquery is located.
-         */
-        private Stack<String> clauseStack 
-            = new Stack<String>();
-        
-        /**
-         * The current statement type.
-         */
-        private String statement = null;
-        
-        /**
-         * The name of the clause the user is currently sitting in.
-         */
-        private String clause = null;
-        
-        public StatementInfo() {
-            
-            refStack.push(new ArrayList<DatabaseObject>());
-        }
-        
-        public String getStatement() {
-            
-            return statement;
-        }
-        
-        public String getCurrentClause() {
-            
-            return clause;
-        }
-        
-        /**
-         * @return The set of tables being referenced by the query. An
-         * empty list will be returned if there are no table references.
-         */
-        public DatabaseObject[] getObjectReferences() {
-            
-            if (refStack.size() == 1) {
-                
-                return refStack.peek().toArray(new DatabaseObject[0]);
-            }
-            else {
-                
-                ArrayList<DatabaseObject> refs = 
-                    new ArrayList<DatabaseObject>();
-                for (int i = 0; i < refStack.size(); i++) {
-                    
-                    refs.addAll(refStack.get(i));
-                }
-                
-                return refs.toArray(new DatabaseObject[0]);
-            }
-        }
-
-        public void enteredSubquery (SQLParser parser) {
-
-            /*
-             * As we enter the sub query we push a new "context" onto 
-             * our stack.
-             */
-            refStack.push(new ArrayList<DatabaseObject>());
-            clauseStack.push(clause);
-        }
-
-        public void exitedSubquery (SQLParser parser) {
-
-            /*
-             * And it gets discarded as we leave the subquery.
-             */
-            refStack.pop();
-            clause = clauseStack.pop();
-        }
-
-        public void foundClause (SQLParser parser, String clause) {
-
-            this.clause = clause;
-        }
-
-        public void foundStatement (SQLParser parser, String statement) {
-            
-            this.statement = statement;
-            clause = null;
-
-            /*
-             * Each time we hit a new statement we discard any context
-             * of the previous statement we encountered.
-             */
-            while (refStack.size() > 1) {
-                
-                refStack.pop();
-            }
-            
-            /*
-             * There is always a root element in the stack, so we will
-             * just clear it out to save object creations.
-             */
-            if (refStack.size() == 1) {
-                
-                refStack.peek().clear();
-            }
-            else {
-                
-                refStack.push(new ArrayList<DatabaseObject>());
-            }
-        }
-
-        public void foundTableReference (SQLParser parser,
-                DatabaseObject tableRef) {
-
-            /*
-             * Add table references to the current "stack".
-             */
-            refStack.peek().add(tableRef);
-        }
-
-        /* (non-Javadoc)
-         * @see org.sqsh.parser.AbstractParserListener#foundProcedureExecution(org.sqsh.parser.SQLParser, org.sqsh.parser.DatabaseObject)
-         */
-        @Override
-        public void foundProcedureExecution (SQLParser parser,
-                DatabaseObject procRef) {
-
-            refStack.peek().add(procRef);
-        }
-        
     }
 }
