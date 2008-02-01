@@ -1,6 +1,8 @@
 Release 1.1-SNAPSHOT
 * Added new display style "graphical" that will pop open a GUI window
   containing query results.
+* Added $window_size to control the size of the window in graphical
+  display mode.
 * Added \insert command, this displays the results of the current SQL
   query as INSERT statements or executes the INSERT statements in 
   another session.
