@@ -434,6 +434,16 @@ DESCRIPTION
    pretty   - This is visually identical to 'perfect' except that it does not
         attempt to perform a perfect fit on the data before display and,
         thus, does not need to hold the results in memory during display.
+        Use this style when you need to work with very large result sets.
+   
+   graphical - Displays the results in a graphical window (GUI). This will
+        only work on environments where the graphical interface is 
+        available to the JVM. Currently, this display mode is pretty
+        crude as I'm not very familiar with GUI development. Anyone that
+        would like to contribute time to making this a nicer interface,
+        it'd be greatly appreciated.
+   
+   graph    - A synonym for "graphical".     
         
    csv      - Displays the output as a set of comma separated values suitable
         for loading into, say, Excel. The results displayed attempts to 

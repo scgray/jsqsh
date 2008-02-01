@@ -61,6 +61,10 @@ public class RendererManager {
             org.sqsh.renderers.CSVRenderer.class);
         renderers.put("insert",
             org.sqsh.renderers.InsertRenderer.class);
+        renderers.put("graphical",
+            org.sqsh.renderers.GraphicalRenderer.class);
+        renderers.put("graph",
+            org.sqsh.renderers.GraphicalRenderer.class);
     }
     
     /**
