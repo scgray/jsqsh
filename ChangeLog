@@ -8,6 +8,8 @@ Release 1.1-SNAPSHOT
   another session.
 * Added \select command to generate select statements and joins from
   table definitions.
+* Added \create command to generate CREATE TABLE statement from a table
+  definition.
 * Added \diff command to compare results from SQL executed across 
   multiple session.
 * Tab completion now recognizes the TSQL "use" statement.

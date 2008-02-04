@@ -102,6 +102,24 @@ public class SQLTools {
     }
     
     /**
+     * Return the current catalog for a connection.
+     * 
+     * @param connection The connection
+     * @return The catalog.
+     */
+    public static String getCatalog(Connection connection) {
+        
+        try {
+            
+            return connection.getCatalog();
+        }
+        catch (SQLException e) {
+            
+            return null;
+        }
+    }
+    
+    /**
      * Display SQLExceptions (and any nested exceptions) to an output stream
      * in a nicely formatted style.
      * 

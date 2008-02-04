@@ -23,6 +23,9 @@ public class Select
     
     private static class Options {
         
+        @Option(name="-p",usage="Print CREATE to screen, not to SQL buffer")
+            public boolean printOnly = false;
+        
         @Option(name="-n",usage="Creates a natural join")
             public boolean naturalJoin = false;
         
@@ -174,8 +177,17 @@ public class Select
         /*
          * Ok, we are finished. Now lets update the query buffer.
          */
-        session.getBufferManager().getCurrent().set(query.toString());
-        throw new SessionRedrawBufferMessage();
+        if (options.printOnly) {
+            
+            session.out.println(query.toString());
+        }
+        else {
+            
+            session.getBufferManager().getCurrent().set(query.toString());
+            throw new SessionRedrawBufferMessage();
+        }
+        
+        return 0;
     }
     
     /**
