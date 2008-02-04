@@ -12,6 +12,8 @@ Release 1.1-SNAPSHOT
   definition.
 * Added \diff command to compare results from SQL executed across 
   multiple session.
+* JSqsh is now better at determining if the session is interactive
+  or non-interactive (i.e. if stdin has been redirected).
 * Tab completion now recognizes the TSQL "use" statement.
 * Display of "info" type SQLWarning's (e.g. the output from a "print"
   statement from Sybase and Microsoft) is improved.

@@ -140,6 +140,13 @@ public class SqshContext {
      */
     private List<Session> sessions = new ArrayList<Session>();
     
+    /**
+     * This is set once at startup by asking readline if it has ahold
+     * of the terminal. If a) readline was properly initialized and 
+     * b) readline says "yes", then this will remain true.
+     */
+    private boolean isInteractive = true;
+    
     public SqshContext() {
         
         configureLogging();
@@ -228,6 +235,10 @@ public class SqshContext {
         	    System.err.println("Couldn't load pure java readline library!: "
         	        + e.getMessage());
         	}
+        }
+        else {
+            
+            isInteractive = Readline.hasTerminal();
         }
         
         /*
@@ -420,6 +431,8 @@ public class SqshContext {
     public Session newSession() {
         
         Session session = new Session(this, nextSessionId);
+        session.setInteractive(isInteractive);
+        
         ++nextSessionId;
         
         sessions.add(session);
@@ -440,6 +453,8 @@ public class SqshContext {
         
         Session session =
             new Session(this, nextSessionId, in, out, err);
+        session.setInteractive(isInteractive);
+        
         ++nextSessionId;
         
         sessions.add(session);

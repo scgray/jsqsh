@@ -67,7 +67,7 @@ public class JSqsh {
        
        @Option(name="-o",usage="Write output to external file")
            public String outputFile = null;
-   
+       
         @Argument
             public List<String> arguments = new ArrayList<String>();
     }
@@ -108,8 +108,6 @@ public class JSqsh {
         try {
             
             Session session = sqsh.newSession(in, out, err);
-            session.setInteractive(in == System.in);
-            
             if (!doConnect(session, options)) {
                 
                 rc = 1;
