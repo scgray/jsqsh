@@ -840,7 +840,7 @@ SEE ALSO
            
         <Help><![CDATA[
 SYNOPSIS
-   \select [-n] table_name [table_name ...]
+   \select [-p] [-n] table_name [table_name ...]
               
 DESCRIPTION
    The \select command generates a SELECT statement based upon the
@@ -861,9 +861,39 @@ OPTIONS
    -n  Cause the join clause that is produced to be based upon the "natural
        join" of the columns in the tables. The natural join attempts to join
        all columns of the same name and datatype.
+       
+   -p  Causes the SELECT statement to just be printed to the screen rather
+       than placing it into the SQL buffer for execution.
    
 SEE ALSO
    \go
+        ]]></Help>
+    </Command>
+    
+    <Command name="\create" class="org.sqsh.commands.Create">
+        <Description>Generates a CREATE TABLE using table definitions</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \create [-p] table_name
+              
+DESCRIPTION
+   The \create command generates a CREATE TABLE statement based upon the
+   name of the table provided on the command line.
+   
+   The definition of the table is determined by asking the JDBC driver
+   for metadata information about the table, so the CREATE statement will
+   only be as accurate as the driver reports. In addition, the current
+   implementation of the \create command does not include anything other than
+   column names, types, and nullability.  That is, it does not include any
+   primary or foreign key information or check constraints.
+   
+OPTIONS
+   -p  Causes the CREATE TABLE statement to just be printed to the screen rather
+       than placing it into the SQL buffer for execution.
+   
+SEE ALSO
+   \select
         ]]></Help>
     </Command>
     
