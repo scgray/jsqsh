@@ -17,6 +17,8 @@ Release 1.1-SNAPSHOT
 * Tab completion now recognizes the TSQL "use" statement.
 * Display of "info" type SQLWarning's (e.g. the output from a "print"
   statement from Sybase and Microsoft) is improved.
+* Fixed bug in PL/SQL parser that cause jsqsh to sit in tight loop
+  eating CPU when parsing certain PL/SQL blocks.
 * Fixed bug with way getUpdateCount() is being called that was causing
   Sybase's jConnect driver to complain.
 * Updated driver definition to use the jConnect 6.x driver for Sybase
