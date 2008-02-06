@@ -127,6 +127,8 @@ public class PLSQLAnalyzer
                 
                 break;
             }
+            
+            --idx;
         }
         
         return false;
