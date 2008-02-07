@@ -19,6 +19,7 @@ package org.sqsh.renderers;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ import org.sqsh.Renderer;
 import org.sqsh.RendererManager;
 import org.sqsh.Session;
 import org.sqsh.variables.DimensionVariable;
+import org.sqsh.variables.FontVariable;
 
 /**
  * The GraphicalRenderer displays row results using a swing graphical
@@ -148,6 +150,16 @@ public class GraphicalRenderer
         table.setModel(tableModel);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         
+        FontVariable fontVar =
+            (FontVariable) session.getVariableManager()
+                .getVariable("font");
+        
+        if (fontVar != null) {
+            
+            table.setFont(new Font(fontVar.getFontName(), Font.PLAIN,
+                fontVar.getFontSize() ));
+        }
+        
         JTableHeader header = table.getTableHeader();
         header.setUpdateTableInRealTime(true);
         header.addMouseListener(tableModel.new ColumnListener(table));
@@ -155,8 +167,8 @@ public class GraphicalRenderer
 
         // Add the table to a scrolling pane
         JScrollPane scrollPane = new JScrollPane(table,
-            ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+            ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         topPanel.add( scrollPane, BorderLayout.CENTER );
         
         JLabel footerText = new JLabel(footer);

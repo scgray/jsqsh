@@ -15,6 +15,32 @@ SEE ALSO
    style
         ]]></Help>
     </Dynamic> 
+    
+	<Dynamic class="org.sqsh.variables.FontVariable"  
+	         name="font" value="Monospaced-10">
+        <Description>Font used for gui displays</Description>
+        <Help><![CDATA[
+VARIABLE
+   font - Font to be used for GUI displays.
+
+DESCRIPTION
+   The ${font} variable specifies the name of the font that will be
+   used when jsqsh opens a graphical output window. This occurs either
+   when the "-g" parameter is passed to a command (e.g. "\go -g") or 
+   when the display mode is set to "graphical".
+   
+   The font specification is of the form:
+   
+       Fontname-size
+       
+   With the default being:
+   
+       Monospaced-10
+       
+SEE ALSO
+   style, options
+        ]]></Help>
+    </Dynamic> 
 	         
 	<String name="prompt" value="#if($connected==true)[$server][$user] #end$lineno>">
         <Description>Defines the query prompt</Description>

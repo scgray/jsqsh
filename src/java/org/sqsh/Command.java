@@ -32,6 +32,7 @@ import javax.swing.ScrollPaneConstants;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.sqsh.variables.DimensionVariable;
+import org.sqsh.variables.FontVariable;
 
 
 /**
@@ -317,12 +318,25 @@ public abstract class Command
             
             textArea = new JTextArea();
             textArea.setLineWrap(false);
-            textArea.setFont(new Font( "Monospaced", Font.PLAIN, 10 ));
+            
+            FontVariable fontVar =
+                (FontVariable) session.getVariableManager()
+                    .getVariable("font");
+            
+            if (fontVar != null) {
+                
+                textArea.setFont(new Font(fontVar.getFontName(), Font.PLAIN,
+                    fontVar.getFontSize() ));
+            }
+            else {
+            
+                textArea.setFont(new Font( "Monospaced", Font.PLAIN, 10 ));
+            }
             
             // Add the table to a scrolling pane
             JScrollPane scrollPane = new JScrollPane(textArea,
-                ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
             topPanel.add( scrollPane, BorderLayout.CENTER );
             
             frame.setVisible(true);
