@@ -15,21 +15,30 @@
  * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
  * Cambridge, MA 02139, USA.
  */
-package org.sqsh.commands;
+package org.sqsh;
 
-import org.sqsh.Command;
-import org.sqsh.Session;
-import org.sqsh.SqshContextExitMessage;
-import org.sqsh.SqshOptions;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.Option;
 
-public class Quit
-    extends Command {
+/**
+ * This object represents the command line options that are accepted by
+ * a jsqsh command. All jsqsh commands accept at least the following
+ * options due to inheritence from this class:
+ * 
+ * <pre>
+ *    -g  Send output to a popup graphical window
+ * </pre>
+ * 
+ * Commands should avoid utilizing these command line switches.
+ */
+public class SqshOptions {
     
-    @Override
-    public int execute (Session session, SqshOptions opt)
-        throws Exception {
-        
-        throw new SqshContextExitMessage(session);
-    }
+    @Option(name="-g",usage="Send output to a popup graphical window")
+        public boolean isGraphical = false;
+    
+    @Argument
+        public List<String> arguments = new ArrayList<String>();
 }

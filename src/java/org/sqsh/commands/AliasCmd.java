@@ -29,34 +29,37 @@ import org.sqsh.ColumnDescription;
 import org.sqsh.Command;
 import org.sqsh.Renderer;
 import org.sqsh.Session;
+import org.sqsh.SqshOptions;
 
 public class AliasCmd
     extends Command {
     
-    /*
+    /**
      * Used to contain the command line options that were passed in by
      * the caller.
      */
-    private static class Options {
+    private static class Options
+        extends SqshOptions {
         
-        @Option(name="-g",usage="Make the alias global (apply to whole line)")
+        @Option(name="-G",usage="Make the alias global (apply to whole line)")
             public boolean isGlobal = false;
+    }
+    
+    
+    /**
+     * Return our overridden options.
+     */
+    @Override
+    public SqshOptions getOptions() {
         
-        @Argument
-            public List<String> arguments = new ArrayList<String>();
+        return new Options();
     }
 
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
         
-        Options options = new Options();
-        int rc = parseOptions(session, argv, options);
-        if (rc != 0) {
-            
-            return rc;
-        }
-        
+        Options options = (Options) opts;
         if (options.arguments.size() == 0) {
             
             AliasManager aliasMan = session.getAliasManager();

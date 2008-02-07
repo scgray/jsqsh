@@ -27,6 +27,7 @@ import org.sqsh.Command;
 import org.sqsh.HelpTopic;
 import org.sqsh.Renderer;
 import org.sqsh.Session;
+import org.sqsh.SqshOptions;
 import org.sqsh.Variable;
 
 /**
@@ -35,26 +36,9 @@ import org.sqsh.Variable;
 public class Help
     extends Command {
     
-    /*
-     * Used to contain the command line options that were passed in by
-     * the caller.
-     */
-    private static class Options {
-        
-        @Argument
-            public List<String> arguments = new ArrayList<String>();
-    }
-
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions options)
         throws Exception {
-        
-        Options options = new Options();
-        int rc = parseOptions(session, argv, options);
-        if (rc != 0) {
-            
-            return rc;
-        }
         
         if (options.arguments.size() > 1) {
             

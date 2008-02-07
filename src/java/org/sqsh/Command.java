@@ -17,10 +17,21 @@
  */
 package org.sqsh;
 
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.logging.Logger;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+import org.sqsh.variables.DimensionVariable;
 
 
 /**
@@ -72,6 +83,40 @@ public abstract class Command
     }
     
     /**
+     * This method returns the set of options that are accepted for this
+     * command.  Commands that accept no options of their own need not
+     * override this method, however commands that want to provide 
+     * command line options should extend the {@link SqshOptions} class
+     * to define them.   This method must return a freshly allocated 
+     * SqshOptions object with all options set to their default values.
+     * 
+     * @return A newly allocated options object.
+     */
+    public SqshOptions getOptions() {
+        
+        return new SqshOptions();
+    }
+    
+    /**
+     * This method must be implemented by the command to perform its job.
+     * 
+     * @param session The session context in which the command is being
+     *   executed.
+     * @param options The options that the command received. This object
+     *   will have been allocated by calling the commands {@link #getOptions()}
+     *   method.
+     *   
+     * @return The "exit code" for the command. By convention, 0 indicates
+     *   a successful execution.
+     *   
+     * @throws Exception This allows a command to be lazy about catching
+     *   exceptions that it may cause. Any exception thrown is caught
+     *   by Jsqsh and printed to stderr.
+     */
+    public abstract int execute (Session session, SqshOptions options)
+        throws Exception;
+    
+    /**
      * This method must be implemented by the command and defines its
      * behavior.
      * @param session The session context in which the command is
@@ -82,22 +127,10 @@ public abstract class Command
      *   a successful execution.
      * @throws Exception Thrown if the command fails.
      */
-    public abstract int execute(Session session, String argv[])
-        throws Exception;
-    
-    /**
-     * This is a helper method that a command can call to do their
-     * command line processing. It takes care of basic error handling
-     * and usage printing.
-     * 
-     * @param session The session in which the command is being executed.
-     * @param argv The arguments being processed.
-     * @param options The option descriptor.
-     * @return 0 upon success, non-zero if there is an error.
-     */
-    public int parseOptions(Session session, String argv[],
-            Object options) {
+    public final int execute(Session session, String argv[])
+        throws Exception {
         
+        SqshOptions options = getOptions();
         CmdLineParser parser = new CmdLineParser(options);
         
         try {
@@ -112,7 +145,53 @@ public abstract class Command
             return 1;
         }
         
-        return 0;
+        /*
+         * If this command has declared that it needs to work against
+         * the database, then ensure that we have a connection.
+         */
+        if (this instanceof DatabaseCommand
+                && session.getConnection() == null) {
+            
+            session.err.println("You are not currently connect to a server. "
+                + "Use the \\connect command to create a new connection.");
+            return 1;
+        }
+        
+        PrintStream origOut = session.out;
+        PrintStream origErr = session.err;
+        
+        /*
+         * If the graphical option was passed, then we will redirect output
+         * and error to a window.
+         */
+        if (options.isGraphical) {
+            
+            JTextAreaCaptureStream textStream = 
+                new JTextAreaCaptureStream(session, 
+                    new ByteArrayOutputStream());
+            session.setOut(textStream);
+            session.setErr(textStream);
+        }
+        
+        int rc = 0;
+        try {
+            
+            rc = execute(session, options);
+        }
+        finally {
+            
+            /*
+             * If we were sending to a graphical output, then fix it
+             * here.
+             */
+            if (options.isGraphical) {
+                
+                session.setErr(origErr);
+                session.setOut(origOut);
+            }
+        }
+        
+        return rc;
     }
     
     /**
@@ -191,5 +270,72 @@ public abstract class Command
     public int hashCode() {
         
         return name.hashCode();
+    }
+    
+    /**
+     * Class used to capture writes to output and send them to a text
+     * area panel.
+     */
+    private static class JTextAreaCaptureStream
+        extends PrintStream {
+        
+        private JTextArea textArea;
+        private Session session;
+        private ByteArrayOutputStream buffer;
+        
+        public JTextAreaCaptureStream(Session session,
+                ByteArrayOutputStream buffer) {
+            
+            super(buffer, true);
+            this.buffer = buffer;
+            this.session = session;
+            
+            int width = 600;
+            int height = 400;
+            
+            DimensionVariable v =
+                (DimensionVariable) session.getVariableManager()
+                .getVariable("window_size");
+            
+            if (v != null) {
+                
+                width = v.getWidth();
+                height = v.getHeight();
+            }
+            
+            JFrame frame = new JFrame();
+            
+            // Set the frame characteristics
+            frame.setTitle("Query Results");
+            frame.setSize(width, height);
+            frame.setLocationByPlatform(true);
+
+            // Create a panel to hold all other components
+            JPanel topPanel = new JPanel();
+            topPanel.setLayout(new BorderLayout());
+            frame.getContentPane().add(topPanel);
+            
+            textArea = new JTextArea();
+            textArea.setLineWrap(false);
+            textArea.setFont(new Font( "Monospaced", Font.PLAIN, 10 ));
+            
+            // Add the table to a scrolling pane
+            JScrollPane scrollPane = new JScrollPane(textArea,
+                ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+            topPanel.add( scrollPane, BorderLayout.CENTER );
+            
+            frame.setVisible(true);
+        }
+
+        @Override
+        public void flush () {
+
+            super.flush();
+            
+            String text = buffer.toString();
+            textArea.append(text);
+            buffer.reset();
+        }
     }
 }

@@ -9,6 +9,7 @@ import org.sqsh.Renderer;
 import org.sqsh.SQLContext;
 import org.sqsh.SQLRenderer;
 import org.sqsh.Session;
+import org.sqsh.SqshOptions;
 
 /**
  * Implements the \databases command.
@@ -17,7 +18,7 @@ public class Databases
     extends Command {
 
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions options)
         throws Exception {
         
         SQLContext context = session.getSQLContext();

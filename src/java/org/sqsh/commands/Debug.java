@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import org.sqsh.Command;
 import org.sqsh.Session;
+import org.sqsh.SqshOptions;
 
 /**
  * Implements the debug command.
@@ -14,15 +15,15 @@ public class Debug
     extends Command {
 
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions options)
         throws Exception {
         
         boolean ok = true;
 
-        for (int i = 0; i < argv.length; i++) {
+        for (int i = 0; i < options.arguments.size(); i++) {
             
-            String name = argv[i];
-            Logger log = Logger.getLogger(argv[i]);
+            String name = options.arguments.get(i);
+            Logger log = Logger.getLogger(name);
             
             if (log != null) {
                 
@@ -31,7 +32,7 @@ public class Debug
             else {
                 
                 session.err.println("Unable to find logger '"
-                    + argv[i] + "'");
+                    + name + "'");
                 ok = false;
             }
         }

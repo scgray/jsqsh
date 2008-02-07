@@ -24,6 +24,7 @@ import java.io.InputStream;
 
 import org.sqsh.Command;
 import org.sqsh.Session;
+import org.sqsh.SqshOptions;
 
 /**
  * Implements the \eval command.
@@ -32,16 +33,16 @@ public class Eval
     extends Command {
 
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions options)
         throws Exception {
         
-        if (argv.length != 1) {
+        if (options.arguments.size() != 1) {
             
             session.err.println("use: \\eval filename");
             return 1;
         }
         
-        File filename = new File(argv[0]);
+        File filename = new File(options.arguments.get(0));
         if (!filename.canRead()) {
             
             session.err.println("Cannot open '" + filename.toString()

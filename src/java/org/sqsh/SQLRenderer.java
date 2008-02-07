@@ -228,9 +228,10 @@ public class SQLRenderer {
     public void execute (Session session, String sql)
         throws SQLException {
         
-        execute(
-            session.getContext().getRendererManager().getRenderer(session),
-            session, sql);
+        Renderer renderer = session.getContext().getRendererManager()
+            .getRenderer(session);
+        
+        execute(renderer, session, sql);
     }
     
     /**

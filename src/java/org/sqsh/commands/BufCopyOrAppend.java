@@ -22,6 +22,7 @@ import org.sqsh.BufferManager;
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SessionRedrawBufferMessage;
+import org.sqsh.SqshOptions;
 
 /**
  * Implements the \buf-append command.
@@ -30,21 +31,22 @@ public class BufCopyOrAppend
     extends Command {
     
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions options)
         throws Exception {
         
-        if (argv.length < 1 || argv.length > 2) {
+        if (options.arguments.size() < 1
+                || options.arguments.size() > 2) {
             
             session.err.println("Use: " + getName() + " src-buf [dst-buf]");
             return 1;
         }
         
-        String srcBuf = argv[0];
+        String srcBuf = options.arguments.get(0);
         String destBuf = "!.";
         
-        if (argv.length == 2) {
+        if (options.arguments.size() == 2) {
             
-            destBuf = argv[1];
+            destBuf = options.arguments.get(1);
         }
         
         BufferManager bufMan = session.getBufferManager();

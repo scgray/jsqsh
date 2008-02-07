@@ -22,15 +22,13 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.List;
 
-import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.sqsh.Command;
-import org.sqsh.SQLContext;
+import org.sqsh.DatabaseCommand;
 import org.sqsh.SQLTools;
 import org.sqsh.SessionRedrawBufferMessage;
+import org.sqsh.SqshOptions;
 import org.sqsh.SQLTools.ObjectDescription;
 import org.sqsh.Session;
 
@@ -38,38 +36,28 @@ import org.sqsh.Session;
  * Implements the jsqsh \create command.
  */
 public class Create
-    extends Command {
+    extends Command
+    implements DatabaseCommand {
     
-    private static class Options {
+    private static class Options
+        extends SqshOptions {
         
         @Option(name="-p",usage="Print CREATE to screen, not to SQL buffer")
             public boolean printOnly = false;
-        
-         @Argument
-             public List<String> arguments = new ArrayList<String>();
      }
+    
+    @Override
+    public SqshOptions getOptions() {
+       
+        return new Options();
+    }
 
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
         
-        Options options = new Options();
-        int rc = parseOptions(session, argv, options);
-        if (rc != 0) {
-            
-            return rc;
-        } 
-        
-        /*
-         * Make sure we are connected to a database.
-         */
+        Options options = (Options) opts;
         Connection conn = session.getConnection();
-        if (conn == null) {
-            
-            session.err.println("You are not currently connect to a server. "
-                + "Use the \\connect command to create a new connection.");
-            return 1;
-        }
         
         /*
          * Make sure the caller provided some table names.

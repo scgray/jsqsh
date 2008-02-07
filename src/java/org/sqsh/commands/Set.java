@@ -17,17 +17,15 @@
  */
 package org.sqsh.commands;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
-import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.sqsh.CannotSetValueError;
 import org.sqsh.ColumnDescription;
 import org.sqsh.Command;
 import org.sqsh.Renderer;
 import org.sqsh.Session;
+import org.sqsh.SqshOptions;
 import org.sqsh.Variable;
 import org.sqsh.VariableManager;
 
@@ -41,28 +39,27 @@ public class Set
      * Used to contain the command line options that were passed in by
      * the caller.
      */
-    private static class Options {
+    private static class Options
+        extends SqshOptions {
         
         @Option(name="-x",usage="Export the variable")
             public boolean doExport = false;
         
         @Option(name="-l",usage="Define the variable locally to this session")
             public boolean isLocal = false;
-        
-        @Argument
-            public List<String> arguments = new ArrayList<String>();
     }
     
     @Override
-    public int execute (Session session, String[] argv)
+    public SqshOptions getOptions() {
+        
+        return new Options();
+    }
+    
+    @Override
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
         
-        Options options = new Options();
-        int rc = parseOptions(session, argv, options);
-        if (rc != 0) {
-            
-            return rc;
-        }
+        Options options = (Options) opts;
         
         /*
          * Gotta have at least one option (case of "x=y");

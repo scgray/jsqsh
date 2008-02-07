@@ -24,20 +24,20 @@ import org.sqsh.BufferManager;
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SessionRedrawBufferMessage;
+import org.sqsh.SqshOptions;
 import org.sqsh.jni.Shell;
-
 
 public class Edit
     extends Command {
 
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions options) 
         throws Exception {
         
         String readBuffer = "!.";
         String writeBuffer = "!.";
         
-        if (argv.length > 2) {
+        if (options.arguments.size() > 2) {
             
             session.err.println("Use: \buf-edit [read-buf [write-buf]]");
             return 1;
@@ -49,7 +49,7 @@ public class Edit
          * If no arguments are provided then we check the current buffer,
          * if it is empty we try to edit the previous buffer.
          */
-        if (argv.length == 0) {
+        if (options.arguments.size() == 0) {
             
             Buffer current = bufMan.getCurrent();
             if (current.getLineNumber() == 1 
@@ -60,10 +60,10 @@ public class Edit
         }
         else {
             
-            readBuffer = argv[0];
-            if (argv.length == 2) {
+            readBuffer = options.arguments.get(0);
+            if (options.arguments.size() == 2) {
                 
-                writeBuffer = argv[1];
+                writeBuffer = options.arguments.get(1);
             }
         }
         

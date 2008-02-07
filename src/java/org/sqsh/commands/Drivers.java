@@ -25,6 +25,7 @@ import org.sqsh.Renderer;
 import org.sqsh.SQLDriver;
 import org.sqsh.SQLDriverManager;
 import org.sqsh.Session;
+import org.sqsh.SqshOptions;
 
 
 /**
@@ -34,7 +35,7 @@ public class Drivers
     extends Command {
 
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
         
         SQLDriverManager driverMan = session.getDriverManager();
@@ -74,6 +75,7 @@ public class Drivers
         }
         
         renderer.flush();
+        
         return 0;
     }
 }

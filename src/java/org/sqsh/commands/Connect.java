@@ -17,15 +17,10 @@
  */
 package org.sqsh.commands;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.sqsh.Command;
 import org.sqsh.SQLContext;
@@ -33,11 +28,13 @@ import org.sqsh.SQLDriver;
 import org.sqsh.SQLTools;
 import org.sqsh.Session;
 import org.sqsh.SqshContextSwitchMessage;
+import org.sqsh.SqshOptions;
 
 public class Connect
     extends Command {
     
-   private static class Options {
+    private static class Options
+       extends SqshOptions {
        
         @Option(name="-S",usage="Name of the server to connect to")
             public String server = null;
@@ -68,23 +65,19 @@ public class Connect
         
         @Option(name="-w",usage="Domain to used for authentication")
             public String domain = null;
-        
-        @Argument
-            public List<String> arguments = new ArrayList<String>();
     }
+   
+    @Override
+   	public SqshOptions getOptions() {
+       
+        return new Options();
+   	}
 
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
         
-        Options options = new Options();
-        
-        int rc = parseOptions(session, argv, options);
-        if (rc != 0) {
-            
-            return rc;
-        }
-        
+        Options options = (Options) opts;
         if (options.arguments.size() > 1) {
             
             session.err.println("Use: \\connect [options] [url]");

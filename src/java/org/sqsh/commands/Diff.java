@@ -3,18 +3,16 @@ package org.sqsh.commands;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.List;
 
-import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.sqsh.Command;
 import org.sqsh.SQLTools;
 import org.sqsh.Session;
 import org.sqsh.SqshContext;
+import org.sqsh.SqshOptions;
 import org.sqsh.format.BlobFormatter;
 import org.sqsh.format.ByteFormatter;
 import org.sqsh.format.ClobFormatter;
@@ -25,7 +23,8 @@ import org.sqsh.format.ClobFormatter;
 public class Diff
     extends Command {
     
-    private static class Options {
+    private static class Options
+        extends SqshOptions {
         
         /*
          * 0  - Don't check update counts
@@ -43,30 +42,28 @@ public class Diff
          */
         @Option(name="-e",usage="Stringency for exception checking")
             public int exceptionStringency = 1;
-        
-         @Argument
-             public List<String> arguments = new ArrayList<String>();
      }
+   
+    @Override
+    public SqshOptions getOptions() {
+        
+       return new Options();
+    }
     
     /**
      * The currently elected set of options. This is local to this
      * instance so we don't need to pass it around.
      */
-    private Options opts = null;
+    private Options options = null;
 
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
+        
+        options = (Options) opts;
         
         ArrayList<Session> sessions = new ArrayList<Session>();
         SqshContext ctx = session.getContext();
-        
-        opts = new Options();
-        int rc = parseOptions(session, argv, opts);
-        if (rc != 0) {
-            
-            return rc;
-        } 
         
         /*
          * The current session is always part of the "diff".
@@ -77,11 +74,11 @@ public class Diff
          * If no arguments were received, then we are comparing all 
          * sessions.
          */
-        if (opts.arguments.size() < 1) {
+        if (options.arguments.size() < 1) {
             
             for (Session s : ctx.getSessions()) {
                 
-                opts.arguments.add(Integer.toString(s.getId()));
+                options.arguments.add(Integer.toString(s.getId()));
             }
         }
         
@@ -89,12 +86,12 @@ public class Diff
          * Iterate through the remaining arguments. These should all be 
          * session numbers that are to be used for the comparison.
          */
-        for (int i = 0; i < opts.arguments.size(); i++) {
+        for (int i = 0; i < options.arguments.size(); i++) {
             
             boolean ok = true;
             try {
                 
-                int id = Integer.parseInt(opts.arguments.get(i));
+                int id = Integer.parseInt(options.arguments.get(i));
                 Session nextSession = ctx.getSession(id);
                 if (nextSession == null) {
                     
@@ -115,7 +112,7 @@ public class Diff
             
             if (!ok) {
                 
-                session.err.println("Session '" + opts.arguments.get(i)
+                session.err.println("Session '" + options.arguments.get(i)
                     + "' is not a valid session identifier. Use \\session to "
                     + "view a list of active sessions.");
                 return 1;
@@ -296,8 +293,8 @@ public class Diff
                     }
                     while (results[i] == null 
                         && moreResults[i] == true
-                        && (opts.updateStringency == 0
-                                || (opts.updateStringency == 1
+                        && (options.updateStringency == 0
+                                || (options.updateStringency == 1
                                         && updateCounts[i] <= 0)));
                 }
                 catch (SQLException e) {
@@ -860,24 +857,24 @@ public class Diff
                 
                 StringBuilder sb = new StringBuilder();
                 
-                if (opts.exceptionStringency == 0) {
+                if (options.exceptionStringency == 0) {
                     
                     sb.append("exception");
                 }
-                else if (opts.exceptionStringency > 1) {
+                else if (options.exceptionStringency > 1) {
                     
                     sb.append("[State ")
                         .append(exceptions[i].getSQLState())
                         .append("]: ");
                 }
-                else if (opts.exceptionStringency > 2) {
+                else if (options.exceptionStringency > 2) {
                     
                     sb.append("[Code ")
                         .append(exceptions[i].getErrorCode())
                         .append("]: ");
                 }
                 
-                if (opts.exceptionStringency > 0) {
+                if (options.exceptionStringency > 0) {
                     
                     sb.append(exceptions[i].getMessage());
                 }

@@ -449,7 +449,7 @@ SEE ALSO
            
         <Help><![CDATA[
 SYNOPSIS
-   \alias [-g] [name=text]
+   \alias [-G] [name=text]
               
 DESCRIPTION
    An alias in jsqsh is slightly different (and potentially more dangerous
@@ -504,7 +504,7 @@ DESCRIPTION
    would do (although it would only be effective on Sybase or MSSQL).
      
 OPTIONS
-   -g      Causes an alias to be applied globally to a line, anywhere the
+   -G      Causes an alias to be applied globally to a line, anywhere the
            name of the alias appears. Without this flag, the alias will
            only apply if it is the first word on the line.
         ]]></Help>

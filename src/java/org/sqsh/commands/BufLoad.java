@@ -10,6 +10,7 @@ import org.sqsh.Buffer;
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SessionRedrawBufferMessage;
+import org.sqsh.SqshOptions;
 
 /**
  * Implements the \buf-load command.
@@ -17,26 +18,24 @@ import org.sqsh.SessionRedrawBufferMessage;
 public class BufLoad
     extends Command {
     
-   private static class Options {
+    private static class Options
+       extends SqshOptions {
         
         @Option(name="-a",usage="Appends file contents to specified buffer")
             public boolean doAppend = false;
+    }
+    
+    @Override
+    public SqshOptions getOptions() {
         
-        @Argument
-            public List<String> arguments = new ArrayList<String>();
+        return new Options();
     }
 
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
         
-        Options options = new Options();
-        int rc = parseOptions(session, argv, options);
-        if (rc != 0) {
-            
-            return rc;
-        }
-        
+        Options options = (Options) opts;
         if (options.arguments.size() > 2 || options.arguments.size() < 1) {
             
             session.err.println("use: \buf-load [-a] filename [dest-buf]");
