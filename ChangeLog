@@ -1,8 +1,8 @@
 Release 1.1-SNAPSHOT
 * Added new display style "graphical" that will pop open a GUI window
-  containing query results.
+  containing query results in a sortable graphical table.
 * Added $window_size to control the size of the window in graphical
-  display mode.
+  display mode and $font to set the font that will be used.
 * All jsqsh command now take an option -g that can cause them to display
   to a popup graphical window. See "\help options" for details
 * Added \insert command, this displays the results of the current SQL
@@ -14,6 +14,7 @@ Release 1.1-SNAPSHOT
   definition.
 * Added \diff command to compare results from SQL executed across 
   multiple session.
+* The \help command is now more organized.
 * JSqsh is now better at determining if the session is interactive
   or non-interactive (i.e. if stdin has been redirected).
 * Tab completion now recognizes the TSQL "use" statement.
