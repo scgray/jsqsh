@@ -204,4 +204,26 @@ JSQSH CONTRIBUTORS
 	  ]]></HelpText>
 </Topic>
 
+<Topic name="options">
+		<Description>Command line option processing</Description>
+		<HelpText><![CDATA[
+COMMAND LINE OPTIONS
+
+   All jsqsh commands accept configuration options of the form:
+   
+     -X [arg]
+     
+   where "X" is a letter representing the option and "arg" is the argument
+   to that option (not all options take arguments). Currently jsqsh
+   requires a space between the option and the argument.
+   
+GLOBAL OPTIONS
+   All jsqsh commands understand the following arguments:
+   
+   -g   Display all output in a graphical popup window. This is useful
+        for setting aside a result set for later reference while you
+        continue to work.
+	  ]]></HelpText>
+</Topic>
+
 </Help>

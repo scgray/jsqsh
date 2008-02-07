@@ -168,8 +168,8 @@ public abstract class Renderer {
     public abstract boolean row (String []row);
     
     /**
-     * Called when all of the available data has been passed to the
-     * renderer.
+     * Called when all of the available data for the current result set
+     * has been passed to the renderer.
      * 
      * @return true if the flush was successful. A false indicates that the
      *   final destination for the data has gone away and the results 

@@ -19,6 +19,7 @@ package org.sqsh.commands;
 
 import org.sqsh.Command;
 import org.sqsh.Session;
+import org.sqsh.SqshOptions;
 
 /**
  * Implements the \reset command.
@@ -27,7 +28,7 @@ public class Reset
     extends Command {
 
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
         
         session.getBufferManager().newBuffer();

@@ -17,14 +17,11 @@
  */
 package org.sqsh.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.sqsh.BufferManager;
 import org.sqsh.Command;
 import org.sqsh.Session;
+import org.sqsh.SqshOptions;
 import org.sqsh.TruncatingLineIterator;
 
 /**
@@ -33,28 +30,25 @@ import org.sqsh.TruncatingLineIterator;
 public class History
     extends Command {
     
-   private static class Options {
+    private static class Options
+        extends SqshOptions {
         
         @Option(name="-a",usage="Show all of every SQL statement")
             public boolean showAll = false;
-        
-        @Argument
-            public List<String> arguments = new ArrayList<String>();
     }
     
     @Override
-    public int execute (Session session, String[] argv)
+    public SqshOptions getOptions() {
+        
+        return new Options();
+    }
+    
+    @Override
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
         
-        Options options = new Options();
+        Options options = (Options)opts;
         String lineSep = System.getProperty("line.separator");
-        
-        int rc = parseOptions(session, argv, options);
-        if (rc != 0) {
-            
-            return rc;
-        } 
-        
         BufferManager bufMan = session.getBufferManager();
         
         /*

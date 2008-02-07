@@ -20,6 +20,7 @@ package org.sqsh.commands;
 import org.sqsh.Buffer;
 import org.sqsh.Command;
 import org.sqsh.Session;
+import org.sqsh.SqshOptions;
 
 /**
  * Implements the \macro command.
@@ -28,7 +29,7 @@ public class Macro
     extends Command {
 
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
         
         Buffer buf = session.getBufferManager().getCurrent();

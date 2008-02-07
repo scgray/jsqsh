@@ -11,53 +11,45 @@ import java.util.List;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.sqsh.Command;
+import org.sqsh.DatabaseCommand;
 import org.sqsh.Renderer;
 import org.sqsh.SQLContext;
 import org.sqsh.SQLRenderer;
 import org.sqsh.Session;
+import org.sqsh.SqshOptions;
 
 /**
  * Implements the \describe command.
  */
 public class Describe
-    extends Command {
+    extends Command
+    implements DatabaseCommand {
     
-    private static class Options {
+    private static class Options
+        extends SqshOptions {
         
         @Option(name="-a",
                 usage="Shows all available information")
             public boolean showAll = false;
+    }
+    
+    @Override
+    public SqshOptions getOptions() {
         
-        @Argument
-            public List<String> arguments = new ArrayList<String>();
+        return new Options();
     }
 
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
         
-        Options options = new Options();
+        Options options = (Options) opts;
         String type = null;
-        int rc = parseOptions(session, argv, options);
-        if (rc != 0) {
-            
-            return rc;
-        }
-        
         if (options.arguments.size() != 1) {
             
             session.err.println("Use: \\describe [-a] table_name");
             return 1;
         }
-        
-        SQLContext context = session.getSQLContext();
-        if (context == null) {
-            
-            session.err.println("No database connection has been established."
-                + " Use the \\connect command to create a connection.");
-            return 1;
-        }
-        
         
         Connection con = session.getConnection();
         ResultSet result = null;

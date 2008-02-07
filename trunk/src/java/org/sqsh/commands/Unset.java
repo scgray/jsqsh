@@ -19,6 +19,7 @@ package org.sqsh.commands;
 
 import org.sqsh.Command;
 import org.sqsh.Session;
+import org.sqsh.SqshOptions;
 
 
 /**
@@ -28,16 +29,16 @@ public class Unset
     extends Command {
 
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
         
-        if (argv.length != 1) {
+        if (opts.arguments.size() != 1) {
             
             session.err.println("Use: \\unset var_name");
             return 1;
         }
         
-        String varName = argv[0];
+        String varName = opts.arguments.get(0);
         if (session.getVariableManager().remove(varName) == null) {
                 
             session.getContext().getVariableManager().remove(varName);

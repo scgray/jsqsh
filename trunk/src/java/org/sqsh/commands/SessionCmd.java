@@ -24,16 +24,17 @@ import org.sqsh.SQLContext;
 import org.sqsh.Session;
 import org.sqsh.SqshContext;
 import org.sqsh.SqshContextSwitchMessage;
+import org.sqsh.SqshOptions;
 
 
 public class SessionCmd
     extends Command {
 
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
         
-        if (argv.length > 1) {
+        if (opts.arguments.size() > 1) {
             
             session.err.println("Use: \\session [session_id]");
             return 1;
@@ -44,7 +45,7 @@ public class SessionCmd
         /*
          * If a context id is supplied, then try to switch to it.
          */
-        if (argv.length == 1) {
+        if (opts.arguments.size() == 1) {
             
             boolean ok = true;
             Session newSession = null;
@@ -55,11 +56,11 @@ public class SessionCmd
              * to be thrown back to the SqshContext which will request
              * it to switch to the previous session.
              */
-            if (!argv[0].equals("-")) {
+            if (!opts.arguments.get(0).equals("-")) {
                 
                 try {
                     
-                    id = Integer.parseInt(argv[0]);
+                    id = Integer.parseInt(opts.arguments.get(0));
                     newSession = ctx.getSession(id);
                     if (newSession == null) {
                         
@@ -74,7 +75,8 @@ public class SessionCmd
                 if (ok == false) {
                     
                     session.err.println("Invalid session number '" 
-                        + argv[0] + "'. Run \\session with no arguments to "
+                        + opts.arguments.get(0) 
+                        + "'. Run \\session with no arguments to "
                         + "see a list of available sessions.");
                     return 1;
                 }

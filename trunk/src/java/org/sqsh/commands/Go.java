@@ -18,25 +18,27 @@
 package org.sqsh.commands;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
-import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.sqsh.BufferManager;
 import org.sqsh.CannotSetValueError;
 import org.sqsh.Command;
+import org.sqsh.DatabaseCommand;
 import org.sqsh.RendererManager;
-import org.sqsh.SQLContext;
 import org.sqsh.SQLRenderer;
 import org.sqsh.SQLTools;
 import org.sqsh.Session;
+import org.sqsh.SqshOptions;
 
-
+/**
+ * Implements the \go command.
+ */
 public class Go
-    extends Command {
+    extends Command
+    implements DatabaseCommand {
     
-   private static class Options {
+    private static class Options
+       extends SqshOptions {
        
        @Option(name="-m",usage="Sets the display style for output")
            public String style = null;
@@ -49,32 +51,20 @@ public class Go
        
        @Option(name="-f",usage="Toggles display of result footer information")
            public boolean toggleFooters = false;
-        
-        @Argument
-            public List<String> arguments = new ArrayList<String>();
     }
-
-    @Override
-    public int execute (Session session, String[] argv)
+    
+    public SqshOptions getOptions() {
+        
+        return new Options();
+    }
+   
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
         
+        Options options = (Options) opts;
         RendererManager renderMan = session.getRendererManager();
-        Options options = new Options();
         String origStyle = null;
         String origNull = null;
-        int rc = parseOptions(session, argv, options);
-        if (rc != 0) {
-            
-            return rc;
-        } 
-        
-        SQLContext context = session.getSQLContext();
-        if (context == null) {
-            
-            session.err.println("You are not currently connect to a server. "
-                + "Use the \\connect command to create a new connection.");
-            return 1;
-        }
         
         /*
          * If we are being asked to generate INSERT statements then we need to

@@ -3,6 +3,8 @@ Release 1.1-SNAPSHOT
   containing query results.
 * Added $window_size to control the size of the window in graphical
   display mode.
+* All jsqsh command now take an option -g that can cause them to display
+  to a popup graphical window. See "\help options" for details
 * Added \insert command, this displays the results of the current SQL
   query as INSERT statements or executes the INSERT statements in 
   another session.

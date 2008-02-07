@@ -15,21 +15,16 @@
  * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
  * Cambridge, MA 02139, USA.
  */
-package org.sqsh.commands;
+package org.sqsh;
 
-import org.sqsh.Command;
-import org.sqsh.Session;
-import org.sqsh.SqshContextExitMessage;
-import org.sqsh.SqshOptions;
-
-
-public class Quit
-    extends Command {
+/**
+ * This interface is just a marker for commands that wish to declare that
+ * they require a database connection in order to function. If a command
+ * is executed that implements this interface and a connection is not
+ * established, and error message will be displayed and the command will
+ * not be executed.
+ */
+public interface DatabaseCommand {
     
-    @Override
-    public int execute (Session session, SqshOptions opt)
-        throws Exception {
-        
-        throw new SqshContextExitMessage(session);
-    }
+    /* EMPTY */
 }

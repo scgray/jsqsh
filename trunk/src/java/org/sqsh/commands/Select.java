@@ -10,50 +10,41 @@ import java.util.List;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.sqsh.Command;
+import org.sqsh.DatabaseCommand;
 import org.sqsh.SQLContext;
 import org.sqsh.SQLTools;
 import org.sqsh.Session;
 import org.sqsh.SessionRedrawBufferMessage;
+import org.sqsh.SqshOptions;
 
 /**
  * Implements the \select command.
  */
 public class Select
-    extends Command {
+    extends Command
+    implements DatabaseCommand {
     
-    private static class Options {
+    private static class Options
+        extends SqshOptions {
         
         @Option(name="-p",usage="Print CREATE to screen, not to SQL buffer")
             public boolean printOnly = false;
         
         @Option(name="-n",usage="Creates a natural join")
             public boolean naturalJoin = false;
+    }
+    
+    @Override
+    public SqshOptions getOptions() {
         
-         @Argument
-             public List<String> arguments = new ArrayList<String>();
-     }
+        return new Options();
+    }
 
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
         
-        Options options = new Options();
-        int rc = parseOptions(session, argv, options);
-        if (rc != 0) {
-            
-            return rc;
-        } 
-        
-        /*
-         * Make sure we are connected to a database.
-         */
-        SQLContext context = session.getSQLContext();
-        if (context == null) {
-            
-            session.err.println("You are not currently connect to a server. "
-                + "Use the \\connect command to create a new connection.");
-            return 1;
-        }
+        Options options = (Options) opts;
         
         /*
          * Make sure the caller provided some table names.

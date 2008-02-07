@@ -21,6 +21,7 @@ import org.sqsh.Buffer;
 import org.sqsh.BufferManager;
 import org.sqsh.Command;
 import org.sqsh.Session;
+import org.sqsh.SqshOptions;
 import org.sqsh.WordWrapLineIterator;
 
 /**
@@ -30,13 +31,13 @@ public class Wrap
     extends Command {
 
     @Override
-    public int execute (Session session, String[] argv)
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
         
         int width = 40;
-        if (argv.length > 0) {
+        if (opts.arguments.size() > 0) {
             
-            width = Integer.parseInt(argv[0]);
+            width = Integer.parseInt(opts.arguments.get(0));
         }
         
         BufferManager bufMan = session.getBufferManager();
