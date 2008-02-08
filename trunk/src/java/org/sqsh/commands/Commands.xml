@@ -134,7 +134,7 @@ SYNOPSIS
 DESCRIPTION
   The \connect command attempts to establish a JDBC connection
   to a database server.  If a connection is successfully 
-  established then the connection become sthe active connection
+  established then the connection becomes the active connection
   for the current session. If the session already had a connection
   established, then the existing connection is closed and replaced
   with the new connection.
@@ -144,28 +144,26 @@ DESCRIPTION
   driver definition name can be provided ("driver-name") that
   will provide the URL (to see a list of available drivers
   use the \drivers command).
-              
-  The URL's provided will be expanded of all variable references
-  prior to use and thus may refer to variable values that are
-  defined in the session or via the SQLDriver itself. 
-              
-OPTIONS:
-  Most of the options to \connect work by setting variables
-  that the JDBC URL may (or may not) refer to. To determine
-  if the driver you want to use utilizes the variable, use
-  the \drivers command. If a connection is successfully established
-  these properties will be available to the session.
-
+  
+OPTIONS
+  Each JDBC driver shown by the \drivers command references a 
+  number of variables in its JDBC URL. For example, the Oracle
+  driver's URL looks like:
+  
+      jdbc:oracle:thin:@${server}:${port}:${SID}
+   
+  The majority of the options shown below set the value of one
+  of these variables. For example, the "-S" flag sets the value
+  of the ${server} variable.
+   
   -d driver   The name of the jsqsh driver definition that will
               be used for the connection (use \drivers to see
-              a list). If this flag is not supplied, the value
-              of ${driver} will be used.
+              a list).
               
-  -S server   Sets the ${server} property. This typically defines
-              the hostname of the server you wish to connect to.
+  -S server   Sets the value of ${server}
                          
   -p port     Sets the ${port} property. This typically defines
-              the listenting port of the server you wish to 
+              the listening port of the server you wish to 
               connect to. Most drivers will provide a default
               value for this property if it is not supplied.
                           
@@ -175,9 +173,9 @@ OPTIONS:
               the JDBC world the database context is known as 
               the "catalog"). Not all drivers support this behavior.
                           
-  -U username Sets the ${user} property that deterimines the 
+  -U username Sets the ${user} property that determines the 
               username that will be utilized to connect to the
-              datbase.
+              database.
                           
   -P password Sets the ${password} property that will be used
               to authenticate with the server.
@@ -193,15 +191,31 @@ OPTIONS:
    -n         Create a new session for this connect without
               closing the connection in the current session.
               
-   -w domain  For Windows based authentication, specifies the
-              windows domain to be utilized when establishing
-              the connection. Not all JDBC drivers support this
-              functionality.
+   -w domain  For Windows based authentication, sets the ${domain} 
+              property, specifying the windows domain to be utilized
+              when establishing the connection. Not all JDBC drivers
+              support this functionality.
                           
    jdbc-url   An explicit JDBC url to be utilized for the 
               connection. In most cases it will be necessary
               to provide the implementing JDBC class name 
               with the -c flag when providing an explicit URL.
+
+DEFAULT VALUES
+   For any of the variables set by options described in the OPTIONS 
+   section, above, you may provide a default for that variable by
+   prefixing the variable name with "dflt_" in your session. For example:
+   
+      \set dflt_port=5555
+      
+   would cause default value of ${port} to be 5555 unless the -p option
+   is provided to override that value.
+
+VARIABLES SET
+   After a connection is successfully established, the variables described
+   in the OPTIONS section will be available privately to your session. 
+   Thus, the variable $port would expand to be the port that was used
+   when connecting to your session.
                
 ]]></Help>
 </Command>

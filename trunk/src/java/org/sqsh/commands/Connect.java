@@ -25,11 +25,15 @@ import org.kohsuke.args4j.Option;
 import org.sqsh.Command;
 import org.sqsh.SQLContext;
 import org.sqsh.SQLDriver;
+import org.sqsh.SQLDriverManager;
 import org.sqsh.SQLTools;
 import org.sqsh.Session;
 import org.sqsh.SqshContextSwitchMessage;
 import org.sqsh.SqshOptions;
 
+/**
+ * Implements the \connect command.
+ */
 public class Connect
     extends Command {
     
@@ -90,7 +94,7 @@ public class Connect
          */
         if (options.driverName == null) {
             
-            options.driverName = session.getVariable("driver");
+            options.driverName = session.getVariable("dflt_driver");
             if (options.driverName == null) {
                 
                 options.driverName = "generic";
@@ -105,7 +109,7 @@ public class Connect
             return 1;
         }
         
-        Map<String, String> properties = getProperties(options);
+        Map<String, String> properties = getProperties(session, options);
         if (options.driverClass != null) {
             
             try {
@@ -163,6 +167,7 @@ public class Connect
             else {
                 
                 exportProperties(session, properties);
+                session.setVariable("driver", options.driverName);
                 session.setSQLContext(sqlContext);
             }
         }
@@ -189,45 +194,60 @@ public class Connect
         }
     }
     
-    private Map<String, String> getProperties(Options options) {
+    /**
+     * Given the options that the user passed in, creates a map of
+     * properties that are required by {@link SQLDriverManager#connect(String, Session, Map)}
+     * in order to establish a connection. For a given property, such as
+     * {@link SQLDriver#SERVER_PROPERTY}, the value is established by the
+     * first of the following that is available:
+     * 
+     * <ol>
+     *   <li> Using the option provided on the command line (e.g. "-S")
+     *   <li> Looking the in the session for variable of the name
+     *        "dflt_&lt;property&gt;" (e.g. "dflt_server"). 
+     * </ol>
+     * 
+     * If none of those is available, then the property is not passed in 
+     * and it is up to the {@link SQLDriver} to provide a default.
+     * 
+     * @param session The session used to look up the properties.
+     * @param options The options the user provided.
+     * @return A map of properties.
+     */
+    private Map<String, String> getProperties(
+            Session session, Options options) {
         
         Map<String, String> properties = new HashMap<String, String>();
-        if (options.server != null) {
-            
-            properties.put(SQLDriver.SERVER_PROPERTY, options.server);
-        }
         
-        if (options.port != null) {
-            
-            properties.put(SQLDriver.PORT_PROPERTY, options.port);
-        }
-        
-        if (options.username != null) {
-            
-            properties.put(SQLDriver.USER_PROPERTY, options.username);
-        }
-        
-        if (options.password != null) {
-            
-            properties.put(SQLDriver.PASSWORD_PROPERTY, options.password);
-        }
-        
-        if (options.SID != null) {
-            
-            properties.put(SQLDriver.SID_PROPERTY, options.SID);
-        }
-        
-        if (options.database != null) {
-            
-            properties.put(SQLDriver.DATABASE_PROPERTY, options.database);
-        }
-        
-        if (options.domain != null) {
-            
-            properties.put(SQLDriver.DOMAIN_PROPERTY, options.domain);
-        }
+        setProperty(properties, session,
+            SQLDriver.SERVER_PROPERTY, options.server);
+        setProperty(properties, session,
+            SQLDriver.PORT_PROPERTY, options.port);
+        setProperty(properties, session,
+            SQLDriver.USER_PROPERTY, options.username);
+        setProperty(properties, session,
+            SQLDriver.PASSWORD_PROPERTY, options.password);
+        setProperty(properties, session,
+            SQLDriver.SID_PROPERTY, options.SID);
+        setProperty(properties, session,
+            SQLDriver.DATABASE_PROPERTY, options.database);
+        setProperty(properties, session,
+            SQLDriver.DOMAIN_PROPERTY, options.domain);
         
         return properties;
     }
-
+    
+    private void setProperty(Map<String, String>map, Session session,
+            String name, String value) {
+        
+        if (value == null) {
+            
+            value = session.getVariable("dflt_" + name);
+        }
+        
+        if (value != null) {
+            
+            map.put(name, value);
+        }
+    }
 }
