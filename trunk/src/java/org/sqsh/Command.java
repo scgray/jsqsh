@@ -36,7 +36,23 @@ import org.sqsh.variables.FontVariable;
 
 
 /**
- * Core definition of a sqsh command.
+ * All jsqsh commands must extend this class. A Command follows a relatively
+ * simple lifecycle when it is called.
+ * <ol>
+ *   <li> The Commands {@link #getOptions()} is called to retrieve the
+ *        set of command line options that are supported by the command.
+ *        Commands that have no command line options need not implement
+ *        this method as a default is provided for you.
+ *   <li> The command line options are processed and an error message displayed
+ *        to the user if they provide an invalid option.
+ *   <li> A command may also implement the marker interface 
+ *        {@link DatabaseCommand} to indicate that it needs a database 
+ *        connection to function. If someone tries to use the command
+ *        without being connected, they will receive an error.
+ *   <li> If all of the above pass muster, then the commands
+ *        {@link #execute(Session, SqshOptions)} is called with the 
+ *        command line options the user has passed.
+ * That's pretty much it!
  */
 public abstract class Command
     extends HelpTopic
@@ -53,7 +69,7 @@ public abstract class Command
     private CommandManager manager = null;
     
     /**
-     * This construtor should only be called by the CommandManager.
+     * This constructor should only be called by the CommandManager.
      */
     public Command () {
         
