@@ -262,6 +262,14 @@ public class SQLRenderer {
         execute(renderer, session, sql);
     }
     
+    /**
+     * Executes and displays the results from a prepared statement.
+     * 
+     * @param session The session that will be used for output.
+     * @param statement A prepared statement that has had all of its
+     *    SQL and parameters provided.
+     * @throws SQLException Thrown if there is an issue.
+     */
     public void execute (Session session, PreparedStatement statement) 
         throws SQLException {
         
@@ -271,6 +279,15 @@ public class SQLRenderer {
         execute(renderer, session, null, statement);
     }
     
+    /**
+     * Executes and displays the results from a block of sql.
+     * 
+     * @param renderer The renderer that is to be used to display the output
+     *   of the statement.
+     * @param session The session that will be used for output.
+     * @param sql A SQL statement that is to be executed for
+     * @throws SQLException Thrown if there is an issue.
+     */
     public void execute (Renderer renderer, Session session, String sql)
         throws SQLException {
         
@@ -283,14 +300,16 @@ public class SQLRenderer {
     }
     
     /**
-     * Executes a SQL statement.
+     * Executes SQL or a prepared statement.
      * 
-     * @param renderer The renderer to be used to physically render
-     *  the result set(s).
-     * @param session The session to be used as an output handle
-     *  (and where the database connection comes from).
-     * @param sql  The SQL to execute
-     * @throws SQLException Thrown when...well, you know.
+     * @param renderer The renderer that is to be used to display the output
+     *   of the statement.
+     * @param session The session that will be used for output.
+     * @param sql If not null, then the SQL that is to be executed for
+     *   display.
+     * @param preparedStatement If sql is null, then this must be non-null
+     *   and must contain a prepared statement for execution.
+     * @throws SQLException Thrown if there is an issue.
      */
     private void execute (Renderer renderer, Session session, String sql,
             PreparedStatement preparedStatement)

@@ -16,6 +16,8 @@ Release 1.1-SNAPSHOT
   definition.
 * Added \diff command to compare results from SQL executed across 
   multiple session.
+* Added \call command to execute a prepared statement. This command
+  is primarily for debugging purposes.
 * The \help command is now more organized.
 * JSqsh is now better at determining if the session is interactive
   or non-interactive (i.e. if stdin has been redirected).

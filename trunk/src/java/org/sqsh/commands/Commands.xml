@@ -916,10 +916,21 @@ SEE ALSO
            
         <Help><![CDATA[
 SYNOPSIS
-   \call "statement" [arg ...]
+   \call [arg ...]
               
 DESCRIPTION
-   Used to test prepared statement calls.
+   The \call command is similar to the \go command except that the SQL
+   contained the the SQL buffer is treated as a callable statement and
+   the arguments passed to \call are treated as the arguments to the callable
+   statement.
+   
+   As an example:
+   
+      1> select * from sysobjects where name = ?
+      2> \call syscolumns
+   
+   Currently jsqsh only support string arguments. Support for other datatypes
+   may be added at a later time.
    
 OPTIONS
    None.
