@@ -5,6 +5,8 @@ Release 1.1-SNAPSHOT
   display mode and $font to set the font that will be used.
 * All jsqsh command now take an option -g that can cause them to display
   to a popup graphical window. See "\help options" for details
+* Added $nocount variable to turn off the display of rowcounts generated
+  due to update/delete statements.
 * Added \insert command, this displays the results of the current SQL
   query as INSERT statements or executes the INSERT statements in 
   another session.

@@ -80,6 +80,12 @@ public class SQLRenderer {
      */
     private int rowLimitMethod = LIMIT_DISCARD;
     
+    /**
+     * This causes update counts to be discarded rather than displayed. It
+     * can help clean up certain output.
+     */
+    private boolean noCount = false;
+    
     private long startTime;
     private long firstRowTime;
     private long endTime;
@@ -148,6 +154,28 @@ public class SQLRenderer {
         this.maxRows = maxRows;
     }
     
+    /**
+     * @return Whether or not empty update counts are displayed.
+     */
+    public boolean isNoCount () {
+    
+        return noCount;
+    }
+
+    
+    /**
+     * Sets whether or not empty update counts will be displayed. These
+     * are the "(152 rows affected)" messages that are generated due to
+     * updates and deletes. This has no effect on the messages that are
+     * generated due to row results.
+     * 
+     * @param noCount true if update counts are not to be displayed.
+     */
+    public void setNoCount (boolean noCount) {
+    
+        this.noCount = noCount;
+    }
+
     /**
      * @return The current mechanism to be used to limit rows specified
      * by {@link #setMaxRows(int)}.
@@ -336,14 +364,14 @@ public class SQLRenderer {
                         
                         if (rowLimitMethod == LIMIT_CANCEL) {
                             
-                            footer.append(", query cancelled to limit results");
+                            footer.append(", query cancelled to limit results ");
                             done = true;
                         }
                         else {
                             
                             footer.append(", first ");
                         	footer.append(maxRows);
-                        	footer.append(" rows shown");
+                        	footer.append(" rows shown ");
                         }
                     }
                     
@@ -358,15 +386,18 @@ public class SQLRenderer {
                     
                     SQLTools.printWarnings(session, statement);
                     
-                    if (updateCount >= 0) {
+                    if (noCount == false) {
                         
-                        footer.append(updateCount + " row"
-                            + ((updateCount != 1) ? "s" : "")
-                        	+ " affected");
-                    } 
-                    else {
-                        
-                        footer.append("ok.");
+                        if (updateCount >= 0) {
+                            
+                            footer.append(updateCount + " row"
+                                + ((updateCount != 1) ? "s" : "")
+                            	+ " affected ");
+                        } 
+                        else {
+                            
+                            footer.append("ok. ");
+                        }
                     }
                 }
                 
@@ -378,13 +409,13 @@ public class SQLRenderer {
                     endTime = System.currentTimeMillis();
                     
                     if (firstRowTime > 0L) {
-                        footer.append(" (first row: "
+                        footer.append("(first row: "
                             + (firstRowTime - startTime) + "ms; total: "
                         	+ (endTime - startTime) + "ms)");
                     }
                     else {
                         
-                        footer.append(" (total: "
+                        footer.append("(total: "
                             + (endTime - startTime) + "ms)");
                     }
                     
