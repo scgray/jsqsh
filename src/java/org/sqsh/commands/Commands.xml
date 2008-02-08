@@ -911,4 +911,22 @@ SEE ALSO
         ]]></Help>
     </Command>
     
+    <Command name="\call" class="org.sqsh.commands.Call">
+        <Description>Call a prepared statement</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \call "statement" [arg ...]
+              
+DESCRIPTION
+   Used to test prepared statement calls.
+   
+OPTIONS
+   None.
+   
+SEE ALSO
+   \go
+        ]]></Help>
+    </Command>
+    
 </Commands>
