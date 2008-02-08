@@ -247,8 +247,12 @@ public class SQLDriverManager {
      * @param clazz The JDBC class.
      * @param url The JDBC URL to connect to.
      * @param session The session for which the connection is being 
-     *    established. This is used primarily as a source of variables.
-     * @param properties Connection properties to be utilized.
+     *    established.
+     * @param properties Connection properties to be utilized. These 
+     *    properties can include properties that the driver itself
+     *    understands, as well as properties that are required by 
+     *    the {@link SQLDriver}, such as {@link SQLDriver#SERVER_PROPERTY}
+     *    or {@link SQLDriver#USER_PROPERTY}.
      * @return A newly created connection.
      * @throws SQLException Thrown if the connection could not be 
      *    established.
@@ -278,7 +282,8 @@ public class SQLDriverManager {
      *    driver name "generic" can be provided if the manager does not
      *    have a registered driver that can be used. 
      * @param session The session for which the connection is being 
-     *    established. This is used primarily as a source of variables.
+     *    established. The session is primarly used as a place to
+     *    send error messages.
      * @param properties Connection properties to be utilized.
      * @return A newly created connection.
      * @throws SQLException Thrown if the connection could not be 
@@ -324,7 +329,7 @@ public class SQLDriverManager {
                 for (int i = 0; i < supportedProperties.length; i++) {
                     
                     String name = supportedProperties[i].name;
-                    String value = getProperty(session, properties,
+                    String value = getProperty(properties,
                         sqlDriver.getVariables(), name);
                     
                     if (value != null) {
@@ -340,7 +345,7 @@ public class SQLDriverManager {
                     + e.getMessage() + ")");
             }
             
-            String s = getProperty(session, properties,
+            String s = getProperty(properties,
                 sqlDriver.getVariables(), SQLDriver.USER_PROPERTY);
             if (s == null) {
                 
@@ -349,7 +354,7 @@ public class SQLDriverManager {
             }
             props.put(SQLDriver.USER_PROPERTY, s);
             
-            s = getProperty(session, properties, sqlDriver.getVariables(),
+            s = getProperty(properties, sqlDriver.getVariables(),
                 SQLDriver.PASSWORD_PROPERTY);
             if (s == null) {
                 
@@ -368,7 +373,7 @@ public class SQLDriverManager {
                 e.getErrorCode());
         }
         
-        String database = getProperty(session, properties,
+        String database = getProperty(properties,
             sqlDriver.getVariables(),  SQLDriver.DATABASE_PROPERTY);
         if (database == null && defaultDatabase != null) {
             
@@ -479,7 +484,6 @@ public class SQLDriverManager {
      *  user supplied properties, session, or SQLDriver variables (in that
      *  order).
      *  
-     * @param session The session handle.
      * @param properties The user supplied properties.
      * @param vars SQLDriver variables (can be null).
      * @param url The URL to expand.
@@ -495,46 +499,40 @@ public class SQLDriverManager {
             
             for (String name : vars.keySet()) {
                 
-                String value = getProperty(session, properties, vars, name);
+                String value = getProperty(properties, vars, name);
                 connProperties.put(name, value);
             }
         }
         
         connProperties.put(SQLDriver.USER_PROPERTY,
-            getProperty(session, properties, vars, SQLDriver.USER_PROPERTY));
+            getProperty(properties, vars, SQLDriver.USER_PROPERTY));
         connProperties.put(SQLDriver.PASSWORD_PROPERTY,
-            getProperty(session, properties, vars, SQLDriver.PASSWORD_PROPERTY));
+            getProperty(properties, vars, SQLDriver.PASSWORD_PROPERTY));
         
         return session.expand(connProperties, url);
     }
     
     /**
      * Used internally to look up a property value following an inheritence
-     * scheme of (1) properties passed by user, (2) session properties,
-     * (3) the variables associated with the driver.
+     * scheme of (1) properties passed by user, (2) the variables 
+     * associated with the driver.
      * 
-     * @param Session owning session
      * @param vars Variables defined by a driver (can be null).
      * @param properties The properties passed by the user.
      * @param name Variable to look up.
      * @return The value of the property.
      */
-    private String getProperty(Session session, Map<String, String>properties,
+    private String getProperty(Map<String, String>properties,
             Map<String, String>vars, String name) {
         
         String value = properties.get(name);
         if (value == null) {
                 
-            value = session.getVariable(name);
-            if (value == null && vars != null) {
-                    
-                value = vars.get(name);
-            }
+            value = vars.get(name);
         }
         
         return value;
     }
-    
     
     /**
      * Adds a driver to the manager.
