@@ -18,6 +18,7 @@
 package org.sqsh;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -258,8 +259,27 @@ public class SQLRenderer {
         
         Renderer renderer = session.getContext().getRendererManager()
             .getRenderer(session);
-        
         execute(renderer, session, sql);
+    }
+    
+    public void execute (Session session, PreparedStatement statement) 
+        throws SQLException {
+        
+        Renderer renderer = session.getContext().getRendererManager()
+            .getRenderer(session);
+        
+        execute(renderer, session, null, statement);
+    }
+    
+    public void execute (Renderer renderer, Session session, String sql)
+        throws SQLException {
+        
+        if (expand) {
+            
+            sql = session.expand(sql);
+        }
+        
+        execute(renderer, session, sql, null);
     }
     
     /**
@@ -272,7 +292,8 @@ public class SQLRenderer {
      * @param sql  The SQL to execute
      * @throws SQLException Thrown when...well, you know.
      */
-    public void execute (Renderer renderer, Session session, String sql)
+    private void execute (Renderer renderer, Session session, String sql,
+            PreparedStatement preparedStatement)
         throws SQLException {
         
         Connection conn = session.getSQLContext().getConnection();
@@ -281,18 +302,12 @@ public class SQLRenderer {
         boolean done = false;
         CancelingSignalHandler sigHandler = null;
         
-        if (expand) {
-            
-            sql = session.expand(sql);
-        }
-        
         startTime = System.currentTimeMillis();
         firstRowTime = 0L;
         endTime = 0L;
         
         try {
             
-            statement = conn.createStatement();
             SQLTools.printWarnings(session, conn);
             
             /*
@@ -312,7 +327,17 @@ public class SQLRenderer {
             sigHandler = new CancelingSignalHandler(statement);
             session.getSignalManager().push((SigHandler) sigHandler);
             
-            statement.execute(sql);
+            if (sql != null) {
+                
+                statement = conn.createStatement();
+                statement.execute(sql);
+            }
+            else {
+                
+                statement = preparedStatement;
+                preparedStatement.execute();
+            }
+            
             SQLTools.printWarnings(session, statement);
             
             StringBuilder footer = new StringBuilder();
