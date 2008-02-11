@@ -928,10 +928,25 @@ DESCRIPTION
    
       1> select * from sysobjects where name = ?
       2> \call syscolumns
+
+TYPED PARAMETERS
+   For most platforms, the parameters passed to a prepared statement must
+   be of the appropriate datatype for the query. For these cases, the \call
+   command allows a datatype prefix for the arguments provided. These
+   prefixes are:
    
-   Currently jsqsh only support string arguments. Support for other datatypes
-   may be added at a later time.
+      S:<value>   Specifies a string value
+      C:<value>   Specifies a character value
+      Z:<value>   Specifies a boolean value
+      D:<value>   Specifies a double value
+      I:<value>   Specifies an integer value
+      J:<value>   Specifies a long (64 bit integer) value
+      
+   for example:
    
+      1> select * from sysobjects where id = ?
+      2> \call I:1234
+      
 OPTIONS
    None.
    

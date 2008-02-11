@@ -4,6 +4,7 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 
 import org.sqsh.BufferManager;
 import org.sqsh.Command;
@@ -50,7 +51,10 @@ public class Call
             CallableStatement statement = conn.prepareCall(sql);
             for (int i = 0; i < argv.length; i++) {
                 
-                statement.setString(i+1, argv[i]);
+                if (!setParameter(session, statement, i+1, argv[i])) {
+                    
+                    return 1;
+                }
             }
             
             sqlRenderer.execute(session, statement);
@@ -63,5 +67,62 @@ public class Call
         
         return 0;
     }
-
+    
+    private boolean setParameter(Session session,
+            CallableStatement statement, int idx, String value)
+        throws SQLException {
+        
+        char type = 'S';
+        
+        if (value.length() > 2
+                && value.charAt(1) == ':') {
+            
+            type = Character.toUpperCase(value.charAt(0));
+            value = value.substring(2);
+        }
+        
+        try {
+            
+            switch (type) {
+                
+                case 'S':
+                case 'C':
+                    statement.setString(idx, value);
+                    break;
+                
+                case 'Z':
+                    statement.setBoolean(idx, Boolean.valueOf(value));
+                    break;
+                    
+                case 'D':
+                    statement.setDouble(idx, Double.valueOf(value));
+                    break;
+                    
+                case 'F':
+                    statement.setFloat(idx, Float.valueOf(value));
+                    break;
+                    
+                case 'I':
+                    statement.setInt(idx, Integer.valueOf(value));
+                    break;
+                    
+                case 'J':
+                    statement.setLong(idx, Long.valueOf(value));
+                    break;
+                    
+                default:
+                    session.err.println("Invalid type specifier '"
+                        + type + "'. Valid specifiers are SCZDFIJ");
+                    return false;
+            }
+        }
+        catch (NumberFormatException e) {
+            
+            session.err.println("Invalid number format '"
+                + value + "' provided for type '" + type + "'");
+            return false;
+        }
+        
+        return true;
+    }
 }
