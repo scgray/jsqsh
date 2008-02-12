@@ -544,7 +544,30 @@ public class SQLRenderer {
                 
                 if (displayCols == null || displayCols.contains(i)) {
                     
-                    Object value = resultSet.getObject(i);
+                    Object value;
+                    
+                    /*
+                     * This is silly (I'd use stronger language, but I
+                     * think I'm mellowing in my old age). For an oracle
+                     * TIMESTAMP column, when I ask the driver for the
+                     * datatype it reports java.sql.Timestamp. However, 
+                     * when I call the driver's ResultSet.getObject() it
+                     * returns some sort of native internal representation
+                     * of a TIMESTAMP column that is  *not* a 
+                     * java.sql.Timestamp and thus jsqsh blows up when it
+                     * trys to format it as one.  So, instead I do a special
+                     * case to force the driver to return it to me as a 
+                     * timestamp.
+                     */
+                    if (columns[idx].getNativeType() == Types.TIMESTAMP) {
+                        
+                        value = resultSet.getTimestamp(i);
+                    }
+                    else {
+                        
+                        value = resultSet.getObject(i);
+                    }
+                    
                     if (resultSet.wasNull()) {
                         
                         row[idx] = formatter.getNull();
@@ -801,6 +824,7 @@ public class SQLRenderer {
             meta.getColumnLabel(idx),  format.getMaxWidth(), alignment,
             ColumnDescription.OverflowBehavior.WRAP);
         c.setType(colType);
+        c.setNativeType(type);
         c.setFormatter(format);
         
         return c;

@@ -17,8 +17,6 @@
  */
 package org.sqsh;
 
-import java.util.Iterator;
-
 /**
  * This class is used by all renderers to describe the columns that are 
  * to be rendered.
@@ -55,6 +53,13 @@ public class ColumnDescription {
      * The basic type of the column.
      */
     private Type type = Type.STRING;
+    
+    /**
+     * This will not be available for all types of data (really only
+     * from columns that come from a SQL result set), but indicates 
+     * what the original datatype was.
+     */
+    private int nativeType = -1;
     
     /**
      * The display width of the column.
@@ -188,6 +193,28 @@ public class ColumnDescription {
     }
     
     /**
+     * Returns the native type for the column. This will only be 
+     * valid for SQL result sets.
+     * 
+     * @return The native type {@link java.sql.Types} or -1 if 
+     *   the native type is not known or unavailable.
+     */
+    public int getNativeType () {
+    
+        return nativeType;
+    }
+
+    /**
+     * Sets the native type.
+     * 
+     * @param nativeType The native type to set.
+     */
+    public void setNativeType (int nativeType) {
+    
+        this.nativeType = nativeType;
+    }
+
+    /**
      * @return the width
      */
     public int getWidth () {
@@ -202,4 +229,5 @@ public class ColumnDescription {
     
         this.width = width;
     }
+    
 }
