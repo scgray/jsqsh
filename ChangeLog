@@ -24,6 +24,8 @@ Release 1.1-SNAPSHOT
 * Tab completion now recognizes the TSQL "use" statement.
 * Display of "info" type SQLWarning's (e.g. the output from a "print"
   statement from Sybase and Microsoft) is improved.
+* Fixed failure when trying to format Oracle TIMESTAMP columns for
+  display.
 * Fixed \connect command trying to use settings from the current session
   when trying to connect. Read the \connect command for details.
 * Fixed bug in PL/SQL parser that cause jsqsh to sit in tight loop

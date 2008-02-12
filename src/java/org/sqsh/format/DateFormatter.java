@@ -17,7 +17,9 @@
  */
 package org.sqsh.format;
 
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.sqsh.Formatter;
 
