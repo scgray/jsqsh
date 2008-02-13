@@ -1,10 +1,18 @@
 Release 1.1-SNAPSHOT
+* Changed several aspects of command line options:
+     - All jsqsh options have a long form and a short form 
+       (e.g. -h and --help).
+     - You no longer need a space following an option (e.g. 
+       "-U sa" and "-Usa" are equivalent).
+     - Every jsqsh command accepts -h and --help to cause a usage
+       of the command to be dumped.
+     - Every jsqsh command accepts -g and --gui to cause its output
+       to be sent to a graphical popup window.
+     - The new help topic "options" discusses this.
 * Added new display style "graphical" that will pop open a GUI window
   containing query results in a sortable graphical table.
 * Added $window_size to control the size of the window in graphical
   display mode and $font to set the font that will be used.
-* All jsqsh command now take an option -g that can cause them to display
-  to a popup graphical window. See "\help options" for details
 * Added $nocount variable to turn off the display of rowcounts generated
   due to update/delete statements.
 * Added \insert command, this displays the results of the current SQL
@@ -24,6 +32,8 @@ Release 1.1-SNAPSHOT
 * Tab completion now recognizes the TSQL "use" statement.
 * Display of "info" type SQLWarning's (e.g. the output from a "print"
   statement from Sybase and Microsoft) is improved.
+* Fixed the -i flag causing jsqsh to exit if the script contained
+  a \connect -n.
 * Fixed failure when trying to format Oracle TIMESTAMP columns for
   display.
 * Fixed \connect command trying to use settings from the current session
