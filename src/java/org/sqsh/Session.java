@@ -46,7 +46,7 @@ public class Session
     implements Cloneable {
     
     private static final Logger LOG = 
-        Logger.getLogger(Session.class.getName());
+        Logger.getLogger("org.sqsh.Session");
     
     /**
      * Path to the built-in file full of variable definitions.
@@ -682,6 +682,50 @@ public class Session
                 runCommand(go, "\\go");
             }
         }
+    }
+    
+    /**
+     * Explicitly executes a jsqsh command.
+     * 
+     * @param command The name of the command to execute.
+     * @param argv The argument array for the command.
+     * 
+     * @return The return code from the command, if the command
+     *   did not exist or threw an exception a -1 is returned.
+     */
+    public int execute(String command, String []argv) {
+        
+        try {
+            
+            Command cmd = getCommand(command);
+            if (cmd == null) {
+                
+                err.println("There is no command '" + command + "'");
+                return -1;
+            }
+            
+            if (LOG.isLoggable(Level.FINE)) {
+
+                LOG.fine("Executing: " + command);
+                for (int i = 0; i < argv.length; i++) {
+                    
+                    LOG.fine("   Arg #" + (i+1) + ": " + argv[i]);
+                }
+            }
+            
+            int rc = cmd.execute(this, argv);
+            return rc;
+        }
+        catch (Exception e) {
+                
+            e.printStackTrace(err);
+        }
+        finally {
+            
+            restoreIO();
+        }
+        
+        return -1;
     }
     
     /**
