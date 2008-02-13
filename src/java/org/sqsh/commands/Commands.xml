@@ -12,8 +12,8 @@ DESCRIPTION
    Echos the string(s) to standard out.
            
 OPTIONS:
-   -n,--no-newline  Disables the output of a newline character at the end
-                    of the output
+   -n, --no-newline  Disables the output of a newline character at the end
+                     of the output
       ]]></Help>
     </Command>
     
@@ -118,9 +118,9 @@ DESCRIPTION
    Displays a history of SQL statements executed.
            
 OPTIONS:
-   -a,--all  Show all of every SQL statement executed. If this flag is not
-             provided only the first 10 lines of any SQL statement will be
-             displayed.
+   -a, --all  Show all of every SQL statement executed. If this flag is not
+              provided only the first 10 lines of any SQL statement will be
+              displayed.
            ]]></Help>
     </Command>
     
@@ -157,42 +157,42 @@ OPTIONS
   of these variables. For example, the "-S" flag sets the value
   of the ${server} variable.
    
-  -d,--driver=driver The name of the jsqsh driver definition that will
+  -d, --driver=driver The name of the jsqsh driver definition that will
                       be used for the connection (use \drivers to see
                       a list).
               
-  -S,--server=server  Sets the value of ${server}
+  -S, --server=server Sets the value of ${server}
                          
-  -p,--port=port      Sets the ${port} property. This typically defines
+  -p, --port=port     Sets the ${port} property. This typically defines
                       the listening port of the server you wish to 
                       connect to. Most drivers will provide a default
                       value for this property if it is not supplied.
                           
-  -D,--database=db    Sets the ${db} property. This will cause 
+  -D, --database=db   Sets the ${db} property. This will cause 
                       the database context to be set to the provided
                       database following connection to the server (in 
                       the JDBC world the database context is known as 
                       the "catalog"). Not all drivers support this behavior.
                           
-  -U,--username=user  Sets the ${user} property that determines the 
+  -U, --username=user Sets the ${user} property that determines the 
                       username that will be utilized to connect to the
                       database.
                           
-  -P,--password=pass  Sets the ${password} property that will be used
+  -P, --password=pass Sets the ${password} property that will be used
                       to authenticate with the server.
                           
-  -s,--sid=SID        Sets the ${SID} property, and provides the Oracle 
+  -s, --sid=SID       Sets the ${SID} property, and provides the Oracle 
                       SID that will be used when connecting to Oracle.
                
-  -c,--jdbc-class=class  When utilizing a direct JDBC url (and not a 
+  -c, --jdbc-class=class  When utilizing a direct JDBC url (and not a 
                       jsqsh driver definition), this should be utilized to
                       define which JDBC driver class will be utilized
                       for the connection.
                           
-   -n,--new-session   Create a new session for this connect without
+   -n, --new-session  Create a new session for this connect without
                       closing the connection in the current session.
               
-   -w,--domain=domain  For Windows based authentication, sets the ${domain} 
+   -w, --domain=domain For Windows based authentication, sets the ${domain} 
                        property, specifying the windows domain to be utilized
                        when establishing the connection. Not all JDBC drivers
                        support this functionality.
@@ -235,16 +235,16 @@ DESCRIPTION
    Executes the SQL statement contained in the current buffer.
            
 OPTIONS:
-   -i,--insert=table  Causes the results to be generated as INSERT statements
+   -i, --insert=table Causes the results to be generated as INSERT statements
                       for the specified table name. This flag causes the
                       value provided by "-m" to be ignored.
-   -m,--display-style=style  Specifies a custom display style for showing
+   -m, --display-style=style  Specifies a custom display style for showing
                       the results of the execution. The available styles
                       may be found by running '\help style'.
-   -H,--no-headers    Toggles the display of column header information. 
+   -H, --no-headers   Toggles the display of column header information. 
                       This flag  effectively flips the  value of ${header}
                       for the duration of the query execution.
-   -F,--no-footers    Toggles the display of result footer information
+   -F, --no-footers   Toggles the display of result footer information
                       (row count and timing information). This flag
                       effectively flips the  value of ${footer} for the
                       duration of the query execution.
@@ -287,10 +287,10 @@ OPTIONS:
    If arguments are provided to \set, then the value of 
    all variables is displayed.
               
-   -x,--export  Will cause the variable to be exported to the environment
+   -x, --export Will cause the variable to be exported to the environment
                 of any processes that are spawned by jsqsh during its
                 execution.
-   -l,--local   Sets the value of the variable local to the current session
+   -l, --local  Sets the value of the variable local to the current session
                 only. No other sessions will see it and it will mask 
                 similarly named variables in other session.
      ]]></Help>
@@ -480,7 +480,7 @@ SEE ALSO
            
         <Help><![CDATA[
 SYNOPSIS
-   \alias [-G,--global] [name=text]
+   \alias [-G] [name=text]
               
 DESCRIPTION
    An alias in jsqsh is slightly different (and potentially more dangerous
@@ -535,7 +535,7 @@ DESCRIPTION
    would do (although it would only be effective on Sybase or MSSQL).
      
 OPTIONS
-   -G,--global   Causes an alias to be applied globally to a line, anywhere
+   -G, --global  Causes an alias to be applied globally to a line, anywhere
                  the name of the alias appears. Without this flag, the alias
                  will only apply if it is the first word on the line.
         ]]></Help>
@@ -582,7 +582,7 @@ DESCRIPTION
    can \unalias ':r' in your $HOME/.jsqsh/sqshrc file.
            
 OPTIONS
-   -a,--append   Causes the contents of the file to be appended to the 
+   -a, --append  Causes the contents of the file to be appended to the 
                  SQL buffer, rather than replacing its contents.
                  filename  The file to read.
    des-buf       The name of the destination buffer to read the file into.
@@ -607,9 +607,9 @@ DESCRIPTION
    all drivers support (although most do).
    
 OPTIONS
-   -p,--table-pattern=pattern  A SQL pattern to be used to filter the 
+   -p, --table-pattern=pattern  A SQL pattern to be used to filter the 
                 set of object names that are displayed.
-   -s,--schema-pattern=pattern A SQL pattern to be used to filter the
+   -s, --schema-pattern=pattern A SQL pattern to be used to filter the
                 set of object schema names that are displayed. For most
                 databases, the "schema name" refers to the name of the
                 owner of the object.
@@ -641,9 +641,9 @@ DESCRIPTION
    drivers support (although most do).
    
 OPTIONS
-   -p,--proc-pattern=pattern  A SQL pattern to be used to filter the set
+   -p, --proc-pattern=pattern  A SQL pattern to be used to filter the set
                  of object names that are displayed.
-   -s,--schema-pattern=pattern  A SQL pattern to be used to filter the 
+   -s, --schema-pattern=pattern  A SQL pattern to be used to filter the 
                  set of object schema names that are displayed. 
                  For most databases, the "schema name" refers to the name 
                  of the owner of the object.
@@ -688,7 +688,7 @@ DESCRIPTION
    and thus may fail against some platforms. 
    
 OPTIONS
-   -a,--all    Shows all available information about the table that  
+   -a, --all   Shows all available information about the table that  
                the JDBC driver provides. Without this flag \desribe will
                attempt to keep the output to the more useful data.
    object_name The object name to be described. This can be a fully
@@ -818,14 +818,14 @@ DESCRIPTION
    * Values in rows must be identical
    
 OPTIONS
-   -e,--exception-stringency=N  
+   -e, --exception-stringency=N  
          Specifies the stringency level to be used when comparing
          exceptions between results:
             0 - Compared presence of an exception 
             1 - The text of the exceptions must be the same
             2 - The SQL Status of the exceptions must be the same
             3 - The SQL Error Code of the exceptions must be the same
-   -u,--update-stringency=N  
+   -u, --update-stringency=N  
          Specifies the stringency level to be used when comparing
          the update counts (the "rows affected") returned between results. 
             0 - Update counts are not compared
@@ -853,14 +853,14 @@ DESCRIPTION
    by a different session may be used to execute the INSERT statements.
    
 OPTIONS
-   -b,--batch-size=rows  Specifies the number of rows that should be
+   -b, --batch-size=rows  Specifies the number of rows that should be
                  "batched" together. If the "-s" option is not used, then this
                   indicates how often a "go" is displayed to the screen.
                   If the "-s" option is used, then the specified number of
                   INSERT statements is executed at once, followed by a 
                   commit.
                   
-   -s,--target-session=id  Provides a target session id for execution of the 
+   -s, --target-session=id  Provides a target session id for execution of the 
                   INSERT statements that are generated.  The provided
                   session must be connected to a database server to
                   function.
@@ -893,12 +893,12 @@ DESCRIPTION
    JDBC driver and may not work properly for all driver implementations.
    
 OPTIONS
-   -n,--natural-join  Cause the join clause that is produced to be based 
+   -n, --natural-join Cause the join clause that is produced to be based 
                       upon the "natural join" of the columns in the tables.
                       The natural join attempts to join all columns of the
                       same name and datatype.
        
-   -p,--print         Causes the SELECT statement to just be printed to
+   -p, --print        Causes the SELECT statement to just be printed to
                       the screen rather than placing it into the SQL buffer
                       for execution.
    
@@ -926,7 +926,7 @@ DESCRIPTION
    primary or foreign key information or check constraints.
    
 OPTIONS
-   -p,--print   Causes the CREATE TABLE statement to just be printed
+   -p, --print  Causes the CREATE TABLE statement to just be printed
                 to the screen rather than placing it into the SQL buffer
                 for execution.
                 
