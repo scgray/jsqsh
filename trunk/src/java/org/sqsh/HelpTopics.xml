@@ -220,9 +220,11 @@ COMMAND LINE OPTIONS
 GLOBAL OPTIONS
    All jsqsh commands understand the following arguments:
    
-   -g   Display all output in a graphical popup window. This is useful
-        for setting aside a result set for later reference while you
-        continue to work.
+   -g, --gui   Display all output in a graphical popup window. This is 
+               useful for setting aside a result set for later reference
+               while you continue to work.
+               
+   -h, --help  Displays a description how to execute the command.
 	  ]]></HelpText>
 </Topic>
 
