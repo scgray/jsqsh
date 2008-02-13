@@ -180,6 +180,16 @@ public class JSqsh {
         try {
             
             Session session = sqsh.newSession(in, out, err);
+            
+            /*
+             * If we are reading from a file, then this is not
+             * an interactive session.
+             */
+            if (options.inputFile != null) {
+                
+                session.setInteractive(false);
+            }
+            
             if (!doConnect(session, options)) {
                 
                 rc = 1;
