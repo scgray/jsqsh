@@ -68,7 +68,7 @@ public class Connect
         public String username = null;
     
         @Option(
-            option='P', longOption="password", arg=OPTIONAL, argName="pass",
+            option='P', longOption="password", arg=REQUIRED, argName="pass",
             description="Password utilized for connection")
         public String password = null;
         
@@ -246,7 +246,8 @@ public class Connect
         setProperty(properties, session,
             SQLDriver.SERVER_PROPERTY, options.server);
         setProperty(properties, session,
-            SQLDriver.PORT_PROPERTY, Integer.toString(options.port));
+            SQLDriver.PORT_PROPERTY, 
+                (options.port == -1 ? null :  Integer.toString(options.port)));
         setProperty(properties, session,
             SQLDriver.USER_PROPERTY, options.username);
         setProperty(properties, session,

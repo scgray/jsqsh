@@ -45,12 +45,12 @@ public class Insert
         extends SqshOptions {
         
         @Option(
-            option='s', longOption="target-session", arg=REQUIRED, argName="session",
+            option='s', longOption="target-session", arg=REQUIRED, argName="id",
             description="Target session in which inserts are executed")
         public int sessionId = -1;
         
         @Option(
-            option='b', longOption="batch-size", arg=REQUIRED, argName="size",
+            option='b', longOption="batch-size", arg=REQUIRED, argName="rows",
             description="Number of rows per batch")
          public int batchSize = 50;
         
