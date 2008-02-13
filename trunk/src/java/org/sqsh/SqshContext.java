@@ -238,7 +238,7 @@ public class SqshContext {
         }
         else {
             
-            // isInteractive = Readline.hasTerminal();
+            isInteractive = Readline.hasTerminal();
         }
         
         /*

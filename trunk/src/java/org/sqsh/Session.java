@@ -576,8 +576,6 @@ public class Session
     public void readEvalPrint()
         throws SqshContextMessage {
         
-        BufferedReader input = new
-            BufferedReader(new InputStreamReader(this.in));
         String line;
         boolean done = false;
         
@@ -602,7 +600,7 @@ public class Session
                 
                 sigHandler.clear();
                     
-                line = readLine(input);
+                line = readLine();
             	if (line == null) {
                     
             	    done = true;
@@ -619,7 +617,7 @@ public class Session
                          * If the user hit CTRL-C and we aren't interactive
                          * then we are finished and can return.
                          */
-                        // done = true;
+                        done = true;
                     }
                 }
             }
@@ -747,7 +745,7 @@ public class Session
      * @param input Where to read input.
      * @return The line read or null upon EOF.
      */
-    private String readLine(BufferedReader input) {
+    private String readLine() {
         
         String line = null;
         
@@ -767,7 +765,20 @@ public class Session
             }
             else {
                     
-                line = input.readLine();
+                StringBuilder sb = new StringBuilder();
+                int ch = in.read();
+                while (ch >= 0 && ch != '\n') {
+                    
+                    sb.append((char) ch);
+                    ch = in.read();
+                }
+                
+                if (ch == -1 && sb.length() == 0) {
+                    
+                    return null;
+                }
+                
+                return sb.toString();
             }
         }
         catch (IOException e) {
