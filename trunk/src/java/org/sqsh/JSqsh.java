@@ -70,7 +70,7 @@ public class JSqsh {
        public String username = null;
    
        @Option(
-           option='P', longOption="password", arg=OPTIONAL, argName="pass",
+           option='P', longOption="password", arg=REQUIRED, argName="pass",
            description="Password utilized for connection")
        public String password = null;
        

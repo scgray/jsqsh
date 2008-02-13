@@ -337,9 +337,13 @@ DESCRIPTION
   names lists a set of help items available within the category.
   
 OPTIONS
-  topics - Displays a list of overall topics about jsqsh
-  vars   - Displays a list of variables that can be set to
-  
+  topics   - Displays a list of overall topics about jsqsh
+  vars     - Displays a list of variables that can be set to configure
+             jsqsh's behavior
+  commands - Displays a list of commands supported by jsqsh
+  item     - From one of the lists above, a specific topic, variable,
+             or command may be provided to display details on the
+             usage of that item.
   
 COMMAND LINE OPTION
   All jsqsh commands take a special command line option of '--help' or '-h'
@@ -476,7 +480,7 @@ SEE ALSO
            
         <Help><![CDATA[
 SYNOPSIS
-   \alias [-G] [name=text]
+   \alias [-G,--global] [name=text]
               
 DESCRIPTION
    An alias in jsqsh is slightly different (and potentially more dangerous
@@ -531,9 +535,9 @@ DESCRIPTION
    would do (although it would only be effective on Sybase or MSSQL).
      
 OPTIONS
-   -G      Causes an alias to be applied globally to a line, anywhere the
-           name of the alias appears. Without this flag, the alias will
-           only apply if it is the first word on the line.
+   -G,--global   Causes an alias to be applied globally to a line, anywhere
+                 the name of the alias appears. Without this flag, the alias
+                 will only apply if it is the first word on the line.
         ]]></Help>
     </Command>
     
@@ -578,11 +582,11 @@ DESCRIPTION
    can \unalias ':r' in your $HOME/.jsqsh/sqshrc file.
            
 OPTIONS
-   -a        Causes the contents of the file to be appended to the 
-             SQL buffer, rather than replacing its contents.
-   filename  The file to read.
-   des-buf   The name of the destination buffer to read the file into.
-             The default is "!." (the current buffer).
+   -a,--append   Causes the contents of the file to be appended to the 
+                 SQL buffer, rather than replacing its contents.
+                 filename  The file to read.
+   des-buf       The name of the destination buffer to read the file into.
+                 The default is "!." (the current buffer).
              
 SEE ALSO
    \history, buffers
@@ -603,20 +607,21 @@ DESCRIPTION
    all drivers support (although most do).
    
 OPTIONS
-   -p table_pattern  - A SQL pattern to be used to filter the set of object
-        names that are displayed.
-   -s schema_pattern - A SQL pattern to be used to filter the set of object
-        schema names that are displayed. For most databases, the "schema
-        name" refers to the name of the owner of the object.
-   type - This can be used to restrict the types of objects that are displayed.
-        If type is not provided, then all object types are returned. Available
-        types are:
+   -p,--table-pattern=pattern  A SQL pattern to be used to filter the 
+                set of object names that are displayed.
+   -s,--schema-pattern=pattern A SQL pattern to be used to filter the
+                set of object schema names that are displayed. For most
+                databases, the "schema name" refers to the name of the
+                owner of the object.
+   type         This can be used to restrict the types of objects that 
+                are displayed. If type is not provided, then all object
+                types are returned. Available types are:
         
-           user     - Displays only user-created tables 
-           system   - Displays only system tables 
-           view     - Displays only views
-           alias    - Displays only aliases
-           synonym  - Displays only synonyms
+                user     - Displays only user-created tables 
+                system   - Displays only system tables 
+                view     - Displays only views
+                alias    - Displays only aliases
+                synonym  - Displays only synonyms
 SEE ALSO
    \databases, \describe
         ]]></Help>
@@ -636,11 +641,12 @@ DESCRIPTION
    drivers support (although most do).
    
 OPTIONS
-   -p proc_pattern  - A SQL pattern to be used to filter the set of object
-        names that are displayed.
-   -s schema_pattern - A SQL pattern to be used to filter the set of object
-        schema names that are displayed. For most databases, the "schema
-        name" refers to the name of the owner of the object.
+   -p,--proc-pattern=pattern  A SQL pattern to be used to filter the set
+                 of object names that are displayed.
+   -s,--schema-pattern=pattern  A SQL pattern to be used to filter the 
+                 set of object schema names that are displayed. 
+                 For most databases, the "schema name" refers to the name 
+                 of the owner of the object.
 SEE ALSO
    \databases, \describe, \tables
         ]]></Help>
@@ -682,7 +688,7 @@ DESCRIPTION
    and thus may fail against some platforms. 
    
 OPTIONS
-   -a          Shows all available information about the table that  
+   -a,--all    Shows all available information about the table that  
                the JDBC driver provides. Without this flag \desribe will
                attempt to keep the output to the more useful data.
    object_name The object name to be described. This can be a fully
@@ -812,13 +818,15 @@ DESCRIPTION
    * Values in rows must be identical
    
 OPTIONS
-   -e N  Specifies the stringency level to be used when comparing
+   -e,--exception-stringency=N  
+         Specifies the stringency level to be used when comparing
          exceptions between results:
             0 - Compared presence of an exception 
             1 - The text of the exceptions must be the same
             2 - The SQL Status of the exceptions must be the same
             3 - The SQL Error Code of the exceptions must be the same
-   -u N  Specifies the stringency level to be used when comparing
+   -u,--update-stringency=N  
+         Specifies the stringency level to be used when comparing
          the update counts (the "rows affected") returned between results. 
             0 - Update counts are not compared
             1 - Only compare non-zero update counts
@@ -845,14 +853,14 @@ DESCRIPTION
    by a different session may be used to execute the INSERT statements.
    
 OPTIONS
-   -b batch_size  Specifies the number of rows that should be "batched"
-                  together. If the "-s" option is not used, then this
+   -b,--batch-size=rows  Specifies the number of rows that should be
+                 "batched" together. If the "-s" option is not used, then this
                   indicates how often a "go" is displayed to the screen.
                   If the "-s" option is used, then the specified number of
                   INSERT statements is executed at once, followed by a 
                   commit.
                   
-   -s session_id  Provides a target session id for execution of the 
+   -s,--target-session=id  Provides a target session id for execution of the 
                   INSERT statements that are generated.  The provided
                   session must be connected to a database server to
                   function.
@@ -885,12 +893,14 @@ DESCRIPTION
    JDBC driver and may not work properly for all driver implementations.
    
 OPTIONS
-   -n  Cause the join clause that is produced to be based upon the "natural
-       join" of the columns in the tables. The natural join attempts to join
-       all columns of the same name and datatype.
+   -n,--natural-join  Cause the join clause that is produced to be based 
+                      upon the "natural join" of the columns in the tables.
+                      The natural join attempts to join all columns of the
+                      same name and datatype.
        
-   -p  Causes the SELECT statement to just be printed to the screen rather
-       than placing it into the SQL buffer for execution.
+   -p,--print         Causes the SELECT statement to just be printed to
+                      the screen rather than placing it into the SQL buffer
+                      for execution.
    
 SEE ALSO
    \go
@@ -916,9 +926,10 @@ DESCRIPTION
    primary or foreign key information or check constraints.
    
 OPTIONS
-   -p  Causes the CREATE TABLE statement to just be printed to the screen rather
-       than placing it into the SQL buffer for execution.
-   
+   -p,--print   Causes the CREATE TABLE statement to just be printed
+                to the screen rather than placing it into the SQL buffer
+                for execution.
+                
 SEE ALSO
    \select
         ]]></Help>
