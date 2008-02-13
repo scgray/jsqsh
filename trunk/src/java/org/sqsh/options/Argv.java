@@ -38,7 +38,7 @@ public @interface Argv {
      * Specifies the usage of the program.
      * @return
      */
-    String usage();
+    String usage() default "";
     
     /**
      * This specifies the program for which the option processing

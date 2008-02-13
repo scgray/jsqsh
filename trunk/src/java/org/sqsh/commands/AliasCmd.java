@@ -17,12 +17,12 @@
  */
 package org.sqsh.commands;
 
+import static org.sqsh.options.ArgumentRequired.NONE;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.kohsuke.args4j.Argument;
-import org.kohsuke.args4j.Option;
 import org.sqsh.Alias;
 import org.sqsh.AliasManager;
 import org.sqsh.ColumnDescription;
@@ -30,6 +30,8 @@ import org.sqsh.Command;
 import org.sqsh.Renderer;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
+import org.sqsh.options.Argv;
+import org.sqsh.options.Option;
 
 public class AliasCmd
     extends Command {
@@ -41,10 +43,15 @@ public class AliasCmd
     private static class Options
         extends SqshOptions {
         
-        @Option(name="-G",usage="Make the alias global (apply to whole line)")
-            public boolean isGlobal = false;
+        @Option(
+            option='G', longOption="global", arg=NONE,
+            description="Make the alias global (apply to whole line)")
+        public boolean isGlobal = false;
+        
+        @Argv(program="\\alias", min=0, max=3,
+              usage="[-G] [alias=command_line")
+        public List<String> arguments = new ArrayList<String>();
     }
-    
     
     /**
      * Return our overridden options.
@@ -135,7 +142,7 @@ public class AliasCmd
              */
             if (options.arguments.size() < 2) {
                 
-                printUsage(session, options);
+                printUsage(session.err);
                 return 1;
             }
             
@@ -146,7 +153,7 @@ public class AliasCmd
             s = options.arguments.get(1);
             if (s.startsWith("=") == false) {
                 
-                printUsage(session, options);
+                printUsage(session.err);
                 return 1;
             }
             

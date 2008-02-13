@@ -17,27 +17,53 @@
  */
 package org.sqsh.commands;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.sqsh.Buffer;
 import org.sqsh.BufferManager;
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
 import org.sqsh.WordWrapLineIterator;
+import org.sqsh.options.Argv;
 
 /**
  * Command used to test the word-wrapping process.
  */
 public class Wrap
     extends Command {
+    
+    /**
+     * Used to contain the command line options that were passed in by
+     * the caller.
+     */
+    private static class Options
+        extends SqshOptions {
+        
+        @Argv(program="\\wrap", min=0, max=1, usage="[width]")
+        public List<String> arguments = new ArrayList<String>();
+    }
+    
+    /**
+     * Return our overridden options.
+     */
+    @Override
+    public SqshOptions getOptions() {
+        
+        return new Options();
+    }
 
     @Override
     public int execute (Session session, SqshOptions opts)
         throws Exception {
         
+        Options options = (Options)opts;
+        
         int width = 40;
-        if (opts.arguments.size() > 0) {
+        if (options.arguments.size() > 0) {
             
-            width = Integer.parseInt(opts.arguments.get(0));
+            width = Integer.parseInt(options.arguments.get(0));
         }
         
         BufferManager bufMan = session.getBufferManager();

@@ -19,6 +19,9 @@ package org.sqsh.commands;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.sqsh.Buffer;
 import org.sqsh.BufferManager;
 import org.sqsh.Command;
@@ -26,13 +29,36 @@ import org.sqsh.Session;
 import org.sqsh.SessionRedrawBufferMessage;
 import org.sqsh.SqshOptions;
 import org.sqsh.jni.Shell;
+import org.sqsh.options.Argv;
 
+/**
+ * Implements the \buf-edit command.
+ */
 public class Edit
     extends Command {
+    
+    private static class Options
+        extends SqshOptions {
+    
+        @Argv(program="\\buf-edit", min=0, max=2,
+            usage="[read-buf [write-buf]]")
+        public List<String> arguments = new ArrayList<String>();
+    }
+
+    /**
+     * Return our overridden options.
+     */
+    @Override
+    public SqshOptions getOptions() {
+        
+        return new Options();
+    }
 
     @Override
-    public int execute (Session session, SqshOptions options) 
+    public int execute (Session session, SqshOptions opts) 
         throws Exception {
+        
+        Options options = (Options) opts;
         
         String readBuffer = "!.";
         String writeBuffer = "!.";

@@ -1,16 +1,35 @@
+/*
+ * Copyright (C) 2007 by Scott C. Gray
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
+ * Cambridge, MA 02139, USA.
+ */
 package org.sqsh.commands;
+
+import static org.sqsh.options.ArgumentRequired.NONE;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.kohsuke.args4j.Argument;
-import org.kohsuke.args4j.Option;
 import org.sqsh.Buffer;
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SessionRedrawBufferMessage;
 import org.sqsh.SqshOptions;
+import org.sqsh.options.Argv;
+import org.sqsh.options.Option;
 
 /**
  * Implements the \buf-load command.
@@ -21,8 +40,14 @@ public class BufLoad
     private static class Options
        extends SqshOptions {
         
-        @Option(name="-a",usage="Appends file contents to specified buffer")
-            public boolean doAppend = false;
+        @Option(
+            option='a', longOption="append", arg=NONE,
+            description="Appends file contents to specified buffer")
+        public boolean doAppend = false;
+        
+        @Argv(program="\\buf-load", min=1, max=2,
+            usage="[-a] filename [dest-buf]")
+        public List<String> arguments = new ArrayList<String>();
     }
     
     @Override
@@ -36,11 +61,6 @@ public class BufLoad
         throws Exception {
         
         Options options = (Options) opts;
-        if (options.arguments.size() > 2 || options.arguments.size() < 1) {
-            
-            session.err.println("use: \buf-load [-a] filename [dest-buf]");
-            return 1;
-        }
         
         String filename = options.arguments.get(0);
         String destBuf = "!.";

@@ -17,10 +17,13 @@
  */
 package org.sqsh.commands;
 
+import static org.sqsh.options.ArgumentRequired.REQUIRED;
+
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.kohsuke.args4j.Option;
 import org.sqsh.BufferManager;
 import org.sqsh.Command;
 import org.sqsh.DatabaseCommand;
@@ -29,6 +32,8 @@ import org.sqsh.SQLRenderer;
 import org.sqsh.SQLTools;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
+import org.sqsh.options.Argv;
+import org.sqsh.options.Option;
 import org.sqsh.renderers.InsertRenderer;
 
 
@@ -39,10 +44,19 @@ public class Insert
     private static class Options
         extends SqshOptions {
         
-        @Option(name="-s",usage="Session used to execute inserts")
-            public int sessionId = -1;
-        @Option(name="-b",usage="Batch size for inserts")
-            public int batchSize = 50;
+        @Option(
+            option='s', longOption="target-session", arg=REQUIRED, argName="session",
+            description="Target session in which inserts are executed")
+        public int sessionId = -1;
+        
+        @Option(
+            option='b', longOption="batch-size", arg=REQUIRED, argName="size",
+            description="Number of rows per batch")
+         public int batchSize = 50;
+        
+        @Argv(program="\\insert", min=1, max=1,
+            usage="[-s target-session] [-b batch-size] table_name")
+        public List<String> arguments = new ArrayList<String>();
     }
     
     @Override

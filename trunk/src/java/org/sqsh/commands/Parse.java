@@ -18,11 +18,14 @@
 package org.sqsh.commands;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.sqsh.BufferManager;
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
+import org.sqsh.options.Argv;
 import org.sqsh.parser.SQLParser;
 import org.sqsh.parser.SQLParserListener;
 import org.sqsh.parser.DatabaseObject;
@@ -32,6 +35,26 @@ import org.sqsh.parser.DatabaseObject;
  */
 public class Parse
     extends Command {
+    
+    /**
+     * Used to contain the command line options that were passed in by
+     * the caller.
+     */
+    private static class Options
+        extends SqshOptions {
+        
+        @Argv(program="\\parse", min=0, max=0)
+        public List<String> arguments = new ArrayList<String>();
+    }
+    
+    /**
+     * Return our overridden options.
+     */
+    @Override
+    public SqshOptions getOptions() {
+        
+        return new Options();
+    }
 
     @Override
     public int execute (Session session, SqshOptions opts)

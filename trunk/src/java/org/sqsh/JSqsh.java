@@ -45,6 +45,11 @@ public class JSqsh {
     private static class Options {
         
        @Option(
+           option='h', longOption="help", arg=NONE,
+           description="Display help on command line arguments and exit")
+       public boolean doHelp = false;
+        
+       @Option(
            option='S', longOption="server", arg=REQUIRED, argName="server",
            description="Name of the database server to connect to")
         public String server = null;
@@ -68,6 +73,11 @@ public class JSqsh {
            option='P', longOption="password", arg=OPTIONAL, argName="pass",
            description="Password utilized for connection")
        public String password = null;
+       
+       @Option(
+           option='w', longOption="domain", arg=REQUIRED, argName="domain",
+           description="Windows domain to be used for authentication")
+           public String domain = null;
    
        @Option(
            option='s', longOption="sid", arg=REQUIRED, argName="SID",
@@ -126,6 +136,18 @@ public class JSqsh {
             System.exit(1);
         }
         
+        /*
+         * Display help if requested.
+         */
+        if (options.doHelp) {
+            
+            System.out.println(optParser.getUsage());
+            System.exit(0);
+        }
+        
+        /*
+         * Turn on debugging if requested.
+         */
         if (options.debug != null) {
             
             Logger log = Logger.getLogger(options.debug);
@@ -319,6 +341,12 @@ public class JSqsh {
             
             argv.add("-d");
             argv.add(options.driverName);
+        }
+        
+        if (options.domain != null) {
+            
+            argv.add("-w");
+            argv.add(options.domain);
         }
         
         if (options.arguments.size() > 0) {

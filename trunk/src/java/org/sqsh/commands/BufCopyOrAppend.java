@@ -17,12 +17,19 @@
  */
 package org.sqsh.commands;
 
+import static org.sqsh.options.ArgumentRequired.NONE;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.sqsh.Buffer;
 import org.sqsh.BufferManager;
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SessionRedrawBufferMessage;
 import org.sqsh.SqshOptions;
+import org.sqsh.options.Argv;
+import org.sqsh.options.Option;
 
 /**
  * Implements the \buf-append command.
@@ -30,9 +37,33 @@ import org.sqsh.SqshOptions;
 public class BufCopyOrAppend
     extends Command {
     
+    private static class Options
+        extends SqshOptions {
+    
+        @Option(
+        	option='G', longOption="global", arg=NONE,
+        	description="Make the alias global (apply to whole line)")
+    	public boolean isGlobal = false;
+    
+    	@Argv(program="\\buf-copy", min=1, max=3,
+          	usage="[-G] [alias=command_line")
+    	public List<String> arguments = new ArrayList<String>();
+    }
+    
+    /**
+     * Returns the set of options required for this command.
+     */
     @Override
-    public int execute (Session session, SqshOptions options)
+    public SqshOptions getOptions() {
+        
+        return new Options();
+    }
+    
+    @Override
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
+        
+        Options options = (Options)opts;
         
         if (options.arguments.size() < 1
                 || options.arguments.size() > 2) {

@@ -21,20 +21,45 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
+import org.sqsh.options.Argv;
 
 /**
  * Implements the \eval command.
  */
 public class Eval
     extends Command {
+    
+    /**
+     * Used to contain the command line options that were passed in by
+     * the caller.
+     */
+    private static class Options
+        extends SqshOptions {
+        
+        @Argv(program="\\eval", min=1, max=1, usage="filename")
+        public List<String> arguments = new ArrayList<String>();
+    }
+    
+    /**
+     * Return our overridden options.
+     */
+    @Override
+    public SqshOptions getOptions() {
+        
+        return new Options();
+    }
 
     @Override
-    public int execute (Session session, SqshOptions options)
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
+        
+        Options options = (Options) opts;
         
         if (options.arguments.size() != 1) {
             

@@ -17,12 +17,18 @@
  */
 package org.sqsh.commands;
 
-import org.kohsuke.args4j.Option;
+import static org.sqsh.options.ArgumentRequired.NONE;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.sqsh.BufferManager;
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
 import org.sqsh.TruncatingLineIterator;
+import org.sqsh.options.Argv;
+import org.sqsh.options.Option;
 
 /**
  * Implements the \history command.
@@ -33,8 +39,13 @@ public class History
     private static class Options
         extends SqshOptions {
         
-        @Option(name="-a",usage="Show all of every SQL statement")
+        @Option(
+            option='a', longOption="all", arg=NONE,
+            description="Show the entire text of all statements")
             public boolean showAll = false;
+        
+        @Argv(program="\\history", min=0, max=0, usage="[-a]")
+        public List<String> arguments = new ArrayList<String>();
     }
     
     @Override

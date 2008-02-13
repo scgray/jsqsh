@@ -12,7 +12,8 @@ DESCRIPTION
    Echos the string(s) to standard out.
            
 OPTIONS:
-   -n  Do not output a new-line character at the end of the string.
+   -n,--no-newline  Disables the output of a newline character at the end
+                    of the output
       ]]></Help>
     </Command>
     
@@ -117,9 +118,9 @@ DESCRIPTION
    Displays a history of SQL statements executed.
            
 OPTIONS:
-   -a    Show all of every SQL statement executed. If this flag is not
-         provided only the first 10 lines of any SQL statement will be
-         displayed.
+   -a,--all  Show all of every SQL statement executed. If this flag is not
+             provided only the first 10 lines of any SQL statement will be
+             displayed.
            ]]></Help>
     </Command>
     
@@ -156,50 +157,51 @@ OPTIONS
   of these variables. For example, the "-S" flag sets the value
   of the ${server} variable.
    
-  -d driver   The name of the jsqsh driver definition that will
-              be used for the connection (use \drivers to see
-              a list).
+  -d,--driver=driver The name of the jsqsh driver definition that will
+                      be used for the connection (use \drivers to see
+                      a list).
               
-  -S server   Sets the value of ${server}
+  -S,--server=server  Sets the value of ${server}
                          
-  -p port     Sets the ${port} property. This typically defines
-              the listening port of the server you wish to 
-              connect to. Most drivers will provide a default
-              value for this property if it is not supplied.
+  -p,--port=port      Sets the ${port} property. This typically defines
+                      the listening port of the server you wish to 
+                      connect to. Most drivers will provide a default
+                      value for this property if it is not supplied.
                           
-  -D database Sets the ${db} property. This will cause 
-              the database context to be set to the provided
-              database following connection to the server (in 
-              the JDBC world the database context is known as 
-              the "catalog"). Not all drivers support this behavior.
+  -D,--database=db    Sets the ${db} property. This will cause 
+                      the database context to be set to the provided
+                      database following connection to the server (in 
+                      the JDBC world the database context is known as 
+                      the "catalog"). Not all drivers support this behavior.
                           
-  -U username Sets the ${user} property that determines the 
-              username that will be utilized to connect to the
-              database.
+  -U,--username=user  Sets the ${user} property that determines the 
+                      username that will be utilized to connect to the
+                      database.
                           
-  -P password Sets the ${password} property that will be used
-              to authenticate with the server.
+  -P,--password=pass  Sets the ${password} property that will be used
+                      to authenticate with the server.
                           
-  -s SID      Sets the ${SID} property, and provides the Oracle 
-              SID that will be used when connecting to Oracle.
+  -s,--sid=SID        Sets the ${SID} property, and provides the Oracle 
+                      SID that will be used when connecting to Oracle.
                
-  -c class    When utilizing a direct JDBC url (and not a jsqsh
-              driver definition), this should be utilized to
-              define which JDBC driver class will be utilized
-              for the connection.
+  -c,--jdbc-class=class  When utilizing a direct JDBC url (and not a 
+                      jsqsh driver definition), this should be utilized to
+                      define which JDBC driver class will be utilized
+                      for the connection.
                           
-   -n         Create a new session for this connect without
-              closing the connection in the current session.
+   -n,--new-session   Create a new session for this connect without
+                      closing the connection in the current session.
               
-   -w domain  For Windows based authentication, sets the ${domain} 
-              property, specifying the windows domain to be utilized
-              when establishing the connection. Not all JDBC drivers
-              support this functionality.
+   -w,--domain=domain  For Windows based authentication, sets the ${domain} 
+                       property, specifying the windows domain to be utilized
+                       when establishing the connection. Not all JDBC drivers
+                       support this functionality.
                           
-   jdbc-url   An explicit JDBC url to be utilized for the 
-              connection. In most cases it will be necessary
-              to provide the implementing JDBC class name 
-              with the -c flag when providing an explicit URL.
+   jdbc-url            An explicit JDBC url to be utilized for the  
+                       connection. In most cases it will be necessary
+                       to provide the implementing JDBC class name 
+                       with the -c (--jdbc-class) flag when providing
+                       an explicit URL.
 
 DEFAULT VALUES
    For any of the variables set by options described in the OPTIONS 
@@ -227,24 +229,25 @@ VARIABLES SET
            
     <Help><![CDATA[
 SYNOPSIS
-  \go [-h] [-f] [-m style]
+  \go [-i table] [-h] [-f] [-m style]
               
 DESCRIPTION
    Executes the SQL statement contained in the current buffer.
            
 OPTIONS:
-   -i table  Causes the results to be generated as INSERT statements for
-             the specified table name. This flag causes the value provided
-             by "-m" to be ignored.
-   -m style  Specifies a custom display style for showing the results
-             of the execution. The available styles may be found by
-             running '\help style'.
-   -h        Toggles the display of column header information  This flag 
-             effectively flips the  value of ${header} for the duration
-             of the query execution.
-   -f        Toggles the display of result footer information (row count
-             and timing information). This flag effectively flips the 
-             value of ${footer} for the duration of the query execution.
+   -i,--insert=table  Causes the results to be generated as INSERT statements
+                      for the specified table name. This flag causes the
+                      value provided by "-m" to be ignored.
+   -m,--display-style=style  Specifies a custom display style for showing
+                      the results of the execution. The available styles
+                      may be found by running '\help style'.
+   -H,--no-headers    Toggles the display of column header information. 
+                      This flag  effectively flips the  value of ${header}
+                      for the duration of the query execution.
+   -F,--no-footers    Toggles the display of result footer information
+                      (row count and timing information). This flag
+                      effectively flips the  value of ${footer} for the
+                      duration of the query execution.
 SEE ALSO
    style, header, footer
         ]]></Help>
@@ -284,12 +287,12 @@ OPTIONS:
    If arguments are provided to \set, then the value of 
    all variables is displayed.
               
-   -x  Will cause the variable to be exported to the environment
-       of any processes that are spawned by jsqsh during its
-       execution.
-   -l  Sets the value of the variable local to the current session
-       only. No other sessions will see it and it will mask 
-       similarly named variables in other session.
+   -x,--export  Will cause the variable to be exported to the environment
+                of any processes that are spawned by jsqsh during its
+                execution.
+   -l,--local   Sets the value of the variable local to the current session
+                only. No other sessions will see it and it will mask 
+                similarly named variables in other session.
      ]]></Help>
     </Command>
     
@@ -325,14 +328,24 @@ OPTIONS:
            
         <Help><![CDATA[
 SYNOPSIS
-  help [command]
+  \help [[topics|vars|commands] | item]
               
 DESCRIPTION
-  Displays help for a jsqsh command
-           
-OPTIONS:
-  If a command name is provided, then help is displayed for that
-  command, otherwise a list of available commands is displayed.
+  Displays help for a jsqsh command. If no arguments are provided,
+  \help provides a list of available categories of help: topics, vars
+  (variables), or commands. Running \help with one of those category
+  names lists a set of help items available within the category.
+  
+OPTIONS
+  topics - Displays a list of overall topics about jsqsh
+  vars   - Displays a list of variables that can be set to
+  
+  
+COMMAND LINE OPTION
+  All jsqsh commands take a special command line option of '--help' or '-h'
+  which will cause help to be displayed on the available command line
+  options available for the command.
+ 
         ]]></Help>
     </Command>
     

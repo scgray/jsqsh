@@ -17,19 +17,24 @@
  */
 package org.sqsh.commands;
 
+import static org.sqsh.options.ArgumentRequired.NONE;
+
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.kohsuke.args4j.Option;
 import org.sqsh.Command;
 import org.sqsh.DatabaseCommand;
 import org.sqsh.SQLTools;
 import org.sqsh.SessionRedrawBufferMessage;
 import org.sqsh.SqshOptions;
 import org.sqsh.SQLTools.ObjectDescription;
+import org.sqsh.options.Argv;
+import org.sqsh.options.Option;
 import org.sqsh.Session;
 
 /**
@@ -42,8 +47,13 @@ public class Create
     private static class Options
         extends SqshOptions {
         
-        @Option(name="-p",usage="Print CREATE to screen, not to SQL buffer")
-            public boolean printOnly = false;
+        @Option(
+            option='p', longOption="print", arg=NONE,
+            description="Print output to screen, do not append to SQL buffer")
+        public boolean printOnly = false;
+        
+        @Argv(program="\\create", min=1, max=1, usage="[-p] table_name")
+        public List<String> arguments = new ArrayList<String>();
      }
     
     @Override

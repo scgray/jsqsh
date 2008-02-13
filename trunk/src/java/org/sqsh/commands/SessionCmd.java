@@ -17,6 +17,9 @@
  */
 package org.sqsh.commands;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.sqsh.ColumnDescription;
 import org.sqsh.Command;
 import org.sqsh.Renderer;
@@ -25,16 +28,38 @@ import org.sqsh.Session;
 import org.sqsh.SqshContext;
 import org.sqsh.SqshContextSwitchMessage;
 import org.sqsh.SqshOptions;
-
+import org.sqsh.options.Argv;
 
 public class SessionCmd
     extends Command {
+    
+    /**
+     * Used to contain the command line options that were passed in by
+     * the caller.
+     */
+    private static class Options
+        extends SqshOptions {
+        
+        @Argv(program="\\session", min=0, max=1, usage="[session_id]")
+        public List<String> arguments = new ArrayList<String>();
+    }
+    
+    /**
+     * Return our overridden options.
+     */
+    @Override
+    public SqshOptions getOptions() {
+        
+        return new Options();
+    }
 
     @Override
     public int execute (Session session, SqshOptions opts)
         throws Exception {
         
-        if (opts.arguments.size() > 1) {
+        Options options = (Options)opts;
+        
+        if (options.arguments.size() > 1) {
             
             session.err.println("Use: \\session [session_id]");
             return 1;
@@ -45,7 +70,7 @@ public class SessionCmd
         /*
          * If a context id is supplied, then try to switch to it.
          */
-        if (opts.arguments.size() == 1) {
+        if (options.arguments.size() == 1) {
             
             boolean ok = true;
             Session newSession = null;
@@ -56,11 +81,11 @@ public class SessionCmd
              * to be thrown back to the SqshContext which will request
              * it to switch to the previous session.
              */
-            if (!opts.arguments.get(0).equals("-")) {
+            if (!options.arguments.get(0).equals("-")) {
                 
                 try {
                     
-                    id = Integer.parseInt(opts.arguments.get(0));
+                    id = Integer.parseInt(options.arguments.get(0));
                     newSession = ctx.getSession(id);
                     if (newSession == null) {
                         
@@ -75,7 +100,7 @@ public class SessionCmd
                 if (ok == false) {
                     
                     session.err.println("Invalid session number '" 
-                        + opts.arguments.get(0) 
+                        + options.arguments.get(0) 
                         + "'. Run \\session with no arguments to "
                         + "see a list of available sessions.");
                     return 1;

@@ -1,4 +1,23 @@
+/*
+ * Copyright (C) 2007 by Scott C. Gray
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
+ * Cambridge, MA 02139, USA.
+ */
 package org.sqsh.commands;
+
+import static org.sqsh.options.ArgumentRequired.NONE;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -6,8 +25,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.List;
 
-import org.kohsuke.args4j.Option;
+import static org.sqsh.options.ArgumentRequired.REQUIRED;
+
 import org.sqsh.Command;
 import org.sqsh.SQLTools;
 import org.sqsh.Session;
@@ -16,6 +37,8 @@ import org.sqsh.SqshOptions;
 import org.sqsh.format.BlobFormatter;
 import org.sqsh.format.ByteFormatter;
 import org.sqsh.format.ClobFormatter;
+import org.sqsh.options.Argv;
+import org.sqsh.options.Option;
 
 /**
  * Implements the \diff command.
@@ -31,7 +54,9 @@ public class Diff
          * 1  - Only check non-zero update counts
          * >  - Check and compare update counts
          */
-        @Option(name="-u",usage="Stringency for update count checks")
+        @Option(
+            option='u', longOption="update-stringency", arg=REQUIRED,
+            description="Stringency for update count checks")
             public int updateStringency = 2;
         
         /*
@@ -40,8 +65,15 @@ public class Diff
          * 2  - Check the SQLStatus of the exception
          * >  - Check the error code
          */
-        @Option(name="-e",usage="Stringency for exception checking")
+        @Option(
+            option='e', longOption="exception-stringency", arg=REQUIRED,
+            description="Stringency for exception checking")
             public int exceptionStringency = 1;
+        
+        @Argv(program="\\diff", min=0,
+            usage="[-u update-stringency] [-e exception-stringency] "
+                + "[session [session ...]]")
+        public List<String> arguments = new ArrayList<String>();
      }
    
     @Override

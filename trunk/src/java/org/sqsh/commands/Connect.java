@@ -17,11 +17,16 @@
  */
 package org.sqsh.commands;
 
+import static org.sqsh.options.ArgumentRequired.NONE;
+import static org.sqsh.options.ArgumentRequired.OPTIONAL;
+import static org.sqsh.options.ArgumentRequired.REQUIRED;
+
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.kohsuke.args4j.Option;
 import org.sqsh.Command;
 import org.sqsh.SQLContext;
 import org.sqsh.SQLDriver;
@@ -30,6 +35,8 @@ import org.sqsh.SQLTools;
 import org.sqsh.Session;
 import org.sqsh.SqshContextSwitchMessage;
 import org.sqsh.SqshOptions;
+import org.sqsh.options.Argv;
+import org.sqsh.options.Option;
 
 /**
  * Implements the \connect command.
@@ -39,36 +46,59 @@ public class Connect
     
     private static class Options
        extends SqshOptions {
-       
-        @Option(name="-S",usage="Name of the server to connect to")
-            public String server = null;
         
-        @Option(name="-p",usage="Port that the server is listening on")
-            public String port = null;
+        @Option(
+            option='S', longOption="server", arg=REQUIRED, argName="server",
+            description="Name of the database server to connect to")
+         public String server = null;
+    
+        @Option(
+            option='p', longOption="port", arg=REQUIRED, argName="port",
+            description="Listen port for the server to connect to")
+        public int port = -1;
+    
+        @Option(
+            option='D', longOption="database", arg=REQUIRED, argName="db",
+            description="Database (catalog) context to use upon connection")
+        public String database = null;
+    
+        @Option(
+            option='U', longOption="user", arg=REQUIRED, argName="user",
+            description="Username utilized for connection")
+        public String username = null;
+    
+        @Option(
+            option='P', longOption="password", arg=OPTIONAL, argName="pass",
+            description="Password utilized for connection")
+        public String password = null;
         
-        @Option(name="-D",usage="Database (catalog) context to use")
-            public String database = null;
-        
-        @Option(name="-U",usage="Username to connect with")
-            public String username = null;
-        
-        @Option(name="-P",usage="Password to connect with")
-            public String password = null;
-        
-        @Option(name="-s",usage="Oracle SID to connect to")
-            public String SID = null;
-        
-        @Option(name="-c",usage="JDBC driver class to utilize")
-            public String driverClass = null;
-        
-        @Option(name="-n",usage="Create a new session for the connection")
-            public boolean newSession = false;
-        
-        @Option(name="-d",usage="Name of driver to utilize for the connection")
-            public String driverName = null;
-        
-        @Option(name="-w",usage="Domain to used for authentication")
+        @Option(
+            option='w', longOption="domain", arg=REQUIRED, argName="domain",
+            description="Windows domain to be used for authentication")
             public String domain = null;
+    
+        @Option(
+            option='s', longOption="sid", arg=REQUIRED, argName="SID",
+            description="Instance id (e.g. Oracle SID) to utilize")
+        public String SID = null;
+    
+        @Option(
+            option='c', longOption="jdbc-class", arg=REQUIRED, argName="driver",
+            description="JDBC driver class to utilize")
+        public String driverClass = null;
+        
+        @Option(
+            option='d', longOption="driver", arg=REQUIRED, argName="driver",
+            description="Name of jsqsh driver to be used for connection")
+        public String driverName = null;
+        
+        @Option(
+            option='n', longOption="new-session", arg=NONE,
+            description="Create a new session for the connection")
+        public boolean newSession = false;
+        
+        @Argv(program="\\connect", min=0, max=1, usage="[options] [jdbc-url]")
+        public List<String> arguments = new ArrayList<String>();
     }
    
     @Override
@@ -82,12 +112,6 @@ public class Connect
         throws Exception {
         
         Options options = (Options) opts;
-        if (options.arguments.size() > 1) {
-            
-            session.err.println("Use: \\connect [options] [url]");
-            printUsage(session, options);
-            return 1;
-        }
         
         /*
          * Turn command line options into properties.
@@ -222,7 +246,7 @@ public class Connect
         setProperty(properties, session,
             SQLDriver.SERVER_PROPERTY, options.server);
         setProperty(properties, session,
-            SQLDriver.PORT_PROPERTY, options.port);
+            SQLDriver.PORT_PROPERTY, Integer.toString(options.port));
         setProperty(properties, session,
             SQLDriver.USER_PROPERTY, options.username);
         setProperty(properties, session,
