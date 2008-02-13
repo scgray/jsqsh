@@ -24,11 +24,17 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import org.kohsuke.args4j.Argument;
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
-import org.kohsuke.args4j.Option;
+import org.sqsh.options.Argv;
+import org.sqsh.options.Option;
+import org.sqsh.options.OptionException;
+import org.sqsh.options.OptionProcessor;
+
+import static org.sqsh.options.ArgumentRequired.REQUIRED;
+import static org.sqsh.options.ArgumentRequired.OPTIONAL;
+import static org.sqsh.options.ArgumentRequired.NONE;
 
 /**
  * This implements the public command line interface to kicking off
@@ -38,58 +44,102 @@ public class JSqsh {
     
     private static class Options {
         
-       @Option(name="-S",usage="Name of the server to connect to")
-           public String server = null;
+       @Option(
+           option='S', longOption="server", arg=REQUIRED, argName="server",
+           description="Name of the database server to connect to")
+        public String server = null;
    
-       @Option(name="-p",usage="Port that the server is listening on")
-           public String port = null;
+       @Option(
+           option='p', longOption="port", arg=REQUIRED, argName="port",
+           description="Listen port for the server to connect to")
+       public int port = -1;
    
-       @Option(name="-D",usage="Database (catalog) context to use")
-           public String database = null;
+       @Option(
+           option='D', longOption="database", arg=REQUIRED, argName="db",
+           description="Database (catalog) context to use upon connection")
+       public String database = null;
    
-       @Option(name="-U",usage="Username to connect with")
-           public String username = null;
+       @Option(
+           option='U', longOption="user", arg=REQUIRED, argName="user",
+           description="Username utilized for connection")
+       public String username = null;
    
-       @Option(name="-P",usage="Password to connect with")
-           public String password = null;
+       @Option(
+           option='P', longOption="password", arg=OPTIONAL, argName="pass",
+           description="Password utilized for connection")
+       public String password = null;
    
-       @Option(name="-s",usage="Oracle SID to connect to")
-           public String SID = null;
+       @Option(
+           option='s', longOption="sid", arg=REQUIRED, argName="SID",
+           description="Instance id (e.g. Oracle SID) to utilize")
+       public String SID = null;
    
-       @Option(name="-c",usage="JDBC driver class to utilize")
-           public String driverClass = null;
+       @Option(
+           option='c', longOption="jdbc-class", arg=REQUIRED, argName="driver",
+           description="JDBC driver class to utilize")
+       public String driverClass = null;
        
-       @Option(name="-d",usage="Sqsh driver name to utilize for connection")
-           public String driverName = null;
+       @Option(
+           option='d', longOption="driver", arg=REQUIRED, argName="driver",
+           description="Name of jsqsh driver to be used for connection")
+       public String driverName = null;
        
-       @Option(name="-i",usage="Read input from external file")
-           public String inputFile = null;
+       @Option(
+           option='i', longOption="input-file", arg=REQUIRED, argName="file",
+           description="Name of file to read as input instead of stdin")
+       public String inputFile = null;
        
-       @Option(name="-o",usage="Write output to external file")
-           public String outputFile = null;
+       @Option(
+           option='o', longOption="output-file", arg=REQUIRED, argName="file",
+           description="Name of file send output instead of stdout")
+       public String outputFile = null;
        
-        @Argument
-            public List<String> arguments = new ArrayList<String>();
+       @Option(
+           option='n', longOption="non-interactive", arg=NONE,
+           description="Force the session to be non-interactive "
+                           + "(not yet implemented)")
+        public boolean nonInteractive = false;
+       
+       @Option(
+           option='b', longOption="debug", arg=REQUIRED, argName="class",
+           description="Turn on debugging for a java class or package")
+       public String debug = null;
+       
+       @Argv(program="jsqsh", min=0, max=1, usage="[options] [jdbc-url]")
+       public List<String> arguments = new ArrayList<String>();
     }
    
     public static void main (String argv[]) {
         
         Options options = new Options();
-        boolean doConnect = false;
-        
-        CmdLineParser parser = new CmdLineParser(options);
+        OptionProcessor optParser = new OptionProcessor(options);
         
         try {
             
-            parser.parseArgument(argv);
+            optParser.parseOptions(argv);
         }
-        catch (CmdLineException e) {
+        catch (OptionException e) {
             
             System.err.println(e.getMessage());
-            System.err.println("Use: org.sqsh.JSqsh [options] [driver-name]");
-            parser.printUsage(System.err);
+            System.err.println(optParser.getUsage());
             
             System.exit(1);
+        }
+        
+        if (options.debug != null) {
+            
+            Logger log = Logger.getLogger(options.debug);
+            if (log != null) {
+                
+                log.setLevel(Level.FINE);
+                System.out.println("Debugging class '" + options.debug + "'");
+            }
+            else {
+                
+                System.err.println("--debug: Unable to find logger '"
+                    + options.debug + "'");
+                System.exit(1);
+            }            
         }
         
         InputStream in = getInputStream(options);
@@ -223,62 +273,66 @@ public class JSqsh {
      */
     private static boolean doConnect(Session session, Options options) {
         
-        StringBuilder connect = new StringBuilder();
-        boolean doConnect = false;
-        connect.append("\\connect ");
-        
+        ArrayList<String> argv = new ArrayList<String>();
         if (options.server != null) {
             
-            doConnect = true;
-            session.setVariable(SQLDriver.SERVER_PROPERTY, options.server);
+            argv.add("-S");
+            argv.add(options.server);
         }
         
-        if (options.port != null) {
+        if (options.port != -1) {
             
-            doConnect = true;
-            session.setVariable(SQLDriver.PORT_PROPERTY, options.port);
+            argv.add("-p");
+            argv.add(Integer.toString(options.port));
         }
         
         if (options.database != null) {
             
-            doConnect = true;
-            connect.append("-D \"").append(options.database).append("\" ");
+            argv.add("-D");
+            argv.add(options.database);
         }
         
         if (options.username != null) {
             
-            doConnect = true;
-            session.setVariable(SQLDriver.USER_PROPERTY, options.username);
-        }
-        
-        if (options.password != null) {
-            
-            doConnect = true;
-            session.setVariable(SQLDriver.PASSWORD_PROPERTY, options.password);
+            argv.add("-U");
+            argv.add(options.username);
+            argv.add("-P");
+            if (options.password != null) {
+                
+                argv.add(options.password);
+            }
         }
         
         if (options.SID != null) {
             
-            doConnect = true;
-            session.setVariable(SQLDriver.SID_PROPERTY, options.SID);
+            argv.add("-s");
+            argv.add(options.SID);
         }
         
         if (options.driverClass != null) {
             
-            doConnect = true;
-            connect.append("-c \"").append(options.driverClass).append("\" ");
+            argv.add("-c");
+            argv.add(options.driverClass);
         }
         
         if (options.driverName != null) {
             
-            doConnect = true;
-            session.setVariable("driver", options.driverName);
+            argv.add("-d");
+            argv.add(options.driverName);
         }
         
-        if (doConnect) {
+        if (options.arguments.size() > 0) {
             
-            session.evaluate(connect.toString());
-            return session.getLastCommandResult() == 0;
+            argv.add(options.arguments.get(0));
+        }
+        
+        if (argv.size() > 0) {
+            
+            if (session.execute("\\connect",
+                    argv.toArray(new String[0])) != 0) {
+                
+                return false;
+            }
         }
         
         return true;
