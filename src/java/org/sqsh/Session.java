@@ -619,7 +619,7 @@ public class Session
                          * If the user hit CTRL-C and we aren't interactive
                          * then we are finished and can return.
                          */
-                        done = true;
+                        // done = true;
                     }
                 }
             }
