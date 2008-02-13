@@ -17,10 +17,16 @@
  */
 package org.sqsh.commands;
 
-import org.kohsuke.args4j.Option;
+import static org.sqsh.options.ArgumentRequired.NONE;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
+import org.sqsh.options.Argv;
+import org.sqsh.options.Option;
 
 /**
  * Implements the 'echo' command in sqsh.
@@ -35,8 +41,13 @@ public class Echo
     private static class Options
        extends SqshOptions {
         
-       @Option(name="-n",usage="Do not append a trailing new-line")
-           public boolean noNewline = false;
+       @Option(
+            option='n', longOption="no-newline", arg=NONE,
+            description="Do not append a trailing new-line")
+       public boolean noNewline = false;
+       
+       @Argv(program="\\echo", usage="[text ...]")
+       public List<String> arguments = new ArrayList<String>();
     }
     
     @Override

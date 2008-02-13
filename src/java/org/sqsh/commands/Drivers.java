@@ -17,7 +17,9 @@
  */
 package org.sqsh.commands;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.sqsh.ColumnDescription;
 import org.sqsh.Command;
@@ -26,13 +28,29 @@ import org.sqsh.SQLDriver;
 import org.sqsh.SQLDriverManager;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
-
+import org.sqsh.options.Argv;
 
 /**
  * Implements the \drivers command.
  */
 public class Drivers
     extends Command {
+    
+    private static class Options
+        extends SqshOptions {
+    
+        @Argv(program="\\drivers", min=0, max=0)
+        public List<String> arguments = new ArrayList<String>();
+    }
+    
+    /**
+     * Return our overridden options.
+     */
+    @Override
+    public SqshOptions getOptions() {
+        
+        return new Options();
+    }
 
     @Override
     public int execute (Session session, SqshOptions opts)

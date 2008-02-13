@@ -17,9 +17,13 @@
  */
 package org.sqsh.commands;
 
-import java.sql.SQLException;
+import static org.sqsh.options.ArgumentRequired.NONE;
+import static org.sqsh.options.ArgumentRequired.REQUIRED;
 
-import org.kohsuke.args4j.Option;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.sqsh.BufferManager;
 import org.sqsh.CannotSetValueError;
 import org.sqsh.Command;
@@ -29,6 +33,8 @@ import org.sqsh.SQLRenderer;
 import org.sqsh.SQLTools;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
+import org.sqsh.options.Argv;
+import org.sqsh.options.Option;
 
 /**
  * Implements the \go command.
@@ -40,17 +46,29 @@ public class Go
     private static class Options
        extends SqshOptions {
        
-       @Option(name="-m",usage="Sets the display style for output")
-           public String style = null;
+        @Option(
+            option='m', longOption="display-style", arg=REQUIRED, argName="style",
+            description="Sets the display style for output")
+        public String style = null;
        
-       @Option(name="-i",usage="Generates INSERT statements for specified table")
-           public String insertTable = null;
+        @Option(
+            option='i', longOption="insert", arg=REQUIRED, argName="table",
+            description="Generates INSERT statements for specified table")
+        public String insertTable = null;
        
-       @Option(name="-h",usage="Toggles display of result header information")
+        @Option(
+            option='H', longOption="no-headers", arg=NONE,
+            description="Toggles display of result header information")
            public boolean toggleHeaders = false;
        
-       @Option(name="-f",usage="Toggles display of result footer information")
+        @Option(
+            option='F', longOption="no-footers", arg=NONE,
+            description="Toggles display of result footer information")
            public boolean toggleFooters = false;
+        
+        @Argv(program="\\go", min=0, max=0,
+            usage="[-m style] [-i table] [-H] [-F]")
+        public List<String> arguments = new ArrayList<String>();
     }
     
     public SqshOptions getOptions() {

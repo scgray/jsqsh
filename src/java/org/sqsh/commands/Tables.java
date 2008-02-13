@@ -17,19 +17,25 @@
  */
 package org.sqsh.commands;
 
+import static org.sqsh.options.ArgumentRequired.NONE;
+import static org.sqsh.options.ArgumentRequired.REQUIRED;
+
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
-import org.kohsuke.args4j.Option;
 import org.sqsh.Command;
 import org.sqsh.DatabaseCommand;
 import org.sqsh.Renderer;
 import org.sqsh.SQLRenderer;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
+import org.sqsh.options.Argv;
+import org.sqsh.options.Option;
 
 /**
  * Implements the \tables command.
@@ -41,13 +47,19 @@ public class Tables
     private static class Options
         extends SqshOptions {
         
-        @Option(name="-p",
-                usage="Provides a pattern to match against table names")
-            public String tablePattern = "%";
+        @Option(
+            option='t', longOption="table-pattern", arg=REQUIRED, argName="pattern",
+            description="Provides a pattern to match against table names")
+        public String tablePattern = "%";
         
-        @Option(name="-s",
-                usage="Provides a pattern to match against schema (owner) names")
-            public String schemaPattern = "%";
+        @Option(
+            option='s', longOption="schema-pattern", arg=REQUIRED, argName="pattern",
+            description="Provides a pattern to match against schema names")
+        public String schemaPattern = "%";
+        
+        @Argv(program="\\tables", min=0, max=1,
+            usage="[-t table-pattern] [-s schema-pattern] [type]")
+      public List<String> arguments = new ArrayList<String>();
     }
     
     @Override

@@ -17,7 +17,9 @@
  */
 package org.sqsh.commands;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.sqsh.ColumnDescription;
 import org.sqsh.Command;
@@ -26,6 +28,7 @@ import org.sqsh.Renderer;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
 import org.sqsh.Variable;
+import org.sqsh.options.Argv;
 
 /**
  * Implements the 'help' command.
@@ -33,9 +36,32 @@ import org.sqsh.Variable;
 public class Help
     extends Command {
     
+    /**
+     * Used to contain the command line options that were passed in by
+     * the caller.
+     */
+    private static class Options
+        extends SqshOptions {
+        
+        @Argv(program="\\help", min=0, max=1,
+            usage="[topics|vars|commands|name]")
+        public List<String> arguments = new ArrayList<String>();
+    }
+    
+    /**
+     * Return our overridden options.
+     */
     @Override
-    public int execute (Session session, SqshOptions options)
+    public SqshOptions getOptions() {
+        
+        return new Options();
+    }
+    
+    @Override
+    public int execute (Session session, SqshOptions opts)
         throws Exception {
+        
+        Options options = (Options)opts;
         
         int nArgs = options.arguments.size();
         

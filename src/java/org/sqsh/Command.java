@@ -29,11 +29,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
 import org.sqsh.variables.DimensionVariable;
 import org.sqsh.variables.FontVariable;
-
+import org.sqsh.options.OptionException;
+import org.sqsh.options.OptionProcessor;
 
 /**
  * All jsqsh commands must extend this class. A Command follows a relatively
@@ -100,19 +99,12 @@ public abstract class Command
     }
     
     /**
-     * This method returns the set of options that are accepted for this
-     * command.  Commands that accept no options of their own need not
-     * override this method, however commands that want to provide 
-     * command line options should extend the {@link SqshOptions} class
-     * to define them.   This method must return a freshly allocated 
-     * SqshOptions object with all options set to their default values.
+     * This method must return the set of options that are accepted for this
+     * command.  
      * 
      * @return A newly allocated options object.
      */
-    public SqshOptions getOptions() {
-        
-        return new SqshOptions();
-    }
+    public abstract SqshOptions getOptions();
     
     /**
      * This method must be implemented by the command to perform its job.
@@ -148,18 +140,27 @@ public abstract class Command
         throws Exception {
         
         SqshOptions options = getOptions();
-        CmdLineParser parser = new CmdLineParser(options);
+        OptionProcessor cmdParser = new OptionProcessor(options);
         
         try {
             
-            parser.parseArgument(argv);
+            cmdParser.parseOptions(argv);
         }
-        catch (CmdLineException e) {
+        catch (OptionException e) {
             
             session.err.println(e.getMessage());
-            parser.printUsage(session.err);
+            session.err.println(cmdParser.getUsage());
             
             return 1;
+        }
+        
+        /*
+         * Display help if requested.
+         */
+        if (options.doHelp) {
+            
+            session.out.println(cmdParser.getUsage());
+            return 0;
         }
         
         /*
@@ -212,15 +213,14 @@ public abstract class Command
     }
     
     /**
-     * Helper method to print the usage.
+     * Display the usage of the command.
      * 
-     * @param session
-     * @param options
+     * @param out The stream to display to.
      */
-    public void printUsage(Session session, Object options) {
+    public void printUsage(PrintStream out) {
         
-        CmdLineParser parser = new CmdLineParser(options);
-        parser.printUsage(session.err);
+        OptionProcessor cmdParser = new OptionProcessor(getOptions());
+        out.println(cmdParser.getUsage());
     }
     
     /**

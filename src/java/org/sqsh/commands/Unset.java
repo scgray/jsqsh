@@ -17,9 +17,13 @@
  */
 package org.sqsh.commands;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
+import org.sqsh.options.Argv;
 
 
 /**
@@ -27,18 +31,40 @@ import org.sqsh.SqshOptions;
  */
 public class Unset
     extends Command {
+    
+    /**
+     * Used to contain the command line options that were passed in by
+     * the caller.
+     */
+    private static class Options
+        extends SqshOptions {
+        
+        @Argv(program="\\unset", min=1, max=1, usage="variable")
+        public List<String> arguments = new ArrayList<String>();
+    }
+    
+    /**
+     * Return our overridden options.
+     */
+    @Override
+    public SqshOptions getOptions() {
+        
+        return new Options();
+    }
 
     @Override
     public int execute (Session session, SqshOptions opts)
         throws Exception {
         
-        if (opts.arguments.size() != 1) {
+        Options options = (Options)opts;
+        
+        if (options.arguments.size() != 1) {
             
             session.err.println("Use: \\unset var_name");
             return 1;
         }
         
-        String varName = opts.arguments.get(0);
+        String varName = options.arguments.get(0);
         if (session.getVariableManager().remove(varName) == null) {
                 
             session.getContext().getVariableManager().remove(varName);

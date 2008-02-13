@@ -17,11 +17,9 @@
  */
 package org.sqsh;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.sqsh.options.ArgumentRequired.NONE;
 
-import org.kohsuke.args4j.Argument;
-import org.kohsuke.args4j.Option;
+import org.sqsh.options.Option;
 
 /**
  * This object represents the command line options that are accepted by
@@ -36,9 +34,13 @@ import org.kohsuke.args4j.Option;
  */
 public class SqshOptions {
     
-    @Option(name="-g",usage="Send output to a popup graphical window")
-        public boolean isGraphical = false;
+    @Option(
+        option='h', longOption="help", arg=NONE,
+        description="Display help for command line usage")
+    public boolean doHelp = false;
     
-    @Argument
-        public List<String> arguments = new ArrayList<String>();
+    @Option(
+        option='g', longOption="gui", arg=NONE,
+        description="Send all command output to a graphical window")
+    public boolean isGraphical = false;
 }

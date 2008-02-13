@@ -1,4 +1,23 @@
+/*
+ * Copyright (C) 2007 by Scott C. Gray
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
+ * Cambridge, MA 02139, USA.
+ */
 package org.sqsh.commands;
+
+import static org.sqsh.options.ArgumentRequired.NONE;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -8,15 +27,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import org.kohsuke.args4j.Argument;
-import org.kohsuke.args4j.Option;
 import org.sqsh.Command;
 import org.sqsh.DatabaseCommand;
 import org.sqsh.Renderer;
-import org.sqsh.SQLContext;
 import org.sqsh.SQLRenderer;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
+import org.sqsh.options.Argv;
+import org.sqsh.options.Option;
 
 /**
  * Implements the \describe command.
@@ -27,10 +45,14 @@ public class Describe
     
     private static class Options
         extends SqshOptions {
+    
+        @Option(
+            option='a', longOption="all", arg=NONE,
+            description="Show all available information")
+        public boolean showAll = false;
         
-        @Option(name="-a",
-                usage="Shows all available information")
-            public boolean showAll = false;
+        @Argv(program="\\describe", min=1, max=1, usage="object_name")
+        public List<String> arguments = new ArrayList<String>();
     }
     
     @Override

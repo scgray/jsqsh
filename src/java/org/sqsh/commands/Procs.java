@@ -17,6 +17,8 @@
  */
 package org.sqsh.commands;
 
+import static org.sqsh.options.ArgumentRequired.REQUIRED;
+
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -25,15 +27,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import org.kohsuke.args4j.Argument;
-import org.kohsuke.args4j.Option;
 import org.sqsh.Command;
 import org.sqsh.DatabaseCommand;
 import org.sqsh.Renderer;
-import org.sqsh.SQLContext;
 import org.sqsh.SQLRenderer;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
+import org.sqsh.options.Argv;
+import org.sqsh.options.Option;
 
 /**
  * Implements the \procs command.
@@ -45,13 +46,18 @@ public class Procs
     private static class Options
         extends SqshOptions {
         
-        @Option(name="-p",
-                usage="Provides a pattern to match against procedure names")
-            public String procPattern = "%";
+        @Option(
+            option='p', longOption="proc-pattern", arg=REQUIRED, argName="pattern",
+            description="Provides a pattern to match against procedure names")
+        public String procPattern = "%";
         
-        @Option(name="-s",
-                usage="Provides a pattern to match against schema (owner) names")
-            public String schemaPattern = "%";
+        @Option(
+            option='s', longOption="schema-pattern", arg=REQUIRED, argName="pattern",
+            description="Provides a pattern to match against schema names")
+        public String schemaPattern = "%";
+        
+        @Argv(program="\\procs", min=0, max=0)
+        public List<String> arguments = new ArrayList<String>();
     }
     
     @Override
@@ -65,11 +71,6 @@ public class Procs
         throws Exception {
         
         Options options = (Options) opts;
-        String type = null;
-        if (options.arguments.size() > 0) {
-            
-            type = options.arguments.get(0);
-        }
         
         Connection con = session.getConnection();
         ResultSet result = null;

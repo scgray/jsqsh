@@ -17,9 +17,12 @@
  */
 package org.sqsh.commands;
 
-import java.util.Arrays;
+import static org.sqsh.options.ArgumentRequired.NONE;
 
-import org.kohsuke.args4j.Option;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.sqsh.CannotSetValueError;
 import org.sqsh.ColumnDescription;
 import org.sqsh.Command;
@@ -28,6 +31,8 @@ import org.sqsh.Session;
 import org.sqsh.SqshOptions;
 import org.sqsh.Variable;
 import org.sqsh.VariableManager;
+import org.sqsh.options.Argv;
+import org.sqsh.options.Option;
 
 /**
  * Implements the 'set' command in sqsh.
@@ -42,11 +47,19 @@ public class Set
     private static class Options
         extends SqshOptions {
         
-        @Option(name="-x",usage="Export the variable")
-            public boolean doExport = false;
+        @Option(
+            option='x', longOption="export", arg=NONE,
+            description="Export the variable")
+        public boolean doExport = false;
         
-        @Option(name="-l",usage="Define the variable locally to this session")
+        @Option(
+            option='l', longOption="local", arg=NONE,
+            description="Define the variable locally to this session")
             public boolean isLocal = false;
+        
+        @Argv(program="\\set", min=0, max=3,
+            usage="[-x] [-l] [var=value]")
+        public List<String> arguments = new ArrayList<String>();
     }
     
     @Override
@@ -136,7 +149,7 @@ public class Set
              */
             if (options.arguments.size() < 2) {
                 
-                printUsage(session, options);
+                printUsage(session.err);
                 return 1;
             }
             
@@ -147,7 +160,7 @@ public class Set
             s = options.arguments.get(1);
             if (s.startsWith("=") == false) {
                 
-                printUsage(session, options);
+                printUsage(session.err);
                 return 1;
             }
             
