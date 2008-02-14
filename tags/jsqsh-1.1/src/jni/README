@@ -1,0 +1,36 @@
+
+This directory contains the SQSH JNI layer that provides some native
+calls necessary to propery spawn external processes and allow those
+processes to retain control of the console.  This layer should compile
+on most UNIX platforms as well as Win32 platforms.
+
+Building: UNIX
+==============
+
+The compile for UNIX is pretty straight forward:
+
+   $ ./configure
+   $ make
+
+After it is finished you will find the JNI shared library located
+in the .libs directory.  At this point I usually just pick up the
+library and copy it where I need it.
+
+Building: Windows
+=================
+
+I couldn't quite get the GNU autoconf stuff to work properly here
+so you can't just run 'configure' like above. For this you will need:
+
+   - Cygwin (http://www.cygwin.com)
+   - The gcc-core cygwin package
+   - The gcc-mingw-core package
+
+At this point you should be able to generate the DLL from a cygwin
+bash shell by running:
+
+   $ ./Windows_Make.sh
+
+from this directory. When complete this should leave you with a 
+file called 'jsqsh.dll' in this directory, which you can pick up and
+do as you will.

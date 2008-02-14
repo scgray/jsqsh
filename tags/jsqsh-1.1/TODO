@@ -1,0 +1,27 @@
+The following is an informal TODO list for jsqsh:
+
+- Create a "bestfit" display style that will attempt to fit the results to
+  the console window size.
+- [Done] Semicolon termination for PL/SQL - Here's my thoughts:
+    If the terminator is a semicolon...
+       If the current SQL contains
+          BEGIN (but not BEGIN TRANSACTION)
+          END
+          DECLARE
+          EXCEPTION
+          CREATE [OR REPLACE] TYPE [BODY]
+          CREATE [OR REPLACE] TRIGGER
+          CREATE [OR REPLACE] CONTEXT
+          CREATE [OR REPLACE] FUNCTION
+          CREATE [OR REPLACE] PACKAGE [BODY]
+          CREATE [OR REPLACE] PACKAGE 
+          CREATE [OR REPLACE] PROCEDURE 
+       then
+          a semicolon on a line by itself is a "go"
+          a double semicolon at the end (";;" is a "go")
+       else
+          the semicolon is a "go"
+
+
+
+
