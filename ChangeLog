@@ -1,4 +1,4 @@
-Release 1.1-SNAPSHOT
+Release 1.1
 * Changed several aspects of command line options:
      - All jsqsh options have a long form and a short form 
        (e.g. -h and --help).
