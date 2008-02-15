@@ -196,6 +196,19 @@ public class SQLDriverManager {
     }
     
     /**
+     * Trys to load a driver class using the driver manager's
+     * classpath.
+     * 
+     * @param name The name of the class to load.
+     * @throws Exception Thrown if the class cannot be loaded.
+     */
+    public void loadClass(String name)
+        throws Exception {
+        
+        Class.forName(name, true, classLoader);
+    }
+    
+    /**
      * Used to check whether or not all of the currently registered
      * JDBC drivers is available in the current classloader.
      */
