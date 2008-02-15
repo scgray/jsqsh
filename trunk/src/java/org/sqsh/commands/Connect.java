@@ -138,12 +138,12 @@ public class Connect
             
             try {
                 
-                Class.forName(options.driverClass);
+                session.getDriverManager().loadClass(options.driverClass);
             }
             catch (Exception e) {
                 
                 session.err.println("Cannot load JDBC driver class '"
-                    + options.driverClass + "'");
+                    + options.driverClass + "': " + e.getMessage());
                 return 1;
             }
         }
