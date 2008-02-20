@@ -17,7 +17,6 @@
  */
 package org.sqsh.commands;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -26,6 +25,7 @@ import java.util.List;
 
 import org.sqsh.Command;
 import org.sqsh.Session;
+import org.sqsh.SessionEvaluateMessage;
 import org.sqsh.SqshOptions;
 import org.sqsh.options.Argv;
 
@@ -75,28 +75,13 @@ public class Eval
             return 1;
         }
         
-        InputStream origIn = session.in;
-        boolean wasInteractive = session.isInteractive();
-        InputStream in = 
-            new BufferedInputStream(new FileInputStream(filename));
-        session.setIn(in);
+        InputStream in =  new FileInputStream(filename);
         
-        try {
-            
-            session.setInteractive(false);
-            session.readEvalPrint();
-        }
-        catch (Exception e) {
-            
-            return 1;
-        }
-        finally {
-            
-            session.setIn(origIn);
-            session.setInteractive(wasInteractive);
-        }
-        
-        return 0;
+        /*
+         * This exception is a "message" to the session that we wish it
+         * to temporarily take its input from the provided input stream.
+         */
+        throw new SessionEvaluateMessage(in, true, false);
     }
 
 }

@@ -17,11 +17,9 @@
  */
 package org.sqsh;
 
-import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -46,7 +44,7 @@ public class Session
     implements Cloneable {
     
     private static final Logger LOG = 
-        Logger.getLogger("org.sqsh.Session");
+        Logger.getLogger(Session.class.getName());
     
     /**
      * Path to the built-in file full of variable definitions.
@@ -66,30 +64,27 @@ public class Session
     private int commandReturn = 0;
     
     /**
+     * Manages I/O handles.
+     */
+    private InputOutputManager ioManager = new InputOutputManager();
+    
+    /**
      * Effectively equivalent of {@link System#err}, however the context
      *   is strictly local to this session.
      */
-    public PrintStream err = System.err;
-    private PrintStream origErr = err;
+    public PrintStream err = ioManager.getErr();
     
     /**
      * Effectively equivalent of {@link System#in}, however the context
      *   is strictly local to this session.
      */
-    public InputStream in = System.in;
-    private InputStream origIn = in;
+    public InputStream in = ioManager.getIn();
     
     /**
      * Effectively equivalent of {@link System#out}, however the context
      *   is strictly local to this session.
      */
-    public PrintStream out = System.out;
-    private PrintStream origOut = out;
-    
-    /**
-     * Indicates whether or not this is an interactive session.
-     */
-    private boolean interactive = true;
+    public PrintStream out = ioManager.getOut();
     
     /**
      * The parent context that owns this session.
@@ -118,7 +113,6 @@ public class Session
         
         this.sessionId = sessionId;
         this.sqshContext = sqshContext;
-        
         
         /*
          * This object will be available as a bean called "global" in the
@@ -162,12 +156,9 @@ public class Session
         
         this(sqshContext, sessionId);
         
-        this.in = in;
-        this.origIn = in;
-        this.out = out;
-        this.origOut = out;
-        this.err = err;
-        this.origErr = err;
+        setIn(in, false, true);
+        setOut(out, false);
+        setErr(err, false);
     }
     
     /**
@@ -192,42 +183,12 @@ public class Session
      * Changes the output stream.
      * 
      * @param out The new output stream.
+     * @param autoClose If true, then the output stream will automatically
+     *   be closed when it is no longer used by the session.
      */
-    public void setOut(PrintStream out) {
+    public void setOut(PrintStream out, boolean autoClose) {
         
-        this.out.flush();
-        
-        /*
-         * Close the current stream iff: 
-         *    1. The stream isn't a reference to the original output stream
-         *       that the session was created with.
-         *    2. The stream isn't a reference to the original error stream
-         *       that the session was created with.
-         *    3. The output stream isn't a reference to the current error
-         *       stream (closing it would leave errors with no place left
-         *       to go--picture an Officer and a Gentleman, here).
-         */
-        if (this.out != origOut && this.out != origErr
-                && this.out != this.err) {
-            
-            if (LOG.isLoggable(Level.FINEST)) {
-                
-                LOG.finest("setOut: Closing current output stream.");
-            }
-            
-            this.out.close();
-        }
-        else {
-            
-            if (LOG.isLoggable(Level.FINEST)) {
-
-                LOG.finest("setOut: Leaving current output stream un-touched: "
-                    + ((this.out == origOut) ? "it's the original stream"
-                            : ((this.out == origErr) ? "it's the original error stream"
-                                    : "it's a reference to the current error stream")));
-            }
-        }
-        
+        ioManager.setOut(out, autoClose);
         this.out = out;
     }
     
@@ -235,36 +196,12 @@ public class Session
      * Changes the error stream.
      * 
      * @param out The new error stream.
+     * @param autoClose If true, then the error stream will automatically
+     *   be closed when it is no longer used by the session.
      */
-    public void setErr(PrintStream err) {
+    public void setErr(PrintStream err, boolean autoClose) {
         
-        this.err.flush();
-        
-        /*
-         * If the current output is not the original output or the
-         * original error, then close it.
-         */
-        if (this.err != origOut && this.err != origErr
-                && this.err != this.out) {
-            
-            if (LOG.isLoggable(Level.FINEST)) {
-                
-                LOG.finest("setErr: Closing current error stream.");
-            }
-            
-            this.err.close();
-        }
-        else {
-            
-            if (LOG.isLoggable(Level.FINEST)) {
-
-                LOG.finest("setErr: Leaving current error stream un-touched: "
-                    + ((this.out == origOut) ? "it's the original output stream"
-                            : ((this.out == origErr) ? "it's the original error stream"
-                                    : "it's a reference to the current output stream")));
-            }
-        }
-        
+        ioManager.setErr(err, autoClose);
         this.err = err;
     }
     
@@ -272,47 +209,18 @@ public class Session
      * Changes the input stream.
      * 
      * @param out The new input stream.
+     * @param autoClose If true, then the input stream will automatically
+     *   be closed when it is no longer used by the session.
+     * @param isInteractive If true, then the input stream is assumed to
+     *   be interactive and a prompt will be displayed for input.
      */
-    public void setIn(InputStream in) {
+    public void setIn(InputStream in, boolean autoClose,
+            boolean isInteractive) {
         
-        if (this.in != origIn) {
-            
-            if (LOG.isLoggable(Level.FINEST)) {
-                
-                LOG.finest("setIn: Closing current input stream.");
-            }
-            
-            try {
-                
-                this.in.close();
-            }
-            catch (IOException e) {
-                
-                /* IGNORE */
-            }
-        }
-        else {
-            
-            if (LOG.isLoggable(Level.FINEST)) {
-
-                LOG.finest("setIn: Leaving current input stream intact: "
-                    + "it's the original input stream");
-            }
-        }
-        
+        ioManager.setIn(in, autoClose, isInteractive);
         this.in = in;
     }
     
-    /**
-     * Restores all of the input/output file descriptors to where
-     * they were when the session was created.
-     */
-    public void restoreIO() {
-        
-        setOut(origOut);
-        setErr(origErr);
-        setIn(origIn);
-    }
     
     /**
      * Returns the SQL renderer that is to be used by the session.
@@ -526,15 +434,17 @@ public class Session
      */
     public boolean isInteractive () {
     
-        return interactive;
+        return ioManager.isInteractive();
     }
     
     /**
-     * @param interactive Sets whether or not this is an interactive session.
+     * Marks the input stream as interactive or non-interactive.
+     * 
+     * @param isInteractive
      */
-    public void setInteractive (boolean interactive) {
-    
-        this.interactive = interactive;
+    public void setInteractive(boolean isInteractive) {
+        
+        ioManager.setInteractive(isInteractive);
     }
     
     /**
@@ -611,7 +521,7 @@ public class Session
                             
                         evaluate(line);
                     }
-                    else if (!interactive) {
+                    else if (!ioManager.isInteractive()) {
                             
                         /*
                          * If the user hit CTRL-C and we aren't interactive
@@ -693,6 +603,11 @@ public class Session
      */
     public int execute(String command, String []argv) {
         
+        /*
+         * Save away the current I/O state.
+         */
+        saveInputOutput();
+        
         try {
             
             Command cmd = getCommand(command);
@@ -720,7 +635,7 @@ public class Session
         }
         finally {
             
-            restoreIO();
+            restoreInputOutput();
         }
         
         return -1;
@@ -748,45 +663,101 @@ public class Session
     private String readLine() {
         
         String line = null;
+        boolean done = false;
         
-        try {
-            
-            if (interactive) {
-                            
-                String prompt = getVariableManager().get("prompt");
-                prompt =  (prompt == null)  
-            	    ? ">" : getStringExpander().expand(this, prompt);
-                            
-                line = Readline.readline(prompt + " ", true);
-                if (line == null) {
+        while (!done) {
+        
+            try {
+                
+                if (ioManager.isInteractive()) {
+                                
+                    String prompt = getVariableManager().get("prompt");
+                    prompt =  (prompt == null)  
+                	    ? ">" : getStringExpander().expand(this, prompt);
+                                
+                    line = Readline.readline(prompt + " ", true);
+                    if (line == null) {
+                        
+                        line = "";
+                    }
+                }
+                else {
+                        
+                    StringBuilder sb = new StringBuilder();
+                    int ch = in.read();
+                    while (ch >= 0 && ch != '\n') {
+                        
+                        sb.append((char) ch);
+                        ch = in.read();
+                    }
                     
-                    line = "";
+                    if (ch == -1 && sb.length() == 0) {
+                        
+                        line = null;
+                    }
+                    else {
+                        
+                        line = sb.toString();
+                    }
+                }
+            }
+            catch (IOException e) {
+            
+                /* EOF */
+            }
+            
+            /*
+             * To best understand this, please read the comments in the
+             * runCommand() method first....
+             * 
+             * When we reach the end of the current input stream, we
+             * are not necessarily done. It is possible that we are reading
+             * the input stream from the \eval command and that, upon 
+             * reaching the end, we need to switch back to the original
+             * input stream. That's what we are doing here....if we have
+             * an I/O context saved away, we switch to it. Once we are
+             * out of places to get input, we are truely done.
+             */
+            if (line == null) {
+                
+                if (ioManager.getSaveCount() > 1) {
+                    
+                    restoreInputOutput();
+                }
+                else {
+                    
+                    done = true;
                 }
             }
             else {
-                    
-                StringBuilder sb = new StringBuilder();
-                int ch = in.read();
-                while (ch >= 0 && ch != '\n') {
-                    
-                    sb.append((char) ch);
-                    ch = in.read();
-                }
                 
-                if (ch == -1 && sb.length() == 0) {
-                    
-                    return null;
-                }
-                
-                return sb.toString();
+                done = true;
             }
-        }
-        catch (IOException e) {
-            
-            /* EOF */
         }
         
         return line;
+    }
+    
+    /**
+     * Internally this should be used instead of directly calling 
+     * ioManager.restore() because we need to make sure that the
+     * public I/O handles are exposed properly.
+     */
+    private void restoreInputOutput() {
+        
+        ioManager.restore();
+        this.in = ioManager.getIn();
+        this.out = ioManager.getOut();
+        this.err = ioManager.getErr();
+    }
+    
+    /**
+     * Internally used to save away the current set of Input/Output
+     * handles.
+     */
+    private void saveInputOutput() {
+        
+        ioManager.save();
     }
     
     /**
@@ -848,7 +819,7 @@ public class Session
      */
     private void redrawBuffer() {
         
-        if (interactive == false) {
+        if (ioManager.isInteractive() == false) {
             
             return;
         }
@@ -878,7 +849,7 @@ public class Session
              * As we display the buffer, make sure the readline history
              * is kept in sync.
              */
-            if (this.interactive) {
+            if (ioManager.isInteractive()) {
                 
                 Readline.addToHistory(str);
             }
@@ -984,6 +955,56 @@ public class Session
         
     	Token token = null;
        	Shell pipeShell = null;
+       	
+       	/*
+       	 * PLEASE READ ME!!!
+       	 * 
+       	 * I've got some strange looking logic here that exists entirely
+       	 * to support the \eval command.  You see, \eval is basically
+       	 * a request to ask the current session to change its input stream
+       	 * to that of an external file and use that stream until it ends, then
+       	 * restore the input to its current location.
+       	 * 
+       	 * In the olden days, the org.sqsh.commands.Eval implementation 
+       	 * simple called the Session.setIn() method then called 
+       	 * Session.readEvalPrint() to process that input, but madness
+       	 * arose....
+       	 * 
+       	 * You see, some jsqsh commands throw SessionMessage or 
+       	 * SqshContextMessage exceptions to convey some information 
+       	 * all the way up to the jsqsh Session or SqshContext to let
+       	 * that object know that some housekeeping needs to take place
+       	 * (e.g. the SqshContext needs to switch to a different session--
+       	 * see the SessionCmd for an example).
+       	 * 
+       	 * The problem that arose was that the \eval implementation
+       	 * caused a recursive call to Session.readEvalPrint()...which
+       	 * is chugging along, processing the script that the user asked
+       	 * for...when one of the commands in that script is \session. 
+       	 * This command causes a SqshContextSwitchMessage to be thrown
+       	 * which needs to get thrown out of the \eval implementation,
+       	 * which means that eval stops doing its thing and returns as
+       	 * if the script was finished...not what was intended.
+       	 * 
+       	 * (Don't know if you can follow that).
+       	 * 
+       	 * To solve this, \eval no longer directly calls the session's
+       	 * readEvalPrint() but thrown a magical exception called the
+       	 * SessionEvaluateMessage which is basically a request for the
+       	 * session to temporarily switch to the new input.
+       	 * 
+       	 * Because this comment is getting long, I will leave the rest of
+       	 * the story commented in the code below...
+       	 */
+       	boolean doRestore = true;
+       	
+       	/*
+       	 * Because our commandline may redirect I/O via >file, 1>&2,
+       	 * or a pipe, we want to save away the state of our file descriptors
+       	 * prior to doing this redirection, so that we can restore the
+       	 * state of the world when we are done...
+       	 */
+       	saveInputOutput();
         
         try {
             
@@ -1033,13 +1054,26 @@ public class Session
                 
             /*
              * We are going to assume that our IO exception is due
-             * to the
+             * to the pipe to a shell process ending.
              */
                 
         }
         catch (SessionRedrawBufferMessage e) {
                     
             redrawBuffer();
+        }
+        catch (SessionEvaluateMessage e) {
+            
+            /*
+             * Here's that magical exception, mentioned above. This is 
+             * thrown from \eval and is a request for the session to 
+             * start taking its input from another input. So, we 
+             * change the input from the session to the input requested
+             * and flag ourselves to *not* restore the inputs to their
+             * prior settings before we exit...
+             */
+            setIn(e.getInput(), e.isAutoClose(), e.isInteractive());
+            doRestore = false;
         }
         catch (SqshContextMessage e) {
                     
@@ -1055,7 +1089,23 @@ public class Session
         }
         finally {
             
-            restoreIO();
+            /*
+             * Unless \eval asks us to work on another input, we will
+             * restore all of our input and output handles to where they
+             * were before the command executed.
+             * 
+             * If \eval *did* ask us to work on another input, then we
+             * will retain the I/O descriptors exactly as they are now...
+             * When this happens the readLine() method, above, will
+             * continue to process the new input source until it reaches
+             * the end...at which point, the restoreInputOutput() will be
+             * called, switching back to the old handles when the
+             * input has been drained.
+             */
+            if (doRestore) {
+                
+                restoreInputOutput();
+            }
             
             if (pipeShell != null) {
                 
@@ -1085,7 +1135,7 @@ public class Session
             Shell shell =  sqshContext.getShellManager().pipeShell(
                 token.getPipeCommand());
             
-            setOut(new PrintStream(shell.getStdin()));
+            setOut(new PrintStream(shell.getStdin()), true);
             
             return shell;
         }
@@ -1122,11 +1172,11 @@ public class Session
             
             if (token.getFd() == 1) {
                 
-                setOut(newStream);
+                setOut(newStream, true);
             }
             else {
                 
-                setErr(newStream);
+                setErr(newStream, true);
             }
         }
         catch (IOException e) {
@@ -1165,12 +1215,11 @@ public class Session
         
         if (token.getOldFd() == 1) {
             
-            setOut(err);
+            setOut(err, false);
         }
         else {
             
-            setErr(out);
+            setErr(out, false);
         }
     }
-    
 }

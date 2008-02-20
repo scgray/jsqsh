@@ -175,9 +175,6 @@ public abstract class Command
             return 1;
         }
         
-        PrintStream origOut = session.out;
-        PrintStream origErr = session.err;
-        
         /*
          * If the graphical option was passed, then we will redirect output
          * and error to a window.
@@ -187,29 +184,11 @@ public abstract class Command
             JTextAreaCaptureStream textStream = 
                 new JTextAreaCaptureStream(session, 
                     new ByteArrayOutputStream());
-            session.setOut(textStream);
-            session.setErr(textStream);
+            session.setOut(textStream, true);
+            session.setErr(textStream, true);
         }
         
-        int rc = 0;
-        try {
-            
-            rc = execute(session, options);
-        }
-        finally {
-            
-            /*
-             * If we were sending to a graphical output, then fix it
-             * here.
-             */
-            if (options.isGraphical) {
-                
-                session.setErr(origErr);
-                session.setOut(origOut);
-            }
-        }
-        
-        return rc;
+        return execute(session, options);
     }
     
     /**
