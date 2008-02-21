@@ -38,8 +38,36 @@ import org.sqsh.jni.ShellManager;
 import org.sqsh.signals.SignalManager;
 
 /**
- * This class represents the global sqsh environment, including all active
- * sessions.
+ * The SqshContext is the master container of all things jsqsh. Its primary
+ * purpose is to manage resources global to all sessions (variables, the
+ * set of available commands, aliases, drivers, etc. as well as to manage
+ * the sessions themselves.
+ * 
+ * <h2>Session handling</h2>
+ * 
+ * <p>Once the context is initialized to your liking, the {@link #run()} method
+ * is called which kicks off the jsqsh processing. This method picks the
+ * first available session and calls its {@link Session#readEvalPrint()}
+ * method and the session itself begins reading input and processing.
+ * 
+ * <p>For most of the life of a session, the session's readEvalPrint() loop
+ * never returns until it has run out of input to process or the user
+ * asks the session to end (the <b>\end</b> command. One a session ends,
+ * the SqshContext picks the next available session, and calls its 
+ * readEvalPrint() loop, until <b>it</b> ends, and so on....
+ * 
+ * <p>There is a  notable exception to this behavior, though. Certain 
+ * {@link Command}s executed in jsqsh (specifically executed by the
+ * {@link Session} need to cause a "context switch" from on session to
+ * another (commands such as <b>\session</b> command or <b>\connect -n</b>)
+ * in these sorts of cases, a special exception is thrown that is
+ * sub-classed from {@link SqshContextMessage}. This exception passes
+ * completely out of the session and is caught by the SqshContext's
+ * {@link #run()} method and causes the context to perform the desired
+ * action; for example if it is a {@link SqshContextSwitchMessage} then
+ * the session identified by {@link SqshContextSwitchMessage#getTargetSession()}
+ * is made the active session.  Similarly, the {@link SqshContextExitMessage}
+ * causes the {link {@link #run()} method to return.
  */
 public class SqshContext {
     
@@ -146,6 +174,11 @@ public class SqshContext {
      * b) readline says "yes", then this will remain true.
      */
     private boolean isInteractive = true;
+    
+    /**
+     * Records if we have given the copyright banner yet.
+     */
+    private boolean doneBanner = false;
     
     public SqshContext() {
         
@@ -568,26 +601,91 @@ public class SqshContext {
     }
     
     /**
-     * Starts the context up and running. This method will not return until
-     * the last session has exited.
+     * This is the master jsqsh loop. This loop is responsible for picking
+     * up the first available session, executing it until it completes, 
+     * choosing the next session, running it until it completes, and so on.
+     * When the last session has executed or a session throws a 
+     * {@link SqshContextExitMessage} then this method will return.
      */
     public void run() {
         
-        boolean done = false;
+        run((Session) null);
+    }
+    
+    /**
+     * This method is similar to {@link #run()} but is intended to be used
+     * to execute a single session. When this session completes, then the
+     * method returns.  It is important to note that the session is <b>not</b>
+     * removed from the SqshContext after completion. If you want to remove
+     * the session, call {@link SqshContext#removeSession(int)}.
+     * 
+     * <p>Why isn't it removed, you may ask?  The reason this method exists
+     * is so that jsqsh commands, such as \eval, utilize a session object
+     * to execute some arbitrary SQL or jsqsh commands in a recursive manner.
+     * 
+     * <p>That is, lets say a command had a block of text containing SQL and/or
+     * jsqsh commands in it, then the command would want to do something like:
+     * 
+     * <pre>
+     *     InputStream in = new StringBufferInputStream(
+     *        bufferWithCommandsAndSql);
+     *     session.setIn(in, true, false);
+     *     session.getContext().run(session);
+     * </pre>
+     * 
+     * <p>The <code>session.setIn()</code> replaces the input stream with
+     * the new InputStream we created to read the buffer, then the
+     * <code>session.getContext().run(session)</code> is asking the
+     * SqshContext to effectively recurse back into the session to
+     * execute the input. When the command containing this code returns
+     * the Session will take care of restoring the input descriptor back
+     * to its original state.
+     */
+    public void run(Session session) {
         
-        if (currentSession == null && sessions.size() > 0) {
+        Session priorCurrentSession = currentSession;
+        
+        /*
+         * If we were asked to execute a specific session, then make
+         * it the current session.
+         */
+        if (session != null) {
             
-            currentSession = sessions.get(0);
+            currentSession = session;
+        }
+        else {
+        
+            /*
+             * If we have no current session, then pick one.
+             */
+            if (currentSession == null
+                    && sessions.size() > 0) {
+                
+                currentSession = sessions.get(0);
+            }
         }
         
-        String version = variableManager.get("version");
-        if (currentSession.isInteractive()) {
+        
+        /*
+         * First interactive session we get, display our copyright
+         * banner.
+         */
+        if (!doneBanner && currentSession.isInteractive()) {
             
+            String version = variableManager.get("version");
             currentSession.out.println("JSqsh Release " + version 
                 + ", Copyright (C) 2007-2008, Scott C. Gray");
-            currentSession.out.println("Type \\help for available help topics");
+            currentSession.out.println("Type \\help for available help "
+                + "topics");
+            
+            doneBanner = true;
         }
         
+        /*
+         * Stick in a loop until we are out of sessions or until
+         * the session we are being asked to execute has finished.
+         */
+        boolean done = false;
         while (!done) {
             
             if (currentSession == null) {
@@ -604,7 +702,19 @@ public class SqshContext {
                      * over (exited).
                      */
                     currentSession.readEvalPrint();
-                    removeSession(currentSession.getId());
+                    
+                    /*
+                     * If we were asked to run a specific session and it
+                     * has just finished, then we are done.
+                     */
+                    if (currentSession == session) {
+                        
+                        done = true;
+                    }
+                    else {
+                        
+                        removeSession(currentSession.getId());
+                    }
                 }
                 catch (SqshContextExitMessage e) {
                     
@@ -631,11 +741,11 @@ public class SqshContext {
                      */
                     if (target == null) {
                         
-                        for (Session session : sessions) {
+                        for (Session s : sessions) {
                             
-                            if (session != currentSession) {
+                            if (s != currentSession) {
                                 
-                                target = session;
+                                target = s;
                                 break;
                             }
                         }
@@ -666,6 +776,17 @@ public class SqshContext {
         }
         
         saveConfigDirectory();
+        
+        /*
+         * If we were asked to execute a specific session, then we
+         * will restore our context back to the session that was
+         * asking us to do so.
+         */
+        if (session != null && priorCurrentSession != null
+                && getSession(priorCurrentSession.getId()) != null) {
+            
+            currentSession = priorCurrentSession;
+        }
     }
     
     /**
