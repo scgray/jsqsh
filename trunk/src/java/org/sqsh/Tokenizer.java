@@ -93,6 +93,8 @@ public class Tokenizer {
          *    >>
          *    X>
          *    X>>
+         *    >+X
+         *    >>+X
          */
         if (ch == '>'
             || (curIdx < (line.length()-1) && Character.isDigit(ch) 
@@ -190,6 +192,30 @@ public class Tokenizer {
             ++curIdx;
             return new FileDescriptorDupToken(line, startIdx,
                 leftFd, parseNumber());
+        }
+        
+        /*
+         * At this point we have parsed one of the following:
+         *   X>
+         *   X>>
+         *   >
+         *   >>
+         * Now, if there is a + then the redirection is for a 
+         * session target.
+         */
+        if (curIdx < line.length() && line.charAt(curIdx) == '+') {
+            
+            int sessionId = -1;
+            
+            ++curIdx;
+            if (curIdx < line.length() && Character.isDigit(
+                line.charAt(curIdx))) {
+                
+                sessionId = parseNumber();
+            }
+            
+            return new SessionRedirectToken(line, startIdx,
+                sessionId, isAppend);
         }
         
         String filename = parseString();

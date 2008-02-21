@@ -17,9 +17,14 @@
  */
 package org.sqsh;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -923,6 +928,9 @@ public class Session
     	Token token = null;
        	Shell pipeShell = null;
        	
+       	SessionRedirectToken sessionRedirect = null;
+       	File sessionOutput = null;
+       	
        	/*
        	 * Because our commandline may redirect I/O via >file, 1>&2,
        	 * or a pipe, we want to save away the state of our file descriptors
@@ -953,13 +961,25 @@ public class Session
                     
                     doRedirect((RedirectOutToken) token);
                 }
+                else if (token instanceof SessionRedirectToken) {
+                    
+                    sessionRedirect = (SessionRedirectToken) token;
+                }
                 else if (token instanceof FileDescriptorDupToken) {
                     
                     doDup((FileDescriptorDupToken) token);
                 }
                 else if (token instanceof PipeToken) {
                     
-                    pipeShell = doPipe((PipeToken) token);
+                    /*
+                     * If the output of this session is being redirected
+                     * to another session, then we don't want to give the
+                     * pipe program control over the terminal. Instead we
+                     * want to read its output so we can send it to the
+                     * re-direct file.
+                     */
+                    pipeShell = doPipe((PipeToken) token,
+                        sessionRedirect != null);
                 }
                 else {
                     
@@ -967,6 +987,18 @@ public class Session
                 }
                 
                 token = tokenizer.next();
+            }
+            
+            /*
+             * If the user asked us to redirect to another session, then
+             * do so now.  Note that we deferred this until after the
+             * command line was parsed so that we could know whether or
+             * not we needed to redirect the output of our command or
+             * the output of the shell that our command was piped to.
+             */
+            if (sessionRedirect != null) {
+                
+                sessionOutput = doSessionRedirect(sessionRedirect, pipeShell);
             }
             
             /*
@@ -1013,22 +1045,48 @@ public class Session
                 }
             }
         }
+        
+        /*
+         * If the session output was redirected to another session, then
+         * we need to take the current output and execute it through
+         * another session.
+         */
+        if (sessionRedirect != null) {
+            
+            executeSessionRedirect(sessionOutput, 
+                sessionRedirect.getSessionId(), sessionRedirect.isAppend());
+            sessionOutput.delete();
+        }
     }
+    
     
     /**
      * Handles creating a pipeline to another process.
      * 
      * @param token The pipeline that needs to be created.
+     * @param doRead If true, then the pipe needs to be opened in such a
+     *    way as the its input can be read. If false, then the process
+     *    spawned's output will be sent directly to the console
      * @throws CommandLineSyntaxException Thrown if there is a problem
      *   creating the pipeline.
      */
-    private Shell doPipe(PipeToken token)
+    private Shell doPipe(PipeToken token, boolean doRead)
         throws CommandLineSyntaxException {
         
         try {
             
-            Shell shell =  sqshContext.getShellManager().pipeShell(
-                token.getPipeCommand());
+            Shell shell;
+            
+            if (doRead) {
+                
+                shell = sqshContext.getShellManager().readShell(
+                    token.getPipeCommand(), false);
+            }
+            else {
+                
+                shell = sqshContext.getShellManager().pipeShell(
+                    token.getPipeCommand());
+            }
             
             setOut(new PrintStream(shell.getStdin()), true);
             
@@ -1040,6 +1098,128 @@ public class Session
                 "Failed to execute '" + token.getPipeCommand() 
                 + ": " + e.getMessage(),  token.getPosition(), token.getLine());
         }
+    }
+    
+    /**
+     * Called to perform a session redirection action. This method
+     * will take the current session's output handle and redirect it
+     * to a temporary file. The file handle is then returned to the
+     * caller so that it can process the contents after the current
+     * command line has completed.
+     * 
+     * @param token The token just parsed.
+     * @param pipeShell If not null, then instead of the output of
+     *    the command being redirected to a temporary file, the
+     *    output of the command is left sending to the piped shell
+     *    specified and the output of the shell is redirected to
+     *    the file instead.
+     * @throws CommandLineSyntaxException Thrown if the session to 
+     *   be redirected to doesn't exist.
+     */
+    private File doSessionRedirect(SessionRedirectToken token, Shell pipeShell)
+        throws CommandLineSyntaxException {
+        
+        if (sessionId > 0 && sqshContext.getSession(sessionId) == null) {
+            
+            throw new CommandLineSyntaxException(
+                "Session id #" + sessionId + " does not exist. Use "
+                + "the \\session command to view active sessions",
+                token.getPosition(), token.getLine());
+        }
+        
+        try {
+            
+            File tmpFile = File.createTempFile("jsqsh_",".tmp");
+            
+            if (LOG.isLoggable(Level.FINE)) {
+
+                LOG.fine("Redirecting output of session #"
+                    + sessionId + " to " + tmpFile.toString());
+            }
+            
+            PrintStream out = new PrintStream(
+                new FileOutputStream(tmpFile, false));
+            
+            /*
+             * If we are supposed to be processing the output of a shell,
+             * then spawn a magical thread that will forward all of the
+             * output of the shell to our temporary file, otherwise just
+             * attach the session's output to the directly file.
+             */
+            if (pipeShell != null) {
+                
+                InputStream in = pipeShell.getStdout();
+                IORelayThread relay = new IORelayThread(in, out);
+                relay.start();
+            }
+            else {
+                
+                setOut(out, true);
+            }
+            
+            return tmpFile;
+        }
+        catch (IOException e) {
+            
+            throw new CommandLineSyntaxException(
+                token.toString() 
+                + ": Failed to create temporary file for session redirection: "
+                + e.getMessage(), token.getPosition(), token.getLine());
+        }
+    }
+    
+    /**
+     * Implements the execution of a session redirection (e.g. '>>+2').
+     * A session direction takes place by diverting the output of the
+     * current session to a temporary file, and the going back and 
+     * making that file the input to a target session.
+     * 
+     * @param source The file containing the output of this session.
+     * @param sessionId The session id of the target session.
+     * @param append True if the output is to be appended to the
+     *   current SQL buffer.
+     */
+    private void executeSessionRedirect(File source, int sessionId,
+            boolean append) {
+        
+        Session targetSession = this;
+        if (sessionId > 0) {
+                
+            targetSession = sqshContext.getSession(sessionId);
+        }
+        
+        if (targetSession == null) {
+            
+            err.println("The session " + sessionId + " targeted for "
+                + "redirection no longer exists");
+            return;
+        }
+        
+        if (LOG.isLoggable(Level.FINE)) {
+
+            LOG.fine("Sending output of session "
+                + sessionId + ", contained in " 
+                + source.toString() + " to session "
+                + targetSession.getId());
+        }
+        
+        InputStream in = null;
+        try {
+            
+            in = new FileInputStream(source);
+        }
+        catch (IOException e) {
+            
+            err.println("Unable to open temporary output file "
+                + source.toString() + " for redirection to session "
+                + targetSession.getId());
+            return;
+        }
+            
+        targetSession.saveInputOutput();
+        targetSession.setIn(in, true, false);
+        sqshContext.run(targetSession);
+        targetSession.restoreInputOutput();
     }
     
     /**
@@ -1115,6 +1295,60 @@ public class Session
         else {
             
             setErr(out, false);
+        }
+    }
+    
+    /**
+     * This thread is used to consume the output of a process spawned for
+     * pipe(). It reads from the spawned processes output stream and 
+     * writes everything it reads to the sessions output stream.
+     */
+    private static class IORelayThread
+        extends Thread {
+        
+        private static final Logger LOG = 
+        	Logger.getLogger(Session.class.getName());
+        
+        private InputStream in;
+        private PrintStream out;
+        
+        public IORelayThread (InputStream in, PrintStream out) {
+            
+            this.in = in;
+            this.out = out;
+            setName("IORelayThread");
+        }
+        
+        public void run() {
+            
+            int count = 0;
+            
+            if (LOG.isLoggable(Level.FINE)) {
+
+                LOG.fine("Starting relay thread");
+            }
+            
+            try {
+                    
+                int c = in.read();
+                while (c >= 0) {
+                    
+                    ++count;
+                    
+                    out.write(c);
+                    c = in.read();
+                }
+            }
+            catch (IOException e) {
+                    
+                /* IGNORED */
+            }
+            
+            out.flush();
+            if (LOG.isLoggable(Level.FINE)) {
+
+                LOG.fine("Relayed " + count + " characters");
+            }
         }
     }
 }
