@@ -339,21 +339,30 @@ public class SQLRenderer {
                 statement.setMaxRows(maxRows);
             }
             
-            /*
-             * Install a signal handler that will cancel our query
-             * if the user hits CTRL-C.
-             */
-            sigHandler = new CancelingSignalHandler(statement);
-            session.getSignalManager().push((SigHandler) sigHandler);
-            
             if (sql != null) {
                 
                 statement = conn.createStatement();
+                
+                /*
+             	 * Install a signal handler that will cancel our query
+             	 * if the user hits CTRL-C.
+             	 */
+                sigHandler = new CancelingSignalHandler(statement);
+                session.getSignalManager().push((SigHandler) sigHandler);
+                
                 statement.execute(sql);
             }
             else {
                 
                 statement = preparedStatement;
+                
+                /*
+             	 * Install a signal handler that will cancel our query
+             	 * if the user hits CTRL-C.
+             	 */
+                sigHandler = new CancelingSignalHandler(statement);
+                session.getSignalManager().push((SigHandler) sigHandler);
+                
                 preparedStatement.execute();
             }
             
