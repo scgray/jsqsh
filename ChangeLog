@@ -2,6 +2,7 @@ Release 1.2-SNAPSHOT
 * Added session-to-session redirection, allowing the output of a 
   command executed in one session to be executed by another session
   (or even re-executed by itself).  See '\help redirection' for details.
+* Fixed ^C handling that I broke the last release.
 * Fixed the \eval command aborting when it executes a command that
   causes a session switch, such as \session or \connect -n.
 * Fixed "\connect -c" not finding classes that are specified in the
