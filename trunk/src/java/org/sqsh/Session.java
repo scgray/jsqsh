@@ -663,78 +663,45 @@ public class Session
     private String readLine() {
         
         String line = null;
-        boolean done = false;
-        
-        while (!done) {
-        
-            try {
+        try {
                 
-                if (ioManager.isInteractive()) {
+            if (ioManager.isInteractive()) {
                                 
-                    String prompt = getVariableManager().get("prompt");
-                    prompt =  (prompt == null)  
-                	    ? ">" : getStringExpander().expand(this, prompt);
+                String prompt = getVariableManager().get("prompt");
+                prompt =  (prompt == null)  
+            	    ? ">" : getStringExpander().expand(this, prompt);
                                 
-                    line = Readline.readline(prompt + " ", true);
-                    if (line == null) {
+                line = Readline.readline(prompt + " ", true);
+                if (line == null) {
                         
-                        line = "";
-                    }
-                }
-                else {
-                        
-                    StringBuilder sb = new StringBuilder();
-                    int ch = in.read();
-                    while (ch >= 0 && ch != '\n') {
-                        
-                        sb.append((char) ch);
-                        ch = in.read();
-                    }
-                    
-                    if (ch == -1 && sb.length() == 0) {
-                        
-                        line = null;
-                    }
-                    else {
-                        
-                        line = sb.toString();
-                    }
-                }
-            }
-            catch (IOException e) {
-            
-                /* EOF */
-            }
-            
-            /*
-             * To best understand this, please read the comments in the
-             * runCommand() method first....
-             * 
-             * When we reach the end of the current input stream, we
-             * are not necessarily done. It is possible that we are reading
-             * the input stream from the \eval command and that, upon 
-             * reaching the end, we need to switch back to the original
-             * input stream. That's what we are doing here....if we have
-             * an I/O context saved away, we switch to it. Once we are
-             * out of places to get input, we are truely done.
-             */
-            if (line == null) {
-                
-                if (ioManager.getSaveCount() > 1) {
-                    
-                    restoreInputOutput();
-                }
-                else {
-                    
-                    done = true;
+                    line = "";
                 }
             }
             else {
-                
-                done = true;
+                        
+                StringBuilder sb = new StringBuilder();
+                int ch = in.read();
+                while (ch >= 0 && ch != '\n') {
+                        
+                    sb.append((char) ch);
+                    ch = in.read();
+                }
+                    
+                if (ch == -1 && sb.length() == 0) {
+                        
+                    line = null;
+                }
+                else {
+                        
+                    line = sb.toString();
+                }
             }
         }
-        
+        catch (IOException e) {
+            
+            /* EOF */
+        }
+            
         return line;
     }
     
@@ -957,48 +924,6 @@ public class Session
        	Shell pipeShell = null;
        	
        	/*
-       	 * PLEASE READ ME!!!
-       	 * 
-       	 * I've got some strange looking logic here that exists entirely
-       	 * to support the \eval command.  You see, \eval is basically
-       	 * a request to ask the current session to change its input stream
-       	 * to that of an external file and use that stream until it ends, then
-       	 * restore the input to its current location.
-       	 * 
-       	 * In the olden days, the org.sqsh.commands.Eval implementation 
-       	 * simple called the Session.setIn() method then called 
-       	 * Session.readEvalPrint() to process that input, but madness
-       	 * arose....
-       	 * 
-       	 * You see, some jsqsh commands throw SessionMessage or 
-       	 * SqshContextMessage exceptions to convey some information 
-       	 * all the way up to the jsqsh Session or SqshContext to let
-       	 * that object know that some housekeeping needs to take place
-       	 * (e.g. the SqshContext needs to switch to a different session--
-       	 * see the SessionCmd for an example).
-       	 * 
-       	 * The problem that arose was that the \eval implementation
-       	 * caused a recursive call to Session.readEvalPrint()...which
-       	 * is chugging along, processing the script that the user asked
-       	 * for...when one of the commands in that script is \session. 
-       	 * This command causes a SqshContextSwitchMessage to be thrown
-       	 * which needs to get thrown out of the \eval implementation,
-       	 * which means that eval stops doing its thing and returns as
-       	 * if the script was finished...not what was intended.
-       	 * 
-       	 * (Don't know if you can follow that).
-       	 * 
-       	 * To solve this, \eval no longer directly calls the session's
-       	 * readEvalPrint() but thrown a magical exception called the
-       	 * SessionEvaluateMessage which is basically a request for the
-       	 * session to temporarily switch to the new input.
-       	 * 
-       	 * Because this comment is getting long, I will leave the rest of
-       	 * the story commented in the code below...
-       	 */
-       	boolean doRestore = true;
-       	
-       	/*
        	 * Because our commandline may redirect I/O via >file, 1>&2,
        	 * or a pipe, we want to save away the state of our file descriptors
        	 * prior to doing this redirection, so that we can restore the
@@ -1062,19 +987,6 @@ public class Session
                     
             redrawBuffer();
         }
-        catch (SessionEvaluateMessage e) {
-            
-            /*
-             * Here's that magical exception, mentioned above. This is 
-             * thrown from \eval and is a request for the session to 
-             * start taking its input from another input. So, we 
-             * change the input from the session to the input requested
-             * and flag ourselves to *not* restore the inputs to their
-             * prior settings before we exit...
-             */
-            setIn(e.getInput(), e.isAutoClose(), e.isInteractive());
-            doRestore = false;
-        }
         catch (SqshContextMessage e) {
                     
             /*
@@ -1089,24 +1001,7 @@ public class Session
         }
         finally {
             
-            /*
-             * Unless \eval asks us to work on another input, we will
-             * restore all of our input and output handles to where they
-             * were before the command executed.
-             * 
-             * If \eval *did* ask us to work on another input, then we
-             * will retain the I/O descriptors exactly as they are now...
-             * When this happens the readLine() method, above, will
-             * continue to process the new input source until it reaches
-             * the end...at which point, the restoreInputOutput() will be
-             * called, switching back to the old handles when the
-             * input has been drained.
-             */
-            if (doRestore) {
-                
-                restoreInputOutput();
-            }
-            
+            restoreInputOutput();
             if (pipeShell != null) {
                 
                 try {

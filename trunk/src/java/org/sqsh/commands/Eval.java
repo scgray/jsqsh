@@ -25,7 +25,7 @@ import java.util.List;
 
 import org.sqsh.Command;
 import org.sqsh.Session;
-import org.sqsh.SessionEvaluateMessage;
+import org.sqsh.SqshContext;
 import org.sqsh.SqshOptions;
 import org.sqsh.options.Argv;
 
@@ -75,13 +75,32 @@ public class Eval
             return 1;
         }
         
-        InputStream in =  new FileInputStream(filename);
+        SqshContext context = session.getContext();
         
         /*
-         * This exception is a "message" to the session that we wish it
-         * to temporarily take its input from the provided input stream.
+         * Pay close attention, kiddies...first, we open our input file.
          */
-        throw new SessionEvaluateMessage(in, true, false);
+        InputStream in = new FileInputStream(filename);
+        
+        /*
+         * Next, make the input of our session, this file. Note that we
+         * mark it as auto-close (the "true"). This will cause the session
+         * to close this descriptor after the command is finished executing
+         * and we mark it as non-interactive (the "false").
+         */
+        session.setIn(in, true, false);
+        
+        /*
+         * Now we will recurse back into the context and ask it to execute
+         * the contents of this session. This will return when the EOF
+         * is reached on the input stream.   Now, this sessin's input
+         * stream will still be set to be the file we opened, but we
+         * don't really need to worry about that as the default behavior
+         * of the session is to restore all input/output streams to the
+         * original state after the execution of every command.
+         */
+        context.run(session);
+        
+        return 0;
     }
-
 }
