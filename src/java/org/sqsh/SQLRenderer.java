@@ -490,7 +490,16 @@ public class SQLRenderer {
             }
             
             SQLTools.close(resultSet);
-            SQLTools.close(statement);
+            
+            /*
+             * If we created the statement, then close it. If we are
+             * using the statement passed in, then its up to the caller
+             * to close it.
+             */
+            if (preparedStatement == null) {
+                
+                SQLTools.close(statement);
+            }
         }
     }
     

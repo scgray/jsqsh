@@ -58,33 +58,38 @@ public class CSVRenderer
             }
             
             String field = row[i];
-            boolean needsQuoting = 
-                (field.indexOf('"') >= 0
-                    || field.indexOf('\n') >= 0
-                    || field.indexOf(',') >= 0
-                    || (field.length() > 0 
-                            && (Character.isWhitespace(field.charAt(0))
-                                  || Character.isWhitespace(field.charAt(field.length() -1)))));
             
-            if (needsQuoting == false) {
+            if (!isNull(field)) {
                 
-                line.append(field);
-            }
-            else {
+                boolean needsQuoting = 
+                    (field.length() == 0
+                        || field.indexOf('"') >= 0
+                        || field.indexOf('\n') >= 0
+                        || field.indexOf(',') >= 0
+                        || (field.length() > 0 
+                                && (Character.isWhitespace(field.charAt(0))
+                                      || Character.isWhitespace(field.charAt(field.length() -1)))));
                 
-                line.append('"');
-                for (int j = 0; j < field.length(); j++) {
+                if (needsQuoting == false) {
                     
-                    char ch = field.charAt(j);
-                    if (ch == '"') {
+                    line.append(field);
+                }
+                else {
+                    
+                    line.append('"');
+                    for (int j = 0; j < field.length(); j++) {
                         
-                        line.append('"');
+                        char ch = field.charAt(j);
+                        if (ch == '"') {
+                            
+                            line.append('"');
+                        }
+                        
+                        line.append(ch);
                     }
                     
-                    line.append(ch);
+                    line.append('"');
                 }
-                
-                line.append('"');
             }
         }
         

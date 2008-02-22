@@ -43,6 +43,19 @@ public abstract class Renderer {
     protected RendererManager manager;
     
     /**
+     * This is a little bit evil--some of the display styles need to 
+     * know when a column contains an actual NULL value. Right now
+     * there is no elegant way for a renderer to know this. To get
+     * around this, the renderer can ask itself {@link #isNull(String)},
+     * and the value  provided will be compared to the current 
+     * representation of NULL according to the {@link DataFormatter}.
+     * 
+     * <p>At some point I may need to pass a lot of meta-data with each
+     * row, but for now I have this hack.
+     */
+    private String nullRepresentation;
+    
+    /**
      * Creates a renderer.
      * 
      * @param session The session for the renderer
@@ -52,6 +65,8 @@ public abstract class Renderer {
         
         this.session = session;
         this.manager = manager;
+        
+        this.nullRepresentation = session.getDataFormatter().getNull();
     }
     
     /**
@@ -138,6 +153,19 @@ public abstract class Renderer {
         }
         
         return maxWidth;
+    }
+    
+    /**
+     * This is a convenience method that a renderer can call with a 
+     * row value to determine if it contains a NULL value.
+     * 
+     * @param value The value in the row.
+     * @return true if it appears to be a null.
+     */
+    protected boolean isNull(String value) {
+        
+        return (value == null || nullRepresentation.equals(value));
+        
     }
     
     /**
