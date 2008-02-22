@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
@@ -139,6 +140,37 @@ public class Call
     }
     
     /**
+     * This uses a crummy heuristic to figure out of a block that
+     * is going to be executed is a stored procedure call or is
+     * a prepared statement and attempts to prepare it accordingly.
+     * If the statement starts with a "{" it is assumed to be a
+     * stored procedure call, otherwise it is a prepared statement.
+     * 
+     * @param conn The connection.
+     * @param sql The sql to be evaluated.
+     * @return The prepared statement.
+     * @throws SQLException
+     */
+    private PreparedStatement prepare(Connection conn, String sql)
+        throws SQLException {
+        
+        int idx = 0;
+        while (idx < sql.length() && Character.isWhitespace(sql.charAt(idx))) {
+            
+            ++idx;
+        }
+        
+        if (idx < sql.length() && sql.charAt(idx) == '{') {
+            
+            return conn.prepareCall(sql);
+        }
+        else {
+            
+            return conn.prepareStatement(sql);
+        }
+    }
+    
+    /**
      * Called to execute the SQL buffer when there is no input file
      * supplied by the caller.
      * 
@@ -153,7 +185,7 @@ public class Call
         throws SQLException {
         
         Connection conn = session.getConnection();
-        CallableStatement statement = conn.prepareCall(sql);
+        PreparedStatement statement = prepare(conn, sql);
         
         try {
             
@@ -178,7 +210,7 @@ public class Call
         throws SQLException {
         
         Connection conn = session.getConnection();
-        CallableStatement statement = conn.prepareCall(sql);
+        PreparedStatement statement = prepare(conn, sql);
         SQLRenderer sqlRenderer = session.getSQLRenderer();
         
         InputStream in = null;
@@ -244,7 +276,7 @@ public class Call
     }
     
     private boolean setParameters(Session session,
-            CallableStatement statement, int line,
+            PreparedStatement statement, int line,
             String []row, ParameterValue []params)
         throws SQLException {
         
