@@ -518,6 +518,19 @@ DESCRIPTION
    csv      - Displays the output as a set of comma separated values suitable
         for loading into, say, Excel. The results displayed attempts to 
         conform to: http://www.creativyst.com/Doc/Articles/CSV/CSV01.htm.
+        Here are some things you should be aware of, though:
+        
+        - Unless headers are suppressed with the ${headers} variable or
+          via the --no-headers (-H) option to \go, the first row in the
+          file will contain the column headers.
+        - A NULL value is represented by a completely empty field.
+        - A zero-length string is represented by "" in order to differentiate
+          it from NULL.
+        - A field will be quoted with double-quotes if the value contains:
+             - A double quote (which will be escaped with as "").
+             - Leading or trailing white space
+             - A comma
+             - A newline
  
 SEE ALSO
    maxrows, maxlen

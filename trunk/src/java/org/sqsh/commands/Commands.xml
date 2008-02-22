@@ -940,19 +940,139 @@ SEE ALSO
            
         <Help><![CDATA[
 SYNOPSIS
-   \call [arg ...]
+   \call [-f file] [-i] [arg ...]
               
 DESCRIPTION
    The \call command is similar to the \go command except that the SQL
-   contained the the SQL buffer is treated as a callable statement and
-   the arguments passed to \call are treated as the arguments to the callable
-   statement.
+   contained the the SQL buffer is treated as a callable (prepared) statement.
+   The arguments for the statement can be supplied either as arguments
+   on the command line, or can be read from a file full of comma separated
+   values (CSV format).
    
-   As an example:
+OPTIONS
+   -f, --file=file Indicates that the arguments for the query should
+                   be pulled from a CSV file, provided. See FILE INPUT 
+                   PARAMETERS, below.
+   -i, --ignore-header 
+                   If a CSV file is to be used for input, this indicates
+                   that the first line of the input file is assumed to
+                   be header information and discarded. 
+   
+COMMAND LINE PARAMETERS
+   The simplest form of executing \call is to pass the parameters to the
+   statement on the command line, such as:
    
       1> select * from sysobjects where name = ?
       2> \call syscolumns
-
+      
+   Or, if you want to call a stored procedure, you can do:
+   
+      1> {call sp_who(?)}
+      2> \call 112
+      
+   See TYPED PARAMETERS, below for how to deal with parameters of types
+   other than strings.
+      
+FILE INPUT PARAMETERS
+   Perhaps the most powerful feature of the \call command is its ability
+   to utilize an input comma separated values (CSV) file for a source
+   of arguments to the query or stored procedure.  In this case, the
+   query is executed once for each line in the source file.
+   
+   For example, assuming that you have a file called "test.csv"  that 
+   looks like:
+   
+      1,2,3
+      4,5,6
+      
+   you can do:
+   
+      1> select ?, ?, ?
+      2> \call --file test.csv
+      
+   which will result in:
+   
+      +---+---+---+
+      |   |   |   |
+      +---+---+---+
+      | 1 | 2 | 3 |
+      +---+---+---+
+      1 row in results
+      ok. (first row: 2ms; total: 2ms)
+      +---+---+---+
+      |   |   |   |
+      +---+---+---+
+      | 4 | 5 | 6 |
+      +---+---+---+
+      1 row in results
+      ok. (first row: 0ms; total: 1ms)
+      
+   In this example, the fields in the input file exactly match those
+   of the query being executed, however in cases where you wish to
+   selectively utilize fields in the input file, you can specify 
+   the field number from the file on the command line, like so:
+   
+      [T:]#N
+      
+   where "T:" is the optional type (see TYPED PARMETERS, below) and
+   N refers to the field number from the input file you wish to utilize,
+   starting from 1. For example, using our example above:
+   
+     1> select ?, ?, ?
+     2> \call --file test.csv #3 #2 #1
+     
+      +---+---+---+
+      |   |   |   |
+      +---+---+---+
+      | 3 | 2 | 1 |
+      +---+---+---+
+      1 row in results
+      ok. (first row: 2ms; total: 2ms)
+      +---+---+---+
+      |   |   |   |
+      +---+---+---+
+      | 6 | 5 | 4 |
+      +---+---+---+
+      1 row in results
+      ok. (first row: 0ms; total: 1ms)
+      
+   using this syntax, field can be selectively used, rearranged, or
+   discarded as desired.
+   
+   CSV FILE FORMAT
+   
+   The following assumptions are made when interpreting the contents of
+   the CSV file:
+   
+     - It conforms to: http://www.creativyst.com/Doc/Articles/CSV/CSV01.htm
+     - Completely empty fields are treated as NULL values.
+     - Zero-length strings should be given as fields with ""
+     
+   Note that this lines up exactly with how the "csv" display style 
+   outputs its data (hint hint).
+   
+MIXING FILE AND COMMAND LINE PARAMETERS
+   If desired, you may also mix command line parameters and file based
+   parameters together, like so:
+   
+     1> select ?, ?, ?
+     2> \call --file test.csv #3 a #1
+     
+      +---+---+---+
+      |   |   |   |
+      +---+---+---+
+      | 3 | a | 1 |
+      +---+---+---+
+      1 row in results
+      ok. (first row: 2ms; total: 2ms)
+      +---+---+---+
+      |   |   |   |
+      +---+---+---+
+      | 6 | a | 4 |
+      +---+---+---+
+      1 row in results
+      ok. (first row: 0ms; total: 1ms)
+   
 TYPED PARAMETERS
    For most platforms, the parameters passed to a prepared statement must
    be of the appropriate datatype for the query. For these cases, the \call
@@ -971,11 +1091,15 @@ TYPED PARAMETERS
       1> select * from sysobjects where id = ?
       2> \call I:1234
       
-OPTIONS
-   None.
+   or:
    
+      1> select ?, ?, ?
+      2> \call --file test.csv #1 I:#2 #3
+      
+   indicates that field #2 in test.csv is an integer field.
+      
 SEE ALSO
-   \go
+   \go, style
         ]]></Help>
     </Command>
     
