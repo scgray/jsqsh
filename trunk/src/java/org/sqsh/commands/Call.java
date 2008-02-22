@@ -52,7 +52,7 @@ public class Call
     extends SqshOptions {
         
         @Option(
-            option='f', longOption="input-file", arg=REQUIRED, argName="file",
+            option='f', longOption="file", arg=REQUIRED, argName="file",
             description="CSV file to be used for parameters to query")
         public String inputFile = null;
         
