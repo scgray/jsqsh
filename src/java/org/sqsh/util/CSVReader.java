@@ -111,7 +111,7 @@ public class CSVReader {
                  * and other double quotes if it is the first character
                  * in the field.
                  */
-                if (word.length() == 0) {
+                if (word.length() > 0) {
                     
                     word.append((char) ch);
                     ch = in.read();
@@ -123,16 +123,23 @@ public class CSVReader {
                     word.setLength(0);
                     
                     /*
-                     * Following a quoted field, we do a quick check 
-                     * to see if it was the last field. 
+                     * After the closing quote, we will suck forward
+                     * to consume white space. We stop at a comma,
+                     * or new line.
                      */
-                    if (ch == '\r') {
+                    while (ch != '\n' && ch != ','
+                        && Character.isWhitespace(ch)) {
                         
                         ch = in.read();
                     }
+                    
                     if (ch == '\n' || ch == -1) {
                         
                         done = true;
+                    }
+                    else if (ch == ',') {
+                        
+                        ch = in.read();
                     }
                 }
             }
@@ -192,6 +199,7 @@ public class CSVReader {
             else {
                 
                 field.append((char) ch);
+                ch = in.read();
             }
         }
         
