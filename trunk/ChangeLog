@@ -10,6 +10,8 @@ Release 1.2-SNAPSHOT
   causes a session switch, such as \session or \connect -n.
 * Fixed "\connect -c" not finding classes that are specified in the
   ${classpath} jsqsh variable.
+* Fixed OutOfMemoryError when processing the results of a backtick
+  expression (e.g. \set x=`echo 1234`)
 
 Release 1.1
 * Changed several aspects of command line options:
