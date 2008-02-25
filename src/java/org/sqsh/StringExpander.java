@@ -574,6 +574,7 @@ public class StringExpander
                 while (ch != -1 && IFS.indexOf(ch) < 0) {
     
                     sb.append((char) ch);
+                    ch = in.read();
                 }
     
                 ch = in.read();
