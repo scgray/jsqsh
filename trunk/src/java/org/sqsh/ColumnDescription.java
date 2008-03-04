@@ -230,4 +230,13 @@ public class ColumnDescription {
         this.width = width;
     }
     
+    /**
+     * Returns the column name
+     */
+    public String toString() {
+        
+        return name;
+        
+    }
+    
 }
