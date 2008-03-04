@@ -86,9 +86,9 @@ When unpacked the zip file should include:
 
 Debian/Ubuntu (.deb)
 --------------------
-The ant task 'dist_deb' builds a Debian install package:
+The ant task 'dist-deb' builds a Debian install package:
 
-   $ ant dist_deb
+   $ ant dist-deb
 
 This should leave you with a file called build/jsqsh-<version>.deb
 after it completes. 
