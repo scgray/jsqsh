@@ -18,14 +18,12 @@
 package org.sqsh.renderers;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
+import java.util.Vector;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -34,7 +32,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.TableModelEvent;
-import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -49,19 +47,12 @@ import org.sqsh.variables.FontVariable;
 /**
  * The GraphicalRenderer displays row results using a swing graphical
  * interface.
- * 
- * <p>WARNING: I know NOTHING about developing GUI's or swing development
- * so this renderer is pretty simplistic and feature poor. Please feel
- * free to submit fancy enhancements...namely, I'd love to be able to have
- * it dynamically receive rows from the query so I can display the window
- * before all of the rows have been received. I know this can be done, I 
- * just don't know how.</p>
  */
 public class GraphicalRenderer
     extends Renderer {
     
-    private ColumnDescription []columns;
-    private List<String[]> rows = new ArrayList<String[]>();
+    private SortableTableModel tableModel;
+    private JPanel topPanel;
     
     /**
      * Creates the renderer.
@@ -84,71 +75,46 @@ public class GraphicalRenderer
     @Override
     public void header (ColumnDescription[] columns) {
 
-        this.columns = columns;
-        rows.clear();
-    }
-    
-    /**
-     * Adds a row to the panel.
-     * 
-     * @param row The row to add.
-     */
-    @Override
-    public boolean row (String[] row) {
-
-        rows.add(row);
-        return true;
-    }
-    
-    /* (non-Javadoc)
-     * @see org.sqsh.Renderer#footer(java.lang.String)
-     */
-    @Override
-    public void footer (String footer) {
-        
         int width = 600;
         int height = 400;
+
+        if (columns == null) {
+            
+            columns = new ColumnDescription[0];
+        }
         
         DimensionVariable v = (DimensionVariable) session.getVariableManager()
             .getVariable("window_size");
+        
         if (v != null) {
             
             width = v.getWidth();
             height = v.getHeight();
         }
-        
-        if (columns == null) {
-            
-            return;
-        }
-        
-        String [][]data = rows.toArray(new String[0][]);
-        String []columnNames = new String[columns.length];
-        
-        for (int i = 0; i < columns.length; i++) {
-            
-            columnNames[i] = columns[i].getName();
-        }
-        
+
         JFrame frame = new JFrame();
-        
+
         // Set the frame characteristics
         frame.setTitle("Query Results");
         frame.setSize(width, height);
         frame.setLocationByPlatform(true);
 
         // Create a panel to hold all other components
-        JPanel topPanel = new JPanel();
+        topPanel = new JPanel();
         topPanel.setLayout(new BorderLayout());
         frame.getContentPane().add(topPanel);
-        
-        SortableTableModel tableModel = new SortableTableModel(data, columns,
-            session.getDataFormatter().getNull());
 
         // Create a new table instance
         JTable table = new JTable();
+
+        tableModel = new SortableTableModel(new String[0][], columns,
+                    session.getDataFormatter().getNull());   
         table.setModel(tableModel);
+            
+ 
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        
+        
         
         FontVariable fontVar =
             (FontVariable) session.getVariableManager()
@@ -170,77 +136,68 @@ public class GraphicalRenderer
             ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
             ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         topPanel.add( scrollPane, BorderLayout.CENTER );
-        
-        JLabel footerText = new JLabel(footer);
-        topPanel.add(footerText, BorderLayout.SOUTH);
-        
+                
         frame.setVisible(true);
         
-        columns = null;
-        rows.clear();
+    }
+    
+    /**
+     * Adds a row to the panel.
+     * 
+     * @param row The row to add.
+     */
+    @Override
+    public boolean row (String[] row) {
+
+        tableModel.addRow(row);
+        
+        return true;
+    }
+    
+    /* (non-Javadoc)
+     * @see org.sqsh.Renderer#footer(java.lang.String)
+     */
+    @Override
+    public void footer (String footer) {
+        
+        if (topPanel != null) {
+        
+            JLabel footerText = new JLabel(footer);
+            topPanel.add(footerText, BorderLayout.SOUTH);
+            
+            topPanel.repaint();
+            tableModel = null;
+            topPanel = null;        
+        }
+                
     }
 
     @Override
     public boolean flush () {
 
-        // TODO Auto-generated method stub
         return true;
     }
     
     private static class SortableTableModel
-        extends AbstractTableModel {
+        extends DefaultTableModel {
         
+        private static final long serialVersionUID = 1L;
         private ColumnDescription []columns;
-        private String [][]data;
         private int sortedColumn = -1;
         private String nullRepresentation;
         private boolean isAscending = false;
         
-        public SortableTableModel (String [][]data,
+        public SortableTableModel(String [][]data,
                 ColumnDescription []columns,
                 String nullRepresentation) {
             
-            this.data = data;
+            super(data, columns);
+  
             this.columns = columns;
+            
             this.nullRepresentation = nullRepresentation;
         }
-
-        public int getColumnCount () {
-
-            return columns.length;
-        }
-
-        public int getRowCount () {
-
-            return data.length;
-        }
-
-        public Object getValueAt (int row, int col) {
-
-            return data[row][col];
-        }
-
-        public boolean isCellEditable (int row, int col) {
-
-            return false;
-        }
-        
-        public String getColumnName(int col) {
-            
-            String name = columns[col].getName();
-            if (name == null) {
-                
-                name = "";
-            }
-            
-            if (col == sortedColumn) {
-                
-                name = name + (isAscending ? " <<" : " >>");
-            }
-            
-            return name;
-        }
-    
+ 
         private class ColumnListener
             extends MouseAdapter {
 
@@ -273,7 +230,7 @@ public class GraphicalRenderer
                     isAscending = true;
                 }
 
-                for (int i = 0; i < columns.length; i++) {
+                for (int i = 0; i < getColumnCount(); i++) {
 
                     TableColumn column = colModel.getColumn(i);
                     column.setHeaderValue(getColumnName(
@@ -282,9 +239,12 @@ public class GraphicalRenderer
 
                 table.getTableHeader().repaint();
 
-                Arrays.sort(data, new ColumnComparator(modelIndex,
-                    isAscending,  columns[modelIndex], nullRepresentation));
-
+                ColumnDescription des = columns[modelIndex];
+                
+                Collections.sort(getDataVector(), 
+                        new ColumnComparator(modelIndex,
+                    isAscending,  des, nullRepresentation));
+                
                 table.tableChanged(new TableModelEvent(
                     SortableTableModel.this));
                 table.repaint();
@@ -293,7 +253,7 @@ public class GraphicalRenderer
     }
     
     private static class ColumnComparator
-        implements Comparator {
+        implements Comparator<Vector<String>> {
         
         private int idx;
         private boolean isAscending;
@@ -311,34 +271,34 @@ public class GraphicalRenderer
             this.nullRepresentation = nullRepresentation;
         }
 
-        public int compare (Object o1, Object o2) {
+        public int compare (Vector<String> o1, Vector<String> o2) {
             
-            String []row1 = (String[])o1;
-            String []row2 = (String[])o2;
+            Vector<String> row1 = o1;
+            Vector<String> row2 = o2;
             int r = 0;
             
             /*
              * First handle the case of nulls. We treat null as the
              * "lowest" sort.
              */
-            if (nullRepresentation.equals(row1[idx])) {
+            if (nullRepresentation.equals(row1.get(idx))) {
                 
-                if (nullRepresentation.equals(row2[idx])) {
+                if (nullRepresentation.equals(row2.get(idx))) {
                     
                     r = 0;
                 }
                 
                 r = -1;
             }
-            else if (nullRepresentation.equals(row2[idx])) {
+            else if (nullRepresentation.equals(row2.get(idx))) {
                 
                 r = 1;
             }
             else if (columnDescription.getType()
                     == ColumnDescription.Type.NUMBER) {
                 
-                double diff =  Double.parseDouble(row2[idx])
-                    - Double.parseDouble(row1[idx]);
+                double diff =  Double.parseDouble(row2.get(idx))
+                    - Double.parseDouble(row1.get(idx));
                 
                 if (diff < 0) {
                     
@@ -355,7 +315,7 @@ public class GraphicalRenderer
             }
             else {
                 
-                r = row1[idx].compareTo(row2[idx]);
+                r = row1.get(idx).compareTo(row2.get(idx));
             }
             
             if (r != 0) {
