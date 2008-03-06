@@ -505,16 +505,19 @@ DESCRIPTION
    
    graphical - Displays the results in a graphical window (GUI). This will
         only work on environments where the graphical interface is 
-        available to the JVM. Currently, this display mode is pretty
-        crude as I'm not very familiar with GUI development. Anyone that
-        would like to contribute time to making this a nicer interface,
-        it'd be greatly appreciated.
+        available to the JVM. 
         
         Note: the variable ${window_size} can be used to control the size
         of the window that is opened to display results.
    
    graph    - A synonym for "graphical".     
         
+   tree - Displays the results in a graphical window (GUI).  Just like graphical except it 
+        displays the resuts in a tree syle format. 
+
+        Note: the variable ${window_size} can be used to control the size
+        of the window that is opened to display results.
+
    csv      - Displays the output as a set of comma separated values suitable
         for loading into, say, Excel. The results displayed attempts to 
         conform to: http://www.creativyst.com/Doc/Articles/CSV/CSV01.htm.

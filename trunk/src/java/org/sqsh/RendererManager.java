@@ -64,7 +64,9 @@ public class RendererManager {
         renderers.put("graphical",
             org.sqsh.renderers.GraphicalRenderer.class);
         renderers.put("graph",
-            org.sqsh.renderers.GraphicalRenderer.class);
+                org.sqsh.renderers.GraphicalRenderer.class);
+        renderers.put("tree",
+                org.sqsh.renderers.GraphicalTreeRenderer.class);
     }
     
     /**

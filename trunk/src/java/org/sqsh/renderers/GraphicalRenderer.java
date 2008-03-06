@@ -80,7 +80,7 @@ public class GraphicalRenderer
 
         if (columns == null) {
             
-            columns = new ColumnDescription[0];
+            return;
         }
         
         DimensionVariable v = (DimensionVariable) session.getVariableManager()
