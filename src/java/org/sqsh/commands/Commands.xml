@@ -1102,5 +1102,39 @@ SEE ALSO
    \go, style
         ]]></Help>
     </Command>
-    
+ 
+    <Command name="\tree" class="org.sqsh.commands.Tree">
+
+        <Description><![CDATA[
+           Shows A tree view of all the tables
+        ]]></Description>
+            <Help><![CDATA[
+SYNOPSIS
+   \tree
+
+DESCRIPTION
+   A tree view of all tables.
+
+OPTIONS:
+
+   -p, --table-pattern=pattern  A SQL pattern to be used to filter the
+                set of object names that are displayed.
+   -s, --schema-pattern=pattern A SQL pattern to be used to filter the
+                set of object schema names that are displayed. For most
+                databases, the "schema name" refers to the name of the
+                owner of the object.
+   type         This can be used to restrict the types of objects that
+                are displayed. If type is not provided, then all object
+                types are returned. Available types are:
+
+                user     - Displays only user-created tables
+                system   - Displays only system tables
+                view     - Displays only views
+                alias    - Displays only aliases
+                synonym  - Displays only synonyms
+
+
+      ]]></Help>
+    </Command>
+
 </Commands>
