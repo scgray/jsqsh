@@ -28,6 +28,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.ScrollPaneConstants;
 
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
@@ -48,11 +49,12 @@ import org.sqsh.variables.FontVariable;
 public class GraphicalTreeRenderer
     extends Renderer {
     
-    private DefaultMutableTreeNode rootTreeNode;
+    private JSqshNode rootTreeNode;
     private JPanel topPanel;
     private JTree tree;
     private int[] colOrder;
     private TreeWillExpandListener twel;    
+    private TreeSelectionListener tsl;    
 
     
     /**
@@ -82,9 +84,12 @@ public class GraphicalTreeRenderer
      * the footer has been called.
      * @param twel
      */
-    public void setTreeWillExpandListener(TreeWillExpandListener twel) {
+    public void setTreeListeners(TreeWillExpandListener twel, 
+            TreeSelectionListener tsl) {
         
         this.twel = twel;
+        
+        this.tsl = tsl;
     }
     
     /**
@@ -176,7 +181,7 @@ public class GraphicalTreeRenderer
         
         frame.getContentPane().add(topPanel);
 
-        rootTreeNode = new DefaultMutableTreeNode();
+        rootTreeNode = new JSqshNode();
         
         // Create a new table instance
         tree = new JTree(rootTreeNode); 
@@ -201,6 +206,11 @@ public class GraphicalTreeRenderer
         if (twel != null) {
             
             tree.addTreeWillExpandListener(twel);
+        }
+        
+        if (tsl != null) {
+            
+            tree.addTreeSelectionListener(tsl);
         }
         
         frame.setVisible(true);
@@ -230,7 +240,7 @@ public class GraphicalTreeRenderer
             }
         }
         
-        DefaultMutableTreeNode newKid = new DefaultMutableTreeNode(label);
+        DefaultMutableTreeNode newKid = new JSqshNode(label);
         
         parent.add(newKid);
        
@@ -298,6 +308,53 @@ public class GraphicalTreeRenderer
         }
         
         return true;
+    }
+    
+    /**
+     * A class to allow the forcing of nodes to say they are not a leaf.
+     * @author Ryan Stouffer
+     *
+     */
+    public class JSqshNode extends DefaultMutableTreeNode {
+        
+        private boolean force = false;
+        
+        public JSqshNode() {
+            super();
+        }
+        
+        public JSqshNode(Object object) {
+            super(object);
+        }
+
+        /**
+         * Forces node to be a parent
+         * @param force
+         */
+        public void forceHasChildren(boolean force) {
+            
+            this.force = force;
+            
+        }
+        
+        /**
+         * true if forced otherwise it returns the super.
+         */
+        public boolean isLeaf(){
+            
+            return (force ? false : super.isLeaf());           
+            
+        }
+        
+        /**
+         * Really returns if it is a leaf.
+         * @return
+         */
+        public boolean isTrueLeaf() {
+            
+            return super.isLeaf();
+        }
+        
     }
     
 }

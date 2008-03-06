@@ -24,13 +24,21 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.TreeSet;
+
 import javax.swing.JTree;
 import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.ExpandVetoException;
+import javax.swing.tree.TreePath;
+
 import org.sqsh.Command;
 import org.sqsh.DatabaseCommand;
 import org.sqsh.Renderer;
@@ -40,12 +48,13 @@ import org.sqsh.SqshOptions;
 import org.sqsh.options.Argv;
 import org.sqsh.options.Option;
 import org.sqsh.renderers.GraphicalTreeRenderer;
+import org.sqsh.renderers.GraphicalTreeRenderer.JSqshNode;
 
 /**
  * Implements the \tree command. A clone of the table command
  */
 public class Tree extends Command implements DatabaseCommand,
-        TreeWillExpandListener {
+        TreeWillExpandListener, TreeSelectionListener {
 
     private Session session;
 
@@ -137,7 +146,8 @@ public class Tree extends Command implements DatabaseCommand,
                     .setColOrder(new int[] { 1, 3, 2 });
 
             // setting listener
-            ((GraphicalTreeRenderer) renderer).setTreeWillExpandListener(this);
+            ((GraphicalTreeRenderer) renderer)
+                .setTreeListeners(this, this);
 
             sqlRenderer.displayResults(renderer, session, result, null);
 
@@ -183,44 +193,69 @@ public class Tree extends Command implements DatabaseCommand,
     public void treeWillExpand(final TreeExpansionEvent event)
             throws ExpandVetoException {
 
+        //Check where we are at.
         if (event.getPath().getPathCount() == 3) {
 
-            final DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
+            //Force all table name to say they are not leafs
+            final JSqshNode node = (JSqshNode) event
                     .getPath().getLastPathComponent();
 
-            final Enumeration<DefaultMutableTreeNode> kids = node.children();
+            final Enumeration<JSqshNode> kids = node.children();
 
             while (kids.hasMoreElements()) {
 
-                final DefaultMutableTreeNode kid = kids.nextElement();
+                final JSqshNode kid = kids.nextElement();
+
+                if (kid.isLeaf()) {
+                
+                    kid.forceHasChildren(true);
+                    
+                }
+                
+            }
+        }
+        else if (event.getPath().getPathCount() == 4) {
+                
+            //If expanding a table go and get the columns
+            
+            final JSqshNode node = (JSqshNode) event
+                .getPath().getLastPathComponent();
+            
+            if (node.isTrueLeaf()) {
 
                 try {
 
-                    if (kid.isLeaf()) {
-                    
-                        final DatabaseMetaData meta = session.getConnection()
-                                .getMetaData();
-    
-                        final ResultSet set = meta.getColumns(null, node
-                                .getParent().toString(), kid.toString(), null);
-    
-                        while (set.next()) {
-    
-                            kid.add(new DefaultMutableTreeNode(
-                                    set.getString(4)));
-    
-                        }
-    
-                        set.close();
+                    final DatabaseMetaData meta = 
+                    session.getConnection().getMetaData();
+
+                    final ResultSet set = meta.getColumns(null, node
+                            .getParent().getParent().toString(), 
+                            node.toString(), null);
+
+                    while (set.next()) {
+
+                        node.add(new DefaultMutableTreeNode(
+                                set.getString(4)));
+
                     }
+
+                    set.close();
                 }
                 catch (final Exception e) {
                     
-                    session.err.println("Failed to retrieve database metadata: "
+                    session.err.println("Failed to retrieve table metadata: "
                             + e.getMessage());
                     e.printStackTrace(session.err);
                 }
             }
         }
+    }
+
+    /**
+     * This is here to add features for selection listeners to the tree.
+     */
+    
+    public void valueChanged(TreeSelectionEvent e) {
+
     }
 }
