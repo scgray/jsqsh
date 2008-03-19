@@ -31,6 +31,15 @@ public class BitFormatter
                 return "0";
             }
         }
+        else if (value instanceof Boolean) {
+            
+            if (((Boolean) value).booleanValue()) {
+                
+                return "1";
+            }
+            
+            return "0";
+        }
         
         return "1";
     }

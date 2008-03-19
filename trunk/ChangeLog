@@ -5,6 +5,7 @@ Release 1.2-SNAPSHOT
 * The \call command can now iterate through a CSV file and execute a
   prepared statement once for each line in the file, using the fields
   in the file as arguments to the procedure.
+* Fixed handling of "bit" datatypes.
 * Fixed ^C handling that I broke the last release.
 * Fixed the \eval command aborting when it executes a command that
   causes a session switch, such as \session or \connect -n.
