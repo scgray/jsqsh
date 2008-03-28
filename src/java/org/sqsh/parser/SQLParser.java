@@ -1,6 +1,8 @@
 package org.sqsh.parser;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 
@@ -17,7 +19,7 @@ public class SQLParser {
      * This is a list of keywords that we treat as the beginning of a 
      * statement.
      */
-    private static HashSet<String> STATEMENTS = new HashSet<String>();
+    private static SQLStatementSet STATEMENTS = new SQLStatementSet();
     static {
         
         STATEMENTS.add("ALTER");
@@ -100,37 +102,36 @@ public class SQLParser {
         
         tokenizer = new SimpleSQLTokenizer(sql);
         
-        String token = tokenizer.next();
+        String keyword = tokenizer.next();
         boolean inDML = false;
         
-        while (token != null) {
-            
-            String keyword = token.toUpperCase();
+        while (keyword != null) {
             
             /*
              * Handle the case of entering a new statement.
              */
-            if (STATEMENTS.contains(keyword)) {
+            SQLStatement statement = STATEMENTS.find(keyword, tokenizer);
+            if (statement != null) {
                 
-                if ("DELETE".equals(keyword)) {
+                if (statement.equals("DELETE")) {
                     
                     inDML = true;
-                    listener.foundStatement(this, keyword);
+                    listener.foundStatement(this, statement.toString());
                     doDelete();
                 }
-                else if ("UPDATE".equals(keyword)) {
+                else if (statement.equals("UPDATE")) {
                     
                     inDML = true;
-                    listener.foundStatement(this, keyword);
+                    listener.foundStatement(this, statement.toString());
                     doInsertUpdate();
                 }
-                else if ("INSERT".equals(keyword)) {
+                else if (statement.equals("INSERT")) {
                     
                     inDML = true;
-                    listener.foundStatement(this, keyword);
+                    listener.foundStatement(this, statement.toString());
                     doInsertUpdate();
                 }
-                else if ("SELECT".equals(keyword)) {
+                else if (statement.equals("SELECT")) {
                     
                     if (tokenizer.getParenCount() > 0) {
                         
@@ -139,11 +140,11 @@ public class SQLParser {
                     else {
                         
                         inDML = true;
-                        listener.foundStatement(this, keyword);
+                        listener.foundStatement(this, statement.toString());
                     }
                 }
-                else if ("EXEC".equals(keyword)
-                        || "EXECUTE".equals(keyword)) {
+                else if (statement.equals("EXEC")
+                        || statement.equals("EXECUTE")) {
                     
                     listener.foundStatement(this, "EXECUTE");
                     doExecuteProcedure();
@@ -151,27 +152,31 @@ public class SQLParser {
                 else {
                     
                     inDML = false;
-                    listener.foundStatement(this, keyword);
+                    listener.foundStatement(this, statement.toString());
                 }
             }
-            else if (CLAUSES.contains(keyword) && inDML) {
+            else {
                 
-                listener.foundClause(this, keyword);
+                keyword = keyword.toUpperCase();
+                if (CLAUSES.contains(keyword) && inDML) {
                 
-                /*
-                 * To prevent false positives on clauses, we only recognize
-                 * them if they appear as part of a DML statement. For example
-                 * a FROM may also be part of some other part of the SQL
-                 * dialect, so we will only pay attention if it comes after 
-                 * a SELECT/INSERT/UPDATE/DELETE.
-                 */
-                if ("FROM".equals(keyword)) {
-                    
-                    doFrom();
+                    listener.foundClause(this, keyword);
+                
+                    /*
+                     * To prevent false positives on clauses, we only recognize
+                     * them if they appear as part of a DML statement. For example
+                     * a FROM may also be part of some other part of the SQL
+                     * dialect, so we will only pay attention if it comes after 
+                     * a SELECT/INSERT/UPDATE/DELETE.
+                     */
+                    if ("FROM".equals(keyword)) {
+                        
+                        doFrom();
+                    }
                 }
             }
                 
-            token = tokenizer.next();
+            keyword = tokenizer.next();
         }
         
         tokenizer = null;
@@ -476,5 +481,175 @@ public class SQLParser {
         }
         
         return new DatabaseObject(catalog, owner, table);
+    }
+    
+    /**
+     * A SQLStatement is a sequence of keywords (tokens) that, put
+     * together, represent a logical SQL statement.
+     */
+    private static class SQLStatement {
+        
+        private String statement;
+        private String keyword;
+        private SQLStatement nextKeyword;
+        
+        private SQLStatement () {
+            
+            /* NOTHING */
+        }
+        
+        /**
+         * Creates a new SQLStatement.
+         * 
+         * @param keywords This is a white-space delimited sequence of
+         *     keywords that, together, make up the SQL Statement.
+         */
+        public SQLStatement (String keywords) {
+            
+            this.statement = keywords;
+            String []words = keywords.split("\\s");
+            this.keyword = words[0];
+            
+            SQLStatement prevWord = this;
+            for (int i = 1; i < words.length; i++) {
+                
+                prevWord.nextKeyword = new SQLStatement();
+                prevWord.nextKeyword.keyword = words[i];
+                prevWord = prevWord.nextKeyword;
+            }
+        }
+        
+        /**
+         * Compares a provided keyword against the statement definition.
+         * In the case where the SQLSTatement involves more than one
+         * keyword, the provided {@link SimpleSQLTokenizer} will be polled
+         * to fetch the next available keyword (multiple times if necessary)
+         * to perform a full comparison.  If the match is successful then
+         * the tokenizer will be left pointing at the next token immediately
+         * following the SQL statement. If the match is unsuccessful then 
+         * the state of the tokenizer will be unaltered.
+         * 
+         * @param word The word to compare.
+         * @param tokenizer If this SQLStatement comprises more than one
+         *    keyword then the tokenizer will be used to pull the next
+         *    available keyword.
+         *    
+         * @return true if they match.
+         */
+        public int compare(String word,
+                SimpleSQLTokenizer tokenizer) {
+            
+            if (word == null) {
+                
+                return -1;
+            }
+            
+            int rc = keyword.compareToIgnoreCase(word);
+            if (rc == 0) {
+                
+                if (nextKeyword != null) {
+                    
+                    String token = tokenizer.next();
+                    rc = nextKeyword.compare(token, tokenizer);
+                    if (rc == 0) {
+                        
+                        return 0;
+                    }
+                    else {
+                        
+                        if (token != null) {
+                            
+                            tokenizer.unget(token);
+                        }
+                        
+                        return rc;
+                    }
+                }
+                else {
+                    
+                    return 0;
+                }
+            }
+            
+            return rc;
+        }
+        
+        public boolean equals(Object o) {
+            
+            if (o instanceof String) {
+                
+                return statement.equalsIgnoreCase((String) o);
+            }
+            
+            return false;
+        }
+        
+        public String toString() {
+            
+            return statement;
+        }
+    }
+    
+    /**
+     * A cheesy "bag" used to hold a set of SQL statements.
+     */
+    private static class SQLStatementSet {
+        
+        private List<SQLStatement> statements
+            = new ArrayList<SQLStatement>();
+        boolean isSorted = false;
+        
+        public void add(String statement) {
+            
+            isSorted = false;
+            statements.add(new SQLStatement(statement));
+        }
+        
+        public void add(SQLStatement statement) {
+            
+            isSorted = false;
+            statements.add(statement);
+        }
+        
+        public SQLStatement find (String word, SimpleSQLTokenizer tokenizer) {
+            
+            if (!isSorted) {
+                
+                Collections.sort(statements, new Comparator<SQLStatement>() {
+                    
+                    public int compare (SQLStatement s1, SQLStatement s2) {
+                        
+                        return s1.toString().compareTo(s2.toString());
+                    }
+                });
+                
+                isSorted = true;
+            }
+            
+            int low = 0;
+            int high = statements.size() - 1;
+            
+            while (low < high) {
+                
+                int mid = (low + high) / 2;
+                SQLStatement s = statements.get(mid);
+                int rc = s.compare(word, tokenizer);
+                
+                if (rc > 0) {
+                    
+                    high = mid - 1;
+                }
+                else if (rc < 0) {
+                    
+                    low = mid + 1;
+                }
+                else {
+                    
+                    return s;
+                }
+            }
+            
+            return null;
+        }
     }
 }
