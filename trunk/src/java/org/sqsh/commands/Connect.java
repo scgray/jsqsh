@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.sqsh.Command;
+import org.sqsh.ConnectionDescriptor;
 import org.sqsh.SQLContext;
 import org.sqsh.SQLDriver;
 import org.sqsh.SQLDriverManager;
@@ -45,52 +46,7 @@ public class Connect
     extends Command {
     
     private static class Options
-       extends SqshOptions {
-        
-        @Option(
-            option='S', longOption="server", arg=REQUIRED, argName="server",
-            description="Name of the database server to connect to")
-         public String server = null;
-    
-        @Option(
-            option='p', longOption="port", arg=REQUIRED, argName="port",
-            description="Listen port for the server to connect to")
-        public int port = -1;
-    
-        @Option(
-            option='D', longOption="database", arg=REQUIRED, argName="db",
-            description="Database (catalog) context to use upon connection")
-        public String database = null;
-    
-        @Option(
-            option='U', longOption="user", arg=REQUIRED, argName="user",
-            description="Username utilized for connection")
-        public String username = null;
-    
-        @Option(
-            option='P', longOption="password", arg=REQUIRED, argName="pass",
-            description="Password utilized for connection")
-        public String password = null;
-        
-        @Option(
-            option='w', longOption="domain", arg=REQUIRED, argName="domain",
-            description="Windows domain to be used for authentication")
-            public String domain = null;
-    
-        @Option(
-            option='s', longOption="sid", arg=REQUIRED, argName="SID",
-            description="Instance id (e.g. Oracle SID) to utilize")
-        public String SID = null;
-    
-        @Option(
-            option='c', longOption="jdbc-class", arg=REQUIRED, argName="driver",
-            description="JDBC driver class to utilize")
-        public String driverClass = null;
-        
-        @Option(
-            option='d', longOption="driver", arg=REQUIRED, argName="driver",
-            description="Name of jsqsh driver to be used for connection")
-        public String driverName = null;
+       extends ConnectionDescriptor {
         
         @Option(
             option='n', longOption="new-session", arg=NONE,
@@ -116,16 +72,17 @@ public class Connect
         /*
          * Turn command line options into properties.
          */
-        if (options.driverName == null) {
+        if (options.getDriver() == null) {
             
-            options.driverName = session.getVariable("dflt_driver");
-            if (options.driverName == null) {
+            options.setDriver(session.getVariable("dflt_driver"));
+            if (options.getDriver() == null) {
                 
-                options.driverName = "generic";
+                options.setDriver("generic");
             }
         }
         
-        if (options.driverName == null && options.arguments.size() == 0) {
+        if (options.getDriver() == null
+                && options.arguments.size() == 0) {
             
             session.err.println("You must supply a driver name via -d or the "
                 + "$driver variable or provide an explicit JDBC URL as the "
@@ -134,16 +91,17 @@ public class Connect
         }
         
         Map<String, String> properties = getProperties(session, options);
-        if (options.driverClass != null) {
+        if (options.getJdbcClass() != null) {
             
             try {
                 
-                session.getDriverManager().loadClass(options.driverClass);
+                session.getDriverManager().loadClass(
+                    options.getJdbcClass());
             }
             catch (Exception e) {
                 
                 session.err.println("Cannot load JDBC driver class '"
-                    + options.driverClass + "': " + e.getMessage());
+                    + options.getJdbcClass() + "': " + e.getMessage());
                 return 1;
             }
         }
@@ -160,13 +118,13 @@ public class Connect
             if (options.arguments.size() > 0) {
                 
                 sqlContext = session.getDriverManager().connect(
-                    options.driverClass, options.arguments.get(0), session,
+                    options.getJdbcClass(), options.arguments.get(0), session,
                     properties);
             }
             else {
                 
                 sqlContext = session.getDriverManager().connect(
-                	options.driverName, session, properties);
+                	options.getDriver(), session, properties);
             }
             
             /*
@@ -191,7 +149,7 @@ public class Connect
             else {
                 
                 exportProperties(session, properties);
-                session.setVariable("driver", options.driverName);
+                session.setVariable("driver", options.getDriver());
                 session.setSQLContext(sqlContext);
             }
         }
@@ -244,20 +202,21 @@ public class Connect
         Map<String, String> properties = new HashMap<String, String>();
         
         setProperty(properties, session,
-            SQLDriver.SERVER_PROPERTY, options.server);
+            SQLDriver.SERVER_PROPERTY, options.getServer());
         setProperty(properties, session,
             SQLDriver.PORT_PROPERTY, 
-                (options.port == -1 ? null :  Integer.toString(options.port)));
+                (options.getPort() == -1
+                        ? null : Integer.toString(options.getPort())));
         setProperty(properties, session,
-            SQLDriver.USER_PROPERTY, options.username);
+            SQLDriver.USER_PROPERTY, options.getUsername());
         setProperty(properties, session,
-            SQLDriver.PASSWORD_PROPERTY, options.password);
+            SQLDriver.PASSWORD_PROPERTY, options.getPassword());
         setProperty(properties, session,
-            SQLDriver.SID_PROPERTY, options.SID);
+            SQLDriver.SID_PROPERTY, options.getSid());
         setProperty(properties, session,
-            SQLDriver.DATABASE_PROPERTY, options.database);
+            SQLDriver.DATABASE_PROPERTY, options.getCatalog());
         setProperty(properties, session,
-            SQLDriver.DOMAIN_PROPERTY, options.domain);
+            SQLDriver.DOMAIN_PROPERTY, options.getDomain());
         
         return properties;
     }
