@@ -42,58 +42,9 @@ import static org.sqsh.options.ArgumentRequired.NONE;
  */
 public class JSqsh {
     
-    private static class Options {
+    private static class Options
+        extends ConnectionDescriptor {
         
-       @Option(
-           option='h', longOption="help", arg=NONE,
-           description="Display help on command line arguments and exit")
-       public boolean doHelp = false;
-        
-       @Option(
-           option='S', longOption="server", arg=REQUIRED, argName="server",
-           description="Name of the database server to connect to")
-        public String server = null;
-   
-       @Option(
-           option='p', longOption="port", arg=REQUIRED, argName="port",
-           description="Listen port for the server to connect to")
-       public int port = -1;
-   
-       @Option(
-           option='D', longOption="database", arg=REQUIRED, argName="db",
-           description="Database (catalog) context to use upon connection")
-       public String database = null;
-   
-       @Option(
-           option='U', longOption="user", arg=REQUIRED, argName="user",
-           description="Username utilized for connection")
-       public String username = null;
-   
-       @Option(
-           option='P', longOption="password", arg=REQUIRED, argName="pass",
-           description="Password utilized for connection")
-       public String password = null;
-       
-       @Option(
-           option='w', longOption="domain", arg=REQUIRED, argName="domain",
-           description="Windows domain to be used for authentication")
-           public String domain = null;
-   
-       @Option(
-           option='s', longOption="sid", arg=REQUIRED, argName="SID",
-           description="Instance id (e.g. Oracle SID) to utilize")
-       public String SID = null;
-   
-       @Option(
-           option='c', longOption="jdbc-class", arg=REQUIRED, argName="driver",
-           description="JDBC driver class to utilize")
-       public String driverClass = null;
-       
-       @Option(
-           option='d', longOption="driver", arg=REQUIRED, argName="driver",
-           description="Name of jsqsh driver to be used for connection")
-       public String driverName = null;
-       
        @Option(
            option='i', longOption="input-file", arg=REQUIRED, argName="file",
            description="Name of file to read as input instead of stdin")
@@ -300,57 +251,57 @@ public class JSqsh {
     private static boolean doConnect(Session session, Options options) {
         
         ArrayList<String> argv = new ArrayList<String>();
-        if (options.server != null) {
+        if (options.getServer() != null) {
             
             argv.add("-S");
-            argv.add(options.server);
+            argv.add(options.getServer());
         }
         
-        if (options.port != -1) {
+        if (options.getPort() != -1) {
             
             argv.add("-p");
-            argv.add(Integer.toString(options.port));
+            argv.add(Integer.toString(options.getPort()));
         }
         
-        if (options.database != null) {
+        if (options.getCatalog() != null) {
             
             argv.add("-D");
-            argv.add(options.database);
+            argv.add(options.getCatalog());
         }
         
-        if (options.username != null) {
+        if (options.getUsername() != null) {
             
             argv.add("-U");
-            argv.add(options.username);
+            argv.add(options.getUsername());
             argv.add("-P");
-            if (options.password != null) {
+            if (options.getPassword() != null) {
                 
-                argv.add(options.password);
+                argv.add(options.getPassword());
             }
         }
         
-        if (options.SID != null) {
+        if (options.getSid() != null) {
             
             argv.add("-s");
-            argv.add(options.SID);
+            argv.add(options.getSid());
         }
         
-        if (options.driverClass != null) {
+        if (options.getJdbcClass() != null) {
             
             argv.add("-c");
-            argv.add(options.driverClass);
+            argv.add(options.getJdbcClass());
         }
         
-        if (options.driverName != null) {
+        if (options.getDriver() != null) {
             
             argv.add("-d");
-            argv.add(options.driverName);
+            argv.add(options.getDriver());
         }
         
-        if (options.domain != null) {
+        if (options.getDomain() != null) {
             
             argv.add("-w");
-            argv.add(options.domain);
+            argv.add(options.getDomain());
         }
         
         if (options.arguments.size() > 0) {
