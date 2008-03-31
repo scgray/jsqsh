@@ -29,15 +29,9 @@ import org.sqsh.options.Option;
  * using the {@link org.sqsh.options.OptionProcessor}.
  */
 public class ConnectionDescriptor
-    extends SqshOptions {
+    extends SqshOptions
+    implements Cloneable {
     
-    /**
-     * Name of the descriptor.
-     */
-    @Option(
-        option='N', longOption="name", arg=REQUIRED, argName="name",
-        description="Name of session")
-    private String name;
     
     @Option(
         option='S', longOption="server", arg=REQUIRED, argName="server",
@@ -67,7 +61,7 @@ public class ConnectionDescriptor
     @Option(
         option='w', longOption="domain", arg=REQUIRED, argName="domain",
         description="Windows domain to be used for authentication")
-        public String domain = null;
+    public String domain = null;
 
     @Option(
         option='s', longOption="sid", arg=REQUIRED, argName="SID",
@@ -89,6 +83,11 @@ public class ConnectionDescriptor
         description="JDBC url to use for connection")
     public String url = null;
     
+    @Option(
+        option='N', longOption="name", arg=REQUIRED, argName="name",
+        description="Name to apply to connection")
+    public String name = null;
+    
     /**
      * Creates an empty connection descriptor.
      */
@@ -104,6 +103,23 @@ public class ConnectionDescriptor
     public ConnectionDescriptor (String name) {
         
         this.name = name;
+    }
+    
+    /**
+     * Creates a copy of the object.
+     */
+    public Object clone() {
+        
+        try {
+            
+            return super.clone();
+        }
+        catch (CloneNotSupportedException e) {
+            
+            /* IGNORED */
+        }
+        
+        return null;
     }
     
     /**
@@ -183,7 +199,7 @@ public class ConnectionDescriptor
      */
     public void setCatalog (String catalog) {
     
-        this.database = database;
+        this.database = catalog;
     }
     
     /**
@@ -281,7 +297,41 @@ public class ConnectionDescriptor
     
         this.url = url;
     }
-
+    
+    /**
+     * Returns true if this descriptor matches that descriptor.
+     * 
+     * @param that The descriptor to compare to.
+     * @return true if they are completely identical.
+     */
+    public boolean isIdentical(ConnectionDescriptor that) {
+        
+        return (nullEquals(this.database, that.database)
+              && nullEquals(this.domain, that.domain)
+              && nullEquals(this.driverClass, that.driverClass)
+              && nullEquals(this.driverName, that.driverName)
+              && nullEquals(this.name, that.name)
+              && nullEquals(this.password, that.password)
+              && this.port == that.port
+              && nullEquals(this.server, that.server)
+              && nullEquals(this.SID, that.SID)
+              && nullEquals(this.url, that.url)
+              && nullEquals(this.username, that.username));
+    }
+    
+    /**
+     * Helper to compare two objects that could be null.
+     * 
+     * @param o1 First object to compare.
+     * @param o2 Second object to compare.
+     * @return True if they are equal.
+     */
+    private boolean nullEquals(Object o1, Object o2) {
+        
+        return ((o1 == null && o2 == null)
+                || (o1 != null && o2 != null && o1.equals(o2)));
+    }
+    
     /* (non-Javadoc)
      * @see java.lang.Object#hashCode()
      */

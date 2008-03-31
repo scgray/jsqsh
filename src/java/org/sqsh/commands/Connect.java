@@ -23,12 +23,18 @@ import static org.sqsh.options.ArgumentRequired.REQUIRED;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.sqsh.ColumnDescription;
 import org.sqsh.Command;
 import org.sqsh.ConnectionDescriptor;
+import org.sqsh.ConnectionDescriptorManager;
+import org.sqsh.DataFormatter;
+import org.sqsh.Renderer;
 import org.sqsh.SQLContext;
 import org.sqsh.SQLDriver;
 import org.sqsh.SQLDriverManager;
@@ -53,6 +59,21 @@ public class Connect
             description="Create a new session for the connection")
         public boolean newSession = false;
         
+        @Option(
+            option='l', longOption="list", arg=NONE,
+            description="List all defined connections")
+        public boolean list = false;
+        
+        @Option(
+            option='a', longOption="add", arg=NONE,
+            description="Add a connection definition without connecting")
+        public boolean add = false;
+        
+        @Option(
+            option='r', longOption="remove", arg=NONE,
+            description="Remove a connection definition")
+        public boolean remove = false;
+        
         @Argv(program="\\connect", min=0, max=1, usage="[options] [jdbc-url]")
         public List<String> arguments = new ArrayList<String>();
     }
@@ -68,64 +89,102 @@ public class Connect
         throws Exception {
         
         Options options = (Options) opts;
+        ConnectionDescriptor connDesc = (ConnectionDescriptor) options;
         
-        /*
-         * Turn command line options into properties.
-         */
-        if (options.getDriver() == null) {
-            
-            options.setDriver(session.getVariable("dflt_driver"));
-            if (options.getDriver() == null) {
+        if (options.arguments.size() > 0) {
                 
-                options.setDriver("generic");
-            }
+            connDesc.setUrl(options.arguments.get(0));
         }
         
-        if (options.getDriver() == null
-                && options.arguments.size() == 0) {
+        if ((options.add || options.remove)
+                && options.getName() == null) {
             
-            session.err.println("You must supply a driver name via -d or the "
-                + "$driver variable or provide an explicit JDBC URL as the "
-                + "last argument to \\connect");
+            session.err.println("The --name option must be provided when "
+                + "adding or removing a defined connection");
             return 1;
         }
         
-        Map<String, String> properties = getProperties(session, options);
-        if (options.getJdbcClass() != null) {
+        /*
+         * If the current set of options include the "name" argument
+         * then this is a saved connection profile.
+         */
+        if (options.getName() != null) {
             
-            try {
+            ConnectionDescriptorManager connDescMan = 
+                session.getConnectionDescriptorManager();
+            
+            ConnectionDescriptor savedOptions =
+                connDescMan.get(options.getName());
+            
+            if (options.remove) {
                 
-                session.getDriverManager().loadClass(
-                    options.getJdbcClass());
-            }
-            catch (Exception e) {
+                if (savedOptions != null) {
+                    
+                    connDescMan.remove(options.getName());
+                    connDescMan.save();
+                    return 0;
+                }
+                else {
+                    
+                    session.err.println("There is no connection definition "
+                        + "name '" + options.getName() + "'. Use the "
+                        + "--list option to display all defined connections");
+                }
                 
-                session.err.println("Cannot load JDBC driver class '"
-                    + options.getJdbcClass() + "': " + e.getMessage());
                 return 1;
             }
+            
+            /*
+             * If we had previously saved away some options, then we take
+             * those options and merge in any additional options that the
+             * caller may have requested.
+             */
+            if (savedOptions != null) {
+                
+                connDesc = connDescMan.merge(savedOptions, connDesc);
+            }
+            
+            /*
+             * If this is the first time that we have seen this name
+             * or the user has added different options, then update
+             * and re-save our settings.
+             */
+            if (savedOptions == null
+                    || (savedOptions.isIdentical(connDesc)) == false) {
+                
+                connDescMan.put(connDesc);
+                connDescMan.save();
+            }
+        }
+        
+        /*
+         * If we were asked to list the connections then do so and
+         * just return.
+         */
+        if (options.list) {
+            
+            doList(session);
+            return 0;
+        }
+        
+        /*
+         * If we had the --add option, then we don't need to do anything
+         * else.
+         */
+        if (options.add) {
+            
+            return 0;
         }
         
         /*
          * First we will try to use our driver smarts.
          */
-        
         try {
             
             SQLContext sqlContext = null;
-            String url = null;
             
-            if (options.arguments.size() > 0) {
-                
-                sqlContext = session.getDriverManager().connect(
-                    options.getJdbcClass(), options.arguments.get(0), session,
-                    properties);
-            }
-            else {
-                
-                sqlContext = session.getDriverManager().connect(
-                	options.getDriver(), session, properties);
-            }
+            sqlContext = session.getDriverManager().connect(
+                session, connDesc);
             
             /*
              * If we are asked to create a new session, then we will do so.
@@ -135,8 +194,6 @@ public class Connect
                 Session newSession = session.getContext().newSession(
                     session.in, session.out, session.err);
                 newSession.setInteractive(session.isInteractive());
-                
-                exportProperties(newSession, properties);
                 newSession.setSQLContext(sqlContext);
                 
                 /*
@@ -148,8 +205,6 @@ public class Connect
             }
             else {
                 
-                exportProperties(session, properties);
-                session.setVariable("driver", options.getDriver());
                 session.setSQLContext(sqlContext);
             }
         }
@@ -161,77 +216,64 @@ public class Connect
         return 0;
     }
     
-    /**
-     * Exports the properties that were used to establish the connection
-     * out to the session.
-     * 
-     * @param properties The properties.
-     */
-    private void exportProperties(Session session,
-            Map<String, String> properties) {
+    private void doList(Session session) {
         
-        for (String name : properties.keySet()) {
+        ColumnDescription []columns = new ColumnDescription[10];
+        columns[0] = new ColumnDescription("Name", -1);
+        columns[1] = new ColumnDescription("Driver", -1);
+        columns[2] = new ColumnDescription("Server", -1);
+        columns[3] = new ColumnDescription("Port", -1);
+        columns[4] = new ColumnDescription("SID", -1);
+        columns[5] = new ColumnDescription("Username", -1);
+        columns[6] = new ColumnDescription("Password", -1);
+        columns[7] = new ColumnDescription("Domain", -1);
+        columns[8] = new ColumnDescription("Class", -1);
+        columns[9] = new ColumnDescription("URL", -1);
+        
+        DataFormatter formatter =
+            session.getDataFormatter();
+        Renderer renderer = 
+            session.getRendererManager().getCommandRenderer(session);
+        renderer.header(columns);
+        
+        ConnectionDescriptor []connDescs = 
+            session.getConnectionDescriptorManager().getAll();
+        
+        Arrays.sort(connDescs, new Comparator<ConnectionDescriptor>() {
+                
+                public int compare(ConnectionDescriptor c1,
+                        ConnectionDescriptor c2) {
+                    
+                    return c1.getName().compareTo(c2.getName());
+                }
+            });
+        
+        for (ConnectionDescriptor connDesc : connDescs) {
             
-            session.setVariable(name, properties.get(name));
-        }
-    }
-    
-    /**
-     * Given the options that the user passed in, creates a map of
-     * properties that are required by {@link SQLDriverManager#connect(String, Session, Map)}
-     * in order to establish a connection. For a given property, such as
-     * {@link SQLDriver#SERVER_PROPERTY}, the value is established by the
-     * first of the following that is available:
-     * 
-     * <ol>
-     *   <li> Using the option provided on the command line (e.g. "-S")
-     *   <li> Looking the in the session for variable of the name
-     *        "dflt_&lt;property&gt;" (e.g. "dflt_server"). 
-     * </ol>
-     * 
-     * If none of those is available, then the property is not passed in 
-     * and it is up to the {@link SQLDriver} to provide a default.
-     * 
-     * @param session The session used to look up the properties.
-     * @param options The options the user provided.
-     * @return A map of properties.
-     */
-    private Map<String, String> getProperties(
-            Session session, Options options) {
-        
-        Map<String, String> properties = new HashMap<String, String>();
-        
-        setProperty(properties, session,
-            SQLDriver.SERVER_PROPERTY, options.getServer());
-        setProperty(properties, session,
-            SQLDriver.PORT_PROPERTY, 
-                (options.getPort() == -1
-                        ? null : Integer.toString(options.getPort())));
-        setProperty(properties, session,
-            SQLDriver.USER_PROPERTY, options.getUsername());
-        setProperty(properties, session,
-            SQLDriver.PASSWORD_PROPERTY, options.getPassword());
-        setProperty(properties, session,
-            SQLDriver.SID_PROPERTY, options.getSid());
-        setProperty(properties, session,
-            SQLDriver.DATABASE_PROPERTY, options.getCatalog());
-        setProperty(properties, session,
-            SQLDriver.DOMAIN_PROPERTY, options.getDomain());
-        
-        return properties;
-    }
-    
-    private void setProperty(Map<String, String>map, Session session,
-            String name, String value) {
-        
-        if (value == null) {
+            String row[] = new String[10];
+            row[0] = connDesc.getName();
+            row[1] = (connDesc.getDriver() == null ?
+                        formatter.getNull() : connDesc.getDriver());
+            row[2] = (connDesc.getServer() == null ?
+                        formatter.getNull() : connDesc.getServer());
+            row[3] = (connDesc.getPort() < 0 ?
+                        formatter.getNull() : Integer.toString(connDesc.getPort()));
+            row[4] = (connDesc.getSid() == null ?
+                        formatter.getNull() : connDesc.getSid());
+            row[5] = (connDesc.getUsername() == null ?
+                        formatter.getNull() : connDesc.getUsername());
+            row[6] = (connDesc.getPassword() == null ?
+                        formatter.getNull() : "*******");
+            row[7] = (connDesc.getDomain() == null ?
+                        formatter.getNull() : connDesc.getDomain());
+            row[8] = (connDesc.getJdbcClass() == null ?
+                        formatter.getNull() : connDesc.getJdbcClass());
+            row[9] = (connDesc.getUrl() == null ? 
+                        formatter.getNull() : connDesc.getUrl());
             
-            value = session.getVariable("dflt_" + name);
+            renderer.row(row);
         }
         
-        if (value != null) {
-            
-            map.put(name, value);
-        }
+        renderer.flush();
     }
 }

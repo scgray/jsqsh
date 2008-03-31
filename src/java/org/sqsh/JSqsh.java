@@ -22,6 +22,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -250,70 +251,35 @@ public class JSqsh {
      */
     private static boolean doConnect(Session session, Options options) {
         
-        ArrayList<String> argv = new ArrayList<String>();
-        if (options.getServer() != null) {
+        /*
+         * If any one of our options having to do with establish a connection
+         * have been provided, then connect!
+         */
+        if (options.getServer() != null
+                || options.getPort() != -1
+                || options.getCatalog() != null
+                || options.getUsername() != null
+                || options.getPassword() != null
+                || options.getSid() != null
+                || options.getJdbcClass() != null
+                || options.getDriver() != null
+                || options.getDomain() != null
+                || options.arguments.size() > 0) {
             
-            argv.add("-S");
-            argv.add(options.getServer());
-        }
-        
-        if (options.getPort() != -1) {
-            
-            argv.add("-p");
-            argv.add(Integer.toString(options.getPort()));
-        }
-        
-        if (options.getCatalog() != null) {
-            
-            argv.add("-D");
-            argv.add(options.getCatalog());
-        }
-        
-        if (options.getUsername() != null) {
-            
-            argv.add("-U");
-            argv.add(options.getUsername());
-            argv.add("-P");
-            if (options.getPassword() != null) {
+            if (options.arguments.size() > 0) {
                 
-                argv.add(options.getPassword());
+                options.setUrl(options.arguments.get(0));
             }
-        }
-        
-        if (options.getSid() != null) {
             
-            argv.add("-s");
-            argv.add(options.getSid());
-        }
-        
-        if (options.getJdbcClass() != null) {
-            
-            argv.add("-c");
-            argv.add(options.getJdbcClass());
-        }
-        
-        if (options.getDriver() != null) {
-            
-            argv.add("-d");
-            argv.add(options.getDriver());
-        }
-        
-        if (options.getDomain() != null) {
-            
-            argv.add("-w");
-            argv.add(options.getDomain());
-        }
-        
-        if (options.arguments.size() > 0) {
-            
-            argv.add(options.arguments.get(0));
-        }
-        
-        if (argv.size() > 0) {
-            
-            if (session.execute("\\connect",
-                    argv.toArray(new String[0])) != 0) {
+            try {
                 
+                SQLContext ctx = 
+                    session.getDriverManager().connect(session, options);
+                session.setSQLContext(ctx);
+            }
+            catch (SQLException e) {
+                
+                SQLTools.printException(session.err, e);
                 return false;
             }
         }

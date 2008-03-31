@@ -341,6 +341,15 @@ public class Session
     }
     
     /**
+     * Returns the object that manages the connections.xml file.
+     * @return the object that manages the connections.xml file.
+     */
+    public ConnectionDescriptorManager getConnectionDescriptorManager() {
+        
+        return sqshContext.getConnectionDescriptorManager();
+    }
+    
+    /**
      * Returns the column formatter for this session.
      * 
      * @return the dataFormatter for this session.

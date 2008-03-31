@@ -138,6 +138,12 @@ public class SqshContext {
     private ShellManager shellManager = ShellManager.getInstance();
     
     /**
+     * This guy is responsible for loading up and managing 
+     * the connection.xml file.
+     */
+    private ConnectionDescriptorManager connDescMan;
+    
+    /**
      * The help manager owns general help topics.
      */
     private HelpManager helpManager = new HelpManager();
@@ -421,6 +427,16 @@ public class SqshContext {
     public ShellManager getShellManager() {
         
         return shellManager;
+    }
+    
+    /**
+     * Returns the object that manages the connections.xml file.
+     * 
+     * @return The ConnectionDescriptorManager.
+     */
+    public ConnectionDescriptorManager getConnectionDescriptorManager() {
+        
+        return connDescMan;
     }
     
     /**
@@ -962,6 +978,12 @@ public class SqshContext {
             
             bufferManager.load(buffers);
         }
+        
+        /*
+         * Populate our connection descriptors.
+         */
+        File connections = new File(homedir, "connections.xml");
+        connDescMan = new ConnectionDescriptorManager(connections.toString());
     }
     
     /**

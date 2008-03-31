@@ -255,40 +255,6 @@ public class SQLDriverManager {
     }
     
     /**
-     * Establishes a connection with an explicitly defined URL and class.
-     * 
-     * @param clazz The JDBC class.
-     * @param url The JDBC URL to connect to.
-     * @param session The session for which the connection is being 
-     *    established.
-     * @param properties Connection properties to be utilized. These 
-     *    properties can include properties that the driver itself
-     *    understands, as well as properties that are required by 
-     *    the {@link SQLDriver}, such as {@link SQLDriver#SERVER_PROPERTY}
-     *    or {@link SQLDriver#USER_PROPERTY}.
-     * @return A newly created connection.
-     * @throws SQLException Thrown if the connection could not be 
-     *    established.
-     */
-    public SQLContext connect (String clazz, String url, Session session,
-            Map<String, String>properties)
-        throws SQLException {
-        
-        SQLDriver d = new SQLDriver("__temp__", clazz, url);
-        drivers.put(d.getName(), d);
-        
-        try {
-            
-            return connect(d.getName(), session, properties);
-            
-        }
-        finally {
-            
-            drivers.remove(d);
-        }
-    }
-    
-    /**
      * Attempts to connect to the database utilizing a driver.
      * 
      * @param driver The name of the driver to utilize. The special
@@ -302,28 +268,91 @@ public class SQLDriverManager {
      * @throws SQLException Thrown if the connection could not be 
      *    established.
      */
-    public SQLContext connect (String driver, Session session,
-            Map<String, String>properties)
+    public SQLContext connect (Session session, ConnectionDescriptor connDesc)
         throws SQLException {
         
         SQLDriver sqlDriver = null;
         
-        sqlDriver = getDriver(driver);
+        /*
+         * If no driver was supplied, then set it to the default.
+         */
+        if (connDesc.getDriver() == null) {
+            
+            connDesc.setDriver(session.getVariable("dflt_driver"));
+        }
+        
+        /*
+         * Make sure we are going to have enough to connect with here!
+         */
+        if (connDesc.getDriver() == null
+                && connDesc.getUrl() == null) {
+            
+            throw new SQLException(
+                "Either an explicit JSqsh driver name must be supplied "
+                + "(via --driver) or a JDBC fully qualified JDBC url "
+                + "must be provided (via --jdbc-url). In most cases the "
+                + "JDBC url must also be accompanied with the "
+                + "name of the JDBC driver class (via --jdbc-class");
+        }
+        
+        /*
+         * We need to have a SQLDriver object because it makes our life
+         * easier expanding variables. To allow for no driver being
+         * supplied by the user, we will use one called "generic".
+         */
+        if (connDesc.getDriver() == null) {
+            
+            connDesc.setDriver("generic");
+        }
+        
+        sqlDriver = getDriver(connDesc.getDriver());
         if (sqlDriver == null) {
                 
-            throw new SQLException("Sqsh has no driver registered under "
-                + "the name '" + driver + "'. To see a list of available "
-                + "drivers, use the \\drivers command");
+            throw new SQLException("JSqsh has no driver registered under "
+                + "the name '" + connDesc.getDriver()
+                + "'. To see a list of available drivers, use the "
+                + "\\drivers command");
         }
+        
+        /*
+         * If the user asked for a JDBC driver class, then make sure
+         * that we can load it.
+         */
+        if (connDesc.getJdbcClass() != null) {
+            
+            try {
+                
+                loadClass(connDesc.getJdbcClass());
+            }
+            catch (Exception e) {
+                
+                throw new SQLException("Cannot load JDBC driver class '"
+                    + connDesc.getJdbcClass() + "': " + e.getMessage());
+            }
+        }
+        
+        /*
+         * The JDBC URL will either be one the one supplied by the user
+         * or the one that is defined by the JDBC driver.
+         */
+        String url = connDesc.getUrl();
+        if (url == null) {
+            
+            url = sqlDriver.getUrl();
+        }
+        
+        /*
+         * Turn our connection descriptor into properties that can be
+         * referenced while expanding the URL.
+         */
+        Map<String, String> properties = toProperties(session, connDesc);
         
         /*
          * Expand the url of its variables.
          */
-        String url = getUrl(session, properties, sqlDriver.getVariables(),
-            sqlDriver.getUrl());
+        url = getUrl(session, properties, sqlDriver.getVariables(), url);
         
         Connection conn = null;
-        
         try {
             
             Driver jdbcDriver = getDriverFromUrl(url);
@@ -418,7 +447,75 @@ public class SQLDriverManager {
                 + defaultAutoCommit);
         }
         
-        return new SQLContext(conn, url, sqlDriver.getAnalyzer());
+        return new SQLContext(connDesc, conn, url, sqlDriver.getAnalyzer());
+    }
+    
+    /**
+     * Given the connection settings that the user provided, creates a map of
+     * properties that are required by {@link SQLDriverManager#connect(String,
+     * Session, Map)} in order to establish a connection. For a given 
+     * property, such as {@link SQLDriver#SERVER_PROPERTY}, the value is
+     * established by the first of the following that is available:
+     * 
+     * <ol>
+     *   <li> Using the option provided in the {@link ConnectionDescriptor}
+     *   <li> Looking the in the session for variable of the name
+     *        "dflt_&lt;property&gt;" (e.g. "dflt_server"). 
+     * </ol>
+     * 
+     * If none of those is available, then the property is not passed in 
+     * and it is up to the {@link SQLDriver} to provide a default.
+     * 
+     * @param session The session used to look up the properties.
+     * @param options The options the user provided.
+     * @return A map of properties.
+     */
+    private Map<String, String> toProperties(
+            Session session, ConnectionDescriptor connDesc) {
+        
+        Map<String, String> properties = new HashMap<String, String>();
+        
+        setProperty(properties, session,
+            SQLDriver.SERVER_PROPERTY, connDesc.getServer());
+        setProperty(properties, session,
+            SQLDriver.PORT_PROPERTY, 
+                (connDesc.getPort() == -1
+                        ? null : Integer.toString(connDesc.getPort())));
+        setProperty(properties, session,
+            SQLDriver.USER_PROPERTY, connDesc.getUsername());
+        setProperty(properties, session,
+            SQLDriver.PASSWORD_PROPERTY, connDesc.getPassword());
+        setProperty(properties, session,
+            SQLDriver.SID_PROPERTY, connDesc.getSid());
+        setProperty(properties, session,
+            SQLDriver.DATABASE_PROPERTY, connDesc.getCatalog());
+        setProperty(properties, session,
+            SQLDriver.DOMAIN_PROPERTY, connDesc.getDomain());
+        
+        return properties;
+    }
+    
+    /**
+     * Helper for toProperties() to utilize dflt_ variables to provide
+     * a property name.
+     * 
+     * @param map The map to populate.
+     * @param session The session from which dflt_ variables are fetched.
+     * @param name The name of the property.
+     * @param value The value of the property to set.
+     */
+    private void setProperty(Map<String, String>map, Session session,
+            String name, String value) {
+        
+        if (value == null) {
+            
+            value = session.getVariable("dflt_" + name);
+        }
+        
+        if (value != null) {
+            
+            map.put(name, value);
+        }
     }
     
     /**
