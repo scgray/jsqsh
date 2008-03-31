@@ -37,6 +37,11 @@ public class SQLContext {
     private String url;
     
     /**
+     * The properties that were used to establish the connection.
+     */
+    private ConnectionDescriptor connDesc;
+    
+    /**
      *  The SQL analyzer that is going to be used to analyze the SQL
      *  executed through this connection.
      */
@@ -45,13 +50,18 @@ public class SQLContext {
     /**
      * Creates a SQLContext
      * 
+     * @param connDesc The properties that were used when establishing
+     *    the connection.
      * @param conn The connection 
      * @param url The JDBC URL that was used to create the connection
      * @param analyzer An analyzer for analyzing the SQL (null if no
      * analyzer is available).
      */
-    public SQLContext (Connection conn, String url, SQLAnalyzer analyzer) {
+    public SQLContext (
+            ConnectionDescriptor connDesc,
+            Connection conn, String url, SQLAnalyzer analyzer) {
         
+        this.connDesc = connDesc;
         this.connection = conn;
         this.url = url;
         this.analyzer = analyzer;
@@ -89,6 +99,108 @@ public class SQLContext {
         this.connection = connection;
     }
     
+    /**
+     * Returns the set of properties that were used when establishing
+     * the connection.
+     * 
+     * @return The set of properties used when establishing the 
+     *   connection.
+     */
+    public ConnectionDescriptor getConnectionDescriptor() {
+        
+        return connDesc;
+    }
+    
+    /**
+     * @return
+     * @see org.sqsh.ConnectionDescriptor#getCatalog()
+     */
+    public String getCatalog () {
+
+        return connDesc.getCatalog();
+    }
+
+    /**
+     * @return
+     * @see org.sqsh.ConnectionDescriptor#getDomain()
+     */
+    public String getDomain () {
+
+        return connDesc.getDomain();
+    }
+
+    /**
+     * @return
+     * @see org.sqsh.ConnectionDescriptor#getDriver()
+     */
+    public String getDriver () {
+
+        return connDesc.getDriver();
+    }
+
+    /**
+     * @return
+     * @see org.sqsh.ConnectionDescriptor#getJdbcClass()
+     */
+    public String getJdbcClass () {
+
+        return connDesc.getJdbcClass();
+    }
+
+    /**
+     * @return
+     * @see org.sqsh.ConnectionDescriptor#getName()
+     */
+    public String getName () {
+
+        return connDesc.getName();
+    }
+
+    /**
+     * @return
+     * @see org.sqsh.ConnectionDescriptor#getPassword()
+     */
+    public String getPassword () {
+
+        return connDesc.getPassword();
+    }
+
+    /**
+     * @return
+     * @see org.sqsh.ConnectionDescriptor#getPort()
+     */
+    public int getPort () {
+
+        return connDesc.getPort();
+    }
+
+    /**
+     * @return
+     * @see org.sqsh.ConnectionDescriptor#getServer()
+     */
+    public String getServer () {
+
+        return connDesc.getServer();
+    }
+
+    /**
+     * @return
+     * @see org.sqsh.ConnectionDescriptor#getSid()
+     */
+    public String getSid () {
+
+        return connDesc.getSid();
+    }
+
+    /**
+     * @return
+     * @see org.sqsh.ConnectionDescriptor#getUsername()
+     */
+    public String getUsername () {
+
+        return connDesc.getUsername();
+    }
+
     /**
      * @return the url
      */

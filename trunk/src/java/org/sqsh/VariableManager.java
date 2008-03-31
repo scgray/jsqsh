@@ -42,7 +42,7 @@ public class VariableManager
     implements Map<String, String> {
     
     private static final Logger LOG = 
-        Logger.getLogger(CommandManager.class.getName());
+        Logger.getLogger(VariableManager.class.getName());
     
     private VariableManager parent = null;
     
