@@ -1,4 +1,9 @@
 Release 1.2-SNAPSHOT
+* Added new mechanism to \connect to allow a logical name to be assigned
+  to a connection and persistently saved away so that the connection
+  can be re-established in the future using only the name. This provides
+  a cleaner mechanism for managing connections than the 'alias' command.
+  Run  "\help connect" for more details.
 * Added session-to-session redirection, allowing the output of a 
   command executed in one session to be executed by another session
   (or even re-executed by itself).  See '\help redirection' for details.
