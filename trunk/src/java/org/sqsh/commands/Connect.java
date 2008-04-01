@@ -25,9 +25,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.sqsh.ColumnDescription;
 import org.sqsh.Command;
@@ -36,8 +34,6 @@ import org.sqsh.ConnectionDescriptorManager;
 import org.sqsh.DataFormatter;
 import org.sqsh.Renderer;
 import org.sqsh.SQLContext;
-import org.sqsh.SQLDriver;
-import org.sqsh.SQLDriverManager;
 import org.sqsh.SQLTools;
 import org.sqsh.Session;
 import org.sqsh.SqshContextSwitchMessage;
@@ -60,21 +56,22 @@ public class Connect
         public boolean newSession = false;
         
         @Option(
+            option='a', longOption="add", arg=REQUIRED,
+            description="Save the command line as a named connection")
+        public String add = null;
+        
+        @Option(
             option='l', longOption="list", arg=NONE,
             description="List all defined connections")
         public boolean list = false;
-        
-        @Option(
-            option='a', longOption="add", arg=NONE,
-            description="Add a connection definition without connecting")
-        public boolean add = false;
         
         @Option(
             option='r', longOption="remove", arg=NONE,
             description="Remove a connection definition")
         public boolean remove = false;
         
-        @Argv(program="\\connect", min=0, max=1, usage="[options] [jdbc-url]")
+        @Argv(program="\\connect", min=0, max=1,
+              usage="[options] [named-connection]")
         public List<String> arguments = new ArrayList<String>();
     }
    
@@ -91,16 +88,10 @@ public class Connect
         Options options = (Options) opts;
         ConnectionDescriptor connDesc = (ConnectionDescriptor) options;
         
-        if (options.arguments.size() > 0) {
-                
-            connDesc.setUrl(options.arguments.get(0));
-        }
-        
-        if ((options.add || options.remove)
-                && options.getName() == null) {
+        if (options.remove && options.arguments.size() < 1) {
             
-            session.err.println("The --name option must be provided when "
-                + "adding or removing a defined connection");
+            session.err.println("A saved connection name must be provided"
+                + "with the --remove option");
             return 1;
         }
         
@@ -108,30 +99,26 @@ public class Connect
          * If the current set of options include the "name" argument
          * then this is a saved connection profile.
          */
-        if (options.getName() != null) {
+        if (options.arguments.size() > 0) {
             
+            String name = options.arguments.get(0);
             ConnectionDescriptorManager connDescMan = 
                 session.getConnectionDescriptorManager();
             
-            ConnectionDescriptor savedOptions =
-                connDescMan.get(options.getName());
+            ConnectionDescriptor savedOptions = connDescMan.get(name);
+            if (savedOptions == null) {
+                
+                session.err.println("There is no saved connection information "
+                    + "named '" + name + "'. Use --list to show available "
+                    + "connections");
+                return 1;
+            }
             
             if (options.remove) {
                 
-                if (savedOptions != null) {
-                    
-                    connDescMan.remove(options.getName());
-                    connDescMan.save();
-                    return 0;
-                }
-                else {
-                    
-                    session.err.println("There is no connection definition "
-                        + "name '" + options.getName() + "'. Use the "
-                        + "--list option to display all defined connections");
-                }
-                
-                return 1;
+                connDescMan.remove(name);
+                connDescMan.save();
+                return 0;
             }
             
             /*
@@ -143,18 +130,22 @@ public class Connect
                 
                 connDesc = connDescMan.merge(savedOptions, connDesc);
             }
+        }
+        
+        /*
+         * If this is the first time that we have seen this name
+         * or the user has added different options, then update
+         * and re-save our settings.
+         */
+        if (options.add != null) {
             
-            /*
-             * If this is the first time that we have seen this name
-             * or the user has added different options, then update
-             * and re-save our settings.
-             */
-            if (savedOptions == null
-                    || (savedOptions.isIdentical(connDesc)) == false) {
+            ConnectionDescriptorManager connDescMan = 
+                session.getConnectionDescriptorManager();
                 
-                connDescMan.put(connDesc);
-                connDescMan.save();
-            }
+            connDesc.setName(options.add);
+            connDescMan.put(connDesc);
+            connDescMan.save();
+            return 0;
         }
         
         /*
@@ -164,15 +155,6 @@ public class Connect
         if (options.list) {
             
             doList(session);
-            return 0;
-        }
-        
-        /*
-         * If we had the --add option, then we don't need to do anything
-         * else.
-         */
-        if (options.add) {
-            
             return 0;
         }
         

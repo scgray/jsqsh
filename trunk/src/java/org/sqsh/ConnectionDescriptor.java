@@ -83,9 +83,9 @@ public class ConnectionDescriptor
         description="JDBC url to use for connection")
     public String url = null;
     
-    @Option(
-        option='N', longOption="name", arg=REQUIRED, argName="name",
-        description="Name to apply to connection")
+    /**
+     * The name cannot be set with a flag.
+     */
     public String name = null;
     
     /**

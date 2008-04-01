@@ -67,7 +67,7 @@ public class JSqsh {
            description="Turn on debugging for a java class or package")
        public String debug = null;
        
-       @Argv(program="jsqsh", min=0, max=1, usage="[options] [jdbc-url]")
+       @Argv(program="jsqsh", min=0, max=1, usage="[options] [connection-name]")
        public List<String> arguments = new ArrayList<String>();
     }
    
@@ -251,6 +251,8 @@ public class JSqsh {
      */
     private static boolean doConnect(Session session, Options options) {
         
+        ConnectionDescriptor connDesc = (ConnectionDescriptor)options;
+        
         /*
          * If any one of our options having to do with establish a connection
          * have been provided, then connect!
@@ -268,13 +270,26 @@ public class JSqsh {
             
             if (options.arguments.size() > 0) {
                 
-                options.setUrl(options.arguments.get(0));
+                String name = options.arguments.get(0);
+                ConnectionDescriptorManager connDescMan = 
+                    session.getConnectionDescriptorManager();
+                
+                ConnectionDescriptor savedOptions = connDescMan.get(name);
+                if (savedOptions == null) {
+                    
+                    session.err.println("There is no saved connection "
+                        + "information named '" + name + "'.");
+                    
+                    return false;
+                }
+                
+                connDesc = connDescMan.merge(savedOptions, connDesc);
             }
             
             try {
                 
                 SQLContext ctx = 
-                    session.getDriverManager().connect(session, options);
+                    session.getDriverManager().connect(session, connDesc);
                 session.setSQLContext(ctx);
             }
             catch (SQLException e) {
