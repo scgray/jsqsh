@@ -130,7 +130,7 @@ OPTIONS:
         ]]></Description>
             <Help><![CDATA[
 SYNOPSIS
-  \connect [options] [jdbc-url]
+  \connect [options] [connection-name]
               
 DESCRIPTION
   The \connect command attempts to establish a JDBC connection
@@ -140,12 +140,6 @@ DESCRIPTION
   established, then the existing connection is closed and replaced
   with the new connection.
               
-  The JDBC URL that is used to connect can be supplied 
-  explicitly via either via the "jdbc-url" argument or a 
-  driver definition name can be provided ("driver-name") that
-  will provide the URL (to see a list of available drivers
-  use the \drivers command).
-  
 OPTIONS
   Each JDBC driver shown by the \drivers command references a 
   number of variables in its JDBC URL. For example, the Oracle
@@ -183,6 +177,12 @@ OPTIONS
                           
   -s, --sid=SID       Sets the ${SID} property, and provides the Oracle 
                       SID that will be used when connecting to Oracle.
+  
+  -u, --jdbc-url=url  This option allows you to provide an explicit
+                      JDBC URL to utilize when establishing the connection
+                      rather than using jsqsh's driver mechanism. 
+                      Typically use of this parameter also requires the use
+                      of the --jdbc-class argument as well.
                
   -c, --jdbc-class=class  When utilizing a direct JDBC url (and not a 
                       jsqsh driver definition), this should be utilized to
@@ -197,28 +197,21 @@ OPTIONS
                        when establishing the connection. Not all JDBC drivers
                        support this functionality.
                        
-  -N, --name=name     Provides a logical name for the connection that is
-                      being established. See NAMED CONNECTIONS, below
-                      for details.
-                      
-  -l, --list          Lists all available logical connection names. See 
+   -l, --list         Lists all available logical connection names. See 
                       NAMED CONNECTIONS below for details.
                       
-  -a, --add           This option must be provided with the --name option,
-                      above, and causes the current command line to define
-                      a logical connection name without actually establishing
-                      a connection to a server. See NAMED CONNECTIONS below
-                      for details.
+   -a, --add=name     This option is used to define (or replace) a logical
+                       connection name. See NAMED CONNECTIONS below for details.
                       
-  -r, --remove        This option must be provided with the --name option,
-                      above, and causes the removal of the logical connection
-                      name provided. See NAMED CONNECTIONS below, for details.
+   -r, --remove       This option is used to remove a logical connection name.
+                      If this option is provided a connection-name must also
+                      be provided. See NAMED CONNECTIONS below for details.
                           
-   jdbc-url            An explicit JDBC url to be utilized for the  
-                       connection. In most cases it will be necessary
-                       to provide the implementing JDBC class name 
-                       with the -c (--jdbc-class) flag when providing
-                       an explicit URL.
+   connection-name    If provided, this indicates the logical connection name
+                      that should be used to establish the connection. If
+                      additional arguments are provided, then they will 
+                      override the same options associated with the logical
+                      connection name. See NAMED CONNECTIONS below for details.
 
 DEFAULT VALUES
    For any of the variables set by options described in the OPTIONS 
@@ -240,15 +233,32 @@ NAMED CONNECTIONS
    
    For example:
    
-      1> \connect -Usa -Ppassword -Sprod -p5000 -dsybase --name=PROD
+      1> \connect -Usa -Ppassword -Sprod -p5000 -dsybase --add=PROD
       
    will create a connection to a Sybase server (on host prod, port 5000 as sa)
    and associate the name 'PROD' with this set of parameters.
    
-   Late attempts to connect to the same server can be accomplished simply
-   by providing the --name argument:
+   Later attempts to connect to the same server can be accomplished simply
+   by providing same name back to \connect:
    
-      1> \connect --name=PROD
+      1> \connect PROD
+      
+   Any of the parameters that were associated with the logical connection
+   may be overridden using normal command line parameters. For example:
+   
+      1> \connect -Usgray PROD
+      
+   would cause the connection to be established as 'sgray' (rather than 'sa'
+   which was original defined).
+   
+   And similarly, persistent edits can be made to an existing named connection
+   by re-adding the definition along with the change, like so:
+   
+      1> \connect --add=PROD -Usgray PROD
+      
+   and in the same fashion, a copy with edits can be made:
+   
+      1> \connect --add=PROD2 -Usgray PROD
       
    To view the set of logical connection names currently being managed, you
    can use the --list argument:
@@ -260,15 +270,9 @@ NAMED CONNECTIONS
       | PROD | sybase | prod   | 5000 | [NULL] | sa       | *******  | ...
       +------+--------+--------+------+--------+----------+----------+--------
    
-   To edit a logical connection, you can simply provide the same arguments
-   that you normally would along with the connection name. So, lets say you
-   want to change the password you use:
-   
-      1> \connect --name=PROD -Pnew_password
-      
    To delete a logical connection name, use the --remove argument:
    
-      1> \connect --name=PROD --remove
+      1> \connect --remove PROD
       
    Logical connection names are persistent (they exist between executions
    of jsqsh) and are defined in the file $HOME/.jsqsh/connections.xml.
