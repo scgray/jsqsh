@@ -112,6 +112,16 @@ public class SQLContext {
     }
     
     /**
+     * Returns the logical name used to establish this connection.
+     * 
+     * @return The logical name used to establish this connection.
+     */
+    public String getLogicalName() {
+        
+        return connDesc.getName();
+    }
+    
+    /**
      * @return
      * @see org.sqsh.ConnectionDescriptor#getCatalog()
      */

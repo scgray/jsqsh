@@ -218,7 +218,7 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="name" property="SQLContext.name">
+	<Property bean="session" name="name" property="SQLContext.logicalName">
         <Description>Connection name used to establish the current connection</Description>
         <Help><![CDATA[
 VARIABLE
