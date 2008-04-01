@@ -86,7 +86,8 @@ DESCRIPTION
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="domain" property="SQLContext.domain">
+	<Property bean="session" name="domain" property="SQLContext.domain"
+	          quiet="true">
         <Description>Windows domain used to establish connection</Description>
         <Help><![CDATA[
 VARIABLE
@@ -103,7 +104,8 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="user" property="SQLContext.username">
+	<Property bean="session" name="user" property="SQLContext.username"
+	          quiet="true">
         <Description>Username used to establish database connection</Description>
         <Help><![CDATA[
 VARIABLE
@@ -120,7 +122,8 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="server" property="SQLContext.server">
+	<Property bean="session" name="server" property="SQLContext.server"
+	          quiet="true">
         <Description>Database server name connected to</Description>
         <Help><![CDATA[
 VARIABLE
@@ -136,7 +139,8 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="port" property="SQLContext.port">
+	<Property bean="session" name="port" property="SQLContext.port"
+	          quiet="true">
         <Description>TCP port used to establish database connection</Description>
         <Help><![CDATA[
 VARIABLE
@@ -153,7 +157,8 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="server" property="SQLContext.server">
+	<Property bean="session" name="server" property="SQLContext.server"
+	          quiet="true">
         <Description>Database server name connected to</Description>
         <Help><![CDATA[
 VARIABLE
@@ -169,7 +174,8 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="SID" property="SQLContext.sid">
+	<Property bean="session" name="SID" property="SQLContext.sid"
+	          quiet="true">
         <Description>Oracle instance to which connection is established</Description>
         <Help><![CDATA[
 VARIABLE
@@ -186,7 +192,8 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="jdbc_url" property="SQLContext.url">
+	<Property bean="session" name="jdbc_url" property="SQLContext.url"
+	          quiet="true">
         <Description>The JDBC URL that was used for connection</Description>
         <Help><![CDATA[
 VARIABLE
@@ -202,7 +209,8 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="driver" property="SQLContext.driver">
+	<Property bean="session" name="driver" property="SQLContext.driver"
+	          quiet="true">
         <Description>The JSqsh driver used to establish connection</Description>
         <Help><![CDATA[
 VARIABLE
@@ -218,19 +226,23 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="name" property="SQLContext.logicalName">
-        <Description>Connection name used to establish the current connection</Description>
+	<Property bean="session" name="name" property="SQLContext.logicalName"
+	          quiet="true">
+        <Description>The logical name used for the current connection</Description>
         <Help><![CDATA[
 VARIABLE
-   name - The name of the currently established connection.
+   name - The logical name used for the current connection.
 
 DESCRIPTION
-   The read-only ${name} variable will contain the name of the connection
-   if the \connect command was asked to utilize a logical connection name
-   via the --name parameter.
+   The read-only ${name} variable reflects the logical name that was 
+   associated with the current database connection of the connection
+   was established with the --name argument. If there is no logical 
+   connection name or no database connection is currently established,
+   then this will have a null value.
    
 SEE ALSO
    domain, driver, user, server, port, SID
         ]]></Help>	
 	</Property>
+	
 </Variables>
