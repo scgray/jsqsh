@@ -196,6 +196,23 @@ OPTIONS
                        property, specifying the windows domain to be utilized
                        when establishing the connection. Not all JDBC drivers
                        support this functionality.
+                       
+  -N, --name=name     Provides a logical name for the connection that is
+                      being established. See NAMED CONNECTIONS, below
+                      for details.
+                      
+  -l, --list          Lists all available logical connection names. See 
+                      NAMED CONNECTIONS below for details.
+                      
+  -a, --add           This option must be provided with the --name option,
+                      above, and causes the current command line to define
+                      a logical connection name without actually establishing
+                      a connection to a server. See NAMED CONNECTIONS below
+                      for details.
+                      
+  -r, --remove        This option must be provided with the --name option,
+                      above, and causes the removal of the logical connection
+                      name provided. See NAMED CONNECTIONS below, for details.
                           
    jdbc-url            An explicit JDBC url to be utilized for the  
                        connection. In most cases it will be necessary
@@ -212,7 +229,50 @@ DEFAULT VALUES
       
    would cause default value of ${port} to be 5555 unless the -p option
    is provided to override that value.
-
+   
+NAMED CONNECTIONS
+   Because a relatively significant number of parameters are required to
+   be passed to \connect in order to establish a connection, jsqsh provides
+   a relatively simple mechanism by which a "name" can be associated with
+   the set of parameters required to create the connection.  Later attempts
+   to connect to the same server can be performed simply by providing the
+   logical name rather than the full parameter set.
+   
+   For example:
+   
+      1> \connect -Usa -Ppassword -Sprod -p5000 -dsybase --name=PROD
+      
+   will create a connection to a Sybase server (on host prod, port 5000 as sa)
+   and associate the name 'PROD' with this set of parameters.
+   
+   Late attempts to connect to the same server can be accomplished simply
+   by providing the --name argument:
+   
+      1> \connect --name=PROD
+      
+   To view the set of logical connection names currently being managed, you
+   can use the --list argument:
+   
+      1> \connect --list
+      +------+--------+--------+------+--------+----------+----------+--------
+      | Name | Driver | Server | Port | SID    | Username | Password | ...    
+      +------+--------+--------+------+--------+----------+----------+--------
+      | PROD | sybase | prod   | 5000 | [NULL] | sa       | *******  | ...
+      +------+--------+--------+------+--------+----------+----------+--------
+   
+   To edit a logical connection, you can simply provide the same arguments
+   that you normally would along with the connection name. So, lets say you
+   want to change the password you use:
+   
+      1> \connect --name=PROD -Pnew_password
+      
+   To delete a logical connection name, use the --remove argument:
+   
+      1> \connect --name=PROD --remove
+      
+   Logical connection names are persistent (they exist between executions
+   of jsqsh) and are defined in the file $HOME/.jsqsh/connections.xml.
+   
 VARIABLES SET
    After a connection is successfully established, the variables described
    in the OPTIONS section will be available privately to your session. 
