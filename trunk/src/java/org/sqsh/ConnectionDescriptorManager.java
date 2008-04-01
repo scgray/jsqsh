@@ -221,8 +221,8 @@ public class ConnectionDescriptorManager {
                 
                 if (connDesc.getPassword() != null) {
                     
-                    out.print("      <password><![CDATA[");
-                    out.print(connDesc.getPassword());
+                    out.print("      <password encrypted=\"true\"><![CDATA[");
+                    out.print(connDesc.getEncryptedPassword());
                     out.println("]]></password>");
                 }
                 
@@ -296,8 +296,10 @@ public class ConnectionDescriptorManager {
             
         path = "connections/connection/password";
         digester.addCallMethod(path, 
-            "setPassword", 1, new Class[] { java.lang.String.class });
+            "setPassword", 2, new Class[] {
+                java.lang.String.class, java.lang.Boolean.class });
             digester.addCallParam(path, 0);
+            digester.addCallParam(path, 1, "encrypted");
             
         path = "connections/connection/catalog";
         digester.addCallMethod(path, 
