@@ -217,4 +217,20 @@ SEE ALSO
    domain, driver, user, server, port, SID
         ]]></Help>	
 	</Property>
+	
+	<Property bean="session" name="name" property="SQLContext.name">
+        <Description>Connection name used to establish the current connection</Description>
+        <Help><![CDATA[
+VARIABLE
+   name - The name of the currently established connection.
+
+DESCRIPTION
+   The read-only ${name} variable will contain the name of the connection
+   if the \connect command was asked to utilize a logical connection name
+   via the --name parameter.
+   
+SEE ALSO
+   domain, driver, user, server, port, SID
+        ]]></Help>	
+	</Property>
 </Variables>
