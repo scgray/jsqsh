@@ -235,6 +235,37 @@ public class ConnectionDescriptor
     }
     
     /**
+     * Returns an "encrypted" form of the password.
+     * 
+     * @return An ecnrypted form of the password.
+     */
+    public String getEncryptedPassword() {
+        
+        return Base64.encodeBytes(
+            Crypto.encrypt(password.getBytes()));
+    }
+    
+    /**
+     * Sets the password.
+     * 
+     * @param password The password.
+     * @param isEncrypted If true, the password that is supplied is
+     *   encrypted via a call to getEncryptedPassword().
+     */
+    public void setPassword(String password, boolean isEncrypted) {
+        
+        if (isEncrypted) {
+            
+            this.password = 
+                new String(Crypto.decrypt(Base64.decode(password)));
+        }
+        else {
+            
+            this.password = password;
+        }
+    }
+    
+    /**
      * @return the sid
      */
     public String getSid () {
