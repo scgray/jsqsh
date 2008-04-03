@@ -1,0 +1,144 @@
+Release 1.2-SNAPSHOT
+* Added new mechanism to \connect to allow a logical name to be assigned
+  to a connection and persistently saved away so that the connection
+  can be re-established in the future using only the name. This provides
+  a cleaner mechanism for managing connections than the 'alias' command.
+  Run  "\help connect" for more details.
+* Added session-to-session redirection, allowing the output of a 
+  command executed in one session to be executed by another session
+  (or even re-executed by itself).  See '\help redirection' for details.
+* The \call command can now iterate through a CSV file and execute a
+  prepared statement once for each line in the file, using the fields
+  in the file as arguments to the procedure.
+* Fixed handling of "bit" datatypes.
+* Fixed ^C handling that I broke the last release.
+* Fixed the \eval command aborting when it executes a command that
+  causes a session switch, such as \session or \connect -n.
+* Fixed "\connect -c" not finding classes that are specified in the
+  ${classpath} jsqsh variable.
+* Fixed OutOfMemoryError when processing the results of a backtick
+  expression (e.g. \set x=`echo 1234`)
+
+Release 1.1
+* Changed several aspects of command line options:
+     - All jsqsh options have a long form and a short form 
+       (e.g. -h and --help).
+     - You no longer need a space following an option (e.g. 
+       "-U sa" and "-Usa" are equivalent).
+     - Every jsqsh command accepts -h and --help to cause a usage
+       of the command to be dumped.
+     - Every jsqsh command accepts -g and --gui to cause its output
+       to be sent to a graphical popup window.
+     - The new help topic "options" discusses this.
+* Added new display style "graphical" that will pop open a GUI window
+  containing query results in a sortable graphical table.
+* Added $window_size to control the size of the window in graphical
+  display mode and $font to set the font that will be used.
+* Added $nocount variable to turn off the display of rowcounts generated
+  due to update/delete statements.
+* Added \insert command, this displays the results of the current SQL
+  query as INSERT statements or executes the INSERT statements in 
+  another session.
+* Added \select command to generate select statements and joins from
+  table definitions.
+* Added \create command to generate CREATE TABLE statement from a table
+  definition.
+* Added \diff command to compare results from SQL executed across 
+  multiple session.
+* Added \call command to execute a prepared statement. This command
+  is primarily for debugging purposes.
+* The \help command is now more organized.
+* JSqsh is now better at determining if the session is interactive
+  or non-interactive (i.e. if stdin has been redirected).
+* Tab completion now recognizes the TSQL "use" statement.
+* Display of "info" type SQLWarning's (e.g. the output from a "print"
+  statement from Sybase and Microsoft) is improved.
+* Fixed the -i flag causing jsqsh to exit if the script contained
+  a \connect -n.
+* Fixed failure when trying to format Oracle TIMESTAMP columns for
+  display.
+* Fixed \connect command trying to use settings from the current session
+  when trying to connect. Read the \connect command for details.
+* Fixed bug in PL/SQL parser that cause jsqsh to sit in tight loop
+  eating CPU when parsing certain PL/SQL blocks.
+* Fixed bug with way getUpdateCount() is being called that was causing
+  Sybase's jConnect driver to complain.
+* Updated driver definition to use the jConnect 6.x driver for Sybase
+  
+Release 1.0
+* Tab completion now recognizes stored procedure execution requests and
+  will attempt to complete parameter names and procedure names.
+* Added '-i' flag to GO to allow you to generate INSERT statements from a 
+  result set.
+* Added support for CLOB and BLOB datatypes (bug #1820183). Current support
+  requires holding the entire object in memory so be careful!
+* Added $show_meta variable to display JDBC result set metadata as a separate
+  result set when executing queries.
+* Added $maxrows_method variable that is used to control the mechanism that
+  jsqsh uses to limit row results. This added because I discovered that 
+  setting the row limit in some JDBC drivers caused unwanted side effects.
+* Added \procs command to display list of procedures in the current database.
+* Added PL/SQL analyzer so that semicolon termination can be used against
+  Oracle. 
+* Added \debug command to turn on debugging for specific classes.
+* The \describe command will now describe stored procedure parameters.
+* Improved formatting of number datatypes (tinyint, int, short, bigint,
+  float, double, etc.) to minimize the amount of space required for display
+  wherever possible.
+* Fixed the driver definition for the DB2 JDBC driver.
+* Commands that edit or alter the current SQL buffer will also affect the
+  readline history as if the user had just typed in the buffer. E.g. if you
+  hit '!3' at the prompt to re-load the third oldest query, the readline
+  history will look as if you just typed that query. 
+* Fixed bug #1816504 - Queries returning multiple result sets were getting
+  fouled.
+* Fixed bug #1820182 - Handling of Oracle NUMBER columns failing during
+  formatting. 
+
+Release 0.9.5
+* Dramatically improved tab completion. It is now contextual to your position
+  within the SQL statement being written. If the FROM clause has been written
+  or the target of the INSERT/UPDATE/DELETE has been specified, then the
+  completion will restrict itself to that context. This was more difficult
+  than I expected!
+* Added $headers and $footers configuration variables to control display
+  of result header/footer information
+* Added -h and -f to the \go command to toggle the display of result 
+  header and footer information respectively.
+* Added "-w domain" flag to \connect so that domain based authentication
+  can be used when connecting. Currently only the mssql-jtds driver 
+  recognizes this option. 
+* Added \eval command to read and process the contents of a file.
+* Added tab completion of procedure names.
+* Added handling/display of SQL warnings.
+* Improved formatting of error messages.
+* Added testing of JVM support for catching CTRL-C. If it is not supported
+  (i.e. the gcj JVM), then a warning message is issued.
+* Added support for gij (gcj's JVM) 1.5.0
+* Added default aliases "vi" and "emacs" or \buf-edit
+* Removed 'csv' display of footer information (rowcounts).
+* By default the \history command will now only show the first 10 lines of 
+  any SQL statement. The -a flag has been added to allow you to see the 
+  complete statements if you want.
+* Fixed OutOfMemoryError when nested SQL exceptions are returned by the server.
+* Fixed NullPointerException when running non-interactive scripts
+  of SQL via the -i flag.
+
+Release 0.9.4
+
+* Added tab completion of object names. The logic is pretty smart too, and
+  understands "quoted object names" and [bracketed object names].
+* Added '-m style' flag to the \go command.
+* Added new display style 'csv'.
+* Added new ${classpath} configuration variable to allow the user to
+  specify additional jar locations for JDBC drivers.
+* Added support for empty passwords
+* Added new \macro command for defining velocimacros
+* Fixed documentation for the \connect command
+* Fixed "-D" flag for the \connect command
+* Fixed handling of NULL values for binary data types.
+
+Release 0.9.3
+
+* Initial release. Seems stable enough (I use it every day), but
+  warrants some shakedown before 1.0 release
