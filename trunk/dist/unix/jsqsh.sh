@@ -10,7 +10,7 @@
 # The debian distributions like to put the JNI DLL's
 # under /usr/lib/jni
 #
-RL_JNI="/usr/lib/jni /usr/lib /usr/lib/libreadline-java"
+RL_JNI="/usr/lib/jni /usr/lib /usr/lib64 /usr/lib/libreadline-java"
 for dir in $RL_JNI; do
     READLINE_FILES=`ls $dir/libJavaReadline*.so 2>/dev/null`
     if [ "$READLINE_FILES" != "" ]; then
