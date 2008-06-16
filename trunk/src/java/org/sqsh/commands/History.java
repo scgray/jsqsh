@@ -22,6 +22,7 @@ import static org.sqsh.options.ArgumentRequired.NONE;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.sqsh.Buffer;
 import org.sqsh.BufferManager;
 import org.sqsh.Command;
 import org.sqsh.Session;
@@ -66,16 +67,18 @@ public class History
          * Note that we skip buffer 0 because it is the current
          * buffer.
          */
-        for (int i = bufMan.getBufferCount() - 1; i > 0; i--) {
+        Buffer []buffers = bufMan.getBuffers();
+        for (int i = 0; i < (buffers.length - 1); i++) {
             
+            Buffer buf = buffers[i];
             StringBuilder sb = new StringBuilder();
-            sb.append('(').append(i).append(") ");
+            sb.append('(').append(buf.getId()).append(") ");
             
             int indent = sb.length();
             int line = 0;
             
             TruncatingLineIterator iter = new TruncatingLineIterator(
-                bufMan.getBuffer(i).toString(), -1);
+                buf.toString(), -1);
             while (iter.hasNext()) {
                 
                 ++line;

@@ -973,6 +973,15 @@ public class SqshContext {
             }
         }
         
+        
+        /*
+         * The buffer manage has likely been used already to load
+         * the initialization script and/or other tasks. To make
+         * sure that it only contains history from the last time
+         * jsqsh was started, we clear it out here.
+         */
+        bufferManager.clear();
+        
         File buffers = new File(homedir, "history.xml");
         if (buffers.exists()) {
             
