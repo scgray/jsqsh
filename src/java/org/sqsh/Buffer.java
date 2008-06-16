@@ -32,6 +32,12 @@ import java.io.StringReader;
 public class Buffer {
     
     /**
+     * Every buffer is assigned a unique ID by the {@link BufferManager}
+     * when it is created.
+     */
+    private int id = -1;
+    
+    /**
      * The actual buffer of SQL.
      */
     private StringBuilder buffer = null;
@@ -48,10 +54,23 @@ public class Buffer {
     
     /**
      * Creates an empty buffer.
+     * 
+     * @param id The id to assign to the buffer.
      */
     public Buffer() {
         
         buffer = new StringBuilder();
+    }
+    
+    /**
+     * Creates an empty buffer.
+     * 
+     * @param id The id to assign to the buffer.
+     */
+    public Buffer(int id) {
+        
+        this();
+        this.id = id;
     }
     
     /**
@@ -64,6 +83,35 @@ public class Buffer {
         set(sql);
     }
     
+    /**
+     * Creates a buffer that is pre-populated with SQL.
+     * 
+     * @param id The id assigned to the buffer.
+     * @param sql The SQL statement.
+     */
+    public Buffer(int id, String sql) {
+        
+        set(sql);
+        this.id = id;
+    }
+    
+    /**
+     * @return The id of the buffer. An id of -1 indicates that the
+     * buffer has not yet been assigned an id.
+     */
+    public int getId () {
+    
+        return id;
+    }
+    
+    /**
+     * @param id Assigns an id to the buffer.
+     */
+    public void setId (int id) {
+    
+        this.id = id;
+    }
+
     /**
      * Save the contents of the buffer to the specified file.
      * @param file The file to save to.

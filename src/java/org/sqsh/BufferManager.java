@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -40,10 +41,22 @@ public class BufferManager
     private int maxBuffers = 50;
     
     /**
-     * The list of buffers that we currently have stored. The head of the
-     * list is the newest (current) and the tail is the oldest.
+     * This is the ID of the next buffer that gets created. 
+     */
+    private int nextBufferId = 1;
+    
+    /**
+     * The list of buffers that we currently have stored. Buffers
+     * are stored from oldest to newest, with the last (most recent)
+     * buffer in the list being the "current" buffer.
      */
     private List<Buffer> buffers = new LinkedList<Buffer> ();
+    
+    /**
+     * Convenience pointer to the most recent buffer (the last one
+     * on the list of buffers).
+     */
+    private Buffer current = null;
     
     /**
      * Creates a new, empty, buffer.
@@ -53,9 +66,7 @@ public class BufferManager
     public Buffer newBuffer() {
         
         Buffer buffer = new Buffer();
-        
-        buffers.add(0, buffer);
-        checkMaxSize();
+        addBuffer(buffer);
         return buffer;
     }
     
@@ -67,30 +78,73 @@ public class BufferManager
     public Buffer newBuffer(String sql) {
         
         Buffer buffer = new Buffer(sql);
-        
-        buffers.add(0, buffer);
-        checkMaxSize();
+        addBuffer(buffer);
         return buffer;
+    }
+    
+    /**
+     * Adds a buffer to the manager. The buffer that is added is
+     * consider the newest, "current", buffer.
+     * 
+     * @param buf The buffer to add.
+     */
+    public void addBuffer(Buffer buf) {
+        
+        /*
+         * Assign an ID if the buffer doesn't already have one
+         */
+        if (buf.getId() == -1) {
+            
+            buf.setId(nextBufferId);
+            ++nextBufferId;
+        }
+        
+        /*
+         * Add it to the list.
+         */
+        buffers.add(buf);
+        
+        /*
+         * Mark it as the current buffer.
+         */
+        current = buf;
+        
+        /*
+         * Check to see if we need to discard any old buffers.
+         */
+        checkMaxSize();
     }
     
     /**
      * Retrieves a buffer.
      * 
-     * @param idx The index of the buffer. The 0'th buffer is the
-     *   "current" active buffer, each subsequent buffer is older
-     *   than the last.
+     * @param id The id of the buffer buffer to retrieve (as returned
+     *   from {@link Buffer#getId()}. The special id "0" is the
+     *   "current" active buffer.
      *   
      * @return The Buffer or null if the supplied index doesn't point
      *   to a valid buffer.
      */
-    public Buffer getBuffer(int idx) {
+    public Buffer getBuffer(int id) {
         
-        if (idx >= buffers.size()) {
+        /*
+         * If we are being asked for the "current" buffer, then
+         * we want the buffer on the end of the list.
+         */
+        if (id == 0 && current != null) {
             
-            return null;
+            return current;
         }
         
-        return buffers.get(idx);
+        for (Buffer buf : buffers) {
+            
+            if (buf.getId() == id) {
+                
+                return buf;
+            }
+        }
+        
+        return null;
     }
     
     /**
@@ -100,7 +154,7 @@ public class BufferManager
      *        in history. That is, !. means the current buffer, !.. the
      *        previous, !..., the one before that, etc.
      *   <li> <b>!N</b> Indicates a specific position in history with 0
-     *        being the current buffer, 1 the previous buffer, etc.
+     *        being the current buffer.
      * </ol>
      * 
      * @param  The name  of the buffer to fetch.
@@ -118,15 +172,15 @@ public class BufferManager
             
             if (bufferName.charAt(1) == '.') {
                 
-                int idx = 0;
+                int id = 0;
                 for (int i = 2; 
                     i < bufferName.length() && bufferName.charAt(i) == '.';
                     ++i) {
                     
-                    ++idx;
+                    ++id;
                 }
                 
-                return getBuffer(idx);
+                return getBuffer(id);
             }
             else if (Character.isDigit(bufferName.charAt(1))){
                 
@@ -144,16 +198,6 @@ public class BufferManager
         return null;
     }
     
-    /**
-     * Adds a buffer.
-     * 
-     * @param buf The buffer to add.
-     */
-    public void addBuffer(Buffer buf) {
-        
-        buffers.add(buf);
-        checkMaxSize();
-    }
     
     /**
      * Returns the number of buffers currently allocated.
@@ -162,6 +206,18 @@ public class BufferManager
     public int getBufferCount() {
         
         return buffers.size();
+    }
+    
+    /**
+     * Returns the set of currently allocated buffers. This array
+     * is sorted from oldest to newest, with the last entry in the
+     * list being the "current" buffer.
+     * 
+     * @return the set of currently allocated buffers.
+     */
+    public Buffer[] getBuffers() {
+        
+        return buffers.toArray(new Buffer[0]);
     }
     
     /**
@@ -182,6 +238,8 @@ public class BufferManager
     public void clear() {
         
         buffers.clear();
+        nextBufferId = 1;
+        current = null;
     }
     
     /**
@@ -212,12 +270,14 @@ public class BufferManager
     private void checkMaxSize() {
         
         /*
-         * If we have  more than the new max, the start removing
-         * from the history.
+         * Remove the first (oldest) entry in the list of buffers until
+         * we are down to the maximum number of buffers we are allowed to
+         * hold. Note that we leave one additional buffer slot for the
+         * "current" buffer.
          */
-        while (maxBuffers < buffers.size()) {
+        while ((maxBuffers+1) < buffers.size()) {
             
-            buffers.remove(buffers.size() - 1);
+            buffers.remove(0);
         }
     }
     
@@ -234,7 +294,13 @@ public class BufferManager
             out = new PrintStream(new FileOutputStream(file));
             out.println("<Buffers>");
             
-            for (int i = 1; i < buffers.size(); i++) {
+            /*
+             * Write out the buffers in age order, newest to oldest.
+             * Note that I am skipping the last buffer because it is
+             * the "current" and thus hasn't been made part of the
+             * history yet.
+             */
+            for (int i = buffers.size() - 1; i >= 0; i--) {
                 
                 out.println("   <Buffer><![CDATA[");
                 out.println(buffers.get(i));
@@ -266,12 +332,16 @@ public class BufferManager
         /*
          * Clear out the current history.
          */
-        buffers.clear();
+        clear();
         
         /*
-         * Create a place holder for the "current" entry.
+         * Historically, the history.xml file was stored newest entry to
+         * oldest yet the BufferManager stores them internally oldest to
+         * newest. To deal with this, we read our file into a list, then
+         * we'll go back and put them into the buffer manager in the
+         * proper order.
          */
-        buffers.add(new Buffer(""));
+        List<Buffer> bufferList = new ArrayList<Buffer>();
         
         String path;
         Digester digester = new Digester();
@@ -279,12 +349,12 @@ public class BufferManager
         
         path = "Buffers/Buffer";
         digester.addObjectCreate(path,  "org.sqsh.Buffer");
-        digester.addSetNext(path, "addBuffer", "org.sqsh.Buffer");
+        digester.addSetNext(path, "add", "java.lang.Object");
         digester.addCallMethod(path, 
             "add", 1, new Class[] { java.lang.String.class });
             digester.addCallParam(path, 0);
             
-        digester.push(this); 
+        digester.push(bufferList); 
         try {
             
             digester.parse(file);
@@ -294,5 +364,20 @@ public class BufferManager
             System.err.println("Failed to load buffer history file '"
                 + file.toString() + "': " + e.getMessage());
         }
+        
+        /*
+         * Now, blast back through our bufferList and put them into
+         * the manager in the proper order (oldest to newest).
+         */
+        for (int i = bufferList.size() - 1; i >= 0; --i) {
+            
+            addBuffer(bufferList.get(i));
+        }
+        
+        /*
+         * Create an empty entry for "current".
+         */
+        newBuffer();
     }
+    
 }
