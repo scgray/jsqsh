@@ -172,15 +172,20 @@ public class BufferManager
             
             if (bufferName.charAt(1) == '.') {
                 
-                int id = 0;
+                int idx = buffers.size() - 1;
                 for (int i = 2; 
                     i < bufferName.length() && bufferName.charAt(i) == '.';
                     ++i) {
                     
-                    ++id;
+                    --idx;
                 }
                 
-                return getBuffer(id);
+                if (idx >= 0) {
+                    
+                    return buffers.get(idx);
+                }
+                
+                return null;
             }
             else if (Character.isDigit(bufferName.charAt(1))){
                 
