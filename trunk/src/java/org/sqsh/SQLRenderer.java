@@ -87,6 +87,12 @@ public class SQLRenderer {
      */
     private boolean noCount = false;
     
+    /**
+     * Controls whether or not jsqsh will display query timing information
+     * for each query executed.
+     */
+    private boolean showTimings = true;
+    
     private long startTime;
     private long firstRowTime;
     private long endTime;
@@ -132,6 +138,29 @@ public class SQLRenderer {
     public void setShowMetadata (boolean showMetadata) {
     
         this.showMetadata = showMetadata;
+    }
+    
+    /**
+     * Returns whether or not jsqsh will display query timing
+     * information.
+     * 
+     * @return true if timings are being displayed
+     */
+    public boolean isShowTimings () {
+    
+        return showTimings;
+    }
+
+    
+    /**
+     * Sets whether or not jsqsh will display query timing
+     * information.
+     * 
+     * @param showTimings whether or not to display timing information.
+     */
+    public void setShowTimings (boolean showTimings) {
+    
+        this.showTimings = showTimings;
     }
 
     /**
@@ -459,17 +488,21 @@ public class SQLRenderer {
                         && updateCount < 0) {
                     
                     SQLTools.printWarnings(session, statement);
-                    endTime = System.currentTimeMillis();
                     
-                    if (firstRowTime > 0L) {
-                        footer.append("(first row: "
-                            + (firstRowTime - startTime) + "ms; total: "
-                        	+ (endTime - startTime) + "ms)");
-                    }
-                    else {
+                    if (showTimings) {
                         
-                        footer.append("(total: "
-                            + (endTime - startTime) + "ms)");
+                        endTime = System.currentTimeMillis();
+                        
+                        if (firstRowTime > 0L) {
+                            footer.append("(first row: "
+                                + (firstRowTime - startTime) + "ms; total: "
+                            	+ (endTime - startTime) + "ms)");
+                        }
+                        else {
+                            
+                            footer.append("(total: "
+                                + (endTime - startTime) + "ms)");
+                        }
                     }
                     
                     done = true;
