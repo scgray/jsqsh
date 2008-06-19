@@ -198,7 +198,7 @@ public class ConnectionDescriptorManager {
                 
                 if (connDesc.getSid() != null) {
                     
-                    out.print("               SID=\"");
+                    out.print("               sid=\"");
                     out.print(connDesc.getSid());
                     out.println("\"");
                 }
