@@ -300,6 +300,23 @@ SEE ALSO
         ]]></Help>
 	</Property>
 	
+	<Property bean="global" name="querytime" property="SQLRenderer.showTimings">
+		<Description>Controls display of query timing information</Description>
+        <Help><![CDATA[
+VARIABLE
+   querytime - Controls the display of query execution time information
+
+DESCRIPTION
+   The ${querytime} variable can be used to display or suppress the
+   output of query execution time information. The timing information
+   displayed is the execution as seen by jsqsh (which includes network
+   time), not necessarily the time spent in the server.
+   
+SEE ALSO
+   nocount
+        ]]></Help>
+	</Property>
+	
 	<Property bean="global" name="maxrows" property="SQLRenderer.maxRows">
 		<Description>Limits the size of query results</Description>
         <Help><![CDATA[
