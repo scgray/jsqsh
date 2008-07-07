@@ -349,6 +349,9 @@ public class SQLRenderer {
         Statement statement = null;
         boolean done = false;
         CancelingSignalHandler sigHandler = null;
+        boolean hasResults;
+        int updateCount = -1;
+        
         
         startTime = System.currentTimeMillis();
         firstRowTime = 0L;
@@ -379,7 +382,8 @@ public class SQLRenderer {
                 sigHandler = new CancelingSignalHandler(statement);
                 session.getSignalManager().push((SigHandler) sigHandler);
                 
-                statement.execute(sql);
+                hasResults = statement.execute(sql);
+                SQLTools.printWarnings(session, statement);
             }
             else {
                 
@@ -392,25 +396,32 @@ public class SQLRenderer {
                 sigHandler = new CancelingSignalHandler(statement);
                 session.getSignalManager().push((SigHandler) sigHandler);
                 
-                preparedStatement.execute();
+                hasResults = preparedStatement.execute();
+                SQLTools.printWarnings(session, statement);
             }
             
-            SQLTools.printWarnings(session, statement);
+            /*
+             * If there are no row results, then fetch the update count.
+             */
+            if (!hasResults) {
+                
+                updateCount = statement.getUpdateCount();
+                SQLTools.printWarnings(session, statement);
+            }
             
             StringBuilder footer = new StringBuilder();
-            
-            while (!done) {
+            do {
                 
                 /*
                  * Record the number of rows returned. -1 indicates no
                  * rows were displayed.
                  */
-                int nRows = -1;
-                
-                resultSet = statement.getResultSet();
-                SQLTools.printWarnings(session, statement);
-                
-                if (resultSet != null) {
+                if (hasResults) {
+                    
+                    int nRows = -1;
+                    
+                    resultSet = statement.getResultSet();
+                    SQLTools.printWarnings(session, statement);
                     
                     if (showMetadata) {
                         
@@ -460,13 +471,7 @@ public class SQLRenderer {
                     SQLTools.close(resultSet);
                     resultSet = null;
                 }
-                
-                int updateCount = statement.getUpdateCount();
-                boolean moreResults = statement.getMoreResults();
-                
-                if (nRows < 0) {
-                    
-                    SQLTools.printWarnings(session, statement);
+                else {
                     
                     if (noCount == false) {
                         
@@ -483,29 +488,46 @@ public class SQLRenderer {
                     }
                 }
                 
-                if (done == false
-                        && moreResults == false
-                        && updateCount < 0) {
+                /*
+                 * Check for more results.
+                 */
+                hasResults = statement.getMoreResults();
+                SQLTools.printWarnings(session, statement);
+                
+                /*
+                 * And check the update count.
+                 */
+                if (!hasResults) {
                     
-                    SQLTools.printWarnings(session, statement);
-                    
-                    if (showTimings) {
-                        
-                        endTime = System.currentTimeMillis();
-                        
-                        if (firstRowTime > 0L) {
-                            footer.append("(first row: "
-                                + (firstRowTime - startTime) + "ms; total: "
-                            	+ (endTime - startTime) + "ms)");
-                        }
-                        else {
-                            
-                            footer.append("(total: "
-                                + (endTime - startTime) + "ms)");
-                        }
+                    updateCount = statement.getUpdateCount();
+                	SQLTools.printWarnings(session, statement);
+                }
+                
+                /*
+                 * We are done if we have either explicitly chosen to be
+                 * done (i.e. a cancel) or if there are neither row results
+                 * nor update counts left.
+                 */
+                done = (done || (hasResults == false && updateCount < 0));
+                
+                /*
+                 * If we are finished and we are being asked to show query
+                 * statistics, then show them.
+                 */
+                if (done && showTimings) {
+                                
+                    endTime = System.currentTimeMillis();
+                                
+                    if (firstRowTime > 0L) {
+                        footer.append("(first row: "
+                            + (firstRowTime - startTime) + "ms; total: "
+                        	+ (endTime - startTime) + "ms)");
                     }
-                    
-                    done = true;
+                    else {
+                                    
+                        footer.append("(total: "
+                            + (endTime - startTime) + "ms)");
+                    }
                 }
                 
                 if (footer.length() > 0) {
@@ -514,6 +536,8 @@ public class SQLRenderer {
                     footer.setLength(0);
                 }
             }
+            while (!done);
+            
         }
         finally {
             
