@@ -1,4 +1,6 @@
 Release 1.3-SNAPSHOT
+* Added mssql2k5 driver definition for the SQL Server 2005 JDBC
+  driver.
 * History buffer numbers are now numbered oldest to newest, so that 
   the buffer number for a given buffer will not change until the 
   session ends or the buffer is removed from history.
