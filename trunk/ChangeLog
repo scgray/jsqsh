@@ -1,4 +1,7 @@
 Release 1.3-SNAPSHOT
+* The "perfect" display mode will now attempt to compact the display columns
+  sufficiently tight to fit within the screen (only if jsqsh JNI is 
+  available).
 * Added mssql2k5 driver definition for the SQL Server 2005 JDBC
   driver.
 * History buffer numbers are now numbered oldest to newest, so that 
