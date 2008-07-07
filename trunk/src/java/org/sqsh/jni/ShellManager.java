@@ -345,6 +345,29 @@ public class ShellManager {
     public static native Shell popen (String []cmd)
         throws ShellException;
     
+    /**
+     * Returns the width of the console in characters.
+     * 
+     * @return The width of the console in characters or -1 if the
+     *    width cannot be determined.
+     */
+    public int getConsoleWidth() {
+        
+        if (haveJNI) {
+            
+            return getScreenWidth();
+        }
+        
+        return -1;
+    }
+    
+    /**
+     * Returns the width of the screen 
+     * @return The width of the screen or -1 if no screen width is
+     *   available.
+     */
+    private static native int getScreenWidth();
+    
     private static native void init();
     
     /**
@@ -384,6 +407,7 @@ public class ShellManager {
      */
     protected static native void close(long fd)
         throws IOException;
+    
     
     /**
      * Called by the JNI layer to log a debugging message.

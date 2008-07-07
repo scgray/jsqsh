@@ -106,8 +106,89 @@ public class PerfectPrettyRenderer
         return true;
     }
     
+    /**
+     * This method is called just prior to display and attempts to adjust
+     * the width of specific columns so that they will try to stay within
+     * the width of the screen overall.
+     */
+    private void perfectWidth() {
+        
+        /*
+         * Attempt to grab the width of the console. If we can't get it,
+         * then don't go any further.
+         */
+        int screenWidth = session.getShellManager().getConsoleWidth();
+        if (screenWidth <= 0) {
+            
+            return;
+        }
+        
+        /*
+         * Pre-add in the trailing " |" for the closing border.
+         */
+        int totalWidth = 2;
+        for (int i = 0; i < columns.length; i++) {
+            
+            /*
+             * For each column it will be displayed as:
+             *    "| value "
+             */
+            totalWidth += (3 + columns[i].getWidth());
+        }
+        
+        /*
+         * This isn't the most efficient way to do things, but we will
+         * sit in a loop, shrinking columns until we get the fit that we
+         * want. We start by shrinking string columns, but we don't let them
+         * fall below a certain size.
+         */
+        int nShrinks = 1;
+        while (nShrinks > 0 && totalWidth > screenWidth) {
+            
+            nShrinks = 0;
+            for (int i = 0; totalWidth > screenWidth
+                && i < columns.length; i++) {
+                
+                ColumnDescription col = columns[i];
+                
+                if (col.getType() == ColumnDescription.Type.STRING
+                        && col.getWidth() > 10) {
+                    
+                    col.setWidth(col.getWidth() - 1);
+                    --totalWidth;
+                    ++nShrinks;
+                }
+            }
+        }
+        
+        /*
+         * Move on to number columns.
+         */
+        nShrinks = 1;
+        while (nShrinks > 0 && totalWidth > screenWidth) {
+            
+            nShrinks = 0;
+            for (int i = 0; totalWidth > screenWidth
+                && i < columns.length; i++) {
+                
+                ColumnDescription col = columns[i];
+                
+                if (col.getType() != ColumnDescription.Type.STRING
+                        && col.getWidth() > 4) {
+                    
+                    col.setWidth(col.getWidth() - 1);
+                    --totalWidth;
+                    ++nShrinks;
+                }
+            }
+        }
+        
+    }
+    
     @Override
     public boolean flush () {
+        
+        perfectWidth();
         
         printHeader();
         for (int i = 0; i < rows.size(); i++) {
