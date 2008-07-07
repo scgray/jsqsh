@@ -65,24 +65,16 @@ public abstract class AbstractPrettyRenderer
         
         printHorizontalLine();
         
-        session.out.print("| ");
+        String []names = new String[columns.length];
         for (int i = 0; i < columns.length; i++) {
             
-            if (i > 0) {
+            names[i] = columns[i].getName();
+            if (names[i] == null) {
                 
-                session.out.print(" | ");
+                names[i] = "";
             }
-            
-            String columnName = columns[i].getName();
-            if (columnName == null) {
-                
-                columnName = "";
-            }
-            
-            printColumnValue(columns[i], columnName);
         }
-        
-        session.out.println(" |");
+        printRow(names);
         
         printHorizontalLine();
     }

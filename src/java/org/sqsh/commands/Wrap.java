@@ -78,7 +78,14 @@ public class Wrap
         while (iter.hasNext()) {
             
             String str = (String) iter.next();
-            session.out.println(str);
+            session.out.print("|");
+            session.out.print(str);
+            for (int i = str.length(); i < width; i++) {
+                
+                session.out.print(' ');
+            }
+            
+            session.out.println("|");
         }
         
         return 0;

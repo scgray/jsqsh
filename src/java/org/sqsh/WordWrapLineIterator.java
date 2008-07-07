@@ -88,7 +88,9 @@ public class WordWrapLineIterator
     
     private String nextSegment() {
         
+        String str = null;
         int ch = pos.next();
+        
         if (pos.isEOL()) {
             
             return null;
@@ -136,6 +138,7 @@ public class WordWrapLineIterator
                     && (nextCh == '\n' || nextCh == -1)) {
                 
                 isBeginningOfLine = (nextCh == '\n');
+                str = pos.getSegment();
                 pos.next();
             }
             else if (pos.getLen() == width
@@ -145,6 +148,7 @@ public class WordWrapLineIterator
                  * Similarly if the next character is a white-space, then
                  * consume it and don't bother backing up.
                  */
+                str = pos.getSegment();
                 pos.next();
             }
             else if (!Character.isWhitespace(ch)) {
@@ -180,12 +184,16 @@ public class WordWrapLineIterator
                         pos.prev();
                     }
                 }
+                
+                str = pos.getSegment();
             }
         }
+        else {
+            
+            str = pos.getSegment();
+        }
         
-        String str = pos.getSegment();
         pos.skip();
-        
         return str;
     }
     
