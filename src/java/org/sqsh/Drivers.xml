@@ -28,6 +28,16 @@
        <Variable name="server">localhost</Variable>
        <Variable name="port">1433</Variable>
    </Driver>
+
+   <Driver name="mssql2k5" 
+           target="MS SQL Server"
+           class="com.microsoft.sqlserver.jdbc.SQLServerDriver"
+           analyzer="org.sqsh.analyzers.TSQLAnalyzer"
+           url="jdbc:sqlserver://${server}:${port}#if($sid)\${sid}#end">
+           
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">1433</Variable>
+   </Driver>
    
    <Driver name="mssql-jtds" 
            target="MS SQL Server"
