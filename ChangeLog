@@ -16,6 +16,8 @@ Release 1.3-SNAPSHOT
 * Fixed persistence of the SID attribute of a connection to the 
   connections.xml file. 
 * Fixed NullPointerException when maxrows_method=driver 
+* Fixed $user not being set when the username is provided at the 
+  "Username:" prompt rather than on the command line.
 
 Release 1.2
 * Added new mechanism to \connect to allow a logical name to be assigned
