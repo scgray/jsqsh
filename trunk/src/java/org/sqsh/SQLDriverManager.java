@@ -392,7 +392,7 @@ public class SQLDriverManager {
             if (s == null) {
                 
                 s = promptInput("Username", false);
-                
+                connDesc.setUsername(s);
             }
             props.put(SQLDriver.USER_PROPERTY, s);
             
