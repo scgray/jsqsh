@@ -361,16 +361,6 @@ public class SQLRenderer {
             
             SQLTools.printWarnings(session, conn);
             
-            /*
-             * If we have a row limit and it is to be driver enforced, then
-             * set it on the statement.
-             */
-            if (rowLimitMethod == LIMIT_DRIVER 
-                    && maxRows > 0) {
-                
-                statement.setMaxRows(maxRows);
-            }
-            
             if (sql != null) {
                 
                 statement = conn.createStatement();
@@ -398,6 +388,16 @@ public class SQLRenderer {
                 
                 hasResults = preparedStatement.execute();
                 SQLTools.printWarnings(session, statement);
+            }
+            
+            /*
+             * If we have a row limit and it is to be driver enforced, then
+             * set it on the statement.
+             */
+            if (rowLimitMethod == LIMIT_DRIVER 
+                    && maxRows > 0) {
+                
+                statement.setMaxRows(maxRows);
             }
             
             /*
