@@ -17,7 +17,9 @@
  */
 package org.sqsh;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -26,8 +28,10 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.Set;
 
+
 import org.sqsh.signals.CancelingSignalHandler;
 import org.sqsh.signals.SigHandler;
+import org.sqsh.SqshTypes;
 
 public class SQLRenderer {
     
@@ -288,25 +292,116 @@ public class SQLRenderer {
         
         Renderer renderer = session.getContext().getRendererManager()
             .getRenderer(session);
+        
         execute(renderer, session, sql);
     }
     
     /**
-     * Executes and displays the results from a prepared statement.
+     * Executes and displays the results from a callable statement.
      * 
      * @param session The session that will be used for output.
      * @param statement A prepared statement that has had all of its
      *    SQL and parameters provided.
      * @throws SQLException Thrown if there is an issue.
      */
-    public void execute (Session session, PreparedStatement statement) 
+    public void executeCall (Session session, String sql,
+            CallParameter []params)
         throws SQLException {
         
         Renderer renderer = session.getContext().getRendererManager()
             .getRenderer(session);
         
-        execute(renderer, session, null, statement);
+        CallableStatement statement = null;
+        Connection conn = session.getSQLContext().getConnection();
+        CancelingSignalHandler sigHandler = null;
+        
+        try {
+            
+            statement = conn.prepareCall(sql);
+            bindParameters(statement, params);
+            
+            sigHandler = new CancelingSignalHandler(statement);
+            session.getSignalManager().push((SigHandler) sigHandler);
+            
+            execute(renderer, session, statement, statement.execute());
+            
+            /*
+             * If there were any output parameters, then try to display 
+             * them.
+             */
+            for (CallParameter param : params) {
+                
+                if (param.getDirection() == CallParameter.OUTPUT
+                        || param.getDirection() == CallParameter.INOUT) {
+                    
+                    if (param.getType() == SqshTypes.ORACLE_CURSOR) {
+                        
+                        ResultSet rs = 
+                            (ResultSet) statement.getObject(param.getIdx());
+                        
+                        try {
+                            
+                            displayResults(renderer, session, rs, null);
+                        }
+                        finally {
+                            
+                            SQLTools.close(rs);
+                        }
+                    }
+                }
+            }
+        }
+        finally {
+            
+            if (sigHandler != null) {
+                
+                session.getSignalManager().pop();
+            }
+            
+            SQLTools.close(statement);
+        }
     }
+    
+    /**
+     * Executes and displays the results from a parpared statement.
+     * 
+     * @param session The session that will be used for output.
+     * @param statement A prepared statement that has had all of its
+     *    SQL and parameters provided.
+     * @throws SQLException Thrown if there is an issue.
+     */
+    public void executePrepare (Session session, String sql,
+            CallParameter []params)
+        throws SQLException {
+        
+        Renderer renderer = session.getContext().getRendererManager()
+            .getRenderer(session);
+        
+        PreparedStatement statement = null;
+        Connection conn = session.getSQLContext().getConnection();
+        CancelingSignalHandler sigHandler = null;
+        
+        try {
+            
+            statement = conn.prepareStatement(sql);
+            bindParameters(statement, params);
+            
+            sigHandler = new CancelingSignalHandler(statement);
+            session.getSignalManager().push((SigHandler) sigHandler);
+            
+            execute(renderer, session, statement, statement.execute());
+        }
+        finally {
+            
+            if (sigHandler != null) {
+                
+                session.getSignalManager().pop();
+            }
+            
+            SQLTools.close(statement);
+        }
+    }
+    
     
     /**
      * Executes and displays the results from a block of sql.
@@ -325,7 +420,134 @@ public class SQLRenderer {
             sql = session.expand(sql);
         }
         
-        execute(renderer, session, sql, null);
+        Statement statement = null;
+        Connection conn = session.getSQLContext().getConnection();
+        CancelingSignalHandler sigHandler = null;
+        
+        try {
+            
+            statement = conn.createStatement();
+            
+            sigHandler = new CancelingSignalHandler(statement);
+            session.getSignalManager().push((SigHandler) sigHandler);
+            
+            execute(renderer, session, statement, statement.execute(sql));
+        }
+        finally {
+            
+            if (sigHandler != null) {
+                
+                session.getSignalManager().pop();
+            }
+            
+            SQLTools.close(statement);
+        }
+    }
+    
+    /**
+     * Used to bind parameters to a prepared or callable statement.
+     * 
+     * @param statement The statement
+     * @param params The parameters to bind
+     * @throws SQLException Thrown if something goes wrong.
+     */
+    private void bindParameters (PreparedStatement statement,
+            CallParameter []params)
+        throws SQLException {
+        
+        for (CallParameter param : params) {
+            
+            String value = param.getValue();
+            
+            try {
+                
+                switch (param.getType()) {
+                    
+                    case Types.VARCHAR:
+                    case Types.CHAR:
+                        statement.setString(param.getIdx(), value);
+                        break;
+                    
+                    case Types.BOOLEAN:
+                        if (value == null || value.length() == 0) {
+                                        
+                            statement.setNull(param.getIdx(), Types.BOOLEAN);
+                        }
+                        else {
+                                        
+                            statement.setBoolean(param.getIdx(), 
+                                Boolean.valueOf(value));
+                        }
+                        break;
+                                    
+                    case Types.DOUBLE:
+                        if (value == null || value.length() == 0) {
+                                        
+                            statement.setNull(param.getIdx(), Types.DOUBLE);
+                        }
+                        else {
+                                        
+                            statement.setDouble(param.getIdx(),
+                                Double.valueOf(value));
+                        }
+                        break;
+                                    
+                    case Types.FLOAT:
+                        if (value == null || value.length() == 0) {
+                                        
+                            statement.setNull(param.getIdx(), Types.FLOAT);
+                        }
+                        else {
+                                        
+                            statement.setFloat(param.getIdx(),
+                                Float.valueOf(value));
+                        }
+                        break;
+                                    
+                    case Types.INTEGER:
+                        if (value == null || value.length() == 0) {
+                                        
+                            statement.setNull(param.getIdx(), Types.INTEGER);
+                        }
+                        else {
+                                        
+                            statement.setInt(param.getIdx(),
+                                Integer.valueOf(value));
+                        }
+                        break;
+                                    
+                    case Types.BIGINT:
+                        if (value == null || value.length() == 0) {
+                                        
+                            statement.setNull(param.getIdx(), Types.BIGINT);
+                        }
+                        else {
+                                        
+                            statement.setLong(param.getIdx(),
+                                Long.valueOf(value));
+                        }
+                        break;
+                                    
+                    case SqshTypes.ORACLE_CURSOR:
+                        if (statement instanceof CallableStatement) {
+                                        
+                            ((CallableStatement) statement)
+                                .registerOutParameter(param.getIdx(),
+                                    SqshTypes.ORACLE_CURSOR);
+                        }
+                        break;
+                                
+                                    
+                    default:
+                        throw new SQLException("Unrecognized parameter type");
+                }
+            }
+            catch (NumberFormatException e) {
+                        
+                throw new SQLException ("Invalid number format '"
+                    + value + "' provided for type '" + param.getType() + "'");
+            }
+        }
     }
     
     /**
@@ -334,24 +556,17 @@ public class SQLRenderer {
      * @param renderer The renderer that is to be used to display the output
      *   of the statement.
      * @param session The session that will be used for output.
-     * @param sql If not null, then the SQL that is to be executed for
-     *   display.
-     * @param preparedStatement If sql is null, then this must be non-null
-     *   and must contain a prepared statement for execution.
+     * @param statement The statement that was just executed.
      * @throws SQLException Thrown if there is an issue.
      */
-    private void execute (Renderer renderer, Session session, String sql,
-            PreparedStatement preparedStatement)
+    private void execute (Renderer renderer, Session session,
+            Statement statement, boolean hasResults)
         throws SQLException {
         
         Connection conn = session.getSQLContext().getConnection();
         ResultSet resultSet = null;
-        Statement statement = null;
         boolean done = false;
-        CancelingSignalHandler sigHandler = null;
-        boolean hasResults;
         int updateCount = -1;
-        
         
         startTime = System.currentTimeMillis();
         firstRowTime = 0L;
@@ -360,35 +575,6 @@ public class SQLRenderer {
         try {
             
             SQLTools.printWarnings(session, conn);
-            
-            if (sql != null) {
-                
-                statement = conn.createStatement();
-                
-                /*
-             	 * Install a signal handler that will cancel our query
-             	 * if the user hits CTRL-C.
-             	 */
-                sigHandler = new CancelingSignalHandler(statement);
-                session.getSignalManager().push((SigHandler) sigHandler);
-                
-                hasResults = statement.execute(sql);
-                SQLTools.printWarnings(session, statement);
-            }
-            else {
-                
-                statement = preparedStatement;
-                
-                /*
-             	 * Install a signal handler that will cancel our query
-             	 * if the user hits CTRL-C.
-             	 */
-                sigHandler = new CancelingSignalHandler(statement);
-                session.getSignalManager().push((SigHandler) sigHandler);
-                
-                hasResults = preparedStatement.execute();
-                SQLTools.printWarnings(session, statement);
-            }
             
             /*
              * If we have a row limit and it is to be driver enforced, then
@@ -537,26 +723,10 @@ public class SQLRenderer {
                 }
             }
             while (!done);
-            
         }
         finally {
             
-            if (sigHandler != null) {
-                
-                session.getSignalManager().pop();
-            }
-            
             SQLTools.close(resultSet);
-            
-            /*
-             * If we created the statement, then close it. If we are
-             * using the statement passed in, then its up to the caller
-             * to close it.
-             */
-            if (preparedStatement == null) {
-                
-                SQLTools.close(statement);
-            }
         }
     }
     

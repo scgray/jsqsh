@@ -31,7 +31,9 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.sqsh.SqshTypes;
 import org.sqsh.BufferManager;
+import org.sqsh.CallParameter;
 import org.sqsh.Command;
 import org.sqsh.DatabaseCommand;
 import org.sqsh.SQLRenderer;
@@ -103,12 +105,12 @@ public class Call
          * Parse the command line arguments so we know how they are
          * going to be handled.
          */
-        ParameterValue []params = new ParameterValue[argv.length];
+        Parameter []params = new Parameter[argv.length];
         for (int i = 0; i < argv.length; i++) {
             
             try {
                 
-                params[i] = new ParameterValue(argv[i], i+1);
+                params[i] = new Parameter(argv[i], i+1);
             }
             catch (Exception e) {
                 
@@ -146,13 +148,10 @@ public class Call
      * If the statement starts with a "{" it is assumed to be a
      * stored procedure call, otherwise it is a prepared statement.
      * 
-     * @param conn The connection.
      * @param sql The sql to be evaluated.
-     * @return The prepared statement.
-     * @throws SQLException
+     * @return true if the sql contains a call.
      */
-    private PreparedStatement prepare(Connection conn, String sql)
-        throws SQLException {
+    private boolean isCall (String sql) {
         
         int idx = 0;
         while (idx < sql.length() && Character.isWhitespace(sql.charAt(idx))) {
@@ -162,13 +161,12 @@ public class Call
         
         if (idx < sql.length() && sql.charAt(idx) == '{') {
             
-            return conn.prepareCall(sql);
+            return true;
         }
-        else {
-            
-            return conn.prepareStatement(sql);
-        }
+        
+        return false;
     }
+    
     
     /**
      * Called to execute the SQL buffer when there is no input file
@@ -181,37 +179,29 @@ public class Call
      * @throws SQLException Thrown if there is an exception.
      */
     private int doNoInputFile(Session session, String sql,
-            ParameterValue []params)
+            Parameter []params)
         throws SQLException {
         
-        Connection conn = session.getConnection();
-        PreparedStatement statement = prepare(conn, sql);
-        
-        try {
+        SQLRenderer sqlRenderer = session.getSQLRenderer();
             
-            if (!setParameters(session, statement, 0, null, params)) {
+        if (isCall(sql)) {
                 
-                return 1;
-            }
-            
-            SQLRenderer sqlRenderer = session.getSQLRenderer();
-            sqlRenderer.execute(session, statement);
+            sqlRenderer.executeCall(session, sql, params);
         }
-        finally {
-            
-            SQLTools.close(statement);
+        else {
+                
+            sqlRenderer.executePrepare(session, sql, params);
         }
         
         return 0;
     }
     
     private int doInputFile(Session session, String sql, String file,
-            boolean hasHeaders, ParameterValue []params)
+            boolean hasHeaders, Parameter []params)
         throws SQLException {
         
-        Connection conn = session.getConnection();
-        PreparedStatement statement = prepare(conn, sql);
         SQLRenderer sqlRenderer = session.getSQLRenderer();
+        boolean isCall = isCall(sql);
         
         InputStream in = null;
         int line = 0;
@@ -230,21 +220,29 @@ public class Call
              */
             if (params.length == 0) {
                 
-                params = new ParameterValue[row.length];
+                params = new Parameter[row.length];
                 for (int i = 0; i < row.length; i++) {
                     
-                    params[i] = new ParameterValue("S:#" + (i+1), i+1);
+                    params[i] = new Parameter("S:#" + (i+1), i+1);
                 }
             }
             
             while (row != null) {
                 
                 ++line;
-                if (!setParameters(session, statement, line, row, params)) {
+                if (!setParameters(session, line, row, params)) {
                     
                     return 1;
                 }
-                sqlRenderer.execute(session, statement);
+                
+                if (isCall) {
+                        
+                    sqlRenderer.executeCall(session, sql, params);
+                }
+                else {
+                        
+                    sqlRenderer.executePrepare(session, sql, params);
+                }
                 
                 row = reader.next();
             }
@@ -254,10 +252,6 @@ public class Call
             session.err.println("I/O error while reading '"
                 + file + "': " + e.getMessage());
             rc = 1;
-        }
-        finally {
-            
-            SQLTools.close(statement);
         }
         
         if (in != null) {
@@ -275,17 +269,18 @@ public class Call
         return rc;
     }
     
-    private boolean setParameters(Session session,
-            PreparedStatement statement, int line,
-            String []row, ParameterValue []params)
+    private boolean setParameters(Session session, int line, String []row,
+            Parameter []params)
         throws SQLException {
         
-        for (ParameterValue param : params) {
+        for (Parameter param : params) {
             
-            String value = null;
             try {
                 
-                value = param.getValue(row);
+                if (param.getColumnIdx() >= 0) {
+                    
+                    param.setValue(row[param.getColumnIdx()]);
+                }
             }
             catch (ArrayIndexOutOfBoundsException e) {
                 
@@ -294,116 +289,34 @@ public class Call
                     + param.getColumnIdx());
                 return false;
             }
-            
-            try {
-                
-                switch (param.getType()) {
-                    
-                    case 'S':
-                    case 'C':
-                        statement.setString(param.getIdx(), value);
-                        break;
-                    
-                    case 'Z':
-                        if (value == null || value.length() == 0) {
-                            
-                            statement.setNull(param.getIdx(), Types.BOOLEAN);
-                        }
-                        else {
-                            
-                            statement.setBoolean(param.getIdx(), 
-                                Boolean.valueOf(value));
-                        }
-                        break;
-                        
-                    case 'D':
-                        if (value == null || value.length() == 0) {
-                            
-                            statement.setNull(param.getIdx(), Types.DOUBLE);
-                        }
-                        else {
-                            
-                            statement.setDouble(param.getIdx(),
-                                Double.valueOf(value));
-                        }
-                        break;
-                        
-                    case 'F':
-                        if (value == null || value.length() == 0) {
-                            
-                            statement.setNull(param.getIdx(), Types.FLOAT);
-                        }
-                        else {
-                            
-                            statement.setFloat(param.getIdx(),
-                                Float.valueOf(value));
-                        }
-                        break;
-                        
-                    case 'I':
-                        if (value == null || value.length() == 0) {
-                            
-                            statement.setNull(param.getIdx(), Types.INTEGER);
-                        }
-                        else {
-                            
-                            statement.setInt(param.getIdx(),
-                                Integer.valueOf(value));
-                        }
-                        break;
-                        
-                    case 'J':
-                        if (value == null || value.length() == 0) {
-                            
-                            statement.setNull(param.getIdx(), Types.BIGINT);
-                        }
-                        else {
-                            
-                            statement.setLong(param.getIdx(),
-                                Long.valueOf(value));
-                        }
-                        break;
-                        
-                    default:
-                        session.err.println("Invalid type specifier '"
-                            + param.getType()
-                            + "'. Valid specifiers are SCZDFIJ");
-                        return false;
-                }
-            }
-            catch (NumberFormatException e) {
-                
-                session.err.println("Invalid number format '"
-                    + value + "' provided for type '" + param.getType() + "'");
-                return false;
-            }
         }
         
         return true;
     }
     
-    private static class ParameterValue {
+    private static class Parameter
+        extends CallParameter {
         
-        private int parameterIdx;
         private int columnIdx = -1;
-        private String value;
         private String description;
-        private char type = 'S';
         
-        public ParameterValue (String description, int idx) {
+        public Parameter (String description, int idx) {
+            
+            super(idx, description);
+            
+            String value = description;
+            char type = 'S';
             
             /*
              * By default, the value is the description.
              */
             this.description = description;
-            this.value = description;
-            this.parameterIdx = idx;
             
-            if (description.length() > 2
-                && value.charAt(1) == ':') {
+            if (description.length() >= 2
+                && description.charAt(1) == ':') {
             
-                type = Character.toUpperCase(value.charAt(0));
-                value = value.substring(2);
+                type = Character.toUpperCase(description.charAt(0));
+                value = description.substring(2);
             }
             
             if (value.length() > 0 
@@ -411,7 +324,7 @@ public class Call
                 
                 if (value.length() == 1) {
                     
-                    columnIdx = parameterIdx - 1;
+                    columnIdx = idx - 1;
                 }
                 else {
                     
@@ -420,11 +333,40 @@ public class Call
                 
                 value = null;
             }
-        }
-        
-        public int getIdx() {
             
-            return parameterIdx;
+            switch (type) {
+                
+                case 'S':
+                case 'C':
+                    setType(Types.VARCHAR);
+                    break;
+                    
+                case 'Z':
+                    setType(Types.BOOLEAN);
+                    break;
+                    
+                case 'D':
+                    setType(Types.DOUBLE);
+                    break;
+                    
+                case 'F':
+                    setType(Types.FLOAT);
+                    break;
+                        
+                case 'I':
+                    setType(Types.INTEGER);
+                    break;
+                        
+                case 'J':
+                    setType(Types.BIGINT);
+                    break;
+                   
+                case 'R':
+                    setType(SqshTypes.ORACLE_CURSOR);
+                    setDirection(CallParameter.OUTPUT);
+            }
+            
+            setValue(value);
         }
         
         public int getColumnIdx() {
@@ -437,19 +379,5 @@ public class Call
             return description;
         }
         
-        public char getType() {
-            
-            return type;
-        }
-        
-        public String getValue(String []row) {
-            
-            if (row == null) {
-                
-                return value;
-            }
-                
-            return row[columnIdx];
-        }
     }
 }
