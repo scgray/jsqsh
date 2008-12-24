@@ -1165,6 +1165,38 @@ TYPED PARAMETERS
       2> \call --file test.csv #1 I:#2 #3
       
    indicates that field #2 in test.csv is an integer field.
+
+ORACLE REFCURSORS
+   Unlike most "normal" databases, Oracle stored procedures are incapable
+   of directly streaming result sets back to the user and procedures are
+   instead expected to return results via special output parameters of type
+   REFCURSOR.  For example, the following procedures:
+   
+       create or replace procedure ref_example (
+           i_owner in varchar2
+           o_rc1   out sys_refcursor
+       )
+       as
+       begin
+           open o_rc1 for
+           select * 
+             from SYS.ALL_OBJECTS
+            where OWNER = i_owner
+       end;
+    
+   If you were to just execute the procedure like so:
+   
+      1> {call ref_example (?)}
+      2> \call SYS
+      
+   you would get no results back. Instead, you must let \call know that
+   the second argument is a refcursor with the special ":r" place holder:
+   
+      1> {call ref_example (?, ?)}
+      2> \call SYS r:
+      
+   upon execution, jsqsh will open the REFCURSOR argument and display its
+   results just as if it were a normal result set.
       
 SEE ALSO
    \go, style
