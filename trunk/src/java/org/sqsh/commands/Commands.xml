@@ -1190,7 +1190,7 @@ ORACLE REFCURSORS
       2> \call SYS
       
    you would get no results back. Instead, you must let \call know that
-   the second argument is a refcursor with the special ":r" place holder:
+   the second argument is a refcursor with the special "r:" place holder:
    
       1> {call ref_example (?, ?)}
       2> \call SYS r:
