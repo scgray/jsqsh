@@ -12,6 +12,9 @@ Release 1.3-SNAPSHOT
   session ends or the buffer is removed from history.
 * Added ${querytime} configuration property to suppress display of
   query timing information. 
+* Added dist-sparc-sol build target. This provides a .tar.gz file
+  that contains jsqsh and its JNI files. Currently this relies upon
+  the build platform having readline-5.x installed
 * Fixed case where stored procedures with multiple result sets would
   occasionally not show all of the available result sets. Unfortunately,
   this problem still persists in the SQL Server 2005 driver, but I think

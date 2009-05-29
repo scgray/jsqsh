@@ -137,6 +137,7 @@
             basedir="build"/>
      </target>
 
+
      <!-- 
        == ************************************************************
        == dist-deb - Creates a Debian installation distribution
@@ -205,6 +206,76 @@
             <arg value="--build"/>
             <arg value="jsqsh-${version}"/>
         </exec>
+     </target>
+
+     <!-- 
+       == ************************************************************
+       == dist-sol-sparc - Creates the solaris distribution
+       ==
+       == This task packages a tar.gz file that is structured like
+       ==     jsqsh-<version>/
+       ==         share/jsqsh/ - Jar files
+       ==         lib/         - Shared libraries
+       ==         bin/         - Launch script
+       == ************************************************************
+       -->
+     <target name="dist-sol-sparc" depends="clean,_init,jar">
+
+        <antcall target="make-install">
+           <param name="prefix" value="${basedir}/build/jsqsh-${version}"/>
+        </antcall>
+
+        <mkdir dir="build/jsqsh-${version}/bin"/>
+        <mkdir dir="build/jsqsh-${version}/share"/>
+        <mkdir dir="build/jsqsh-${version}/lib/jni"/>
+
+        <!--
+          == Copy our dependant jar into usr/share/jsqsh. Note that
+          == the readline jar is not copied because the install package
+          == requires that the appropriate Debian package that includes
+          == it (and its .so) already be in place.
+          -->
+        <copy todir="build/jsqsh-${version}/share/jsqsh">
+            <fileset dir="lib">
+                <include name="**/*.jar"/>
+            </fileset>
+            <fileset dir="build">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+
+        <!-- 
+          == Copy our pre-compiled libJavaReadline.so file into the
+          == lib/ directory.
+          -->
+        <copy todir="build/jsqsh-${version}/lib/jni">
+            <fileset dir="dist/sol-sparc">
+                <include name="*.so"/>
+            </fileset>
+        </copy>
+
+        <copy todir="build/jsqsh-${version}">
+            <fileset dir="dist/sol-sparc">
+                <include name="*.txt"/>
+            </fileset>
+        </copy>
+
+        <!-- 
+          == For now I just install a shell script to launch it. 
+          == I'm considering the use of Launch4j here as well.
+          -->
+        <copy file="dist/unix/jsqsh.sh"
+              tofile="build/jsqsh-${version}/bin/jsqsh"/>
+
+        <!--
+          == Make sure its executable.
+          -->
+        <chmod file="build/jsqsh-${version}/bin/jsqsh" perm="u=rwx,go=rx"/>
+
+        <tar destfile="build/jsqsh-${version}.tar.gz"
+            includes="jsqsh-${version}/**"
+            basedir="build"
+            compression="gzip"/>
      </target>
 
      <!-- 
