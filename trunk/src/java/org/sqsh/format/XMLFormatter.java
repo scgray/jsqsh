@@ -17,9 +17,30 @@
  */
 package org.sqsh.format;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.sql.SQLXML;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
 import org.sqsh.Formatter;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * This class is used to format XML content contained in database columns.
@@ -32,30 +53,55 @@ public class XMLFormatter
     
    public String format (Object value) {
         
-        SQLXML clob = (SQLXML) value;
-        StringBuilder sb = new StringBuilder();
-        char []chars = new char[512];
+        SQLXML xml = (SQLXML) value;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
         
         try {
             
-            Reader in = clob.getCharacterStream();
-            while (in.read(chars) >= 0) {
-                
-                sb.append(chars);
-            }
+            Reader in = xml.getCharacterStream();
+            prettyPrint(createDOM(in), out);
             
             in.close();
+            out.flush();
+            
+            return out.toString();
         }
         catch (Exception e) {
             
-            /* IGNORED */
+            return "XML parse error (" + e.getMessage() + ")";
         }
         
-        return sb.toString();
     }
 
     public int getMaxWidth () {
 
         return Integer.MAX_VALUE;
+    }
+    
+    private Element createDOM(Reader in) 
+        throws ParserConfigurationException, SAXException, IOException {
+
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    	dbf.setValidating(false);
+    	DocumentBuilder db = dbf.newDocumentBuilder();
+    	
+    	InputSource sourceXML = new InputSource(in);
+    	Document xmlDoc = db.parse(sourceXML);
+    	Element e = xmlDoc.getDocumentElement();
+    	e.normalize();
+    	
+    	return e;
+    }
+    
+    private final void prettyPrint(Node xml, OutputStream out)
+        throws TransformerConfigurationException,
+               TransformerFactoryConfigurationError,
+               TransformerException {
+        
+        Transformer tf = TransformerFactory.newInstance().newTransformer();
+        tf.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+    	tf.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+    	tf.setOutputProperty(OutputKeys.INDENT, "yes");
+    	tf.transform(new DOMSource(xml), new StreamResult(out));
     }
 }

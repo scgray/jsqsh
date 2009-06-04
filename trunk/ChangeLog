@@ -18,8 +18,7 @@ Release 1.3-SNAPSHOT
 * Added dist-sparc-sol build target. This provides a .tar.gz file
   that contains jsqsh and its JNI files. Currently this relies upon
   the build platform having readline-5.x installed
-* Added support for SQLXML datatype (right now it is just dumped as 
-  straight text and not really formatted in a nice way--maybe later).
+* Added support for SQLXML datatype
 * Enabled support for "N" types, NVARCHAR(), NCHAR(), etc. 
 * Fixed case where stored procedures with multiple result sets would
   occasionally not show all of the available result sets. Unfortunately,
