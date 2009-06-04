@@ -30,6 +30,7 @@ import org.sqsh.format.ClobFormatter;
 import org.sqsh.format.NumberFormatter;
 import org.sqsh.format.DateFormatter;
 import org.sqsh.format.Unformatter;
+import org.sqsh.format.XMLFormatter;
 
 /**
  * Helper class that is capable of formatting the value of a column into
@@ -304,12 +305,20 @@ public class DataFormatter {
     
     /**
      * Returns a formatter for formatting strings.
-     * 
-     * @param maxWidth The maximum allowable width of the string.
      */
     public Formatter getClobFormatter() {
         
         return new ClobFormatter();
+    }
+    
+    /**
+     * Returns a formatter for formatting XML.
+     * 
+     * @return a new formatter.
+     */
+    public Formatter getXMLFormatter() {
+        
+        return new XMLFormatter();
     }
         
     /* ====================================================================

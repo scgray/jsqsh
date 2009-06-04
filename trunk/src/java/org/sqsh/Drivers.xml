@@ -63,7 +63,7 @@
    <Driver name="db2" 
            target="IBM DB2"
            class="com.ibm.db2.jcc.DB2Driver"
-           analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+           analyzer="org.sqsh.analyzers.PLSQLAnalyzer"
            url="jdbc:db2://${server}:${port}/${db}">
            
        <Variable name="db">changeme</Variable>
