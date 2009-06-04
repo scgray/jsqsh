@@ -981,16 +981,16 @@ public class SQLRenderer {
                 
             case Types.CHAR:
             case Types.VARCHAR:
-            /* case Types.NVARCHAR:*/
-            /* case Types.LONGNVARCHAR: */
+            case Types.NVARCHAR:
+            case Types.LONGNVARCHAR:
             case Types.LONGVARCHAR:
-            /* case Types.NCHAR: */
+            case Types.NCHAR:
                 format = formatter.getStringFormatter(
                     meta.getColumnDisplaySize(idx));
                 break;
                 
             case Types.CLOB:
-            /* case Types.NCLOB: */
+            case Types.NCLOB:
                 format = formatter.getClobFormatter();
                 break;
                 
@@ -1045,6 +1045,10 @@ public class SQLRenderer {
                 
             case Types.TIMESTAMP:
                 format = formatter.getDatetimeFormatter();
+                break;
+                
+            case Types.SQLXML:
+                format = formatter.getXMLFormatter();
                 break;
                 
             default:
