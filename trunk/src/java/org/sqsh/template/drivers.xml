@@ -56,6 +56,10 @@
      ==              -p     Sets $port
      ==              -s     Sets $SID
      ==
+     == <Variable> This lets you define a default value for one of the 
+     ==            variables shown above. Your drive may declare other
+     ==            variables if it needs.
+     == <Property> This is passed as a property directly down to the driver
      -->
      
    <!--
@@ -67,6 +71,7 @@
      ==    
      ==      <Variable name="server">localhost</Variable>
      ==      <Variable name="port">4100</Variable>
+     ==      <Property name="this">that</Property>
      ==  </Driver>
      -->
 </Drivers>

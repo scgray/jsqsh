@@ -18,6 +18,7 @@
 package org.sqsh;
 
 import java.lang.reflect.Constructor;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -47,6 +48,7 @@ public class SQLDriver
     private boolean isInternal = false;
     private boolean isAvailable = false;
     private Map<String, String> variables = new HashMap<String, String>();
+    private Map<String, String> properties = new HashMap<String, String>();
     private SQLAnalyzer analyzer = new NullAnalyzer();
     
     public SQLDriver() {
@@ -209,6 +211,41 @@ public class SQLDriver
     }
     
     /**
+     * Adds a property to the driver. These properties are passed
+     * in during the connection process.
+     * 
+     * @param name The name of the property
+     * @param value The value of the property.
+     */
+    public void setProperty(String name, String value) {
+        
+        properties.put(name, value);
+    }
+    
+    /**
+     * Retrieves a property from the driver definition.
+     * 
+     * @param name The name of the property
+     * @return The value of the property or NULL if the property 
+     *    is not define.
+     */
+    public String getProperty(String name) {
+        
+        return properties.get(name);
+    }
+    
+    /**
+     * Retrieves the set of property names that have been associated
+     * this this driver definition.
+     * 
+     * @return A set of property names.
+     */
+    public Collection<String> getPropertyNames() {
+        
+        return properties.keySet();
+    }
+    
+    /**
      * Returns the JDBC URL for this driver.
      * @return The JDBC URL for this driver.
      */
@@ -311,5 +348,4 @@ public class SQLDriver
         
         return name.hashCode();
     }
-    
 }

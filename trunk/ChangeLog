@@ -2,6 +2,11 @@ Release 1.3-SNAPSHOT
 * Compilation requires JDK 1.6 now due to support for new datatypes. It
   should run OK in JDK 1.5 provided you don't reference one of those
   datatypes.
+* A driver definition (the drivers.xml) file may now contain a new
+  <Property> tag to define properties that are to be passed into the
+  driver at connect time.
+* The DB2 driver now sets the retrieveMessagesFromServerOnGetMessage 
+  property. This results in actual usable error messages.
 * The \call statement is now capable of displaying Oracle result sets
   produced from Oracle refcursors. This is done with the special ":r"
   argument placeholder.  See "\help call" for details.
