@@ -365,6 +365,12 @@ public class SQLDriverManager {
             
             try {
                 
+                /*
+                 * One little trick we can do is to ask the driver for all
+                 * of the properties that it supports. If there so happens to
+                 * exist an variable associated with the driver that matches
+                 * that variable name, we will set it. 
+                 */
                 DriverPropertyInfo []supportedProperties =
                     jdbcDriver.getPropertyInfo(url, null);
                 
@@ -376,15 +382,27 @@ public class SQLDriverManager {
                     
                     if (value != null) {
                         
+                        LOG.fine("Setting connection property '"
+                                + name + "' to '" + value + "'");
                         props.put(name, value);
                     }
                 }
+                
             }
             catch (Exception e) {
                 
                 session.err.println("WARNING: Failed to retrieve JDBC driver "
                     + "supported connection property list ("
                     + e.getMessage() + ")");
+            }
+            
+            /*
+             * If the driver explicitly declares a property 
+             * we just blindly pass it in.
+             */
+            for (String name : sqlDriver.getPropertyNames()) {
+                    
+                props.put(name, sqlDriver.getProperty(name));
             }
             
             String s = getProperty(properties,
@@ -717,6 +735,13 @@ public class SQLDriverManager {
         path = "Drivers/Driver/Variable";
         digester.addCallMethod(path, 
             "setVariable", 2, new Class[] { java.lang.String.class,
+                java.lang.String.class });
+            digester.addCallParam(path, 0, "name");
+            digester.addCallParam(path, 1);
+            
+        path = "Drivers/Driver/Property";
+        digester.addCallMethod(path, 
+            "setProperty", 2, new Class[] { java.lang.String.class,
                 java.lang.String.class });
             digester.addCallParam(path, 0, "name");
             digester.addCallParam(path, 1);
