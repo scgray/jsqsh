@@ -32,11 +32,6 @@ public class NumberFormatter
         this.precision = precision;
         this.scale = scale;
         
-        /*
-         * If the scale is negative or zero then there is no 
-         * decimal place to concern ourselves with, so we keep it
-         * simple.
-         */
         if (scale <= 0) {
             
             format = new DecimalFormat("#");

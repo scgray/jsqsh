@@ -158,19 +158,48 @@ SEE ALSO
 	</Property>
 	
 	
-	
-	<Property bean="global" name="precision" property="dataFormatter.scale">
+	<Property bean="global" name="scale" property="dataFormatter.scale">
 		<Description>Controls the decimal place precision of values</Description>
         <Help><![CDATA[
 VARIABLE
-   precision - Controls the decimal place precision of numeric values
+   scale - Controls digits displayed after decimal for floating point values
 
 DESCRIPTION
-   The ${precision} variable controls the number of decimal places that
-   will be displayed for floating point values. This applies to real, float,
-   and double datatypes only. Numbers defined as NUMERIC or NUMBER (or
-   similar fixed precision and scale values) are displayed as they are 
-   defined in the database.
+   When display floating point values, ${scale} determines how many of the
+   total ${precision} digits are used to represent values following the
+   decimal place.  For example:
+   
+        Actual Value  Precision Scale      Displayed Value
+        ------------  --------- ---------- ---------------
+           1.2345678          5          2            1.23
+           1.2345678          5          3           1.234
+           1.2345678          5          4          1.2345
+           
+    This property only applies to types of real, float, double and
+    Oracle NUMERIC (with no precision or scale specified).
+
+SEE ALSO
+    precision
+        ]]></Help>
+	</Property>
+	
+	<Property bean="global" name="precision" property="dataFormatter.precision">
+		<Description>Controls the decimal place precision of values</Description>
+        <Help><![CDATA[
+VARIABLE
+   precision - Controls number of digits displayed in floating point values
+
+DESCRIPTION
+   When display floating point values, ${precision} determines how many
+   total digits of the value are displayed. ${scale} is used in conjunction
+   with this value to indicate how many of those digits are used to show
+   the values after the decimal.
+   
+   This property only applies to types of real, float, double and
+   Oracle NUMERIC (with no precision or scale specified).
+
+SEE ALSO
+   scale 
         ]]></Help>
 	</Property>
 	

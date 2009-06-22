@@ -52,6 +52,12 @@ public class DataFormatter {
      */
     private int scale = 5;
     
+    /*
+     * Number of digits used when displaying floating points values
+     * (except for BigDecimal);
+     */
+    private int precision = 20;
+    
     /* ====================================================================
      *                           NULL
      * ==================================================================== */
@@ -205,12 +211,34 @@ public class DataFormatter {
     }
     
     /**
+     * Sets the number of digits (in total) to display when showing
+     * floating point values (that aren't exact).
+     * 
+     * @param precision The precision to set.
+     */
+    public void setPrecision(int precision) {
+        
+        this.precision = precision;
+    }
+    
+    /**
+     * Retrieves the precision to used when displaying floating point
+     * values.
+     * 
+     * @return The precision
+     */
+    public int getPrecision() {
+        
+        return precision;
+    }
+    
+    /**
      * Returns a formatter to format Doubles.
      * @return a new formatter.
      */
     public Formatter getDoubleFormatter() {
         
-        return new NumberFormatter(20, scale);
+        return new NumberFormatter(precision, scale);
     }
     
     /**
@@ -219,7 +247,7 @@ public class DataFormatter {
      */
     public Formatter getFloatFormatter() {
         
-        return new NumberFormatter(20, scale);
+        return new NumberFormatter(precision, scale);
     }
     
     /**
@@ -285,6 +313,31 @@ public class DataFormatter {
      * @return The formatter.
      */
     public Formatter getBigDecimalFormatter(int precision, int scale) {
+        
+        /*
+         * This is to deal with Oracle's strange combinations of
+         * precision and scale (ugh). It involves some documentation:
+         *    http://download.oracle.com/docs/cd/B28359_01/server.111/b28286/sql_elements001.htm#sthref83
+         * as well as some trail and error.
+         * 
+         * PRECISION=0, SCALE=-127
+         *    This appears to be a raw NUMERIC which is effectively just a
+         *    floating point value. In this case we treat it like a double.
+         */
+        if (precision == 0 && scale == -127) {
+            
+            precision = this.precision;
+            scale = this.scale;
+        }
+        else if (scale <= 0) {
+            
+           /* 
+            * In Oracle if the scale < 0 it indicates which digits before
+            * the decimal are significant.  This means that we will never
+            * have anything after the decimal.
+            */
+           scale = 0;
+        }
         
         return new NumberFormatter(precision, scale);
     }
