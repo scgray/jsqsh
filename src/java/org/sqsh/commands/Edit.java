@@ -115,7 +115,7 @@ public class Edit
         
         try {
             
-            tmpFile = File.createTempFile("jsqsh", ".tmp");
+            tmpFile = File.createTempFile("jsqsh", ".sql");
             readBuf.save(tmpFile);
             
             s = session.getShellManager().detachShell(
