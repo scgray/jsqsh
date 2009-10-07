@@ -316,6 +316,31 @@ SEE ALSO
    style, header, footer
         ]]></Help>
     </Command>
+
+<Command name="\translate" class="org.sqsh.commands.Translate">
+<Description><![CDATA[
+   Internal sqsh command.
+    ]]></Description>
+           
+    <Help><![CDATA[
+SYNOPSIS
+   \translate [-s spid] [options]
+              
+DESCRIPTION
+   The \translate command is internal to jsqsh and is used for
+   testing of software functionality within the author's (Scott Gray's)
+   corporate environment.
+           
+OPTIONS:
+   The translate command takes all of the same options as \go, with the
+   addition of:
+
+   -s, --spid=spid  Sybase spid to pass to the translate function.
+
+SEE ALSO
+   \go
+]]></Help>
+</Command>
     
     <Command name="\reset" class="org.sqsh.commands.Reset">
         <Description><![CDATA[

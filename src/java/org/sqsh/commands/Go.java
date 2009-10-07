@@ -43,7 +43,7 @@ public class Go
     extends Command
     implements DatabaseCommand {
     
-    private static class Options
+    protected static class Options
        extends SqshOptions {
        
         @Option(
