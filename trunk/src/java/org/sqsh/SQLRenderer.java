@@ -323,6 +323,7 @@ public class SQLRenderer {
             sigHandler = new CancelingSignalHandler(statement);
             session.getSignalManager().push((SigHandler) sigHandler);
             
+            startTime = System.currentTimeMillis();
             execute(renderer, session, statement, statement.execute());
             
             /*
@@ -389,6 +390,7 @@ public class SQLRenderer {
             sigHandler = new CancelingSignalHandler(statement);
             session.getSignalManager().push((SigHandler) sigHandler);
             
+            startTime = System.currentTimeMillis();
             execute(renderer, session, statement, statement.execute());
         }
         finally {
@@ -431,6 +433,7 @@ public class SQLRenderer {
             sigHandler = new CancelingSignalHandler(statement);
             session.getSignalManager().push((SigHandler) sigHandler);
             
+            startTime = System.currentTimeMillis();
             execute(renderer, session, statement, statement.execute(sql));
         }
         finally {
@@ -568,7 +571,6 @@ public class SQLRenderer {
         boolean done = false;
         int updateCount = -1;
         
-        startTime = System.currentTimeMillis();
         firstRowTime = 0L;
         endTime = 0L;
         
