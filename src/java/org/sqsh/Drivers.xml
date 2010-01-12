@@ -3,7 +3,7 @@
            target="Sybase"
            class="com.sybase.jdbc3.jdbc.SybDriver"
            analyzer="org.sqsh.analyzers.TSQLAnalyzer"
-           url="jdbc:sybase:Tds:${server}:${port}">
+           url="jdbc:sybase:Tds:${server}:${port}#if($db)/${db}#end">
            
        <Variable name="server">localhost</Variable>
        <Variable name="port">4100</Variable>
