@@ -441,7 +441,7 @@ public class SQLDriverManager {
         }
         
         if (database != null) {
-            
+/*            
             try {
                 
                 conn.setCatalog(database);
@@ -452,6 +452,7 @@ public class SQLDriverManager {
                 session.err.println("WARNING: Could not switch database context"
                     + " to '" + database + "': " + e.getMessage());
             }
+*/
         }    
         
         try {
