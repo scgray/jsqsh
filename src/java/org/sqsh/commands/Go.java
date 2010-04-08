@@ -55,6 +55,11 @@ public class Go
             option='i', longOption="insert", arg=REQUIRED, argName="table",
             description="Generates INSERT statements for specified table")
         public String insertTable = null;
+
+        @Option(
+            option='n', longOption="repeat", arg=REQUIRED, argName="count",
+            description="Repeates the query execution count times")
+        public int repeat = 1;
        
         @Option(
             option='H', longOption="no-headers", arg=NONE,
@@ -135,7 +140,7 @@ public class Go
             bufferMan.getCurrent().clear();
         }
         
-        boolean origHeaders = renderMan.isShowFooters();
+        boolean origHeaders = renderMan.isShowHeaders();
         boolean origFooters = renderMan.isShowFooters();
         
         if (options.toggleFooters) {
@@ -146,16 +151,31 @@ public class Go
             
             renderMan.setShowHeaders(!origHeaders);
         }
-        
-        try {
-            
-            sqlRenderer.execute(session, sql);
+
+        long startTime = 0;
+        if (options.repeat > 1) {
+
+            startTime = System.currentTimeMillis();
         }
-        catch (SQLException e) {
-            
-            SQLTools.printException(session.err, e);
+
+        try {
+
+            for (int i = 0; i < options.repeat; i++) {
+
+                session.setVariable("iteration", Integer.toString(i));
+
+                try {
+                    
+                    sqlRenderer.execute(session, sql);
+                }
+                catch (SQLException e) {
+                    
+                    SQLTools.printException(session.err, e);
+                }
+            }
         }
         finally {
+
             
             if (origNull != null) {
                 
@@ -169,6 +189,15 @@ public class Go
             
             renderMan.setShowHeaders(origHeaders);
             renderMan.setShowFooters(origFooters);
+        }
+
+        if (options.repeat > 1) {
+
+            long endTime = System.currentTimeMillis();
+            System.out.println(
+                options.repeat + " iterations (total "
+                + (endTime - startTime) + "ms., "
+                + ((endTime - startTime) / options.repeat) + "ms. ag)");
         }
         
         return 0;

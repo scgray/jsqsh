@@ -308,6 +308,11 @@ OPTIONS:
    -H, --no-headers   Toggles the display of column header information. 
                       This flag  effectively flips the  value of ${header}
                       for the duration of the query execution.
+   -n, --repeat=n     Execute the SQL n times, reporting the total and
+                      average execution times. When this flag is provided
+                      the variable ${iteration} will be available during
+                      variable expansion and will reflect which iteration
+                      the query is being executed in (starting from 0).
    -F, --no-footers   Toggles the display of result footer information
                       (row count and timing information). This flag
                       effectively flips the  value of ${footer} for the
