@@ -22,6 +22,8 @@ Release 1.3-SNAPSHOT
   During this execution the variable ${iteration} can be referred to
   within the query to determine which iteration of the repeat cycle
   the query is on (starting from 0).
+* Added display style of "discard" that discards all rows. This is useful
+  for performance testing.
 * Added ${scale} and changed the definition of ${precision}. These
   two values now work together when displaying floating point
   values exactly as one would expect them to.
