@@ -527,6 +527,14 @@ VARIABLE
 DESCRIPTION
    The '$style' variable can be set to switch how sqsh displays its results
    to the user. Currently the following display styles are supported:
+
+   discard  - This causes all rows to be retrieved from the query but to
+        be discarded (i.e. not displayed). This is primarily useful only
+        for timing queries that return rows where you want to discount 
+        (most of) the overhead of actually displaying the rows.  It is 
+        important to note that jsqsh will still fetch the row and format
+        the columns into strings for display so there is still that overhead
+        involved in the process.
    
    perfect  - This is the default display style and is very similar to how
         tools like the mySQL client display their output. The output is 
