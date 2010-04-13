@@ -183,42 +183,44 @@ public class Translate
             sql = sb.toString();
         }
 
-        call.append("CALL ACS_REPOS.TRANSLATE_AND_EXECUTE(")
-            .append(((Options)opts).spid);
+        call.append("CALL ACS_REPOS.TRANSLATE_AND_EXECUTE(").append(spid);
 
         start = 0;
         boolean done = false;
-        for (int i = 0; i < 10; i++) {
+        int chunk = 0;
+        while (!done) {
 
-            if (done) {
+            ++chunk;
 
-                call.append(",NULL");
+            end = sql.length();
+            if ((end - start) > 30000) {
+
+                end = start + 30000;
+            }
+
+            call.append(", '");
+            if (start == 0
+                && end == sql.length()) {
+
+                call.append(sql);
             }
             else {
 
-                end = sql.length();
-                if ((end - start) > 30000) {
+                call.append(sql, start, end);
+            }
+            call.append('\'');
 
-                    end = start + 30000;
-                }
+            if (end == sql.length()) {
 
-                call.append(", '");
-                if (start == 0
-                    && end == sql.length()) {
-
-                    call.append(sql);
-                }
-                else {
-
-                    call.append(sql, start, end);
-                }
-                call.append('\'');
-
-                if (end == sql.length()) {
-                    done = true;
-                }
+                done = true;
             }
         }
+
+        if (chunk > 10) {
+
+            session.err.println("SQL is too large for translation\n");
+        }
+
         call.append(")");
 
         buffer.clear();
