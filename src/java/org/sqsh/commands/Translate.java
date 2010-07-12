@@ -158,6 +158,8 @@ public class Translate
             }
         }
 
+        call.append("CALL ACS_REPOS.SYB_EXEC(").append(spid).append(",'");
+
         /*
          * We need to protect any quotes that are in the original SQL.
          */
@@ -165,63 +167,25 @@ public class Translate
         int end = sql.indexOf('\'');
         if (end >= 0) {
 
-            StringBuilder sb = new StringBuilder();
-
             while (end >= 0) {
 
-                sb.append(sql, start, end + 1);
-                sb.append('\'');
+                call.append(sql, start, end + 1);
+                call.append('\'');
                 start = end + 1;
                 end   = sql.indexOf('\'', start);
             }
 
             if (start < sql.length()) {
 
-                sb.append(sql, start, sql.length());
-            }
-
-            sql = sb.toString();
-        }
-
-        call.append("CALL ACS_REPOS.TRANSLATE_AND_EXECUTE(").append(spid);
-
-        start = 0;
-        boolean done = false;
-        int chunk = 0;
-        while (!done) {
-
-            ++chunk;
-
-            end = sql.length();
-            if ((end - start) > 30000) {
-
-                end = start + 30000;
-            }
-
-            call.append(", '");
-            if (start == 0
-                && end == sql.length()) {
-
-                call.append(sql);
-            }
-            else {
-
-                call.append(sql, start, end);
-            }
-            call.append('\'');
-
-            if (end == sql.length()) {
-
-                done = true;
+                call.append(sql, start, sql.length());
             }
         }
-
-        if (chunk > 10) {
-
-            session.err.println("SQL is too large for translation\n");
+        else
+        {
+            call.append(sql);
         }
 
-        call.append(")");
+        call.append("~')");
 
         buffer.clear();
         buffer.add(call.toString());
