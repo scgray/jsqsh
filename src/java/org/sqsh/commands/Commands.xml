@@ -329,7 +329,7 @@ SEE ALSO
            
     <Help><![CDATA[
 SYNOPSIS
-   \translate [-s spid] [options]
+   \translate [-l] [-d] [-s spid] [options]
               
 DESCRIPTION
    The \translate command is internal to jsqsh and is used for
@@ -341,6 +341,11 @@ OPTIONS:
    addition of:
 
    -s, --spid=spid  Sybase spid to pass to the translate function.
+   -d, --disconnect Causes acs_logout() to be called immediately after
+                    executing the query.
+   -l, --legacy     Causes the old legacy translate_and_execute() 
+                    interface to be invoked rather than the new
+                    syb_exec() interface.
 
 SEE ALSO
    \go

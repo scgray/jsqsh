@@ -57,6 +57,14 @@ public class Translate
             option='s', longOption="spid", arg=REQUIRED, argName="spid",
             description="Sets the sysprocesses spid number of the client")
         public int spid = 0;
+        @Option(
+            option='l', longOption="legacy", arg=NONE, argName="legacy",
+            description="Turns on legacy support for translate_and_execute")
+        public boolean legacy = false;
+        @Option(
+            option='d', longOption="disconnect", arg=NONE, argName="disconnect",
+            description="Call acs_logout() after running query")
+        public boolean disconnect = false;
     }
     
     public SqshOptions getOptions() {
@@ -124,6 +132,54 @@ public class Translate
 
         return spid;
     }
+
+    private void logout(Session session) {
+
+        Connection conn = session.getSQLContext().getConnection();
+        CallableStatement stmt = null;
+        ResultSet results = null;
+        boolean done = false;
+        int spid = -1;
+
+        try {
+
+            stmt = conn.prepareCall("{call acs_repos.acs_logout()}");
+            stmt.execute();
+            while (!done) {
+
+                results = stmt.getResultSet();
+                if (results != null)
+                {
+                    while (results.next()) {
+
+                        /* Discard results */
+                    }
+                }
+                else {
+
+                    if (stmt.getUpdateCount() < 0) {
+
+                        done = true;
+                    }
+                    else {
+
+                        stmt.getMoreResults();
+                    }
+                }
+            }
+        }
+        catch (SQLException e) {
+
+            SQLTools.printException(session.err, e);
+        }
+        finally {
+
+            if (stmt != null) {
+
+                SQLTools.close(stmt);
+            }
+        }
+    }
     
     public int execute (Session session, SqshOptions opts)
         throws Exception {
@@ -133,7 +189,8 @@ public class Translate
         Buffer buffer = bufferMan.getCurrent();
         String sql = buffer.toString();
         StringBuilder call = new StringBuilder();
-        int spid = ((Options)opts).spid;
+        Options options = (Options)opts;
+        int spid = options.spid;
 
         /*
          * If we weren't force-fed a spid, then see if we have one
@@ -158,7 +215,11 @@ public class Translate
             }
         }
 
-        call.append("CALL ACS_REPOS.SYB_EXEC(").append(spid).append(",'");
+        call.append("CALL ACS_REPOS.")
+            .append(options.legacy 
+                ? "TRANSLATE_AND_EXECUTE("
+                : "SYB_EXEC(")
+            .append(spid).append(",'");
 
         /*
          * We need to protect any quotes that are in the original SQL.
@@ -180,12 +241,19 @@ public class Translate
                 call.append(sql, start, sql.length());
             }
         }
-        else
-        {
+        else {
+
             call.append(sql);
         }
 
-        call.append("~')");
+        if (((Options)opts).legacy) {
+
+            call.append("')");
+        }
+        else {
+
+            call.append("~')");
+        }
 
         buffer.clear();
         buffer.add(call.toString());
@@ -196,6 +264,13 @@ public class Translate
         System.out.println("=======================");
         */
 
-        return super.execute(session, opts);
+        int rc = super.execute(session, opts);
+        if (options.disconnect) {
+
+            logout(session);
+            session.getVariableManager().remove("acs_spid");
+        }
+
+        return rc;
     }
 }
