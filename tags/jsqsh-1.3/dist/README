@@ -1,0 +1,4 @@
+This directory contains template files, configuration files, and
+tools that are required to build various types of distributions.
+Refer to the contents of each sub-directory for details on the
+individual distributions.
