@@ -16,7 +16,7 @@
           == This is the one and only place that the jsqsh version number is 
           == defined. 
           -->
-        <property name="version" value="1.3-SNAPSHOT"/>
+        <property name="version" value="1.3"/>
 
 	<!--
           == This is used by the launch4j task that generates an
@@ -41,8 +41,8 @@
        -->
      <target name="build" depends="_init">
         <javac debug="true" 
-               source="1.5" 
-               target="1.5" encoding="ISO-8859-1" 
+               source="1.5"
+               target="1.5"
                srcdir="src/java"
                destdir="build/classes">
            <classpath refid="build.classpath" />
@@ -306,6 +306,7 @@
         <exec dir="${basedir}/build/rpm" 
               executable="rpmbuild">
             <arg value="-ba"/>
+            <arg value="-v"/>
             <arg value="${basedir}/build/rpm/SPECS/jsqsh-${version}.spec"/>
         </exec>
 
@@ -335,14 +336,12 @@
        == ************************************************************
        -->
      <target name="dist-rpm-setup" depends="dist-rpm-clean,_init">
+
 	<!--
           == Create directory structure required for packaging
           -->
-        <mkdir dir="build/rpm/BUILD"/>
-        <mkdir dir="build/rpm/RPMS/i386"/>
-        <mkdir dir="build/rpm/SOURCES"/>
-        <mkdir dir="build/rpm/SPECS"/>
-        <mkdir dir="build/rpm/SRPMS"/>
+        <mkdir dir="${basedir}/build/rpm"/>
+        <exec dir="${basedir}/build/rpm" executable="rpmdev-setuptree"/>
 
         <tar compression="gzip" 
              destfile="build/rpm/SOURCES/jsqsh-${version}-src.tar.gz">
@@ -383,18 +382,20 @@
        == ************************************************************
        -->
      <target name="dist-rpm-install" depends="jar">
+	<property environment="env"/>
+        <echo>BEGIN dist-rpm-install</echo>
 
-        <mkdir dir="${basedir}/build/rpm/usr/bin"/>
-        <mkdir dir="${basedir}/build/rpm/usr/lib"/>
-        <mkdir dir="${basedir}/build/rpm/usr/lib/jni"/>
-        <mkdir dir="${basedir}/build/rpm/usr/share/jsqsh"/>
+        <mkdir dir="${env.RPM_BUILD_ROOT}/usr/bin"/>
+        <mkdir dir="${env.RPM_BUILD_ROOT}/usr/lib"/>
+        <mkdir dir="${env.RPM_BUILD_ROOT}/usr/lib/jni"/>
+        <mkdir dir="${env.RPM_BUILD_ROOT}/usr/share/jsqsh"/>
 
         <!--
           == Our shared library will be installed in build/usr, but we'll
           == copy it to its final location when finished.
           -->
         <antcall target="make-install">
-           <param name="prefix" value="${basedir}/build/rpm/usr"/>
+           <param name="prefix" value="${env.RPM_BUILD_ROOT}/usr"/>
         </antcall>
 
         <!--
@@ -403,7 +404,7 @@
           == requires that the appropriate Debian package that includes
           == it (and its .so) already be in place.
           -->
-        <copy todir="${basedir}/build/rpm/usr/share/jsqsh">
+        <copy todir="${env.RPM_BUILD_ROOT}/usr/share/jsqsh">
             <fileset dir="lib">
                 <include name="**/*.jar"/>
                 <exclude name="**/*readline*.jar"/>
@@ -414,9 +415,11 @@
         </copy>
 
         <copy file="dist/unix/jsqsh.sh"
-              tofile="${basedir}/build/rpm/usr/bin/jsqsh"/>
+              tofile="${env.RPM_BUILD_ROOT}/usr/bin/jsqsh"/>
 
-        <chmod file="${basedir}/build/rpm/usr/bin/jsqsh" perm="u=rwx,go=rx"/>
+        <chmod file="${env.RPM_BUILD_ROOT}/usr/bin/jsqsh" perm="u=rwx,go=rx"/>
+
+        <echo>END dist-rpm-install</echo>
      </target>
 
      <!-- 
