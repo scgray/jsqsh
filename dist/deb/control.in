@@ -4,7 +4,7 @@ Section: utils
 Priority: optional
 Architecture: i386
 Essential: no
-Depends: sun-java5-bin|sun-java6-bin,libreadline-java
+Depends: sun-java5-bin|sun-java6-bin|openjdk-6-jre|openjdk-6-jdk,libreadline-java
 Installed-Size: 1024
 Maintainer: Scott Gray <sgray@inventa.com>
 Description: Command line shell for working with SQL databases 
