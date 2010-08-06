@@ -1,0 +1,248 @@
+<Variables>
+
+	<Property bean="session" name="id" property="id">
+        <Description>Contains the session id of the current session</Description>
+        <Help><![CDATA[
+VARIABLE
+   id - The session id of the current session.
+
+DESCRIPTION
+   The read-only ${id} variable contains the session id of the current
+   session and primarily useful for including in the prompt.
+   
+SEE ALSO
+   prompt, \sessions
+        ]]></Help>	
+	</Property>
+	
+	
+	<Property bean="session" name="connected" property="connected">
+        <Description>Indicates whether or not the current session is connected</Description>
+        <Help><![CDATA[
+VARIABLE
+   connected - Indicates whether or not the current session is connected
+
+DESCRIPTION
+   The read-only ${connected} variable will contain the value "true" if
+   the current session is connected to a server, otherwise "false". This
+   is primarily useful for including in the prompt.
+   
+SEE ALSO
+   prompt, \connect
+        ]]></Help>	
+	</Property>
+	
+	
+	<Property bean="session" name="rc" property="lastCommandResult"/>
+	<Property bean="session" name="IFS" property="stringExpander.IFS"/>
+	
+	<Property bean="session" name="database" property="connection.catalog" 
+	          settable="true" quiet="true">
+        <Description>Contains the connection's current database</Description>
+        <Help><![CDATA[
+VARIABLE
+   database - Contains the connection's current database
+
+DESCRIPTION
+   The ${database} variable will contain the name of the database
+   (or 'catalog' in JDBC terminology) of the current session if it connected
+   to a server. In addition, the database context of the current connection
+   can be changed by setting the ${database} variable to the desired 
+   database name.
+   
+SEE ALSO
+   \connect, dflt_database
+        ]]></Help>	
+	</Property>
+	
+	
+	<Property bean="session" name="autocommit" property="connection.autoCommit" 
+	          settable="true" quiet="false">
+        <Description>Contains the connection's current auto-commit status</Description>
+        <Help><![CDATA[
+VARIABLE
+   autocommit - Contains the connection's current auto-commit status
+
+DESCRIPTION
+   The ${autocommit} variable indicates whether or not the current connection
+   is in auto-commit mode. In addition, the connections autocommit mode can be 
+   altered by setting this variable.  To change the autocommit mode for
+   all future connections, use the ${dflt_autocommit} variable.
+   
+SEE ALSO
+   \connect, dflt_autocommit
+        ]]></Help>	
+	</Property>
+	          
+	<Property bean="session" name="interactive" property="interactive">
+        <Description>Whether or not the current session is interactive</Description>
+        <Help><![CDATA[
+VARIABLE
+   interactive - Indicates whether or not the current session is interactive
+
+DESCRIPTION
+   The read-only ${interactive} variable will contain "true" if the current
+   session is interactive, or "false" otherwise.
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="domain" property="SQLContext.domain"
+	          quiet="true">
+        <Description>Windows domain used to establish connection</Description>
+        <Help><![CDATA[
+VARIABLE
+   domain - Windows domain used to establish the database connection
+
+DESCRIPTION
+   The read-only ${domain} variable will contain the name of the Windows
+   domain used to authenticate the database connection. This property is
+   defined locally to the session and is only available if domain 
+   authentication was used then creating the connection.
+   
+SEE ALSO
+   user, driver, server, port
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="user" property="SQLContext.username"
+	          quiet="true">
+        <Description>Username used to establish database connection</Description>
+        <Help><![CDATA[
+VARIABLE
+   user - The username used when connection was established.
+
+DESCRIPTION
+   The read-only ${user} variable will contain the username used
+   to authenticate the database connection. This property is
+   defined locally to the session and is only available when a connection
+   has been established.
+   
+SEE ALSO
+   domain, driver, server, port
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="server" property="SQLContext.server"
+	          quiet="true">
+        <Description>Database server name connected to</Description>
+        <Help><![CDATA[
+VARIABLE
+   server - The server that the connection is currently established.
+
+DESCRIPTION
+   The read-only ${server} variable will contain the name of the server
+   to which the current session has a connection established. If no
+   connection is established then this variable will not be set.
+   
+SEE ALSO
+   domain, driver, user, port
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="port" property="SQLContext.port"
+	          quiet="true">
+        <Description>TCP port used to establish database connection</Description>
+        <Help><![CDATA[
+VARIABLE
+   port - The TCP port to which the database connection is established.
+
+DESCRIPTION
+   The read-only ${port} variable will contain the TCP port used
+   to establish the database connection. This property is
+   defined locally to the session and is only available when a connection
+   has been established.
+   
+SEE ALSO
+   domain, driver, server, user
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="server" property="SQLContext.server"
+	          quiet="true">
+        <Description>Database server name connected to</Description>
+        <Help><![CDATA[
+VARIABLE
+   server - The server that the connection is currently established.
+
+DESCRIPTION
+   The read-only ${server} variable will contain the name of the server
+   to which the current session has a connection established. If no
+   connection is established then this variable will not be set.
+   
+SEE ALSO
+   domain, driver, user, port
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="SID" property="SQLContext.sid"
+	          quiet="true">
+        <Description>Oracle instance to which connection is established</Description>
+        <Help><![CDATA[
+VARIABLE
+   SID - Oracle instance name to which a connection is established.
+
+DESCRIPTION
+   The read-only ${SID} variable will contain the name of the Oracle
+   instance to which the current session has a connection established. If no
+   connection is established (or the connection isn't to Oracle) then this
+   variable will not be set.
+   
+SEE ALSO
+   domain, driver, user, server, port
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="jdbc_url" property="SQLContext.url"
+	          quiet="true">
+        <Description>The JDBC URL that was used for connection</Description>
+        <Help><![CDATA[
+VARIABLE
+   jdbc_url - The JDBC URL that was used to establish the current connection
+
+DESCRIPTION
+   The read-only ${jdbc_url} variable will contain the name of the JDBC
+   URL that was used to establish the current database connection. If no
+   connection is established then this variable will not be set.
+   
+SEE ALSO
+   domain, driver, user, server, port, SID
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="driver" property="SQLContext.driver"
+	          quiet="true">
+        <Description>The JSqsh driver used to establish connection</Description>
+        <Help><![CDATA[
+VARIABLE
+   driver - The JSqsh driver name that was used when establishing a connection
+
+DESCRIPTION
+   The read-only ${driver} variable will contain the name of the JSqsh
+   driver that was used to establish the current database connection. If no
+   connection is established then this variable will not be set.
+   
+SEE ALSO
+   domain, driver, user, server, port, SID
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="name" property="SQLContext.logicalName"
+	          quiet="true">
+        <Description>The logical name used for the current connection</Description>
+        <Help><![CDATA[
+VARIABLE
+   name - The logical name used for the current connection.
+
+DESCRIPTION
+   The read-only ${name} variable reflects the logical name that was 
+   associated with the current database connection of the connection
+   was established with the --name argument. If there is no logical 
+   connection name or no database connection is currently established,
+   then this will have a null value.
+   
+SEE ALSO
+   domain, driver, user, server, port, SID
+        ]]></Help>	
+	</Property>
+	
+</Variables>
