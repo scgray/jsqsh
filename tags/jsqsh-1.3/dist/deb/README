@@ -1,5 +1,0 @@
-This directory contains support files that are required to build a 
-Debian (.deb) distribution package. Note that, as of now, the shell
-script that spawns sqsh is *very* stupid and requires that you have
-java in your path. I would very much appreciate someone providing a
-more robust startup script.
