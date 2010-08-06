@@ -287,22 +287,6 @@
        -->
      <target name="dist-rpm" depends="dist-rpm-setup,_init">
 
-        <!--
-          == This is awwwwful. I need to set the %_topdir macro and the
-          == only way I can figure out how to do that effectively is to
-          == replace the user's current .rpmmacro file.
-          -->
-        <copy file="${user.home}/.rpmmacros"
-              tofile="${user.home}/.rpmmacros-orig"
-              failonerror="false"/>
-
-        <copy file="dist/rpm/rpmmacros"
-              tofile="${user.home}/.rpmmacros">
-            <filterset>
-                <filter token="JSQSH_RPM_DIR" value="${basedir}/build/rpm"/>
-            </filterset>
-        </copy>
-
         <exec dir="${basedir}/build/rpm" 
               executable="rpmbuild">
             <arg value="-ba"/>
@@ -336,6 +320,22 @@
        == ************************************************************
        -->
      <target name="dist-rpm-setup" depends="dist-rpm-clean,_init">
+
+        <!--
+          == This is awwwwful. I need to set the %_topdir macro and the
+          == only way I can figure out how to do that effectively is to
+          == replace the user's current .rpmmacro file.
+          -->
+        <copy file="${user.home}/.rpmmacros"
+              tofile="${user.home}/.rpmmacros-orig"
+              failonerror="false"/>
+
+        <copy file="dist/rpm/rpmmacros"
+              tofile="${user.home}/.rpmmacros">
+            <filterset>
+                <filter token="JSQSH_RPM_DIR" value="${basedir}/build/rpm"/>
+            </filterset>
+        </copy>
 
 	<!--
           == Create directory structure required for packaging
