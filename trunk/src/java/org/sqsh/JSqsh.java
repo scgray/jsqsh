@@ -67,6 +67,12 @@ public class JSqsh {
            description="Turn on debugging for a java class or package")
        public String debug = null;
        
+       @Option(
+           option='r', longOption="readline", arg=REQUIRED, argName="method",
+           description="Readline method "
+                     + "(readline,editline,getline,jline,purejava)")
+       public String readline = null;
+       
        @Argv(program="jsqsh", min=0, max=1, usage="[options] [connection-name]")
        public List<String> arguments = new ArrayList<String>();
     }
@@ -125,8 +131,7 @@ public class JSqsh {
             System.exit(1);
         }
         
-        
-        SqshContext sqsh = new SqshContext();
+        SqshContext sqsh = new SqshContext(options.readline);
         int rc = 0;
         
         try {

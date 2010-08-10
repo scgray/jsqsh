@@ -32,8 +32,7 @@ import java.util.List;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-import org.gnu.readline.Readline;
-import org.gnu.readline.ReadlineLibrary;
+import org.sqsh.input.ConsoleLineReader;
 import org.sqsh.jni.ShellManager;
 import org.sqsh.signals.SignalManager;
 
@@ -82,6 +81,11 @@ public class SqshContext {
     
     private static final String LOGGING_CONFIG
         = "org/sqsh/logging.properties";
+    
+    /**
+     * This is where we read our input from.
+     */
+    ConsoleLineReader console = null;
     
     /**
      * This objects instantiates all commands and manages all of the
@@ -186,7 +190,22 @@ public class SqshContext {
      */
     private boolean doneBanner = false;
     
-    public SqshContext() {
+    /**
+     * Creates a new SqshContext.
+     * 
+     * @param readerType The type of readline implementation to utilize. This
+     *   may be one of
+     *   <ul>
+     *     <li> readline
+     *     <li> editline
+     *     <li> getline
+     *     <li> jline
+     *     <li> purejava
+     *     <li> null - This will attempt to determine which API is available
+     *        on your platform.
+     *    </ul>
+     */
+    public SqshContext(String readerType) {
         
         configureLogging();
         
@@ -218,87 +237,11 @@ public class SqshContext {
             /* IGNORED */
         }
         
-        boolean haveReadline = false;
-        
-        StringBuffer errors = new StringBuffer();
-        try {
-            
-            Readline.load(ReadlineLibrary.GnuReadline);
-            haveReadline = true;
-        }
-        catch (Throwable e) {
-            
-            errors.append("[GNU Readline: ").append(e.getMessage()).append("]");
-        }
-        
-        if (haveReadline == false) {
-            
-            try {
-            
-            	Readline.load(ReadlineLibrary.Editline);
-            	haveReadline = true;
-        	}
-        	catch (Throwable e) {
-	            
-        	    errors.append("[Editline: ").append(e.getMessage()).append("]");
-        	}
-        }
-        
-        if (haveReadline == false) {
-            
-            try {
-            
-            	Readline.load(ReadlineLibrary.Getline);
-            	haveReadline = true;
-        	}
-        	catch (Throwable e) {
-	            
-        	    errors.append("[Getline: ").append(e.getMessage()).append("]");
-        	}
-        }
-        
-        if (haveReadline == false) {
-            
-            try {
-                
-                System.err.println("WARNING: Unable to load readline library. "
-                    + "(Reasons: "
-                    + errors.toString() 
-                    + "). Run '\\help readline' for details.");
-            
-            	Readline.load(ReadlineLibrary.PureJava);
-            	haveReadline = true;
-        	}
-        	catch (Throwable e) {
-	            
-        	    System.err.println("Couldn't load pure java readline library!: "
-        	        + e.getMessage());
-        	}
-        }
-        else {
-            
-            isInteractive = Readline.hasTerminal();
-        }
-        
         /*
-         * Initialize our chosen readline implementation.
+         * Grab a handle to the console.
          */
-        Readline.initReadline("JSqsh");
-        
-        /*
-         * Install our tab completer. This could fail if the underlying
-         * chosen implementation does not support completion.
-         */
-        try {
-            
-            Readline.setWordBreakCharacters(" \t,/.()<>=?");
-        	Readline.setCompleter(new TabCompleter(this));
-        }
-        catch (Exception e) {
-            
-            /* IGNORED */
-        }
-        
+        console = ConsoleLineReader.getReader(this, readerType);
+        isInteractive = console.isTerminal();
         
         /*
          * Run the internal initializations cript.
@@ -331,6 +274,14 @@ public class SqshContext {
     public CommandManager getCommandManager () {
     
         return commandManager;
+    }
+    
+    /**
+     * @return The console handle.
+     */
+    public ConsoleLineReader getConsole() {
+        
+        return console;
     }
     
     /**
@@ -692,7 +643,7 @@ public class SqshContext {
             currentSession.out.println("JSqsh Release " + version 
                 + ", Copyright (C) 2007-2010, Scott C. Gray");
             currentSession.out.println("Type \\help for available help "
-                + "topics");
+                + "topics. Using " + console.getName() + ".");
             
             doneBanner = true;
         }
@@ -1021,7 +972,7 @@ public class SqshContext {
                 
             try {
                     
-                Readline.readHistoryFile(history.toString());
+                console.readHistory(history.toString());
             }
             catch (Throwable e) {
                     
@@ -1041,7 +992,7 @@ public class SqshContext {
             
             try {
                 
-                Readline.writeHistoryFile(history.toString());
+                console.writeHistory(history.toString());
             }
             catch (Throwable e) {
                 
