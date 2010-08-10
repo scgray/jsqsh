@@ -1,3 +1,14 @@
+Release 1.4
+* Added support for "JLine" as an input method. JLine is a pure-java
+  (at least on UNIX) library similar to Java-Readline. For portability,
+  java-readline will be tried first, if it is unavailable, JLine will
+  be used.  This support added the following:
+     * --readline command line option to specify the input method.
+     * JSQSH_READLINE environment variable can also be used to specify
+       the input method.
+     * The $readline variable can be used to display the currently
+       selected readline implementation.
+
 Release 1.3
 * The 'dist-rpm' target and has been updated so that it works on 
   more recent RPM distributions (specifically I am running FC10).

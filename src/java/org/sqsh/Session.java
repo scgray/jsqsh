@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.gnu.readline.Readline;
 import org.sqsh.jni.Shell;
 import org.sqsh.jni.ShellException;
 import org.sqsh.jni.ShellManager;
@@ -685,7 +684,7 @@ public class Session
                 prompt =  (prompt == null)  
             	    ? ">" : getStringExpander().expand(this, prompt);
                                 
-                line = Readline.readline(prompt + " ", true);
+                line = sqshContext.getConsole().readline(prompt + " ", true);
                 if (line == null) {
                         
                     line = "";
@@ -832,7 +831,7 @@ public class Session
              */
             if (ioManager.isInteractive()) {
                 
-                Readline.addToHistory(str);
+                sqshContext.getConsole().addToHistory(str);
             }
             
             buf.addLine(str);
