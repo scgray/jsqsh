@@ -18,6 +18,16 @@
           -->
         <property name="version" value="1.4"/>
 
+        <!--
+          == This is used during the creation of the debian package
+          == to assign the architecture to the package. Note that
+          == I am sure there is some clever way I could figure this
+          == out using ant, but for now, you will need to override this
+          == value on the ant command line with -Darch=amd64 or something
+          == like that.
+          -->
+        <property name="arch" value="i386"/>
+
 	<!--
           == This is used by the launch4j task that generates an
           == executable. You may need to override this at build time.
@@ -168,6 +178,7 @@
               tofile="build/jsqsh-${version}/DEBIAN/control">
             <filterset>
                 <filter token="VERSION" value="${version}"/>
+                <filter token="ARCH" value="${arch}"/>
             </filterset>
         </copy>
 
