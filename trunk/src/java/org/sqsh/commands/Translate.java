@@ -65,6 +65,10 @@ public class Translate
             option='d', longOption="disconnect", arg=NONE, argName="disconnect",
             description="Call acs_logout() after running query")
         public boolean disconnect = false;
+        @Option(
+            option='f', longOption="func", arg=REQUIRED, argName="name",
+            description="Provides ability to call your own translation function")
+        public String function = null;
     }
     
     public SqshOptions getOptions() {
@@ -186,17 +190,18 @@ public class Translate
         
         BufferManager bufferMan = session.getBufferManager();
         SQLRenderer sqlRenderer = session.getSQLRenderer();
-        Buffer buffer = bufferMan.getCurrent();
-        String sql = buffer.toString();
-        StringBuilder call = new StringBuilder();
-        Options options = (Options)opts;
-        int spid = options.spid;
+        Buffer buffer           = bufferMan.getCurrent();
+        String sql              = buffer.toString();
+        StringBuilder call      = new StringBuilder();
+        Options options         = (Options)opts;
+        int spid                = options.spid;
 
         /*
          * If we weren't force-fed a spid, then see if we have one
-         * established.
+         * established.  If we are calling a user-provided function
+         * then skip the whole spid/login thing.
          */
-        if (spid == 0) {
+        if (options.function == null && spid == 0) {
 
             String str = session.getVariable("acs_spid");
             if (str != null) {
@@ -215,11 +220,24 @@ public class Translate
             }
         }
 
-        call.append("CALL ACS_REPOS.")
-            .append(options.legacy 
-                ? "TRANSLATE_AND_EXECUTE("
-                : "SYB_EXEC(")
-            .append(spid).append(",'");
+
+        /*
+         * If the user provides a function to call, we just call it
+         * and don't pass it a spid.
+         */
+        call.append("call ");
+        if (options.function != null) {
+
+            call.append(options.function).append("('");
+        }
+        else {
+
+            call.append(options.legacy 
+                    ? "acs_repos.translate_and_execute("
+                    : "acs_repos.syb_exec(")
+                .append(spid)
+                .append(",'");
+        }
 
         /*
          * We need to protect any quotes that are in the original SQL.
@@ -246,7 +264,7 @@ public class Translate
             call.append(sql);
         }
 
-        if (((Options)opts).legacy) {
+        if (options.function != null || options.legacy) {
 
             call.append("')");
         }
