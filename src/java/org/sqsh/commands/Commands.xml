@@ -329,7 +329,7 @@ SEE ALSO
            
     <Help><![CDATA[
 SYNOPSIS
-   \translate [-l] [-d] [-s spid] [options]
+   \translate [-l] [-d] [-s spid] [-f name]
               
 DESCRIPTION
    The \translate command is internal to jsqsh and is used for
@@ -343,6 +343,13 @@ OPTIONS:
    -s, --spid=spid  Sybase spid to pass to the translate function.
    -d, --disconnect Causes acs_logout() to be called immediately after
                     executing the query.
+   -f, --func=name  Provides the ability to specify the name of a 
+                    specific database function you'd like to invoke
+                    to execute the SQL rather than syb_exec() or
+                    translate_and_execute(). When you specify this
+                    flag the --spid and --legacy options are ignored.
+                    The function provided will be executed as:
+                        call name('....sql....')
    -l, --legacy     Causes the old legacy translate_and_execute() 
                     interface to be invoked rather than the new
                     syb_exec() interface.
