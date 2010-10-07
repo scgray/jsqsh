@@ -68,8 +68,22 @@
            
        <Variable name="db">changeme</Variable>
        <Variable name="server">localhost</Variable>
-       <Variable name="port">6789</Variable>
+       <Variable name="port">50000</Variable>
        <Property name="retrieveMessagesFromServerOnGetMessage">true</Property>
+   </Driver>
+
+   <Driver name="db2zos" 
+           target="IBM DB2 z/OS"
+           class="com.ibm.db2.jcc.DB2Driver"
+           analyzer="org.sqsh.analyzers.PLSQLAnalyzer"
+           url="jdbc:db2://${server}:${port}/${db}">
+           
+       <Variable name="db">changeme</Variable>
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">50000</Variable>
+       <SessionVariable name="exec_mode">prepare</SessionVariable>
+       <Property name="retrieveMessagesFromServerOnGetMessage">true</Property>
+       <Property name="emulateParameterMetaDataForZCalls">1</Property>
    </Driver>
    
    <Driver name="mysql" 

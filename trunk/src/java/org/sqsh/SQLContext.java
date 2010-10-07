@@ -25,6 +25,23 @@ import java.sql.SQLException;
  * connection maintained within a session.
  */
 public class SQLContext {
+
+    /**
+     * Value to be passed to setExecutionMode() to indicate that SQL should
+     * be executed directory.
+     */
+    public static final int EXEC_IMMEDIATE = 1;
+
+    /**
+     * Value to be passed to setExecutionMode() to indicate that SQL should
+     * be executed via a prepare.
+     */
+    public static final int EXEC_PREPARE = 2;
+
+    /**
+     * The mode in which SQL is to be executed by default.
+     */
+    private int executionMode = EXEC_IMMEDIATE;
     
     /**
      * The actual SQL connection.
@@ -97,6 +114,68 @@ public class SQLContext {
     public void setConnection (Connection connection) {
     
         this.connection = connection;
+    }
+
+    /**
+     * Retrieves the method in which SQL should be executed by default.
+     * This can return a value of EXEC_IMMEDIATE (the default) or
+     * EXEC_PREPARE.
+     *
+     * @return the execution mode.
+     */
+    public int getExecutionMode() {
+
+        return executionMode;
+    }
+
+    /**
+     * Sets the mode in which SQL will be executed by default.
+     *
+     * @param mode The mode of execution. This can be EXEC_IMMEDIATE
+     *    or EXEC_PREPARE.
+     */
+    public void setExecutionMode(int mode) {
+
+        if (mode != EXEC_IMMEDIATE && mode != EXEC_PREPARE) {
+
+            throw new java.lang.IllegalArgumentException("Execution mode "
+                + "must be EXEC_IMMEDIATE or EXEC_PREPARE");
+        }
+
+        executionMode = mode;
+    }
+
+    /**
+     * Sets the mode in which SQL will be executed by default.
+     *
+     * @param mode The mode of execution. This can be the string
+     *    "immediate" or "prepare".
+     */
+    public void setExecutionModeName(String mode) {
+
+        if ("immediate".equalsIgnoreCase(mode)) {
+
+            executionMode = EXEC_IMMEDIATE;
+        }
+        else if ("prepare".equalsIgnoreCase(mode)) {
+
+            executionMode = EXEC_PREPARE;
+        }
+        else {
+
+            throw new java.lang.IllegalArgumentException("Execution mode "
+                + "must be 'immediate' or 'prepare'");
+        }
+    }
+
+    public String getExecutionModeName() {
+
+        if (executionMode == EXEC_PREPARE) {
+
+            return "prepare";
+        }
+
+        return "immediate";
     }
     
     /**

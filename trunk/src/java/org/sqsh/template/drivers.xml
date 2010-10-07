@@ -60,6 +60,10 @@
      ==            variables shown above. Your drive may declare other
      ==            variables if it needs.
      == <Property> This is passed as a property directly down to the driver
+     == <SessionVariable>
+     ==            This allows you to have specific JSqsh session variables
+     ==            automatically set for you upon establishing a connection
+     ==            to the server.
      -->
      
    <!--
@@ -72,6 +76,7 @@
      ==      <Variable name="server">localhost</Variable>
      ==      <Variable name="port">4100</Variable>
      ==      <Property name="this">that</Property>
+     ==      <SessionVariable name="maxrows">150</SessionVariable>
      ==  </Driver>
      -->
 </Drivers>

@@ -49,13 +49,13 @@ public class Session
     
     private static final Logger LOG = 
         Logger.getLogger(Session.class.getName());
-    
+
     /**
      * Path to the built-in file full of variable definitions.
      */
     private static final String SESSION_VARS
         = "org/sqsh/variables/SessionVariables.xml";
-    
+
     /**
      * This ID is assigned by the SqshContext and is used to reference
      * which session is which.
@@ -271,15 +271,27 @@ public class Session
      * context established, then the current one is closed and discarded.
      * 
      * @param context The new context.
+     * @param doClose If false, then the existing context is not closed
      */
-    public void setSQLContext(SQLContext context) {
+    public void setSQLContext(SQLContext context, boolean doClose) {
         
-        if (this.sqlContext != null) {
+        if (doClose && this.sqlContext != null) {
             
             this.sqlContext.close();
         }
         
         this.sqlContext = context;
+    }
+
+    /**
+     * Sets the SQL context for this session. If there is already a 
+     * context established, then the current one is closed and discarded.
+     * 
+     * @param context The new context.
+     */
+    public void setSQLContext(SQLContext context) {
+        
+        setSQLContext(context, true);
     }
     
     /**
@@ -296,7 +308,7 @@ public class Session
         
         return null;
     }
-    
+
     /**
      * Returns the string expander for this session.
      * @return The string expander for the session.

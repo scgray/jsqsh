@@ -49,6 +49,7 @@ public class SQLDriver
     private boolean isAvailable = false;
     private Map<String, String> variables = new HashMap<String, String>();
     private Map<String, String> properties = new HashMap<String, String>();
+    private Map<String, String> sessionVariables = new HashMap<String, String>();
     private SQLAnalyzer analyzer = new NullAnalyzer();
     
     public SQLDriver() {
@@ -71,6 +72,18 @@ public class SQLDriver
     public Map<String, String> getVariables() {
         
         return variables;
+    }
+
+    /**
+     * Retrieves the set of variables that are to set in the users
+     * session upon connection.
+     * 
+     * @return The session variable map to be placed in the user's
+     *    session.
+     */
+    public Map<String, String> getSessionVariables() {
+        
+        return sessionVariables;
     }
     
     /**
@@ -208,6 +221,28 @@ public class SQLDriver
     public String getVariable(String name) {
         
         return variables.get(name);
+    }
+
+    /**
+     * The the value of a variable that is to be set in the user's session
+     * upon successfully establishing a connection to a server.
+     *
+     * @param name The name of the variable
+     * @param value The value of the variable.
+     */
+    public void setSessionVariable(String name, String value) {
+        
+        sessionVariables.put(name, value);
+    }
+    
+    /**
+     * Returns the value of a variable.
+     * @param name The name to look up
+     * @return The value or null if the variable is not defined.
+     */
+    public String getSessionVariable(String name) {
+        
+        return sessionVariables.get(name);
     }
     
     /**

@@ -8,6 +8,15 @@ Release 1.4
        the input method.
      * The $readline variable can be used to display the currently
        selected readline implementation.
+* Added ${exec_mode} variable that can change the manner in which 
+  jsqsh executes SQL against the remote server. This can be one of
+  "immediate" (the default) or "prepare".
+* Added driver name 'db2zos'. This is identical to the "db2" driver
+  except that it sets the "emulateParameterMetaDataForZCalls" property
+  and sets the execution mode to "prepare" upon connection (DB2 z/OS
+  can execute "call procname()" calls if the SQL is prepared first).
+* Added <SessionVariable> property in the drivers.xml that allows a 
+  driver to set certain session variable values upon connection.
 
 Release 1.3
 * The 'dist-rpm' target and has been updated so that it works on 
