@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Iterator;
 import java.util.logging.Logger;
 
 import org.apache.commons.digester.Digester;
@@ -465,8 +466,42 @@ public class SQLDriverManager {
             session.err.println("WARNING: Unable to set auto-commit mode to "
                 + defaultAutoCommit);
         }
-        
-        return new SQLContext(connDesc, conn, url, sqlDriver.getAnalyzer());
+
+        /*
+         * AWFUL AWFUL HACK!!!
+         * In a second we will transfer variables defined by the 
+         * driver via the SessionVariable setting. However, often
+         * these variables will be setting information in the SQLContext
+         * that belongs to the session -- which is likely the one we are
+         * about to return, but haven't yet.  This hack temporarily
+         * stuffs it into the session so it can get set, then pulls it
+         * back out.
+         */
+        SQLContext oldContext = session.getSQLContext();
+        SQLContext newContext = 
+            new SQLContext(connDesc, conn, url, sqlDriver.getAnalyzer());
+        session.setSQLContext(newContext, false);
+
+        try {
+
+            /*
+             * Now that we have our connection established, set session
+             * variables that have been requested by the driver.
+             */
+            Iterator<String> varIter = 
+                sqlDriver.getSessionVariables().keySet().iterator();
+            while (varIter.hasNext()) {
+
+                String name = varIter.next();
+                session.setVariable(name, sqlDriver.getSessionVariable(name));
+            }
+        }
+        finally {
+
+            session.setSQLContext(oldContext, false);
+        }
+
+        return newContext;
     }
     
     /**
@@ -736,6 +771,13 @@ public class SQLDriverManager {
         path = "Drivers/Driver/Variable";
         digester.addCallMethod(path, 
             "setVariable", 2, new Class[] { java.lang.String.class,
+                java.lang.String.class });
+            digester.addCallParam(path, 0, "name");
+            digester.addCallParam(path, 1);
+
+        path = "Drivers/Driver/SessionVariable";
+        digester.addCallMethod(path, 
+            "setSessionVariable", 2, new Class[] { java.lang.String.class,
                 java.lang.String.class });
             digester.addCallParam(path, 0, "name");
             digester.addCallParam(path, 1);

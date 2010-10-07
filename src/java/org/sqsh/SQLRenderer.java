@@ -416,7 +416,7 @@ public class SQLRenderer {
      */
     public void execute (Renderer renderer, Session session, String sql)
         throws SQLException {
-        
+
         if (expand) {
             
             sql = session.expand(sql);
@@ -427,14 +427,29 @@ public class SQLRenderer {
         CancelingSignalHandler sigHandler = null;
         
         try {
+            SQLContext ctx = session.getSQLContext();
             
-            statement = conn.createStatement();
-            
-            sigHandler = new CancelingSignalHandler(statement);
-            session.getSignalManager().push((SigHandler) sigHandler);
-            
-            startTime = System.currentTimeMillis();
-            execute(renderer, session, statement, statement.execute(sql));
+            if (ctx.getExecutionMode() == SQLContext.EXEC_PREPARE) {
+
+                statement = conn.prepareStatement(sql);
+                
+                sigHandler = new CancelingSignalHandler(statement);
+                session.getSignalManager().push((SigHandler) sigHandler);
+                
+                startTime = System.currentTimeMillis();
+                execute(renderer, session, statement, 
+                    ((PreparedStatement) statement).execute());
+            }
+            else  {
+
+                statement = conn.createStatement();
+                
+                sigHandler = new CancelingSignalHandler(statement);
+                session.getSignalManager().push((SigHandler) sigHandler);
+                
+                startTime = System.currentTimeMillis();
+                execute(renderer, session, statement, statement.execute(sql));
+            }
         }
         finally {
             
