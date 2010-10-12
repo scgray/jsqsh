@@ -69,6 +69,11 @@ public class Connect
             option='r', longOption="remove", arg=NONE,
             description="Remove a connection definition")
         public boolean remove = false;
+
+        @Option(
+            option='x', longOption="show-password", arg=NONE,
+            description="Displays connect password in clear-text")
+        public boolean showPassword = false;
         
         @Argv(program="\\connect", min=0, max=1,
               usage="[options] [named-connection]")
@@ -154,7 +159,7 @@ public class Connect
          */
         if (options.list) {
             
-            doList(session);
+            doList(session, options.showPassword);
             return 0;
         }
         
@@ -198,7 +203,7 @@ public class Connect
         return 0;
     }
     
-    private void doList(Session session) {
+    private void doList(Session session, boolean showPassword) {
         
         ColumnDescription []columns = new ColumnDescription[10];
         columns[0] = new ColumnDescription("Name", -1);
@@ -244,8 +249,18 @@ public class Connect
                         formatter.getNull() : connDesc.getSid());
             row[5] = (connDesc.getUsername() == null ?
                         formatter.getNull() : connDesc.getUsername());
-            row[6] = (connDesc.getPassword() == null ?
-                        formatter.getNull() : "*******");
+
+            if (showPassword) {
+
+                row[6] = (connDesc.getPassword() == null ?
+                            formatter.getNull() : connDesc.getPassword());
+            }
+            else {
+
+                row[6] = (connDesc.getPassword() == null ?
+                            formatter.getNull() : "*******");
+            }
+
             row[7] = (connDesc.getDomain() == null ?
                         formatter.getNull() : connDesc.getDomain());
             row[8] = (connDesc.getJdbcClass() == null ?

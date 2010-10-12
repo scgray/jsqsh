@@ -206,6 +206,10 @@ OPTIONS
    -r, --remove       This option is used to remove a logical connection name.
                       If this option is provided a connection-name must also
                       be provided. See NAMED CONNECTIONS below for details.
+
+   -x, --show-password
+                      When used with the --list option, causes the connection
+                      password to be displayed in clear-text.
                           
    connection-name    If provided, this indicates the logical connection name
                       that should be used to establish the connection. If

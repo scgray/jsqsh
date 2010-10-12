@@ -17,6 +17,8 @@ Release 1.4
   can execute "call procname()" calls if the SQL is prepared first).
 * Added <SessionVariable> property in the drivers.xml that allows a 
   driver to set certain session variable values upon connection.
+* Added --show-password option to "\connect --list" because I keep
+  forgetting passwords to systems.
 
 Release 1.3
 * The 'dist-rpm' target and has been updated so that it works on 
