@@ -19,6 +19,8 @@ public class InsertRenderer
     private String table = "TABLE";
     private String insert = null;
     private int batchSize = 50;
+    private String batchTerminator = "go";
+    private boolean multiRowInsert = false;
     private Connection conn = null;
     private StringBuilder insertBatch = new StringBuilder();
     
@@ -33,6 +35,28 @@ public class InsertRenderer
 
             table = tab;
         }
+    }
+
+    /**
+     * Enables the ability to insert multiple rows in a single INSERT
+     * statement. When enabled, the batch size indicates how many rows
+     * to include in the insert.
+     *
+     * @param isMultiRowInsert true if the insert should insert more
+     *   than one row per insert.
+     */
+    public void setMultiRowInsert(boolean isMultiRowInsert) {
+
+        this.multiRowInsert = isMultiRowInsert;
+    }
+
+    /**
+     * @return whether or not multiple rows can be inserted in a single
+     *   insert statement
+     */
+    public boolean isMultieRowInsert()
+    {
+        return multiRowInsert;
     }
     
     /**
@@ -69,6 +93,26 @@ public class InsertRenderer
     public void setBatchSize (int batchSize) {
     
         this.batchSize = batchSize;
+    }
+
+    /**
+     * Changes the string that is used to terminate a batch. The default
+     * is "go".
+     *
+     * @param terminator The terminator to use. This terminator is
+     *   always provided on a line all by itself.
+     */
+    public void setBatchTerminator(String terminator) {
+
+        this.batchTerminator = terminator;
+    }
+
+    /**
+     * @return The batch terminator.
+     */
+    public String getBatchTerminator() {
+
+        return batchTerminator;
     }
     
     /**
@@ -120,7 +164,7 @@ public class InsertRenderer
             sb.append(SQLTools.quoteIdentifier(name));
         }
         
-        sb.append(") VALUES (");
+        sb.append(") VALUES\n");
         insert = sb.toString();
     }
     
@@ -129,7 +173,15 @@ public class InsertRenderer
         
         boolean ok = true;
         StringBuilder sb = new StringBuilder();
-        sb.append(insert);
+
+        if (!multiRowInsert || (rowCount % batchSize) == 0) {
+
+            sb.append(insert).append(" (");
+        }
+        else {
+
+            sb.append(",(");
+        }
         
         for (int i = 0; i < row.length; i++) {
             
@@ -215,7 +267,7 @@ public class InsertRenderer
          */
         if (conn == null) {
             
-            session.out.println("go");
+            session.out.println(batchTerminator);
             return true;
         }
         

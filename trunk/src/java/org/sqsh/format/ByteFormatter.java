@@ -27,10 +27,17 @@ public class ByteFormatter
     
     private byte[] b = new byte[1];
     private int maxBytes;
+    private boolean useStringFormat;
     
-    public ByteFormatter(int maxBytes) {
+    public ByteFormatter(int maxBytes, boolean useStringFormat) {
         
         this.maxBytes = maxBytes;
+        this.useStringFormat = useStringFormat;
+    }
+
+    public ByteFormatter(int maxBytes) {
+        
+        this(maxBytes, false);
     }
 
     public String format (Object value) {
@@ -50,7 +57,10 @@ public class ByteFormatter
         StringBuilder sb = new StringBuilder(2 + (bytes.length * 2));
         byte ch;
         
-        sb.append("0x");
+        if (useStringFormat)
+            sb.append("X'");
+        else
+            sb.append("0x");
         
         String hexDigits[] = {
             "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
@@ -68,6 +78,9 @@ public class ByteFormatter
 
             sb.append(hexDigits[(int) ch]);
         }
+
+        if (useStringFormat)
+            sb.append("'");
         
         return sb.toString();
     }

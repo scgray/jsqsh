@@ -45,6 +45,7 @@ public class DataFormatter {
     private int maxDatetimeWidth = -1;
     private String timeFormat = "HH:mm";
     private int maxTimeWidth = -1;;
+    private boolean byteStringFormat = false;
     
     /*
      * Number of decimal places of precision to use when displaying
@@ -399,6 +400,24 @@ public class DataFormatter {
     /* ====================================================================
      *                             BYTE(S)
      * ==================================================================== */
+
+    /**
+     * Sets whether or not byte strings are rendered in raw hex format
+     * (e.g. 0xabcd) or in string format (e.g. X'ABCD').
+     */
+    public void setByteStringFormat(boolean useStringFormat)
+    {
+        byteStringFormat = useStringFormat;
+    }
+
+    /**
+     * @return whether or not byte arrays are displayed in raw hex or
+     *   hex string formats.
+     */
+    public boolean getByteStringFormat()
+    {
+        return byteStringFormat;
+    }
     
     /**
      * Returns a formatter for formatting bytes.
@@ -407,7 +426,7 @@ public class DataFormatter {
      */
     public Formatter getByteFormatter(int maxBytes) {
         
-        return new ByteFormatter(maxBytes);
+        return new ByteFormatter(maxBytes, byteStringFormat);
     }
     
     /* ====================================================================

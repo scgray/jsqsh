@@ -18,6 +18,7 @@
 package org.sqsh.commands;
 
 import static org.sqsh.options.ArgumentRequired.REQUIRED;
+import static org.sqsh.options.ArgumentRequired.NONE;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -53,9 +54,22 @@ public class Insert
             option='b', longOption="batch-size", arg=REQUIRED, argName="rows",
             description="Number of rows per batch")
          public int batchSize = 50;
+
+        @Option(
+            option='t', longOption="terminator", arg=REQUIRED, 
+            argName="terminator", 
+            description="Command used to terminator a batch")
+         public String batchTerminator = "go";
+
+        @Option(
+            option='m', longOption="multi-row", arg=NONE, 
+            argName="multi-row", 
+            description="Allow multiple rows per insert")
+         public boolean multiRowInsert = false;
         
         @Argv(program="\\insert", min=1, max=1,
-            usage="[-s target-session] [-b batch-size] table_name")
+            usage="[-s target-session] [-b batch-size] [-t terminator] "
+                  + "table_name")
         public List<String> arguments = new ArrayList<String>();
     }
     
@@ -119,6 +133,8 @@ public class Insert
         renderer.setTable(table);
         renderer.setBatchSize(options.batchSize);
         renderer.setConnection(targetConnection);
+        renderer.setBatchTerminator(options.batchTerminator);
+        renderer.setMultiRowInsert(options.multiRowInsert);
         
         /*
          * Get the current SQL statement.
