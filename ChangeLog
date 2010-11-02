@@ -8,6 +8,14 @@ Release 1.4
        the input method.
      * The $readline variable can be used to display the currently
        selected readline implementation.
+* Added new options to the \insert command:
+     * -t,--terminator=term  Allows you to specify a batch terminator
+       other than "go".
+     * -m,--multi-row Enables support for platforms that allow multiple
+       rows to be specified in a single insert statement.
+* Added ${binstr_fmt}, a boolean variable, that controls whether or 
+  not binary values are displayed as raw binary values (false=0xabcd) 
+  or as binary string values (true=X'abcd').
 * Added ${exec_mode} variable that can change the manner in which 
   jsqsh executes SQL against the remote server. This can be one of
   "immediate" (the default) or "prepare".
