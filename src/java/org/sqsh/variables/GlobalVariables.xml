@@ -255,6 +255,30 @@ SEE ALSO
    scale 
         ]]></Help>
 	</Property>
+
+	<Property bean="global" name="binstr_fmt" 
+                  property="dataFormatter.byteStringFormat">
+		<Description>Changes the manner in which binary values are displayed</Description>
+        <Help><![CDATA[
+VARIABLE
+   binstr_fmt - Controls the manner in which binary values are displayed
+
+DESCRIPTION
+   This is a boolean (true/false) value that controls the manner in which 
+   jsqsh displays binary values.  The default (false) causes jsqsh to
+   display binary values as pure hex values, such as:
+
+       0xabcd
+
+   changing this value to true, causes jsqsh to display the values in hex
+   string format, such as:
+
+       X'abcd'
+     
+SEE ALSO
+   fmt_date, precision, scale
+        ]]></Help>
+	</Property>
 	
 	<Property bean="global" name="fmt_date" property="dataFormatter.dateFormat">
 		<Description>Controls the representation of date</Description>

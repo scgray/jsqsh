@@ -949,7 +949,7 @@ OPTIONS
            
         <Help><![CDATA[
 SYNOPSIS
-   \insert [-b batch_size] [-s session_id] table_name
+   \insert [options] table_name
               
 DESCRIPTION
    The \insert command executes the current SQL buffer and turns any
@@ -963,17 +963,29 @@ DESCRIPTION
    by a different session may be used to execute the INSERT statements.
    
 OPTIONS
-   -b, --batch-size=rows  Specifies the number of rows that should be
-                 "batched" together. If the "-s" option is not used, then this
-                  indicates how often a "go" is displayed to the screen.
-                  If the "-s" option is used, then the specified number of
-                  INSERT statements is executed at once, followed by a 
-                  commit.
+   -b, --batch-size=rows  
+                 Specifies the number of rows that should be "batched" 
+                 together. If the "-s" option is not used, then this
+                 indicates how often a "go" is displayed to the screen.
+                 If the "-s" option is used, then the specified number of
+                 INSERT statements is executed at once, followed by a 
+                 commit.
                   
-   -s, --target-session=id  Provides a target session id for execution of the 
-                  INSERT statements that are generated.  The provided
-                  session must be connected to a database server to
-                  function.
+   -s, --target-session=id  
+                 Provides a target session id for execution of the 
+                 INSERT statements that are generated.  The provided
+                 session must be connected to a database server to
+                 function.
+
+   -m, --multi-row 
+                 Enables support for platforms that allow multiple 
+                 rows to be inserted in a single INSERT statement. When
+                 enabled the batch size (-b) indicates the number of 
+                 rows per insert statement.
+
+   -t, --terminator=term  
+                 Changes the batch terminator from the default "go" to 
+                 the string provided.
 
 SEE ALSO
    \go
