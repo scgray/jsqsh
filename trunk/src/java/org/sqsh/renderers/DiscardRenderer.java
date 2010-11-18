@@ -40,12 +40,4 @@ public class DiscardRenderer
 
         return true;
     }
-
-    /* (non-Javadoc)
-     * @see org.sqsh.Renderer#footer(java.lang.String)
-     */
-    @Override
-    public void footer (String footer) {
-
-    }
 }
