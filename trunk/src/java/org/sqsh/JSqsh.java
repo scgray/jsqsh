@@ -178,6 +178,8 @@ public class JSqsh {
                     /* IGNORED */
                 }
             }
+
+            sqsh.close();
         }
         
         System.exit(rc);
