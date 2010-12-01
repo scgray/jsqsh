@@ -519,6 +519,14 @@ public class SqshContext {
         
         return (sess != null);
     }
+
+    /**
+     * Closes all connections and removes all sessions.
+     */
+    public void close() {
+
+        removeSession(-1);
+    }
     
     /**
      * Kills a session.
@@ -538,8 +546,13 @@ public class SqshContext {
             prev = curr;
             curr = iter.next();
             
-            if (curr.getId() == sessionId) {
+            if (sessionId == -1 || curr.getId() == sessionId) {
                 
+                /*
+                 * Make sure the connection is closed for the session.
+                 */
+                curr.close();
+
                 iter.remove();
                 if (curr == currentSession) {
                     
@@ -685,6 +698,7 @@ public class SqshContext {
                 }
                 catch (SqshContextExitMessage e) {
                     
+                    removeSession(currentSession.getId());
                     done = true;
                 }
                 catch (SqshContextSwitchMessage e) {
