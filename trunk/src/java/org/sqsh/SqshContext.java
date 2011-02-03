@@ -651,10 +651,18 @@ public class SqshContext {
          * banner.
          */
         if (!doneBanner && currentSession.isInteractive()) {
+
+            if (!shellManager.isJNI()) {
+
+                currentSession.err.println(
+                    "WARNING: Sqsh JNI layer not available ("
+                    + shellManager.getJNIFailureReason() 
+                    + "). Run '\\help jni' for details");
+            }
             
             String version = variableManager.get("version");
             currentSession.out.println("JSqsh Release " + version 
-                + ", Copyright (C) 2007-2010, Scott C. Gray");
+                + ", Copyright (C) 2007-2011, Scott C. Gray");
             currentSession.out.println("Type \\help for available help "
                 + "topics. Using " + console.getName() + ".");
             
