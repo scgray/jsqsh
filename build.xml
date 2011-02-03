@@ -132,12 +132,14 @@
           == I'm considering the use of Launch4j here as well.
           -->
         <copy file="dist/generic/jsqsh"
+              tofile="build/jsqsh-${version}/bin/jsqsh.sh"/>
+        <copy file="dist/generic/jsqsh.bat"
               todir="build/jsqsh-${version}/bin"/>
 
         <!--
           == Make sure its executable.
           -->
-        <chmod file="build/jsqsh-${version}/bin/jsqsh" perm="u=rwx,go=rx"/>
+        <chmod file="build/jsqsh-${version}/bin/jsqsh.sh" perm="u=rwx,go=rx"/>
 
         <!--
           == Finaly package everything up.
