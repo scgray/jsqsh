@@ -40,6 +40,7 @@ public class ShellManager {
     private static ShellManager instance = null;
     
     private boolean haveJNI = false;
+    private String jniFailureReason = null;
     
     /**
      * This array represents the command line that will be utilized
@@ -61,7 +62,7 @@ public class ShellManager {
      * </pre>
      */
     private String []shellCommand;
-    
+
     
     /**
      * Creates a shell manager.
@@ -79,10 +80,8 @@ public class ShellManager {
         catch (Throwable e) {
             
             haveJNI = false;
-            System.err.println("WARNING: Sqsh JNI layer not available ("
-                + e.getMessage() + "). Run '\\help jni' for details");
+            jniFailureReason = e.getMessage();
         }
-        
     }
     
     /**
@@ -176,6 +175,19 @@ public class ShellManager {
     public boolean isJNI() {
         
         return haveJNI;
+    }
+
+    /**
+     * If isJNI() returns false, this returns the reason for the failure.
+     * This is the text that was returned by the attempt to load the
+     * JNI library.
+     *
+     * @return The reason for the failure or NULL if the JNI interface was
+     * properly initialized.
+     */
+    public String getJNIFailureReason() {
+
+        return jniFailureReason;
     }
     
     /**

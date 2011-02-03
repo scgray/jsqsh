@@ -27,8 +27,12 @@ Release 1.4
   driver to set certain session variable values upon connection.
 * Added --show-password option to "\connect --list" because I keep
   forgetting passwords to systems.
+* Added sql-skin driver definition for the IBM DB2 SQL Skin for ASE
+  driver (I happen to work for them, so have a bit of incentive).
 * More care is taken to ensure that database connections are actually
   formally close()'d when jsqsh exits or a session terminates.
+* When in non-interactive mode, the warning about failures to load the
+  jsqsh JNI interface is suppressed.
 
 Release 1.3
 * The 'dist-rpm' target and has been updated so that it works on 
