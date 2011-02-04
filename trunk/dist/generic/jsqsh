@@ -71,7 +71,12 @@ ROOT_DIR=`normalize_path "$BIN_DIR/.."`
 # Build up our classpath
 #
 for jar in "$ROOT_DIR/share/"*.jar; do
-    CLASSPATH="$CLASSPATH:$jar"
+    if [ "$OSTYPE" = "cygwin" ]; then
+        jar=$(cygpath -w $jar)
+        CLASSPATH="$CLASSPATH;$jar"
+    else
+        CLASSPATH="$CLASSPATH:$jar"
+    fi
 done
 export CLASSPATH
 
