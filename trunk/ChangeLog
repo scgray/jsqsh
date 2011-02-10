@@ -13,6 +13,10 @@ Release 1.4
        other than "go".
      * -m,--multi-row Enables support for platforms that allow multiple
        rows to be specified in a single insert statement.
+* Added -n (--repeat) option to \eval allowing the batch of SQL being
+  evaluated to be run multiple times.  Each iteration of evaluation
+  will have a variable ${iteration} set that it can refer to if it
+  wants to vary the SQL behavior by iteration.
 * Added ${binstr_fmt}, a boolean variable, that controls whether or 
   not binary values are displayed as raw binary values (false=0xabcd) 
   or as binary string values (true=X'abcd').

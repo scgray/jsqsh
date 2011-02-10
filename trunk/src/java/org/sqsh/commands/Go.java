@@ -162,7 +162,10 @@ public class Go
 
             for (int i = 0; i < options.repeat; i++) {
 
-                session.setVariable("iteration", Integer.toString(i));
+                if (options.repeat > 1) {
+
+                    session.setVariable("iteration", Integer.toString(i));
+                }
 
                 try {
                     
