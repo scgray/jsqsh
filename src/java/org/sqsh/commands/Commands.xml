@@ -302,7 +302,7 @@ SYNOPSIS
 DESCRIPTION
    Executes the SQL statement contained in the current buffer.
            
-OPTIONS:
+OPTIONS
    -i, --insert=table Causes the results to be generated as INSERT statements
                       for the specified table name. This flag causes the
                       value provided by "-m" to be ignored.
@@ -869,6 +869,11 @@ ALIASES
    at the prompt.
    
 OPTIONS
+   -n, --repeat=n     Execute the SQL contained in the input file n times.
+                      When this flag is provided the variable ${iteration} 
+                      will be available during variable expansion and will 
+                      reflect which iteration is being executed (starting 
+                      from 0). 
    filename  The name of the file to execute.
    
 SEE ALSO
