@@ -17,6 +17,10 @@ Release 1.4
   evaluated to be run multiple times.  Each iteration of evaluation
   will have a variable ${iteration} set that it can refer to if it
   wants to vary the SQL behavior by iteration.
+* Added "isql" display style, that attempts to format data in a fashion
+  similar to Sybase's isql program.
+* Added "vertical" (or "vert") display style, that attempts to format 
+  in a rotated "name: value" style.
 * Added ${binstr_fmt}, a boolean variable, that controls whether or 
   not binary values are displayed as raw binary values (false=0xabcd) 
   or as binary string values (true=X'abcd').
@@ -40,7 +44,8 @@ Release 1.4
   to display. Once this limit has been hit, rows are streamed and
   no longer held in memory.
 * The ${maxrows} variable now defaults to 0 (unlimited rows) rather
-  than 500.
+  than 500. This is done because the default display style ("perfect")
+  no longer attempts to hold all rows in memory.
 * More care is taken to ensure that database connections are actually
   formally close()'d when jsqsh exits or a session terminates.
 * When in non-interactive mode, the warning about failures to load the
