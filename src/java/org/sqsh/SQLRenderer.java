@@ -77,7 +77,7 @@ public class SQLRenderer {
      * The maximum number of rows that will be rendered. A value <= 0
      * will provide unlimited output.
      */
-    private int maxRows = 500;
+    private int maxRows = 0;
     
     /**
      * Specifies the mechanism that will be used to limit the rowcount
