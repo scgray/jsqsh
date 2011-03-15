@@ -127,6 +127,7 @@ public class ISQLRenderer
     @Override
     public boolean flush () {
         
+        session.out.println();
         return true;
     }
 }
