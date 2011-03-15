@@ -70,6 +70,12 @@ public class RendererManager {
             org.sqsh.renderers.GraphicalTreeRenderer.class);
         renderers.put("discard",
             org.sqsh.renderers.DiscardRenderer.class);
+        renderers.put("isql",
+            org.sqsh.renderers.ISQLRenderer.class);
+        renderers.put("vert",
+            org.sqsh.renderers.VerticalRenderer.class);
+        renderers.put("vertical",
+            org.sqsh.renderers.VerticalRenderer.class);
     }
     
     /**

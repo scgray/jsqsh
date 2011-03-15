@@ -104,6 +104,24 @@ public abstract class Renderer {
     }
     
     /**
+     * This is a helper method to display the name of a column (or a portion
+     * of the name). This is the same as printColumnValue() except that
+     * the alignment will always be left.
+     * 
+     * @param column The column that is being displayed.
+     * @param str A single line of text (no new-lines!)
+     */
+    protected void printColumnName(ColumnDescription column, String str) {
+        
+        int padding = column.getWidth() - str.length();
+        session.out.print(str);
+        for (int i = 0; i < padding; i++) {
+                
+            session.out.print(' ');
+        }
+    }
+    
+    /**
      * This is a helper method for renderers to create a {@link LineIterator}
      * based upon the type of overflow behavior that is defined for the
      * column.

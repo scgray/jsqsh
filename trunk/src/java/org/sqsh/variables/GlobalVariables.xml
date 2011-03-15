@@ -604,6 +604,23 @@ VARIABLE
 DESCRIPTION
    The '$style' variable can be set to switch how sqsh displays its results
    to the user. Currently the following display styles are supported:
+   
+   csv      - Displays the output as a set of comma separated values suitable
+        for loading into, say, Excel. The results displayed attempts to 
+        conform to: http://www.creativyst.com/Doc/Articles/CSV/CSV01.htm.
+        Here are some things you should be aware of, though:
+        
+        - Unless headers are suppressed with the ${headers} variable or
+          via the --no-headers (-H) option to \go, the first row in the
+          file will contain the column headers.
+        - A NULL value is represented by a completely empty field.
+        - A zero-length string is represented by "" in order to differentiate
+          it from NULL.
+        - A field will be quoted with double-quotes if the value contains:
+             - A double quote (which will be escaped with as "").
+             - Leading or trailing white space
+             - A comma
+             - A newline
 
    discard  - This causes all rows to be retrieved from the query but to
         be discarded (i.e. not displayed). This is primarily useful only
@@ -612,6 +629,18 @@ DESCRIPTION
         important to note that jsqsh will still fetch the row and format
         the columns into strings for display so there is still that overhead
         involved in the process.
+        
+   graphical - Displays the results in a graphical window (GUI). This will
+        only work on environments where the graphical interface is 
+        available to the JVM. 
+        
+        Note: the variable ${window_size} can be used to control the size
+        of the window that is opened to display results.
+   
+   graph    - A synonym for "graphical".     
+   
+   isql     - This formats its output in a fashion similar to that of Sybase's
+        (or Microsoft SQL Server's) 'isql' program.
    
    perfect  - This is the default display style and is very similar to how
         tools like the mySQL client display their output. The output is 
@@ -644,38 +673,18 @@ DESCRIPTION
         thus, does not need to hold the results in memory during display.
         Use this style when you need to work with very large result sets.
    
-   graphical - Displays the results in a graphical window (GUI). This will
-        only work on environments where the graphical interface is 
-        available to the JVM. 
-        
-        Note: the variable ${window_size} can be used to control the size
-        of the window that is opened to display results.
+   vertical - The vert (or vertical) style rotates the output, so that every 
+        line is represented by a column name followed by a column value. This 
+        is nice for looking at particularly wide output.
    
-   graph    - A synonym for "graphical".     
-        
-   tree - Displays the results in a graphical window (GUI).  Just like graphical except it 
-        displays the resuts in a tree syle format. 
+   vert     - A synonym for "vertical".
+   
+   tree     - Displays the results in a graphical window (GUI).  Just like 
+        graphical except it  displays the resuts in a tree syle format. 
 
         Note: the variable ${window_size} can be used to control the size
         of the window that is opened to display results.
 
-   csv      - Displays the output as a set of comma separated values suitable
-        for loading into, say, Excel. The results displayed attempts to 
-        conform to: http://www.creativyst.com/Doc/Articles/CSV/CSV01.htm.
-        Here are some things you should be aware of, though:
-        
-        - Unless headers are suppressed with the ${headers} variable or
-          via the --no-headers (-H) option to \go, the first row in the
-          file will contain the column headers.
-        - A NULL value is represented by a completely empty field.
-        - A zero-length string is represented by "" in order to differentiate
-          it from NULL.
-        - A field will be quoted with double-quotes if the value contains:
-             - A double quote (which will be escaped with as "").
-             - Leading or trailing white space
-             - A comma
-             - A newline
- 
 SEE ALSO
    maxrows, maxlen, perfect_sample_rows
         ]]></Help>
