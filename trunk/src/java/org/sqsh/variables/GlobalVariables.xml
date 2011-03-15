@@ -623,11 +623,21 @@ DESCRIPTION
            |     1234 | hello    |
            +----------+----------+
               
-        The style is called 'perfect' because it holds the entire results
-        of the query in memory and analyzes the length of the values 
-        before they are displayed, ensuring that columns are no wider than
-        they to be.  This is probably the most pleasant display style but
-        is memory intensive and not suitable for working with  large results.
+        The 'perfect' display style is so-called because it holds rows 
+        in memory prior to display, then analyzes the maximum amount of
+        data to be displayed in each column and attempts to adjust the
+        display accordingly so that as much data as possible fits cleanly
+        on the display. To avoid consuming too much memory, the variable 
+        ${perfect_sample_rows} is used to determine how many rows are 
+        sampled before the display  process begins--after which point 
+        no more rows are held in memory and results are streamed to the
+        display as they arrive. For example:
+        
+            \set perfect_sample_rows=20
+            
+        indicates that the first 20 rows of the results will be held in
+        memory for analysis before display begins. Setting this variable
+        to a value less than one will cause all rows to be sampled.
    
    pretty   - This is visually identical to 'perfect' except that it does not
         attempt to perform a perfect fit on the data before display and,
@@ -667,7 +677,7 @@ DESCRIPTION
              - A newline
  
 SEE ALSO
-   maxrows, maxlen
+   maxrows, maxlen, perfect_sample_rows
         ]]></Help>
     </Property>
     
@@ -727,6 +737,29 @@ DESCRIPTION
    
 SEE ALSO
    headers
+        ]]></Help>
+    </Property>
+    
+    <Property bean="global" name="perfect_sample_rows"
+              property="rendererManager.perfectSampleSize">
+        <Description>Determines number of rows sampled by "perfect" renderers</Description>
+        <Help><![CDATA[
+VARIABLE
+   perfect_sample_rows - Controls the display of query footer information
+   
+DESCRIPTION
+   The ${perfect_sample_rows} determines the number of rows that are 
+   sampled (held in memory) by perfect result renderers (such as used 
+   by the "perfect" display style) before results are displayed.  The
+   larger this number, the better the results will be rendered, however
+   the more memory will be consumed as all the rows must be held in memory
+   before display.
+   
+   A value less than 1 indicates that all rows will be sampled prior to
+   display.  The default value is 500.
+   
+SEE ALSO
+   style
         ]]></Help>
     </Property>
 </Variables>

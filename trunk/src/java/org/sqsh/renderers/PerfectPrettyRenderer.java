@@ -36,6 +36,8 @@ public class PerfectPrettyRenderer
      * The data that has been collected thus far.
      */
     private List<String[]> rows = new ArrayList<String[]>();
+    private int sampleSize = 0;
+    private boolean hasHitSampleLimit = false;
     
     /**
      * Creates the renderer.
@@ -48,6 +50,7 @@ public class PerfectPrettyRenderer
     public PerfectPrettyRenderer(Session session, RendererManager renderMan) {
         
         super(session, renderMan);
+        sampleSize = renderMan.getPerfectSampleSize();
     }
     
     @Override
@@ -59,6 +62,7 @@ public class PerfectPrettyRenderer
          * We need to throw away the previous result set.
          */
         rows.clear();
+        hasHitSampleLimit = false;
         
         for (int i = 0; i < columns.length; i++) {
             
@@ -77,32 +81,61 @@ public class PerfectPrettyRenderer
     @Override
     public boolean row (String[] row) {
         
-        for (int colIdx = 0; colIdx < columns.length; ++colIdx) {
+        if (hasHitSampleLimit) {
             
-            ColumnDescription col = columns[colIdx];
-            int width = col.getWidth();
+            printRow(row);
+        }
+        else {
             
-            if (row[colIdx] == null) {
+            if (sampleSize > 0 && rows.size() >= sampleSize) {
                 
-                row[colIdx] = session.getDataFormatter().getNull();
-                if (width < row[colIdx].length()) {
-                    
-                    width = row[colIdx].length();
+                perfectWidth();
+                printHeader();
+                for (int i = 0; i < rows.size(); i++) {
+            
+                    if (session.out.checkError() || Thread.interrupted()) {
+                
+                        return false;
+                    }
+            
+                    printRow(rows.get(i));
                 }
+                printRow(row);
+                
+                rows.clear();
+                hasHitSampleLimit = true;
             }
             else {
-            
-                int lineWidth = getMaxLineWidth(col, row[colIdx]);
-                if (lineWidth > width) {
-                    
-                    width = lineWidth;
-                }
+        
+		        for (int colIdx = 0; colIdx < columns.length; ++colIdx) {
+		            
+		            ColumnDescription col = columns[colIdx];
+		            int width = col.getWidth();
+		            
+		            if (row[colIdx] == null) {
+		                
+		                row[colIdx] = session.getDataFormatter().getNull();
+		                if (width < row[colIdx].length()) {
+		                    
+		                    width = row[colIdx].length();
+		                }
+		            }
+		            else {
+		            
+		                int lineWidth = getMaxLineWidth(col, row[colIdx]);
+		                if (lineWidth > width) {
+		                    
+		                    width = lineWidth;
+		                }
+		            }
+		            
+		            col.setWidth(width);
+		        }
             }
             
-            col.setWidth(width);
+            rows.add(row);
         }
         
-        rows.add(row);
         return true;
     }
     
@@ -188,17 +221,20 @@ public class PerfectPrettyRenderer
     @Override
     public boolean flush () {
         
-        perfectWidth();
-        
-        printHeader();
-        for (int i = 0; i < rows.size(); i++) {
+        if (!hasHitSampleLimit) {
             
-            if (session.out.checkError() || Thread.interrupted()) {
-                
-                return false;
-            }
-            
-            printRow(rows.get(i));
+	        perfectWidth();
+	        
+	        printHeader();
+	        for (int i = 0; i < rows.size(); i++) {
+	            
+	            if (session.out.checkError() || Thread.interrupted()) {
+	                
+	                return false;
+	            }
+	            
+	            printRow(rows.get(i));
+	        }
         }
         printFooter();
         

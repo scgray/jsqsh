@@ -33,6 +33,14 @@ Release 1.4
   forgetting passwords to systems.
 * Added sql-skin driver definition for the IBM DB2 SQL Skin for ASE
   driver (I happen to work for them, so have a bit of incentive).
+* The "perfect" display style no longer holds all of the rows in
+  memory prior to display.  Instead, it is now controlled by a new
+  variable ${perfect_sample_rows} (default value 500). So now, 
+  ${perfect_sample_rows} rows are held in memory for analysis prior
+  to display. Once this limit has been hit, rows are streamed and
+  no longer held in memory.
+* The ${maxrows} variable now defaults to 0 (unlimited rows) rather
+  than 500.
 * More care is taken to ensure that database connections are actually
   formally close()'d when jsqsh exits or a session terminates.
 * When in non-interactive mode, the warning about failures to load the

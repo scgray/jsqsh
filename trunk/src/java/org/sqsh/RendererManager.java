@@ -37,6 +37,7 @@ public class RendererManager {
     private boolean showHeaders = true;
     private boolean showFooters = true;
     private int maxColumnWidth = 35;
+    private int perfectSampleSize = 500;
     private String defaultRenderer = "perfect";
     
     private Map<String, Class> renderers = new HashMap<String, Class>();
@@ -195,5 +196,25 @@ public class RendererManager {
     
         this.maxColumnWidth = maxColumnWidth;
     }
+
     
+    /**
+     * @return the number of rows that will be sampled before performing
+     *    "perfect" rendering. A value <= 0 indicates that all rows will
+     *    be sampled before rendering.
+     */
+    public int getPerfectSampleSize() {
+    
+        return perfectSampleSize;
+    }
+    
+    /**
+     * @param perfectSampleSize Indicates the number of rows that will be
+     *    sampled before performing "perfect" rendering. A value <= 0 indicates 
+     *    that all rows will be sampled before rendering.
+     */
+    public void setPerfectSampleSize(int perfectSampleSize) {
+    
+        this.perfectSampleSize = perfectSampleSize;
+    }
 }
