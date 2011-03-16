@@ -586,10 +586,13 @@ public class SqshContext {
      * choosing the next session, running it until it completes, and so on.
      * When the last session has executed or a session throws a 
      * {@link SqshContextExitMessage} then this method will return.
+     * 
+     * @return The total number of commands executed across all sessions
+     *   that failed.
      */
-    public void run() {
+    public int run() {
         
-        run((Session) null);
+        return run((Session) null);
     }
     
     /**
@@ -620,10 +623,14 @@ public class SqshContext {
      * execute the input. When the command containing this code returns
      * the Session will take care of restoring the input descriptor back
      * to its original state.
+     * 
+     * @return The total number of commands executed across all sessions
+     *   that failed.
      */
-    public void run(Session session) {
+    public int run(Session session) {
         
         Session priorCurrentSession = currentSession;
+        int failCount = 0;
         
         /*
          * If we were asked to execute a specific session, then make
@@ -692,6 +699,12 @@ public class SqshContext {
                     currentSession.readEvalPrint();
                     
                     /*
+                     * If any commands failed during the session, 
+                     * accumulate them into our failure count.
+                     */
+                    failCount += currentSession.getCommandFailCount();
+                    
+                    /*
                      * If we were asked to run a specific session and it
                      * has just finished, then we are done.
                      */
@@ -706,6 +719,7 @@ public class SqshContext {
                 }
                 catch (SqshContextExitMessage e) {
                     
+                    failCount += currentSession.getCommandFailCount();
                     removeSession(currentSession.getId());
                     done = true;
                 }
@@ -742,6 +756,7 @@ public class SqshContext {
                     
                     if (e.isEndingCurrent()) {
                         
+                        failCount += currentSession.getCommandFailCount();
                         removeSession(currentSession.getId());
                         prevSessionId = -1;
                     }
@@ -776,6 +791,8 @@ public class SqshContext {
             
             currentSession = priorCurrentSession;
         }
+        
+        return failCount;
     }
     
     /**

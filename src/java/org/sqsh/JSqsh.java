@@ -145,8 +145,10 @@ public class JSqsh {
                 
                 rc = 1;
             }
+            else {
             
-            sqsh.run();
+                rc = sqsh.run();
+            }
         }
         catch (Throwable e) {
             

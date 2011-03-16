@@ -88,6 +88,7 @@ public class Go
         RendererManager renderMan = session.getRendererManager();
         String origStyle = null;
         String origNull = null;
+        int returnCode = 0;
         
         /*
          * If we are being asked to generate INSERT statements then we need to
@@ -174,6 +175,7 @@ public class Go
                 catch (SQLException e) {
                     
                     SQLTools.printException(session.err, e);
+                    returnCode = 1;
                 }
             }
         }
@@ -203,6 +205,6 @@ public class Go
                 + ((endTime - startTime) / options.repeat) + "ms. ag)");
         }
         
-        return 0;
+        return returnCode;
     }
 }
