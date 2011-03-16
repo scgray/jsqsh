@@ -285,15 +285,20 @@ public class SQLRenderer {
      * @param session The session to be used as an output handle
      *  (and where the database connection comes from).
      * @param sql  The SQL to execute
+     * 
+     * @return true if the SQL executed without error (warnings do not
+     *   count towards errors), false if there was at least one error
+     *   raised during the execution of the SQL.
+     *   
      * @throws SQLException Thrown when...well, you know.
      */
-    public void execute (Session session, String sql)
+    public boolean execute (Session session, String sql)
         throws SQLException {
         
         Renderer renderer = session.getContext().getRendererManager()
             .getRenderer(session);
         
-        execute(renderer, session, sql);
+        return execute(renderer, session, sql);
     }
     
     /**
@@ -302,12 +307,18 @@ public class SQLRenderer {
      * @param session The session that will be used for output.
      * @param statement A prepared statement that has had all of its
      *    SQL and parameters provided.
+     * 
+     * @return true if the SQL executed without error (warnings do not
+     *   count towards errors), false if there was at least one error
+     *   raised during the execution of the SQL.
+     *   
      * @throws SQLException Thrown if there is an issue.
      */
-    public void executeCall (Session session, String sql,
+    public boolean executeCall (Session session, String sql,
             CallParameter []params)
         throws SQLException {
         
+        boolean ok = true;
         Renderer renderer = session.getContext().getRendererManager()
             .getRenderer(session);
         
@@ -324,7 +335,7 @@ public class SQLRenderer {
             session.getSignalManager().push((SigHandler) sigHandler);
             
             startTime = System.currentTimeMillis();
-            execute(renderer, session, statement, statement.execute());
+            ok = execute(renderer, session, statement, statement.execute());
             
             /*
              * If there were any output parameters, then try to display 
@@ -361,6 +372,8 @@ public class SQLRenderer {
             
             SQLTools.close(statement);
         }
+        
+        return ok;
     }
     
     /**
@@ -369,12 +382,18 @@ public class SQLRenderer {
      * @param session The session that will be used for output.
      * @param statement A prepared statement that has had all of its
      *    SQL and parameters provided.
+     * 
+     * @return true if the SQL executed without error (warnings do not
+     *   count towards errors), false if there was at least one error
+     *   raised during the execution of the SQL.
+     *   
      * @throws SQLException Thrown if there is an issue.
      */
-    public void executePrepare (Session session, String sql,
+    public boolean executePrepare (Session session, String sql,
             CallParameter []params)
         throws SQLException {
         
+        boolean ok = true;
         Renderer renderer = session.getContext().getRendererManager()
             .getRenderer(session);
         
@@ -391,7 +410,7 @@ public class SQLRenderer {
             session.getSignalManager().push((SigHandler) sigHandler);
             
             startTime = System.currentTimeMillis();
-            execute(renderer, session, statement, statement.execute());
+            ok = execute(renderer, session, statement, statement.execute());
         }
         finally {
             
@@ -402,6 +421,8 @@ public class SQLRenderer {
             
             SQLTools.close(statement);
         }
+        
+        return ok;
     }
     
     
@@ -412,10 +433,17 @@ public class SQLRenderer {
      *   of the statement.
      * @param session The session that will be used for output.
      * @param sql A SQL statement that is to be executed for
+     * 
+     * @return true if the SQL executed without error (warnings do not
+     *   count towards errors), false if there was at least one error
+     *   raised during the execution of the SQL.
+     *   
      * @throws SQLException Thrown if there is an issue.
      */
-    public void execute (Renderer renderer, Session session, String sql)
+    public boolean execute (Renderer renderer, Session session, String sql)
         throws SQLException {
+        
+        boolean ok = true;
 
         if (expand) {
             
@@ -437,7 +465,7 @@ public class SQLRenderer {
                 session.getSignalManager().push((SigHandler) sigHandler);
                 
                 startTime = System.currentTimeMillis();
-                execute(renderer, session, statement, 
+                ok = execute(renderer, session, statement, 
                     ((PreparedStatement) statement).execute());
             }
             else  {
@@ -448,7 +476,7 @@ public class SQLRenderer {
                 session.getSignalManager().push((SigHandler) sigHandler);
                 
                 startTime = System.currentTimeMillis();
-                execute(renderer, session, statement, statement.execute(sql));
+                ok = execute(renderer, session, statement, statement.execute(sql));
             }
         }
         finally {
@@ -460,6 +488,8 @@ public class SQLRenderer {
             
             SQLTools.close(statement);
         }
+        
+        return ok;
     }
     
     /**
@@ -575,9 +605,14 @@ public class SQLRenderer {
      *   of the statement.
      * @param session The session that will be used for output.
      * @param statement The statement that was just executed.
+     * 
+     * @return true if the SQL executed without error (warnings do not
+     *   count towards errors), false if there was at least one error
+     *   raised during the execution of the SQL.
+     *   
      * @throws SQLException Thrown if there is an issue.
      */
-    private void execute (Renderer renderer, Session session,
+    private boolean execute (Renderer renderer, Session session,
             Statement statement, boolean hasResults)
         throws SQLException {
         
@@ -585,6 +620,7 @@ public class SQLRenderer {
         ResultSet resultSet = null;
         boolean done = false;
         int updateCount = -1;
+        boolean ok = true;
         
         firstRowTime = 0L;
         endTime = 0L;
@@ -640,7 +676,7 @@ public class SQLRenderer {
                      */
                     if (nRows < 0) {
                         
-                        return;
+                        return ok;
                     }
                     
                     footer.append(nRows);
@@ -745,6 +781,8 @@ public class SQLRenderer {
             
             SQLTools.close(resultSet);
         }
+        
+        return ok;
     }
     
     /**

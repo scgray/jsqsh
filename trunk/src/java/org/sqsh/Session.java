@@ -68,6 +68,12 @@ public class Session
     private int commandReturn = 0;
     
     /**
+     * This contains the total number of commands that have been executed
+     * that failed to return a 0 return value (i.e. that failed).
+     */
+    private int commandFailCount = 0;
+    
+    /**
      * Manages I/O handles.
      */
     private InputOutputManager ioManager = new InputOutputManager();
@@ -495,6 +501,29 @@ public class Session
         return getStringExpander().expand(this, variables, str);
     }
     
+    /**
+     * @return Returns the number of commands that have been executed that 
+     * failed (i.e. returned a value other than 0).
+     */
+    public int getCommandFailCount() {
+    
+        return commandFailCount;
+    }
+
+    /**
+     * Sets the count of the number of commands that have been executed
+     * by the session that returned a value other than 0 (i.e. that failed).
+     * This main purpose of this method is to allow you to reset the count
+     * to zero, however if you want to force the count to indicate a failure
+     * you can set it to whatever you wish.
+     * 
+     * @param commandFailCount the number of failures you wish to indicate.
+     */
+    public void setCommandFailCount(int commandFailCount) {
+    
+        this.commandFailCount = commandFailCount;
+    }
+
     /**
      * Returns the result code from the last command executed.
      * @return the result code from the last command executed.
@@ -1026,6 +1055,9 @@ public class Session
              */
             commandReturn =
                 command.execute(this, argv.toArray(new String[0]));
+            
+            if (commandReturn != 0)
+                ++commandFailCount;
         }
         catch (IOException e) {
                 
