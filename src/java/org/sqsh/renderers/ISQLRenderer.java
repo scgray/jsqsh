@@ -49,6 +49,12 @@ public class ISQLRenderer
          */
         for (int i = 0; i < columns.length; i++) {
             
+            /* 
+             * isql caps the display width of the column header at 512.
+             */
+            if (columns[i].getWidth() > 512)
+                columns[i].setWidth(512);
+            
             if (i > 0 
                 &&  (totalWidth + columns[i].getWidth() + 1) > screenWidth) {
                 
