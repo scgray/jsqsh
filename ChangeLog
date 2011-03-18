@@ -17,6 +17,16 @@ Release 1.4
   evaluated to be run multiple times.  Each iteration of evaluation
   will have a variable ${iteration} set that it can refer to if it
   wants to vary the SQL behavior by iteration.
+* Added new command line option "--config-dir" that allows you to specify
+  additional configuration directories to be processed upon start
+  in addition to $HOME/.jsqsh. This option may be specified more than
+  once to load more than one configuration directory.
+* Added new command line option "--drivers" that allows you to specify
+  additional driver.xml files to be loaded upon startup. This option
+  may be specified more than once.
+* Added "--load" option to \drivers command to allow you to load additional
+  driver.xml definition files. This is particularly useful to put into
+  your .jsqsh/sqshrc file.
 * Added "isql" display style, that attempts to format data in a fashion
   similar to Sybase's isql program.
 * Added "vertical" (or "vert") display style, that attempts to format 

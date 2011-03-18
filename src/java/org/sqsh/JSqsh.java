@@ -72,6 +72,16 @@ public class JSqsh {
            description="Readline method "
                      + "(readline,editline,getline,jline,purejava)")
        public String readline = null;
+
+       @Option(
+           option='C', longOption="config-dir", arg=REQUIRED, argName="dir",
+           description="Configuration directory in addition to $HOME/.jsqsh.")
+       public List<String> configDirectories = new ArrayList<String>();
+
+       @Option(
+           option='R', longOption="drivers", arg=REQUIRED, argName="file",
+           description="Specifies additional drivers.xml files to be loaded")
+       public List<String> driverFiles = new ArrayList<String>();
        
        @Argv(program="jsqsh", min=0, max=1, usage="[options] [connection-name]")
        public List<String> arguments = new ArrayList<String>();
@@ -133,6 +143,16 @@ public class JSqsh {
         
         SqshContext sqsh = new SqshContext(options.readline);
         int rc = 0;
+
+        for (String dir : options.configDirectories) {
+
+            sqsh.addConfigurationDirectory(dir);
+        }
+
+        for (String file : options.driverFiles) {
+
+            sqsh.addDriverFile(file);
+        }
         
         try {
             

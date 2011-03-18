@@ -307,6 +307,11 @@ public class OptionProcessor {
                     
                     field.set(optionBean, value);
                 }
+                else if (type.isAssignableFrom(java.util.List.class)) {
+
+                    List c = (List)field.get(optionBean);
+                    c.add(value);
+                }
                 else {
                     
                     throw new OptionException(program + 

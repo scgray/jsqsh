@@ -20,6 +20,7 @@ package org.sqsh.commands;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.io.File;
 
 import org.sqsh.ColumnDescription;
 import org.sqsh.Command;
@@ -29,6 +30,9 @@ import org.sqsh.SQLDriverManager;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
 import org.sqsh.options.Argv;
+import org.sqsh.options.Option;
+
+import static org.sqsh.options.ArgumentRequired.REQUIRED;
 
 /**
  * Implements the \drivers command.
@@ -38,7 +42,12 @@ public class Drivers
     
     private static class Options
         extends SqshOptions {
-    
+
+        @Option(
+            option='l', longOption="load", arg=REQUIRED, argName="file",
+            description="Specifies a drivers.xml format file to load")
+        public String file = null;
+
         @Argv(program="\\drivers", min=0, max=0)
         public List<String> arguments = new ArrayList<String>();
     }
@@ -56,43 +65,62 @@ public class Drivers
     public int execute (Session session, SqshOptions opts)
         throws Exception {
         
+        Options options = (Options)opts;
         SQLDriverManager driverMan = session.getDriverManager();
-        SQLDriver []drivers = driverMan.getDrivers();
-        
-        Arrays.sort(drivers);
-        
-        ColumnDescription []columns = new ColumnDescription[4];
-        columns[0] = new ColumnDescription("Target", -1);
-        columns[1] = new ColumnDescription("Name", -1);
-        columns[2] = new ColumnDescription("URL", -1);
-        columns[3] = new ColumnDescription("Class", -1);
-        
-        Renderer renderer = 
-            session.getRendererManager().getCommandRenderer(session);
-        renderer.header(columns);
-        
-        for (int i = 0; i < drivers.length; i++) {
-            
-            String target = drivers[i].getTarget();
-            if (drivers[i].isAvailable()) {
-                
-                target = "* " + target;
+
+        if (options.file != null) {
+
+            File file = new File(options.file);
+            if (file.exists()) {
+
+                driverMan.load(file);
             }
             else {
+
+                session.err.println("Unable to load driver file '"
+                    + options.file + "'");
+                return 1;
+            }
+        }
+        else {
+
+            SQLDriver []drivers = driverMan.getDrivers();
+            
+            Arrays.sort(drivers);
+            
+            ColumnDescription []columns = new ColumnDescription[4];
+            columns[0] = new ColumnDescription("Target", -1);
+            columns[1] = new ColumnDescription("Name", -1);
+            columns[2] = new ColumnDescription("URL", -1);
+            columns[3] = new ColumnDescription("Class", -1);
+            
+            Renderer renderer = 
+                session.getRendererManager().getCommandRenderer(session);
+            renderer.header(columns);
+            
+            for (int i = 0; i < drivers.length; i++) {
                 
-                target = "  " + target;
+                String target = drivers[i].getTarget();
+                if (drivers[i].isAvailable()) {
+                    
+                    target = "* " + target;
+                }
+                else {
+                    
+                    target = "  " + target;
+                }
+                
+                String []row = new String[4];
+                row[0] = target;
+                row[1] = drivers[i].getName();
+                row[2] = drivers[i].getUrl();
+                row[3] = drivers[i].getDriverClass();
+                
+                renderer.row(row);
             }
             
-            String []row = new String[4];
-            row[0] = target;
-            row[1] = drivers[i].getName();
-            row[2] = drivers[i].getUrl();
-            row[3] = drivers[i].getDriverClass();
-            
-            renderer.row(row);
+            renderer.flush();
         }
-        
-        renderer.flush();
         
         return 0;
     }

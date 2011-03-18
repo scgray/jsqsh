@@ -99,7 +99,7 @@ DRIVER DEFINITION FILE
    of comments describing the structure of the file.
            
 OPTIONS:
-   None
+   -l, --load=file  Loads an additional drivers.xml format file.
    
 SEE ALSO
    classpath
