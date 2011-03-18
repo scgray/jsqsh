@@ -66,6 +66,7 @@ Release 1.4
 * The ${maxrows} variable now defaults to 0 (unlimited rows) rather
   than 500. This is done because the default display style ("perfect")
   no longer attempts to hold all rows in memory.
+* Added driver definition for the H2 JDBC driver.
 * More care is taken to ensure that database connections are actually
   formally close()'d when jsqsh exits or a session terminates.
 * When in non-interactive mode, the warning about failures to load the
