@@ -1,5 +1,6 @@
 cmake_minimum_required (VERSION 2.6)
 
+
 include(CheckIncludeFiles)
 check_include_files(dlfcn.h     HAVE_DLFCN_H)
 check_include_files(errno.h     HAVE_ERRNO_H)
@@ -18,12 +19,21 @@ check_include_files(sys/wait.h  HAVE_SYS_WAIT_H)
 check_include_files(termios.h   HAVE_TERMIOS_H)
 check_include_files(time.h      HAVE_TIME_H)
 check_include_files(unistd.h    HAVE_UNISTD_H)
+check_include_files(jni.h       HAVE_JNI_H)
 
 include(CheckFunctionExists)
 check_function_exists(localtime   HAVE_LOCALTIME)
 check_function_exists(localtime_r HAVE_LOCALTIME_R)
 check_function_exists(strerror    HAVE_STRERROR)
 check_function_exists(strerror_r  HAVE_STRERROR_R)
+
+if (NOT HAVE_JNI_H)
+    if (DEFINED ENV{JAVA_HOME})
+        include_directories("$ENV{JAVA_HOME}/include")
+    else ()
+        message(FATAL_ERROR "You have to have JAVA_HOME set")
+    endif()
+endif()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
     ${CMAKE_CURRENT_SOURCE_DIR}/config.h)
