@@ -177,6 +177,23 @@ public class SqshContext {
      * The set of sessions thare are current defined within sqsh.
      */
     private List<Session> sessions = new ArrayList<Session>();
+
+    /**
+     * A list of directories in which we will try to load configuration
+     * files.
+     */
+    private List<String> configDirectories = new ArrayList<String>();
+
+    /**
+     * A list of driver.xml files that should be added upon startup.
+     */
+    private List<String> driverFiles = new ArrayList<String>();
+
+    /**
+     * This is set to true once the configuration files have been
+     * loaded and processed.
+     */
+    private boolean doneConfig = false;
     
     /**
      * This is set once at startup by asking readline if it has ahold
@@ -252,12 +269,6 @@ public class SqshContext {
          * Create a configuration directory for the user if necessary.
          */
         createConfigDirectory();
-        
-        /*
-         * Load configuration files that may be located in the users 
-         * configuration directory.
-         */
-        loadConfigDirectory();
         
         /*
          * Some of the activities above created sessions to do their
@@ -420,6 +431,28 @@ public class SqshContext {
     public void setVariable(String name, String value) {
         
         variableManager.put(name, value);
+    }
+
+    /**
+     * Adds an additional configuration directory to be processed
+     * when the context is run(). This method may be called multiple
+     * times to install additional configuration directories, however
+     * these directories are not processed until run() is called.
+     */ 
+    public void addConfigurationDirectory(String name) {
+
+        configDirectories.add(name);
+    }
+
+    /**
+     * Adds an additional file in the format of the drivers.xml that
+     * should be processed upon startup.
+     *
+     * @param name The path to a file that is in the formation of drivers.xml.
+     */ 
+    public void addDriverFile(String name) {
+
+        driverFiles.add(name);
     }
     
     /**
@@ -631,6 +664,18 @@ public class SqshContext {
         
         Session priorCurrentSession = currentSession;
         int failCount = 0;
+
+        if (doneConfig == false) {
+
+            /*
+             * Load configuration files.
+             */
+            loadConfigDirectories();
+
+            loadDriverFiles();
+
+            doneConfig = true;
+        }
         
         /*
          * If we were asked to execute a specific session, then make
@@ -914,27 +959,83 @@ public class SqshContext {
             out.close();
         }
     }
-    
+
     /**
-     * Loads configuration files that may be located in the users home 
-     * directory to configure sqsh.
+     * Loads any driver.xml files that have been configured.
      */
-    private void loadConfigDirectory() {
-        
+    private void loadDriverFiles() {
+
+        Iterator<String> iter = driverFiles.iterator();
+        while (iter.hasNext()) {
+
+            File driverFile = new File(iter.next());
+            if (driverFile.exists()) {
+
+                driverManager.load(driverFile);
+            }
+            else {
+
+                System.err.println("WARNING: Could not load driver file '"
+                    + driverFile.toString() + "'");
+            }
+        }
+    }
+
+    /**
+     * Processes the list of configuration directories that have been
+     * configured followed by the the configuration directory in the
+     * user's home directory.
+     */
+    private void loadConfigDirectories() {
+
+        Iterator<String> iter = configDirectories.iterator();
+        while (iter.hasNext()) {
+
+            File dir = new File(iter.next());
+            if (dir.isDirectory()) {
+
+                loadConfigDirectory(dir, false);
+            }
+            else {
+
+                System.err.println("WARNING: Configuration directory "
+                    + dir.toString() + " does not exist or is not a directory");
+            }
+        }
+
+        /*
+         * Load configuration files that may be located in the users 
+         * configuration directory.
+         */
         String filesep = System.getProperty("file.separator");
         File homedir = new File(
             System.getProperty("user.home") + filesep + ".jsqsh");
+        loadConfigDirectory(homedir, true);
+    }
+    
+    /**
+     * Processes files located in a configuration directory. A configuration
+     * directory can have a drivers.xml file to define drivers, a sqshrc
+     * file to contain commands to execute and a history.xml file containing
+     * previous query history.
+     *
+     * @param configDir The name of the directory to load
+     * @param doHistory If true, then the directory is checked to see if
+     *   it contains a "history.xml" file that is used to prime the 
+     *   query history.
+     */
+    private void loadConfigDirectory(File configDir, boolean doHistory) {
         
         /*
          * Load our readline history.
          */
-        loadReadlineHistory(homedir);
+        loadReadlineHistory(configDir);
         
         /*
          * Then load any additional drivers that the user
          * may have defined in their .jsqsh/drivers.xml directory.
          */
-        File drivers = new File(homedir, "drivers.xml");
+        File drivers = new File(configDir, "drivers.xml");
         if (drivers.exists()) {
             
             driverManager.load(drivers);
@@ -944,7 +1045,7 @@ public class SqshContext {
          * Next try to load the sqshrc file. We do this by forcing the
          * current session to take its input from the sqshrc file.
          */
-        File sqshrc = new File(homedir, "sqshrc");
+        File sqshrc = new File(configDir, "sqshrc");
         if (sqshrc.exists()) {
             
             try {
@@ -964,24 +1065,28 @@ public class SqshContext {
         }
         
         
-        /*
-         * The buffer manage has likely been used already to load
-         * the initialization script and/or other tasks. To make
-         * sure that it only contains history from the last time
-         * jsqsh was started, we clear it out here.
-         */
-        bufferManager.clear();
-        
-        File buffers = new File(homedir, "history.xml");
-        if (buffers.exists()) {
+        if (doHistory) {
+
+            /*
+             * The buffer manage has likely been used already to load
+             * the initialization script and/or other tasks. To make
+             * sure that it only contains history from the last time
+             * jsqsh was started, we clear it out here.
+             */
+            bufferManager.clear();
             
-            bufferManager.load(buffers);
+            File buffers = new File(configDir, "history.xml");
+            if (buffers.exists()) {
+                
+                bufferManager.load(buffers);
+            }
         }
         
         /*
          * Populate our connection descriptors.
          */
-        File connections = new File(homedir, "connections.xml");
+        File connections = new File(configDir, "connections.xml");
+
         connDescMan = new ConnectionDescriptorManager(connections.toString());
     }
     
