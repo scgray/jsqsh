@@ -12,6 +12,7 @@ check_include_files(stdarg.h    HAVE_STDARG_H)
 check_include_files(stdint.h    HAVE_STDINT_H)
 check_include_files(stdlib.h    HAVE_STDLIB_H)
 check_include_files(strings.h   HAVE_STRINGS_H)
+check_include_files(string.h    HAVE_STRING_H)
 check_include_files(sys/ioctl.h HAVE_SYS_IOCTL_H)
 check_include_files(sys/stat.h  HAVE_SYS_STAT_H)
 check_include_files(sys/types.h HAVE_SYS_TYPES_H)
@@ -29,11 +30,18 @@ check_function_exists(strerror_r  HAVE_STRERROR_R)
 
 if (NOT HAVE_JNI_H)
     if (DEFINED ENV{JAVA_HOME})
+        if (NOT EXISTS "$ENV{JAVA_HOME}/include")
+            message(FATAL_ERROR "Cannot find $ENV{JAVA_HOME}/include")
+        endif()
+
         include_directories("$ENV{JAVA_HOME}/include")
-        find_file(JAVA_JNI_MD jni_md.h PATHS "$ENV{JAVA_HOME}/include")
+        file(GLOB JAVA_JNI_MD "$ENV{JAVA_HOME}/include/*/jni_md.h")
         if (JAVA_JNI_MD)
             get_filename_component(JAVA_JNI_MD_DIR ${JAVA_JNI_MD} PATH)
             include_directories(${JAVA_JNI_MD_DIR})
+        else()
+            message(FATAL_ERROR 
+                "Unable to find jni_md.h under $ENV{JAVA_HOME}/include")
         endif()
     else ()
         message(FATAL_ERROR "You have to have JAVA_HOME set")
@@ -44,7 +52,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
     ${CMAKE_CURRENT_SOURCE_DIR}/config.h)
 
 add_library(jsqsh SHARED
-    jsqsh.def
     config.h
     jsqsh.h
     jsqsh_init.c

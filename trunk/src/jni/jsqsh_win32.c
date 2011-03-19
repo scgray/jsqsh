@@ -287,18 +287,19 @@ void jsqsh_write (JNIEnv *env, jlong jfd, void *buf, int len)
     HANDLE fd = (HANDLE) jfd;
     DWORD  nbytes = 0;
     DWORD  nwritten;
+    char  *buf_ptr = (char*)buf;
 
-    while (nbytes < len)
+    while (nbytes < (DWORD) len)
     {
-        if (!WriteFile(fd, (LPCVOID) buf, (DWORD) len,
+        if (!WriteFile(fd, (LPCVOID) buf_ptr, (DWORD) len,
                 (LPDWORD) &nwritten, NULL))
         {
             jsqsh_throw(env, GetLastError(), "java/io/IOException");
             return;
         }
 
-        nbytes += nwritten;
-        buf    += nwritten;
+        nbytes  += nwritten;
+        buf_ptr += nwritten;
     }
 }
 
