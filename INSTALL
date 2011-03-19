@@ -20,12 +20,17 @@ To build jsqsh you'll need the following:
    1. Sun Java >= 1.5 JDK (http://java.sun.com)
    2. Ant >= 1.6 (http://ant.apache.org/)
 
-The following are required if you wish to build sqsh's JNI layer:
+The following are required if you wish to build sqsh's JNI layer. For
+the windows platforms the dll's are packaged in the dist/win32 and dist/win64
+directories, so there is not need to build them unless you make changes.
 
-   1. cygwin (http://www.cygwin.com - only for Windows)
-   2. gcc >= 3.x
-   3. gnu make >= 3.x
-   4. The gcc-mingw-core cygwin package (Windows only)
+Unix
+   1. gcc >= 3.x
+   2. gnu make >= 3.x
+
+Windows
+   1. cmake
+   2. Visual Studio 2005 or later
 
 Java
 ----
@@ -56,12 +61,15 @@ as doing:
 after this process completes you should find the resulting shared library
 in src/jni/.libs/libjsqsh.so.
 
-For Windows (with cygwin), I compile the JNI layer with:
+For Windows, you need to have cmake installed on your system. Once installed
+you should be able to do:
 
-   $ cd src/jni
-   $ ./Windows_Make.sh
+   C:\jsqsh> cd src\jni
+   C:\jsqsh\src\jni> cmake -G "NMake Makefiles"
+   C:\jsqsh\src\jni> nmake
 
-More details can be found in src/jni/README.
+Note that cmake is also capable of producing a visual studio project file
+if you would rather.  Refer to the cmake documentation.
 
 Distributing
 ============
@@ -97,14 +105,32 @@ Please note that this task requires that you have everything required
 to build the jsqsh JNI layer as it will attempt to build and package
 the shared library as well.
 
+RPM (.rpm)
+--------------------
+The ant task 'dist-rpm' builds an RPM distribution.
+
+   $ ant dist-rpm
+
+This should leave you with a file called build/jsqsh-<version>.rpm
+after it completes. 
+
+Please note that this task requires that you have everything required
+to build the jsqsh JNI layer as it will attempt to build and package
+the shared library as well.
+
+It is important to note that I haven't really gotten this build task
+down very well -- it seems to work OK on some distributions and not
+others. RPM's are kind of complex, nasty, beasts, so I would love
+some help in making this process work better if anyone out there has time.
+
 Windows (.zip)
 --------------
-The ant task 'dist_win' builds a distribution suitable for running on
-Microsoft Windows (XP or later). This task requires that you have 
-Launch4j installed on your system (http://launch4j.sourceforge.net).
+The ant task 'dist-win32' or 'dist-win64' builds a distribution suitable 
+for running on Microsoft Windows (XP or later). This task requires that 
+you have Launch4j installed on your system (http://launch4j.sourceforge.net).
 
 To build the distribution, execute:
 
-  $ ant -Dlaunch4j.dir="C:/Program Files/Lunch4j" dist_win
+  $ ant -Dlaunch4j.dir="C:/Program Files/Lunch4j" dist-win32
 
 (replace the path to Launch4j as appropriate for your system).
