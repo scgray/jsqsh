@@ -19,18 +19,20 @@ library and copy it where I need it.
 Building: Windows
 =================
 
-I couldn't quite get the GNU autoconf stuff to work properly here
-so you can't just run 'configure' like above. For this you will need:
+I couldn't quite get the GNU autoconf stuff to work properly here, however
+I've been working with 'cmake' at my main job for a while now, and kind of
+like it, so I have developed a 'cmake' project for this.  You don't really
+need to know anything about cmake, but you do need to install it. It can
+get it from here: http://www.cmake.org
 
-   - Cygwin (http://www.cygwin.com)
-   - The gcc-core cygwin package
-   - The gcc-mingw-core package
+Once installed, you just need to do:
 
-At this point you should be able to generate the DLL from a cygwin
-bash shell by running:
+   c:\jsqsh> cd src\jni
+   c:\jsqsh\src\jni> cmake -G "NMake Makefiles"
+   c:\jsqsh\src\jni> nmake
 
-   $ ./Windows_Make.sh
+CMake is a build system builder. That is, it doesn't actually do the build, 
+but produces files for your build-system of choice for it to work. So,
+the above will build Makefiles suitable for 'NMake', but you can also
+have it generate visual studio projects. eclipse projects, etc.
 
-from this directory. When complete this should leave you with a 
-file called 'jsqsh.dll' in this directory, which you can pick up and
-do as you will.
