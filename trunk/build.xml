@@ -437,7 +437,29 @@
 
      <!-- 
        == ************************************************************
-       == dist-win - Builds the windows distribution
+       == dist-win32 - Builds the windows 32bit distribution
+       == ***********************************************************
+       -->
+     <target name="dist-win32">
+        <antcall target="_dist-win">
+           <param name="win_ver" value="win32"/>
+        </antcall>
+     </target>
+
+     <!-- 
+       == ************************************************************
+       == dist-win64 - Builds the windows 64bit distribution
+       == ***********************************************************
+       -->
+     <target name="dist-win64">
+        <antcall target="_dist-win">
+           <param name="win_ver" value="win64"/>
+        </antcall>
+     </target>
+
+     <!-- 
+       == ************************************************************
+       == _dist-win - Builds the windows distribution
        ==
        == This target builds the windows distribution as a zip file
        == (at least until I get a property installer). This target
@@ -446,7 +468,7 @@
        == executable.
        == ***********************************************************
        -->
-     <target name="dist-win" depends="clean,jar">
+     <target name="_dist-win" depends="clean,jar">
 
         <!-- Create directory structure -->
         <mkdir dir="build/jsqsh-${version}/bin"/>
@@ -472,7 +494,7 @@
           == these DLL's.
           -->
         <copy todir="build/jsqsh-${version}/bin">
-            <fileset dir="dist/win">
+	    <fileset dir="dist/${win_ver}">
                 <include name="**/*.dll"/>
             </fileset>
         </copy>
@@ -489,7 +511,7 @@
         <!--
           == Fire off launch4j.
           -->
-        <launch4j configFile="./dist/win/launch4j.xml" 
+	<launch4j configFile="./dist/${win_ver}/launch4j.xml" 
                   outfile="build/jsqsh-${version}/bin/jsqsh.exe"/>
 
         <!--
