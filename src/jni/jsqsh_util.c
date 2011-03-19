@@ -23,6 +23,13 @@
 #include <errno.h>
 #endif 
 
+#if defined(_WINDOWS)
+/*
+ * Thank you, VC++ but I know that I'm using some unsafe functions.
+ */
+#pragma warning(disable: 4996)
+#endif
+
 #define LOG_DEBUG    0
 #define LOG_INFO     1
 #define LOG_WARN     2
