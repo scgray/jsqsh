@@ -1,0 +1,1303 @@
+<Commands>
+    <Command name="\echo" class="org.sqsh.commands.Echo">
+        
+        <Description><![CDATA[
+           Displays a line of text.
+        ]]></Description>
+            <Help><![CDATA[
+SYNOPSIS
+   \echo [-n] [string] [...]
+              
+DESCRIPTION
+   Echos the string(s) to standard out.
+           
+OPTIONS:
+   -n, --no-newline  Disables the output of a newline character at the end
+                     of the output
+      ]]></Help>
+    </Command>
+    
+    <Command name="\session" class="org.sqsh.commands.SessionCmd">
+        
+        <Description><![CDATA[
+           Displays set of sessions or switches to another session.
+        ]]></Description>
+            <Help><![CDATA[
+SYNOPSIS
+   \session [session_id]
+              
+DESCRIPTION
+   If no arguments are provided then a list of currently active
+   sessions is displayed, otherwise the session id provided is
+   switched to.
+           
+OPTIONS:
+   None.
+            ]]></Help>
+       </Command>
+    
+<Command name="\quit" class="org.sqsh.commands.Quit">
+        
+        <Description><![CDATA[
+           Exits jsqsh
+        ]]></Description>
+            <Help><![CDATA[
+SYNOPSIS
+   \quit
+              
+DESCRIPTION
+   Exits jsqsh
+           
+OPTIONS:
+   None.
+           ]]></Help>
+    </Command>
+    
+    <Command name="\drivers" class="org.sqsh.commands.Drivers">
+        <Description><![CDATA[
+           Displays a list of JDBC drivers known by jsqsh.
+        ]]></Description>
+            <Help><![CDATA[
+SYNOPSIS
+   \drivers
+              
+DESCRIPTION
+   Displays a list of drivers that are currently registered with
+   jsqsh. An asterisk (*) will be displayed next to drivers for
+   which the actual JDBC implementation (.jar file) is available.
+
+   JSqsh comes bundled with one JDBC driver (jtds) which should
+   be sufficient to communicate with Microsoft SQL Server or Sybase
+   ASE. Additional drivers can be made available in one of three ways:
+   
+   1. Setting the ${classpath} jsqsh variable to a location containing
+      JDBC jar(s) for the driver(s) you want (see '\help classpath').
+   
+   2. Making sure the driver is  contained in your CLASSPATH environment
+      variable, e.g., for UNIX or cygwin:
+
+        $ CLASSPATH=/path/to/some/jdbc/driver.jar:"$CLASSPATH"
+        $ export CLASSPATH
+
+     or, for Windows:
+   
+        C:\> set CLASSPATH=/path/to/some/jdbc/driver.jar; %CLASSPATH%
+        
+   3. Alternatively, you can add a JDBC driver implementation to jsqsh's
+      startup jar directory. The path to this directory can vary from
+      platform to platform but can typically be found in one of the
+      following locations relative to where the jsqsh binary is located:
+
+         ../lib
+         ../share
+         ../share/jsqsh
+
+DRIVER DEFINITION FILE
+   JSqsh comes with a bunch of pre-defined driver definitions built-in,
+   however you can provide your own additional definitions if you wish
+   by editing the $HOME/.jsqsh/drivers.xml. This file contains lots
+   of comments describing the structure of the file.
+           
+OPTIONS:
+   -l, --load=file  Loads an additional drivers.xml format file.
+   
+SEE ALSO
+   classpath
+           ]]></Help>
+        </Command>
+    
+     <Command name="\history" class="org.sqsh.commands.History">
+        <Description><![CDATA[
+           Displays a history of SQL statements executed
+        ]]></Description>
+            <Help><![CDATA[
+SYNOPSIS
+   \history [-a]
+              
+DESCRIPTION
+   Displays a history of SQL statements executed.
+           
+OPTIONS:
+   -a, --all  Show all of every SQL statement executed. If this flag is not
+              provided only the first 10 lines of any SQL statement will be
+              displayed.
+           ]]></Help>
+    </Command>
+    
+    <Command name="\connect" class="org.sqsh.commands.Connect">
+        <Description><![CDATA[
+           Establishes a connection to a database.
+        ]]></Description>
+            <Help><![CDATA[
+SYNOPSIS
+  \connect [options] [connection-name]
+              
+DESCRIPTION
+  The \connect command attempts to establish a JDBC connection
+  to a database server.  If a connection is successfully 
+  established then the connection becomes the active connection
+  for the current session. If the session already had a connection
+  established, then the existing connection is closed and replaced
+  with the new connection.
+              
+OPTIONS
+  Each JDBC driver shown by the \drivers command references a 
+  number of variables in its JDBC URL. For example, the Oracle
+  driver's URL looks like:
+  
+      jdbc:oracle:thin:@${server}:${port}:${SID}
+   
+  The majority of the options shown below set the value of one
+  of these variables. For example, the "-S" flag sets the value
+  of the ${server} variable.
+   
+  -d, --driver=driver The name of the jsqsh driver definition that will
+                      be used for the connection (use \drivers to see
+                      a list).
+              
+  -S, --server=server Sets the value of ${server}
+                         
+  -p, --port=port     Sets the ${port} property. This typically defines
+                      the listening port of the server you wish to 
+                      connect to. Most drivers will provide a default
+                      value for this property if it is not supplied.
+                          
+  -D, --database=db   Sets the ${db} property. This will cause 
+                      the database context to be set to the provided
+                      database following connection to the server (in 
+                      the JDBC world the database context is known as 
+                      the "catalog"). Not all drivers support this behavior.
+                          
+  -U, --username=user Sets the ${user} property that determines the 
+                      username that will be utilized to connect to the
+                      database.
+                          
+  -P, --password=pass Sets the ${password} property that will be used
+                      to authenticate with the server.
+                          
+  -s, --sid=SID       Sets the ${SID} property, and provides the Oracle 
+                      SID that will be used when connecting to Oracle.
+  
+  -u, --jdbc-url=url  This option allows you to provide an explicit
+                      JDBC URL to utilize when establishing the connection
+                      rather than using jsqsh's driver mechanism. 
+                      Typically use of this parameter also requires the use
+                      of the --jdbc-class argument as well.
+               
+  -c, --jdbc-class=class  When utilizing a direct JDBC url (and not a 
+                      jsqsh driver definition), this should be utilized to
+                      define which JDBC driver class will be utilized
+                      for the connection.
+                          
+   -n, --new-session  Create a new session for this connect without
+                      closing the connection in the current session.
+              
+   -w, --domain=domain For Windows based authentication, sets the ${domain} 
+                       property, specifying the windows domain to be utilized
+                       when establishing the connection. Not all JDBC drivers
+                       support this functionality.
+                       
+   -l, --list         Lists all available logical connection names. See 
+                      NAMED CONNECTIONS below for details.
+                      
+   -a, --add=name     This option is used to define (or replace) a logical
+                       connection name. See NAMED CONNECTIONS below for details.
+                      
+   -r, --remove       This option is used to remove a logical connection name.
+                      If this option is provided a connection-name must also
+                      be provided. See NAMED CONNECTIONS below for details.
+
+   -x, --show-password
+                      When used with the --list option, causes the connection
+                      password to be displayed in clear-text.
+                          
+   connection-name    If provided, this indicates the logical connection name
+                      that should be used to establish the connection. If
+                      additional arguments are provided, then they will 
+                      override the same options associated with the logical
+                      connection name. See NAMED CONNECTIONS below for details.
+
+DEFAULT VALUES
+   For any of the variables set by options described in the OPTIONS 
+   section, above, you may provide a default for that variable by
+   prefixing the variable name with "dflt_" in your session. For example:
+   
+      \set dflt_port=5555
+      
+   would cause default value of ${port} to be 5555 unless the -p option
+   is provided to override that value.
+   
+NAMED CONNECTIONS
+   Because a relatively significant number of parameters are required to
+   be passed to \connect in order to establish a connection, jsqsh provides
+   a relatively simple mechanism by which a "name" can be associated with
+   the set of parameters required to create the connection.  Later attempts
+   to connect to the same server can be performed simply by providing the
+   logical name rather than the full parameter set.
+   
+   For example:
+   
+      1> \connect -Usa -Ppassword -Sprod -p5000 -dsybase --add=PROD
+      
+   will create a connection to a Sybase server (on host prod, port 5000 as sa)
+   and associate the name 'PROD' with this set of parameters.
+   
+   Later attempts to connect to the same server can be accomplished simply
+   by providing same name back to \connect:
+   
+      1> \connect PROD
+      
+   Any of the parameters that were associated with the logical connection
+   may be overridden using normal command line parameters. For example:
+   
+      1> \connect -Usgray PROD
+      
+   would cause the connection to be established as 'sgray' (rather than 'sa'
+   which was original defined).
+   
+   And similarly, persistent edits can be made to an existing named connection
+   by re-adding the definition along with the change, like so:
+   
+      1> \connect --add=PROD -Usgray PROD
+      
+   and in the same fashion, a copy with edits can be made:
+   
+      1> \connect --add=PROD2 -Usgray PROD
+      
+   To view the set of logical connection names currently being managed, you
+   can use the --list argument:
+   
+      1> \connect --list
+      +------+--------+--------+------+--------+----------+----------+--------
+      | Name | Driver | Server | Port | SID    | Username | Password | ...    
+      +------+--------+--------+------+--------+----------+----------+--------
+      | PROD | sybase | prod   | 5000 | [NULL] | sa       | *******  | ...
+      +------+--------+--------+------+--------+----------+----------+--------
+   
+   To delete a logical connection name, use the --remove argument:
+   
+      1> \connect --remove PROD
+      
+   Logical connection names are persistent (they exist between executions
+   of jsqsh) and are defined in the file $HOME/.jsqsh/connections.xml.
+   
+VARIABLES SET
+   After a connection is successfully established, the variables described
+   in the OPTIONS section will be available privately to your session. 
+   Thus, the variable $port would expand to be the port that was used
+   when connecting to your session.
+               
+]]></Help>
+</Command>
+    
+<Command name="\go" class="org.sqsh.commands.Go">
+<Description><![CDATA[
+   Executes the contents of the current buffer
+    ]]></Description>
+           
+    <Help><![CDATA[
+SYNOPSIS
+  \go [-i table] [-h] [-f] [-m style]
+              
+DESCRIPTION
+   Executes the SQL statement contained in the current buffer.
+           
+OPTIONS
+   -i, --insert=table Causes the results to be generated as INSERT statements
+                      for the specified table name. This flag causes the
+                      value provided by "-m" to be ignored.
+   -m, --display-style=style  Specifies a custom display style for showing
+                      the results of the execution. The available styles
+                      may be found by running '\help style'.
+   -H, --no-headers   Toggles the display of column header information. 
+                      This flag  effectively flips the  value of ${header}
+                      for the duration of the query execution.
+   -n, --repeat=n     Execute the SQL n times, reporting the total and
+                      average execution times. When this flag is provided
+                      the variable ${iteration} will be available during
+                      variable expansion and will reflect which iteration
+                      the query is being executed in (starting from 0).
+   -F, --no-footers   Toggles the display of result footer information
+                      (row count and timing information). This flag
+                      effectively flips the  value of ${footer} for the
+                      duration of the query execution.
+SEE ALSO
+   style, header, footer
+        ]]></Help>
+    </Command>
+
+<Command name="\translate" class="org.sqsh.commands.Translate">
+<Description><![CDATA[
+   Internal sqsh command.
+    ]]></Description>
+           
+    <Help><![CDATA[
+SYNOPSIS
+   \translate [-l] [-d] [-s spid] [-f name]
+              
+DESCRIPTION
+   The \translate command is internal to jsqsh and is used for
+   testing of software functionality within the author's (Scott Gray's)
+   corporate environment.
+           
+OPTIONS:
+   The translate command takes all of the same options as \go, with the
+   addition of:
+
+   -s, --spid=spid  Sybase spid to pass to the translate function.
+   -d, --disconnect Causes acs_logout() to be called immediately after
+                    executing the query.
+   -f, --func=name  Provides the ability to specify the name of a 
+                    specific database function you'd like to invoke
+                    to execute the SQL rather than syb_exec() or
+                    translate_and_execute(). When you specify this
+                    flag the --spid and --legacy options are ignored.
+                    The function provided will be executed as:
+                        call name('....sql....')
+   -l, --legacy     Causes the old legacy translate_and_execute() 
+                    interface to be invoked rather than the new
+                    syb_exec() interface.
+
+SEE ALSO
+   \go
+]]></Help>
+</Command>
+    
+    <Command name="\reset" class="org.sqsh.commands.Reset">
+        <Description><![CDATA[
+              Clears the current SQL buffer of its contents.
+        ]]></Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \reset 
+              
+DESCRIPTION
+   Adds the current SQL command buffer to the list of historical
+   buffers (viewable with \history) and creates a fresh buffer.
+           
+OPTIONS:
+    None.
+        ]]></Help>
+    </Command>
+    
+    <Command name="\set" class="org.sqsh.commands.Set">
+        <Description><![CDATA[
+           Sets a variable or displays all variables.
+        ]]></Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \set [[-x] [-l] name=value]
+              
+DESCRIPTION
+   Sets a variable or displays all variables.
+           
+OPTIONS:
+   If arguments are provided to \set, then the value of 
+   all variables is displayed.
+              
+   -x, --export Will cause the variable to be exported to the environment
+                of any processes that are spawned by jsqsh during its
+                execution.
+   -l, --local  Sets the value of the variable local to the current session
+                only. No other sessions will see it and it will mask 
+                similarly named variables in other session.
+     ]]></Help>
+    </Command>
+    
+    <Command name="\unset" class="org.sqsh.commands.Unset">
+        <Description><![CDATA[
+           Removes a jsqsh variable.
+        ]]></Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+  \unset var_name
+              
+DESCRIPTION
+  Unsets a jsqsh variable. It is important to note that
+  it will not prevent you from removing "special" variables
+  (such as $lineno). If you do inadvertantly remove a special
+  variable, you'll need to quit and re-start jsqsh to get it
+  back.
+              
+  Removing a session-local variable (created with \set -x),
+  will re-expose any global variable of the same name. Two
+  calls to \set would need to be invoked to completely remove
+  the variable in this case.
+OPTIONS:
+  None.
+         ]]></Help>
+    </Command>
+    
+    <Command name="\help" class="org.sqsh.commands.Help">
+        <Description><![CDATA[
+           Displays help for a jsqsh command
+        ]]></Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+  \help [[topics|vars|commands] | item]
+              
+DESCRIPTION
+  Displays help for a jsqsh command. If no arguments are provided,
+  \help provides a list of available categories of help: topics, vars
+  (variables), or commands. Running \help with one of those category
+  names lists a set of help items available within the category.
+  
+OPTIONS
+  topics   - Displays a list of overall topics about jsqsh
+  vars     - Displays a list of variables that can be set to configure
+             jsqsh's behavior
+  commands - Displays a list of commands supported by jsqsh
+  item     - From one of the lists above, a specific topic, variable,
+             or command may be provided to display details on the
+             usage of that item.
+  
+COMMAND LINE OPTION
+  All jsqsh commands take a special command line option of '--help' or '-h'
+  which will cause help to be displayed on the available command line
+  options available for the command.
+ 
+        ]]></Help>
+    </Command>
+    
+    <Command name="\wrap" class="org.sqsh.commands.Wrap">
+        <Description><![CDATA[
+           Used internally for testing of jsqsh's word-wrapping facility.
+        ]]></Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+  wrap [width]
+              
+DESCRIPTION
+  Wraps the text contained in the current buffer at the
+  specified width and starts a new buffer.
+           
+OPTIONS:
+  width  Specified the width at which word-wrapping will occur.
+        ]]></Help>
+    </Command>
+    
+    <Command name="\buf-copy" class="org.sqsh.commands.BufCopyOrAppend">
+        <Description><![CDATA[
+           Copies the contents of one SQL buffer into another
+        ]]></Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+  \buf-copy src-buf [dst-buf]
+              
+DESCRIPTION
+  The \buf-copy command is utilized to copy the contents of one
+  SQL buffer into another SQL buffer, replacing the contents of
+  the receiving buffer.
+              
+  History buffers may be referenced using the special reference
+  notation "!..", where each dot indicates how far back in
+  history ("!." is the current buffer "!.." the previous, and
+  so on).  Or with the special reference notation "!N" where 
+  N refers to the Nth historical buffer.
+              
+  For example:
+              
+    \buf-copy !5 !.
+                
+  copies the SQL you ran 5 queries ago, to the current buffer.
+           
+OPTIONS:
+  src-buf  Indicates the buffer that you are copying from.
+              
+  dst-buf  Indicates the buffer you are copying to. If not
+           provided this default to "!.".
+       ]]></Help>
+    </Command>
+    
+    <Command name="\buf-append" class="org.sqsh.commands.BufCopyOrAppend">
+        <Description><![CDATA[
+           Appends the contents of one SQL buffer into another
+        ]]></Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+  \buf-append src-buf [dst-buf]
+                  
+DESCRIPTION
+  The \buf-append command is utilized to append the contents of one
+  SQL buffer into another SQL buffer.
+                  
+  History buffers may be referenced using the special reference
+  notation "!..", where each dot indicates how far back in
+  history ("!." is the current buffer "!.." the previous, and
+  so on).  Or with the special reference notation "!N" where 
+  N refers to the Nth historical buffer.
+                  
+  For example:
+                  
+    \buf-append !5 !.
+                    
+  appends the SQL you ran 5 queries ago to the current buffer.
+               
+OPTIONS:
+  src-buf  Indicates the buffer that you are copying from.
+                  
+  dst-buf  Indicates the buffer you are append to. If not
+           provided this default to "!.".
+        ]]></Help>
+    </Command>
+        
+    <Command name="\buf-edit" class="org.sqsh.commands.Edit">
+    
+        <Description><![CDATA[
+           Edits a SQL buffer
+        ]]></Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \buf-edit [src-buf] [dst-buf]
+              
+DESCRIPTION
+   The \buf-edit command is used to edit the contents of a SQL buffer
+   with an external text editor.  The external editor can be defined
+   using the variable ${EDITOR} or ${VISUAL}. If neither of these variables
+   is defined, then an appropriate text editor is chosen based upon the
+   operating system in which jsqsh is executing. Specifically, windows
+   platforms will attempt to execute 'notepad.exe' while other platforms
+   will attempt to run 'vi'.
+ 
+ALIASES 
+   By default the \buf-edit command is aliased to 'vi' and 'emacs'.
+           
+OPTIONS
+   src-buf   Indicates which buffer should be edited. If no src-buf is 
+             provided, then the current buffer will be edited (!.). If the
+             current buffer is empty, then the previous buffer will be used.
+             
+   dst-buf   Indicates in which buffer the edited SQL should be placed. If
+             no destination is provided then the current buffer (!.) is chosen.
+ 
+SEE ALSO
+   \buf-append, \buf-copy, buffers
+        ]]></Help>
+    </Command>
+    
+    <Command name="\alias" class="org.sqsh.commands.AliasCmd">
+        <Description><![CDATA[
+           Creates an alias
+        ]]></Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \alias [-G] [name=text]
+              
+DESCRIPTION
+   An alias in jsqsh is slightly different (and potentially more dangerous
+   if misused) than the UNIX shell equivalent. In jsqsh, an alias defines a 
+   piece of text that, when encountered in a user's input, is replaced with
+   another piece of text. 
+   
+   In its simplest form, it is typically used to allow you to rename commands
+   so that you can refer to them the way you want to. For example:
+   
+       1> \alias exit='\quit'
+       
+   will allow you to type:
+   
+       1> exit
+       
+   to quit jsqsh (note single quotes around the '\quit'. The single quotes
+   prevent jsqsh from trying to interpret and remove the back-slash).
+   
+   Another common use of \alias may be to provide pre-argumented commands.
+   For example:
+   
+      1> \alias '\prod'='\connect -U sa -S prod-db -d mssql-jtds'
+      
+   will allow you to later connect to the production database with:
+   
+      1> \prod-db
+      Password: 
+      
+   And, now for the dangerous part. Under normal circumstances aliases only
+   apply to the first word encountered on an input line. That is, with
+   the input:
+   
+      1> \alias one=1
+      1> select 'one';
+   
+   the results of the select statement would be the word 'one'. However,
+   supplying the '-g' flag to alias causes the word to be replace ANYWHERE
+   it appears in the line of input. so:
+   
+     1> \alias -g one=1
+     1> select 'one';
+     
+   would return a result set with '1' in it. 
+   
+   Why is this so dangerous? Well, it means that you can do silly things
+   like:
+   
+     1> \alias select='shutdown with no wait select'
+     
+   I'll leave it as an excersize for the reader to figure out what this
+   would do (although it would only be effective on Sybase or MSSQL).
+     
+OPTIONS
+   -G, --global  Causes an alias to be applied globally to a line, anywhere
+                 the name of the alias appears. Without this flag, the alias
+                 will only apply if it is the first word on the line.
+        ]]></Help>
+    </Command>
+    
+    <Command name="\end" class="org.sqsh.commands.End">
+        <Description><![CDATA[
+           Ends the current session
+        ]]></Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \end [next-session]
+              
+DESCRIPTION
+   The \end command ends the current session and switches to another
+   session.
+           
+OPTIONS
+   next-session  If provided, causes the current session to be ended and
+                 the context switched to a specific session (to see a list
+                 of session's, run the \sessions command). If not provided,
+                 then the next available session will be utilized.
+        ]]></Help>
+    </Command>
+    
+    <Command name="\buf-load" class="org.sqsh.commands.BufLoad">
+        <Description><![CDATA[
+           Loads an external file into a SQL buffer
+        ]]></Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \buf-load [-a] filename [dest-buf]
+              
+DESCRIPTION
+   The \buf-load command reads the contents of an external file into
+   a SQL buffer. By default jsqsh will come with an alias for \buf-load
+   of ":r", so that you can do:
+   
+      1> :r filename.sql
+      
+   to read in the filename. If you do not want this behavior, then you
+   can \unalias ':r' in your $HOME/.jsqsh/sqshrc file.
+           
+OPTIONS
+   -a, --append  Causes the contents of the file to be appended to the 
+                 SQL buffer, rather than replacing its contents.
+                 filename  The file to read.
+   des-buf       The name of the destination buffer to read the file into.
+                 The default is "!." (the current buffer).
+             
+SEE ALSO
+   \history, buffers
+        ]]></Help>
+    </Command>
+    
+    <Command name="\tables" class="org.sqsh.commands.Tables">
+        <Description>Displays tables, views, synonyms, etc.</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \tables [-p table_pattern] [-s schema_pattern] [type]
+              
+DESCRIPTION
+   Displays information about tables (and table-related objects) that are
+   available within the current database (catalog). This function requires
+   that the JDBC driver support meta-data lookup functionality, which not
+   all drivers support (although most do).
+   
+OPTIONS
+   -p, --table-pattern=pattern  A SQL pattern to be used to filter the 
+                set of object names that are displayed.
+   -s, --schema-pattern=pattern A SQL pattern to be used to filter the
+                set of object schema names that are displayed. For most
+                databases, the "schema name" refers to the name of the
+                owner of the object.
+   type         This can be used to restrict the types of objects that 
+                are displayed. If type is not provided, then all object
+                types are returned. Available types are:
+        
+                user     - Displays only user-created tables 
+                system   - Displays only system tables 
+                view     - Displays only views
+                alias    - Displays only aliases
+                synonym  - Displays only synonyms
+SEE ALSO
+   \databases, \describe
+        ]]></Help>
+    </Command>
+    
+    <Command name="\procs" class="org.sqsh.commands.Procs">
+        <Description>Displays stored procedures</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \procs [-p proc_pattern] [-s schema_pattern]
+              
+DESCRIPTION
+   Displays information about procedures that are available within the 
+   current database (catalog). This function requires that the JDBC 
+   driver  support meta-data lookup functionality, which not all 
+   drivers support (although most do).
+   
+OPTIONS
+   -p, --proc-pattern=pattern  A SQL pattern to be used to filter the set
+                 of object names that are displayed.
+   -s, --schema-pattern=pattern  A SQL pattern to be used to filter the 
+                 set of object schema names that are displayed. 
+                 For most databases, the "schema name" refers to the name 
+                 of the owner of the object.
+SEE ALSO
+   \databases, \describe, \tables
+        ]]></Help>
+    </Command>
+    
+    <Command name="\databases" class="org.sqsh.commands.Databases">
+        <Description>Displays set of available databases (catalogs)</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \databases
+              
+DESCRIPTION
+   Displays the set of databases (a.k.a "catalogs") that are available
+   on the server. Not all database servers support multiple database
+   instances, so the command may fail in these circumstances.
+   
+ALIASES
+   JSqsh automatically aliases this command as "\dbs".
+   
+OPTIONS
+   None.
+   
+SEE ALSO
+   \tables, \describe
+        ]]></Help>
+    </Command>
+    
+    <Command name="\describe" class="org.sqsh.commands.Describe">
+        <Description>Displays a description of a database object</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \describe [-a] object_name
+              
+DESCRIPTION
+   Describes the database structure for a provided object name. This
+   functionality relies upon support from the underlying JDBC driver
+   and thus may fail against some platforms. 
+   
+OPTIONS
+   -a, --all   Shows all available information about the table that  
+               the JDBC driver provides. Without this flag \desribe will
+               attempt to keep the output to the more useful data.
+   object_name The object name to be described. This can be a fully
+               qualified object name if desired (e.g. "mydb.dbo.table").
+   
+SEE ALSO
+   \tables, \columns
+        ]]></Help>
+    </Command>
+    
+    <Command name="\macro" class="org.sqsh.commands.Macro">
+        <Description>Creates a velocimacro from the current buffer</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \macro
+              
+DESCRIPTION
+   This \macro command takes the current buffer that you are typing into
+   and runs it through the Velocity engine, with the primary purpose of 
+   allowing you to define re-usable macros (velocimacros).
+   
+   By way of example:
+   
+      1> #macro (prod $tab)
+      2> use $tab
+      3> #end
+      4> \macro
+      Ok.
+      1> #u('master')
+      2> \go
+      
+   We have defined a macro called #u() that takes the name of a database
+   and expands to be  "use" command on that database (granted, this is a
+   pretty worthless example, but you get the idea).
+   
+   For more details on velocity and velocimacros, see:
+   
+      http://velocity.apache.org/engine/releases/velocity-1.5/user-guide.html
+   
+OPTIONS
+   None
+   
+SEE ALSO
+   buffers
+        ]]></Help>
+    </Command>
+    
+    <Command name="\eval" class="org.sqsh.commands.Eval">
+        <Description>Read and execute an input file full of SQL</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \eval filename
+              
+DESCRIPTION
+   The \eval command reads in and processes a file full of SQL in the context
+   of the current session. That is, it treats the SQL and/or jsqsh commands 
+   contained in the file as if you had typed them at the prompt. The one 
+   exception to this rule is that the SQL contained in the file will not be
+   added to your SQL history.
+   
+ALIASES
+   This command is automatically aliased to ":e", so that you may do:
+   
+      :e filename
+      
+   at the prompt.
+   
+OPTIONS
+   -n, --repeat=n     Execute the SQL contained in the input file n times.
+                      When this flag is provided the variable ${iteration} 
+                      will be available during variable expansion and will 
+                      reflect which iteration is being executed (starting 
+                      from 0). 
+   filename  The name of the file to execute.
+   
+SEE ALSO
+   \buf-load
+        ]]></Help>
+    </Command>
+    
+    <Command name="\parse" class="org.sqsh.commands.Parse">
+        <Description>(Internal) Used to test SQL parsing</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \parse
+              
+DESCRIPTION
+   The \parse command is used internally for jsqsh development. It
+   is used to parse the contents of the current SQL buffer which is
+   a component of the tab completion logic.
+   
+OPTIONS
+   None.
+        ]]></Help>
+    </Command>
+    
+    <Command name="\debug" class="org.sqsh.commands.Debug">
+        <Description>(Internal) Used to enable debugging</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \debug class [class ...]
+              
+DESCRIPTION
+   The \debug command is used internally for jsqsh development to 
+   enable debugging messages for specific jsqsh classes.
+   
+OPTIONS
+   None.
+        ]]></Help>
+    </Command>
+    
+    <Command name="\diff" class="org.sqsh.commands.Diff">
+        <Description>Compares results from multiple sessions</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \diff [-e [0-2]] [-u [0-3]] session_id [session_id ...]
+              
+DESCRIPTION
+   The \diff command executes the current SQL buffer in the current
+   session as well as all of the sessions specified as arguments and
+   compares the results to determine if they are identical.
+   
+   The comparison includes:
+   
+   * Exceptions thrown must be identical
+   * Meta-data for results must be identical
+   * Values in rows must be identical
+   
+OPTIONS
+   -e, --exception-stringency=N  
+         Specifies the stringency level to be used when comparing
+         exceptions between results:
+            0 - Compared presence of an exception 
+            1 - The text of the exceptions must be the same
+            2 - The SQL Status of the exceptions must be the same
+            3 - The SQL Error Code of the exceptions must be the same
+   -u, --update-stringency=N  
+         Specifies the stringency level to be used when comparing
+         the update counts (the "rows affected") returned between results. 
+            0 - Update counts are not compared
+            1 - Only compare non-zero update counts
+            3 - Update counts must be identical.
+        ]]></Help>
+    </Command>
+    
+    <Command name="\insert" class="org.sqsh.commands.Insert">
+        <Description>Generates INSERT statements from a query</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \insert [options] table_name
+              
+DESCRIPTION
+   The \insert command executes the current SQL buffer and turns any
+   result sets that are returned by the query into SQL INSERT statements.
+   This is similar to executing the \go command with  its "-i" option, 
+   except that a more fine grained control of how the inserts are processed
+   is available.
+   
+   By default, \insert simply displays the INSERT statement(s) to the 
+   screen, however if the -s flag is provided a connection maintained
+   by a different session may be used to execute the INSERT statements.
+   
+OPTIONS
+   -b, --batch-size=rows  
+                 Specifies the number of rows that should be "batched" 
+                 together. If the "-s" option is not used, then this
+                 indicates how often a "go" is displayed to the screen.
+                 If the "-s" option is used, then the specified number of
+                 INSERT statements is executed at once, followed by a 
+                 commit.
+                  
+   -s, --target-session=id  
+                 Provides a target session id for execution of the 
+                 INSERT statements that are generated.  The provided
+                 session must be connected to a database server to
+                 function.
+
+   -m, --multi-row 
+                 Enables support for platforms that allow multiple 
+                 rows to be inserted in a single INSERT statement. When
+                 enabled the batch size (-b) indicates the number of 
+                 rows per insert statement.
+
+   -t, --terminator=term  
+                 Changes the batch terminator from the default "go" to 
+                 the string provided.
+
+SEE ALSO
+   \go
+        ]]></Help>
+    </Command>
+    
+    <Command name="\select" class="org.sqsh.commands.Select">
+        <Description>Generates a SELECT using table definitions</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \select [-p] [-n] table_name [table_name ...]
+              
+DESCRIPTION
+   The \select command generates a SELECT statement based upon the
+   set of tables provided as an argument.
+   
+   If more than one table is provided to \select, then an appropriate
+   WHERE clause will attempt to be generated to join the tables together.
+   If the -n flag is provided, then the WHERE clause will be the "natural
+   join" of the tables--that is, all columns of the same name and type 
+   will be joined together.  If the -n flag is not provided, then the join
+   will be created by analyzing the foreign key/primary key relationships
+   between the tables. 
+   
+   The \select command requires proper meta-data support from the underlying
+   JDBC driver and may not work properly for all driver implementations.
+   
+OPTIONS
+   -n, --natural-join Cause the join clause that is produced to be based 
+                      upon the "natural join" of the columns in the tables.
+                      The natural join attempts to join all columns of the
+                      same name and datatype.
+       
+   -p, --print        Causes the SELECT statement to just be printed to
+                      the screen rather than placing it into the SQL buffer
+                      for execution.
+   
+SEE ALSO
+   \go
+        ]]></Help>
+    </Command>
+    
+    <Command name="\create" class="org.sqsh.commands.Create">
+        <Description>Generates a CREATE TABLE using table definitions</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \create [-p] table_name
+              
+DESCRIPTION
+   The \create command generates a CREATE TABLE statement based upon the
+   name of the table provided on the command line.
+   
+   The definition of the table is determined by asking the JDBC driver
+   for metadata information about the table, so the CREATE statement will
+   only be as accurate as the driver reports. In addition, the current
+   implementation of the \create command does not include anything other than
+   column names, types, and nullability.  That is, it does not include any
+   primary or foreign key information or check constraints.
+   
+OPTIONS
+   -p, --print  Causes the CREATE TABLE statement to just be printed
+                to the screen rather than placing it into the SQL buffer
+                for execution.
+                
+SEE ALSO
+   \select
+        ]]></Help>
+    </Command>
+    
+    <Command name="\call" class="org.sqsh.commands.Call">
+        <Description>Call a prepared statement</Description>
+           
+        <Help><![CDATA[
+SYNOPSIS
+   \call [-f file] [-i] [arg ...]
+              
+DESCRIPTION
+   The \call command is similar to the \go command except that the SQL
+   contained the the SQL buffer is treated as a callable (prepared) statement.
+   The arguments for the statement can be supplied either as arguments
+   on the command line, or can be read from a file full of comma separated
+   values (CSV format).
+   
+OPTIONS
+   -f, --file=file Indicates that the arguments for the query should
+                   be pulled from a CSV file, provided. See FILE INPUT 
+                   PARAMETERS, below.
+   -i, --ignore-header 
+                   If a CSV file is to be used for input, this indicates
+                   that the first line of the input file is assumed to
+                   be header information and discarded. 
+   
+COMMAND LINE PARAMETERS
+   The simplest form of executing \call is to pass the parameters to the
+   statement on the command line, such as:
+   
+      1> select * from sysobjects where name = ?
+      2> \call syscolumns
+      
+   Or, if you want to call a stored procedure, you can do:
+   
+      1> {call sp_who(?)}
+      2> \call 112
+      
+   See TYPED PARAMETERS, below for how to deal with parameters of types
+   other than strings.
+      
+FILE INPUT PARAMETERS
+   Perhaps the most powerful feature of the \call command is its ability
+   to utilize an input comma separated values (CSV) file for a source
+   of arguments to the query or stored procedure.  In this case, the
+   query is executed once for each line in the source file.
+   
+   For example, assuming that you have a file called "test.csv"  that 
+   looks like:
+   
+      1,2,3
+      4,5,6
+      
+   you can do:
+   
+      1> select ?, ?, ?
+      2> \call --file test.csv
+      
+   which will result in:
+   
+      +---+---+---+
+      |   |   |   |
+      +---+---+---+
+      | 1 | 2 | 3 |
+      +---+---+---+
+      1 row in results
+      ok. (first row: 2ms; total: 2ms)
+      +---+---+---+
+      |   |   |   |
+      +---+---+---+
+      | 4 | 5 | 6 |
+      +---+---+---+
+      1 row in results
+      ok. (first row: 0ms; total: 1ms)
+      
+   In this example, the fields in the input file exactly match those
+   of the query being executed, however in cases where you wish to
+   selectively utilize fields in the input file, you can specify 
+   the field number from the file on the command line, like so:
+   
+      [T:]#N
+      
+   where "T:" is the optional type (see TYPED PARMETERS, below) and
+   N refers to the field number from the input file you wish to utilize,
+   starting from 1. For example, using our example above:
+   
+     1> select ?, ?, ?
+     2> \call --file test.csv #3 #2 #1
+     
+      +---+---+---+
+      |   |   |   |
+      +---+---+---+
+      | 3 | 2 | 1 |
+      +---+---+---+
+      1 row in results
+      ok. (first row: 2ms; total: 2ms)
+      +---+---+---+
+      |   |   |   |
+      +---+---+---+
+      | 6 | 5 | 4 |
+      +---+---+---+
+      1 row in results
+      ok. (first row: 0ms; total: 1ms)
+      
+   using this syntax, field can be selectively used, rearranged, or
+   discarded as desired.
+   
+   CSV FILE FORMAT
+   
+   The following assumptions are made when interpreting the contents of
+   the CSV file:
+   
+     - It conforms to: http://www.creativyst.com/Doc/Articles/CSV/CSV01.htm
+     - Completely empty fields are treated as NULL values.
+     - Zero-length strings should be given as fields with ""
+     
+   Note that this lines up exactly with how the "csv" display style 
+   outputs its data (hint hint).
+   
+MIXING FILE AND COMMAND LINE PARAMETERS
+   If desired, you may also mix command line parameters and file based
+   parameters together, like so:
+   
+     1> select ?, ?, ?
+     2> \call --file test.csv #3 a #1
+     
+      +---+---+---+
+      |   |   |   |
+      +---+---+---+
+      | 3 | a | 1 |
+      +---+---+---+
+      1 row in results
+      ok. (first row: 2ms; total: 2ms)
+      +---+---+---+
+      |   |   |   |
+      +---+---+---+
+      | 6 | a | 4 |
+      +---+---+---+
+      1 row in results
+      ok. (first row: 0ms; total: 1ms)
+   
+TYPED PARAMETERS
+   For most platforms, the parameters passed to a prepared statement must
+   be of the appropriate datatype for the query. For these cases, the \call
+   command allows a datatype prefix for the arguments provided. These
+   prefixes are:
+   
+      S:<value>   Specifies a string value
+      C:<value>   Specifies a character value
+      Z:<value>   Specifies a boolean value
+      D:<value>   Specifies a double value
+      I:<value>   Specifies an integer value
+      J:<value>   Specifies a long (64 bit integer) value
+      R:          (Oracle only) Acts as a place holder for dealing with
+                  Oracle REFCURSOR output parameters. After the call is
+                  executed, the contents of the refcursor will be 
+                  displayed.
+      
+   for example:
+   
+      1> select * from sysobjects where id = ?
+      2> \call I:1234
+      
+   or:
+   
+      1> select ?, ?, ?
+      2> \call --file test.csv #1 I:#2 #3
+      
+   indicates that field #2 in test.csv is an integer field.
+
+ORACLE REFCURSORS
+   Unlike most "normal" databases, Oracle stored procedures are incapable
+   of directly streaming result sets back to the user and procedures are
+   instead expected to return results via special output parameters of type
+   REFCURSOR.  For example, the following procedures:
+   
+       create or replace procedure ref_example (
+           i_owner in varchar2
+           o_rc1   out sys_refcursor
+       )
+       as
+       begin
+           open o_rc1 for
+           select * 
+             from SYS.ALL_OBJECTS
+            where OWNER = i_owner
+       end;
+    
+   If you were to just execute the procedure like so:
+   
+      1> {call ref_example (?)}
+      2> \call SYS
+      
+   you would get no results back. Instead, you must let \call know that
+   the second argument is a refcursor with the special "r:" place holder:
+   
+      1> {call ref_example (?, ?)}
+      2> \call SYS r:
+      
+   upon execution, jsqsh will open the REFCURSOR argument and display its
+   results just as if it were a normal result set.
+      
+SEE ALSO
+   \go, style
+        ]]></Help>
+    </Command>
+ 
+    <Command name="\tree" class="org.sqsh.commands.Tree">
+
+        <Description><![CDATA[
+           Shows A tree view of all the tables
+        ]]></Description>
+            <Help><![CDATA[
+SYNOPSIS
+   \tree
+
+DESCRIPTION
+   A tree view of all tables.
+
+OPTIONS:
+
+   -p, --table-pattern=pattern  A SQL pattern to be used to filter the
+                set of object names that are displayed.
+   -s, --schema-pattern=pattern A SQL pattern to be used to filter the
+                set of object schema names that are displayed. For most
+                databases, the "schema name" refers to the name of the
+                owner of the object.
+   type         This can be used to restrict the types of objects that
+                are displayed. If type is not provided, then all object
+                types are returned. Available types are:
+
+                user     - Displays only user-created tables
+                system   - Displays only system tables
+                view     - Displays only views
+                alias    - Displays only aliases
+                synonym  - Displays only synonyms
+
+
+      ]]></Help>
+    </Command>
+
+</Commands>

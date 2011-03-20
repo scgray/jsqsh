@@ -1,0 +1,82 @@
+<!--
+  == drivers.xml - Sqsh driver definition file.
+  ==
+  == This file contains customer JDBC driver definitions that are defined
+  == locally to use. This file is loaded automatically by sqsh and can 
+  == override any of the driver definitions that are built into sqsh. To
+  == see the set of drivers available within sqsh, run the \drivers command.
+  -->
+<Drivers>
+
+   <!--
+     == Each driver entry looks like the one below (note, this one is
+     == commented out). The attributes supported are:
+     ==
+     == name     - This is the name that the driver needs to be referred to
+     ==            when it is utilized (e.g. supplied to sqsh's -d flag).
+     == target   - This is a string that just documents what platform the
+     ==            driver is ment to be used for (e.g. "Oracle").
+     == class    - The JDBC driver class name to be utilized
+     == analyzer - (optional) This is the name of a java class that 
+     ==            implements the SQL code analysis logic for sqsh. At the
+     ==            moment this analysis is used only for determining when
+     ==            the SQL terminator (';') applies. For example, in Oracle
+     ==            a semicolon can also be used as a statement terminator
+     ==            in a block of PL/SQL so that analyzer for Oracle will 
+     ==            attempt take this into account.
+     ==
+     ==            Supported analyzer classes are:
+     == 
+     ==            org.sqsh.analyzers.TSQLAnalyzer - Used for Sybase ASE and
+     ==               Microsoft SQL Server. The terminator will be ignored
+     ==               when contained in double-quotes, single quotes, 
+     ==               comments, or between BEGIN/END blocks.
+     ==            org.sqsh.analyzers.PLSQLAnalyzer - Used with the Oracle
+     ==               driver and attempts to analyze the SQL being entered
+     ==               for PL/SQL keywords. If the SQL is determined to be
+     ==               PL/SQL and the terminator is a semicolon, then 
+     ==               the semicolon must be doubled or on a line by itself.
+     ==            org.sqsh.analyzers.ANSIAnalyzer - A generic analyzer
+     ==               that ignores terminator contained in double-quotes,
+     ==               single quotes, or comments. This is the default if
+     ==               none is supplied.
+     ==
+     == url      - This is a JDBC URL template that will be utilized when
+     ==            establishing a connection. This template may refer to
+     ==            any sqsh variable value or variable in the <Variable/>
+     ==            declarations below (if the user does not set the variable
+     ==            then the value found in the <Variable/> declaration will
+     ==            be used instead. The sqsh command line and the \connect
+     ==            command set the following variables via command line
+     ==            flags:
+     ==            
+     ==              -U     Sets $user
+     ==              -P     Sets $password
+     ==              -S     Sets $server
+     ==              -p     Sets $port
+     ==              -s     Sets $SID
+     ==
+     == <Variable> This lets you define a default value for one of the 
+     ==            variables shown above. Your drive may declare other
+     ==            variables if it needs.
+     == <Property> This is passed as a property directly down to the driver
+     == <SessionVariable>
+     ==            This allows you to have specific JSqsh session variables
+     ==            automatically set for you upon establishing a connection
+     ==            to the server.
+     -->
+     
+   <!--
+     ==  <Driver name="example" 
+     ==          target="Sybase"
+     ==          class="com.sybase.jdbc2.jdbc.SybDriver"
+     ==          analyzer="org.sqsh.analyzers.TSQLAnalyzer"
+     ==          url="jdbc:sybase:Tds:${server}:${port}">
+     ==    
+     ==      <Variable name="server">localhost</Variable>
+     ==      <Variable name="port">4100</Variable>
+     ==      <Property name="this">that</Property>
+     ==      <SessionVariable name="maxrows">150</SessionVariable>
+     ==  </Driver>
+     -->
+</Drivers>
