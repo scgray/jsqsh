@@ -43,18 +43,30 @@ public class ConnectionDescriptorManager {
     private Map<String, ConnectionDescriptor> descriptors =
         new HashMap<String, ConnectionDescriptor>();
     
-    private String filename;
+    private String filename = null;
+
+    /**
+     * Creates a connection descriptor manager that will manage connections. When
+     * created in this fashion, with no connection file specified, then the save()
+     * method will be unable to perform the save as it will not know what file to
+     * save to.  Once the load() method has been called, the file that is loaded will
+     * be remembered and used for the next save.
+     */
+    public ConnectionDescriptorManager() {
+
+    }
     
     /**
      * Creates a connection descriptor manager that will manage connections
      * defined in a specific file.
      * 
      * @param filename The name of the file that describes the connections.
+     *   If the save() method is called, this same file will be used to save
+     *   the new connection descriptions.
      */
     public ConnectionDescriptorManager(String filename) {
         
-        this.filename = filename;
-        load();
+        load(filename);
     }
     
     /**
@@ -161,7 +173,23 @@ public class ConnectionDescriptorManager {
         return descriptors.values().toArray(new ConnectionDescriptor[0]);
     }
     
+    /**
+     * Saves connection information.  The connection information will be saved to 
+     * the file provided in the constructor for the ConnectionDescriptorManager (if
+     * provided) or provided during the most recent call to load().
+     */
     public void save() {
+
+        if (filename == null) {
+
+            if (descriptors.size() > 0) {
+
+                LOG.warning("Attempt to save connection descriptions failed. "
+                    + "No filename was provided to save to.");
+            }
+
+            return;
+        }
         
         try {
             
@@ -265,8 +293,13 @@ public class ConnectionDescriptorManager {
     
     /**
      * Attempts to load the contents of the descriptor file.
+     *
+     * @param filename Specifies the name of the file to load. The next time save()
+     *    is called, this filename will be used as the name of the file to save to.
      */
-    private void load() {
+    public void load(String filename) {
+
+        this.filename = filename;
         
         File file = new File(filename);
         if (file.exists() == false) {

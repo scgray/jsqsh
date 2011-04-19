@@ -145,7 +145,7 @@ public class SqshContext {
      * This guy is responsible for loading up and managing 
      * the connection.xml file.
      */
-    private ConnectionDescriptorManager connDescMan;
+    private ConnectionDescriptorManager connDescMan = new ConnectionDescriptorManager();
     
     /**
      * The help manager owns general help topics.
@@ -1087,7 +1087,7 @@ public class SqshContext {
          */
         File connections = new File(configDir, "connections.xml");
 
-        connDescMan = new ConnectionDescriptorManager(connections.toString());
+        connDescMan.load(connections.toString());
     }
     
     /**
