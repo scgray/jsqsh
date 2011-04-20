@@ -188,12 +188,6 @@ public class SqshContext {
     private List<String> driverFiles = new ArrayList<String>();
 
     /**
-     * This is set to true once the configuration files have been
-     * loaded and processed.
-     */
-    private boolean doneConfig = false;
-    
-    /**
      * This is set once at startup by asking readline if it has ahold
      * of the terminal. If a) readline was properly initialized and 
      * b) readline says "yes", then this will remain true.
@@ -265,6 +259,15 @@ public class SqshContext {
          * Create a configuration directory for the user if necessary.
          */
         createConfigDirectory();
+        
+        /*
+         * Load configuration files that may be located in the users 
+         * configuration directory.
+         */
+        String filesep = System.getProperty("file.separator");
+        File homedir = new File(
+            System.getProperty("user.home") + filesep + ".jsqsh");
+        loadConfigDirectory(homedir, true);
         
         /*
          * Some of the activities above created sessions to do their
@@ -438,6 +441,17 @@ public class SqshContext {
     public void addConfigurationDirectory(String name) {
 
         configDirectories.add(name);
+        
+        File dir = new File(name);
+        if (dir.isDirectory()) {
+
+            loadConfigDirectory(dir, false);
+        }
+        else {
+
+            System.err.println("WARNING: Configuration directory "
+                + dir.toString() + " does not exist or is not a directory");
+        }
     }
 
     /**
@@ -449,6 +463,17 @@ public class SqshContext {
     public void addDriverFile(String name) {
 
         driverFiles.add(name);
+        
+        File file = new File(name);
+        if (file.exists()) {
+
+            driverManager.load(file);
+        }
+        else {
+
+            System.err.println("WARNING: Could not load driver file '"
+                + file.toString() + "'");
+        }
     }
     
     /**
@@ -661,18 +686,6 @@ public class SqshContext {
         Session priorCurrentSession = currentSession;
         int failCount = 0;
 
-        if (doneConfig == false) {
-
-            /*
-             * Load configuration files.
-             */
-            loadConfigDirectories();
-
-            loadDriverFiles();
-
-            doneConfig = true;
-        }
-        
         /*
          * If we were asked to execute a specific session, then make
          * it the current session.
@@ -977,38 +990,6 @@ public class SqshContext {
         }
     }
 
-    /**
-     * Processes the list of configuration directories that have been
-     * configured followed by the the configuration directory in the
-     * user's home directory.
-     */
-    private void loadConfigDirectories() {
-
-        Iterator<String> iter = configDirectories.iterator();
-        while (iter.hasNext()) {
-
-            File dir = new File(iter.next());
-            if (dir.isDirectory()) {
-
-                loadConfigDirectory(dir, false);
-            }
-            else {
-
-                System.err.println("WARNING: Configuration directory "
-                    + dir.toString() + " does not exist or is not a directory");
-            }
-        }
-
-        /*
-         * Load configuration files that may be located in the users 
-         * configuration directory.
-         */
-        String filesep = System.getProperty("file.separator");
-        File homedir = new File(
-            System.getProperty("user.home") + filesep + ".jsqsh");
-        loadConfigDirectory(homedir, true);
-    }
-    
     /**
      * Processes files located in a configuration directory. A configuration
      * directory can have a drivers.xml file to define drivers, a sqshrc

@@ -1,3 +1,8 @@
+Release 1.5
+* The --debug flag can now be specified multiple times.
+* Fixed bug where connection names supplied on the command line
+  are not recognized.
+
 Release 1.4
 * Added support for "JLine" as an input method. JLine is a pure-java
   (at least on UNIX) library similar to Java-Readline. For portability,
