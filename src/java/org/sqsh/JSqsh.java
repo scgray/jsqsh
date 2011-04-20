@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.LogManager;
 
 import org.sqsh.options.Argv;
 import org.sqsh.options.Option;
@@ -42,6 +43,9 @@ import static org.sqsh.options.ArgumentRequired.NONE;
  * sqsh.
  */
 public class JSqsh {
+
+    private static final String LOGGING_CONFIG
+        = "org/sqsh/logging.properties";
     
     private static class Options
         extends ConnectionDescriptor {
@@ -65,7 +69,7 @@ public class JSqsh {
        @Option(
            option='b', longOption="debug", arg=REQUIRED, argName="class",
            description="Turn on debugging for a java class or package")
-       public String debug = null;
+       public List<String> debug = new ArrayList<String>();
        
        @Option(
            option='r', longOption="readline", arg=REQUIRED, argName="method",
@@ -112,25 +116,9 @@ public class JSqsh {
             System.out.println(optParser.getUsage());
             System.exit(0);
         }
+
+        configureLogging(options.debug);
         
-        /*
-         * Turn on debugging if requested.
-         */
-        if (options.debug != null) {
-            
-            Logger log = Logger.getLogger(options.debug);
-            if (log != null) {
-                
-                log.setLevel(Level.FINE);
-                System.out.println("Debugging class '" + options.debug + "'");
-            }
-            else {
-                
-                System.err.println("--debug: Unable to find logger '"
-                    + options.debug + "'");
-                System.exit(1);
-            }            
-        }
         
         InputStream in = getInputStream(options);
         PrintStream out = getOutputStream(options);
@@ -205,6 +193,51 @@ public class JSqsh {
         }
         
         System.exit(rc);
+    }
+
+    static private void configureLogging(List<String> loggers) {
+        
+        InputStream in = 
+            JSqsh.class.getClassLoader().getResourceAsStream(LOGGING_CONFIG);
+        if (in == null) {
+            
+            System.err.println("WARNING: Cannot find resource " 
+                + LOGGING_CONFIG);
+            return;
+        }
+        
+        try {
+            
+            LogManager logMan = LogManager.getLogManager();
+            logMan.readConfiguration(in);
+            in.close();
+        }
+        catch (IOException e) {
+            
+            System.err.println("WARNING: Unable to read logging "
+                + "properties " + LOGGING_CONFIG + ": " + e.getMessage());
+        }
+
+        /*
+         * Turn on debugging if requested.
+         */
+        for (String logger : loggers) {
+            
+            Logger log = Logger.getLogger(logger);
+            if (log != null) {
+                
+                log.setLevel(Level.FINE);
+                System.out.println("Debugging level for '"
+                    + log.getName() + "' is now '"
+                    + log.getLevel().getName() + "'");
+            }
+            else {
+                
+                System.err.println("--debug: Unable to find logger '"
+                    + logger + "'");
+                System.exit(1);
+            }
+        }
     }
     
     /**

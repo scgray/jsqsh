@@ -304,12 +304,14 @@ public class ConnectionDescriptorManager {
         File file = new File(filename);
         if (file.exists() == false) {
             
-            if (LOG.isLoggable(Level.FINE)) {
-
-                LOG.fine("File " + filename + " does not exist. Skipping load");
-            }
-            
+            LOG.fine("   Connections file " + filename 
+                + " does not exist. Skipping load");
             return;
+        }
+
+        if (LOG.isLoggable(Level.FINE)) {
+
+            LOG.fine("   Loading connections file '" + filename + "'");
         }
         
         String path;

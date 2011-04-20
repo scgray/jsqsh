@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import org.sqsh.input.ConsoleLineReader;
 import org.sqsh.jni.ShellManager;
@@ -71,16 +72,13 @@ import org.sqsh.signals.SignalManager;
 public class SqshContext {
     
     private static final Logger LOG = 
-        Logger.getLogger("org.sqsh.SqshContext");
+        Logger.getLogger(SqshContext.class.getName());
     
     /**
      * Path to the built-in file full of variable definitions.
      */
     private static final String CONTEXT_VARS
         = "org/sqsh/variables/GlobalVariables.xml";
-    
-    private static final String LOGGING_CONFIG
-        = "org/sqsh/logging.properties";
     
     /**
      * This is where we read our input from.
@@ -223,8 +221,6 @@ public class SqshContext {
      *    </ul>
      */
     public SqshContext(String readerType) {
-        
-        configureLogging();
         
         InputStream in = 
             getClass().getClassLoader().getResourceAsStream(CONTEXT_VARS);
@@ -1025,6 +1021,12 @@ public class SqshContext {
      *   query history.
      */
     private void loadConfigDirectory(File configDir, boolean doHistory) {
+
+        if (LOG.isLoggable(Level.FINE)) {
+
+            LOG.fine("Processing configuration directory '"
+                + configDir.toString() + "'");
+        }
         
         /*
          * Load our readline history.
@@ -1038,7 +1040,20 @@ public class SqshContext {
         File drivers = new File(configDir, "drivers.xml");
         if (drivers.exists()) {
             
+            if (LOG.isLoggable(Level.FINE)) {
+
+                LOG.fine("    Loading drivers from " + drivers.toString());
+            }
+
             driverManager.load(drivers);
+        }
+        else {
+
+            if (LOG.isLoggable(Level.FINE)) {
+
+                LOG.fine("    Skipping drivers, '" + drivers.toString()
+                    + "' does not exist.");
+            }
         }
         
         /*
@@ -1047,6 +1062,13 @@ public class SqshContext {
          */
         File sqshrc = new File(configDir, "sqshrc");
         if (sqshrc.exists()) {
+
+            if (LOG.isLoggable(Level.FINE)) {
+
+                LOG.fine("    Reading configuration file '"
+                    + sqshrc.toString() + "'");
+            }
+
             
             try {
                 
@@ -1063,6 +1085,14 @@ public class SqshContext {
                     + sqshrc.toString() + "': " + e.toString());
             }
         }
+        else {
+
+            if (LOG.isLoggable(Level.FINE)) {
+
+                LOG.fine("    Configuration file '"
+                    + sqshrc.toString() + "' does not exist. Skipping.");
+            }
+        }
         
         
         if (doHistory) {
@@ -1077,8 +1107,22 @@ public class SqshContext {
             
             File buffers = new File(configDir, "history.xml");
             if (buffers.exists()) {
+
+                if (LOG.isLoggable(Level.FINE)) {
+
+                    LOG.fine("    Reading history file '"
+                        + buffers.toString() + "'");
+                }
                 
                 bufferManager.load(buffers);
+            }
+            else {
+
+                if (LOG.isLoggable(Level.FINE)) {
+
+                    LOG.fine("    History file '"
+                        + buffers.toString() + "' does not exist. Skipping.");
+                }
             }
         }
         
@@ -1086,7 +1130,6 @@ public class SqshContext {
          * Populate our connection descriptors.
          */
         File connections = new File(configDir, "connections.xml");
-
         connDescMan.load(connections.toString());
     }
     
@@ -1159,32 +1202,5 @@ public class SqshContext {
         bufferManager.save(history);
         
         saveReadlineHistory(homedir);
-    }
-    
-    /**
-     * Reads in the java logging configuration information.
-     */
-    private void configureLogging() {
-        
-        InputStream in = 
-            getClass().getClassLoader().getResourceAsStream(LOGGING_CONFIG);
-        if (in == null) {
-            
-            System.err.println("WARNING: Cannot find resource " 
-                + LOGGING_CONFIG);
-            return;
-        }
-        
-        try {
-            
-            LogManager logMan = LogManager.getLogManager();
-            logMan.readConfiguration(in);
-            in.close();
-        }
-        catch (IOException e) {
-            
-            System.err.println("WARNING: Unable to read logging "
-                + "properties " + LOGGING_CONFIG + ": " + e.getMessage());
-        }
     }
 }
