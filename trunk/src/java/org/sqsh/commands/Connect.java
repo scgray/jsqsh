@@ -33,7 +33,8 @@ import org.sqsh.ConnectionDescriptor;
 import org.sqsh.ConnectionDescriptorManager;
 import org.sqsh.DataFormatter;
 import org.sqsh.Renderer;
-import org.sqsh.SQLContext;
+import org.sqsh.ConnectionContext;
+import org.sqsh.SQLConnectionContext;
 import org.sqsh.SQLTools;
 import org.sqsh.Session;
 import org.sqsh.SqshContextSwitchMessage;
@@ -168,7 +169,7 @@ public class Connect
          */
         try {
             
-            SQLContext sqlContext = null;
+            SQLConnectionContext sqlContext = null;
             
             sqlContext = session.getDriverManager().connect(
                 session, connDesc);
@@ -181,7 +182,7 @@ public class Connect
                 Session newSession = session.getContext().newSession(
                     session.in, session.out, session.err);
                 newSession.setInteractive(session.isInteractive());
-                newSession.setSQLContext(sqlContext);
+                newSession.setConnectionContext(sqlContext);
                 
                 /*
                  * This magic exception is caught by the owning sqsh context
@@ -192,7 +193,7 @@ public class Connect
             }
             else {
                 
-                session.setSQLContext(sqlContext);
+                session.setConnectionContext(sqlContext);
             }
         }
         catch (SQLException e) {

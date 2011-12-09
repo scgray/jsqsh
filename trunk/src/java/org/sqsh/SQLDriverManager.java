@@ -269,7 +269,7 @@ public class SQLDriverManager {
      * @throws SQLException Thrown if the connection could not be 
      *    established.
      */
-    public SQLContext connect (Session session, ConnectionDescriptor connDesc)
+    public SQLConnectionContext connect (Session session, ConnectionDescriptor connDesc)
         throws SQLException {
         
         SQLDriver sqlDriver = null;
@@ -471,16 +471,16 @@ public class SQLDriverManager {
          * AWFUL AWFUL HACK!!!
          * In a second we will transfer variables defined by the 
          * driver via the SessionVariable setting. However, often
-         * these variables will be setting information in the SQLContext
+         * these variables will be setting information in the ConnectionContext
          * that belongs to the session -- which is likely the one we are
          * about to return, but haven't yet.  This hack temporarily
          * stuffs it into the session so it can get set, then pulls it
          * back out.
          */
-        SQLContext oldContext = session.getSQLContext();
-        SQLContext newContext = 
-            new SQLContext(connDesc, conn, url, sqlDriver.getAnalyzer());
-        session.setSQLContext(newContext, false);
+        ConnectionContext oldContext = session.getConnectionContext();
+        SQLConnectionContext newContext = 
+            new SQLConnectionContext(connDesc, conn, url, sqlDriver.getAnalyzer());
+        session.setConnectionContext(newContext, false);
 
         try {
 
@@ -498,7 +498,7 @@ public class SQLDriverManager {
         }
         finally {
 
-            session.setSQLContext(oldContext, false);
+            session.setConnectionContext(oldContext, false);
         }
 
         return newContext;

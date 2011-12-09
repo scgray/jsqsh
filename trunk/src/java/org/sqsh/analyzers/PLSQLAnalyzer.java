@@ -1,6 +1,5 @@
 package org.sqsh.analyzers;
 
-import org.sqsh.SQLAnalyzer;
 import org.sqsh.SimpleKeywordTokenizer;
 
 /**
@@ -11,7 +10,7 @@ public class PLSQLAnalyzer
     implements SQLAnalyzer {
 
     /* (non-Javadoc)
-     * @see org.sqsh.SQLAnalyzer#isTerminated(java.lang.String, char)
+     * @see org.sqsh.LanguageAnalyzer#isTerminated(java.lang.String, char)
      */
     public boolean isTerminated (String sql, char terminator) {
         

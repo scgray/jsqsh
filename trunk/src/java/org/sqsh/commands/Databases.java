@@ -26,7 +26,7 @@ import java.util.List;
 
 import org.sqsh.Command;
 import org.sqsh.Renderer;
-import org.sqsh.SQLContext;
+import org.sqsh.ConnectionContext;
 import org.sqsh.SQLRenderer;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
@@ -58,15 +58,14 @@ public class Databases
     public int execute (Session session, SqshOptions options)
         throws Exception {
         
-        SQLContext context = session.getSQLContext();
-        if (context == null) {
+        Connection con = session.getConnection();
+        if (con == null) {
             
             session.err.println("No database connection has been established."
                 + " Use the \\connect command to create a connection.");
             return 1;
         }
         
-        Connection con = session.getConnection();
         ResultSet result = null;
         try {
             

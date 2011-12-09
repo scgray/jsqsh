@@ -28,11 +28,13 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.sqsh.analyzers.SQLAnalyzer;
 import org.sqsh.jni.Shell;
 import org.sqsh.jni.ShellException;
 import org.sqsh.jni.ShellManager;
@@ -105,7 +107,14 @@ public class Session
      * The database connection used by the session and the URL that was
      * used to create it
      */
-    private SQLContext sqlContext = null;
+    private ConnectionContext connection = null;
+    
+    /**
+     * This is a place where commands can place arbitrary objects to 
+     * maintain state between calls. See {@link SessionObject}.
+     */
+    private Map<String, SessionObject> sessionObjects = 
+        new HashMap<String, SessionObject>();
     
     /**
      * The session has a local variable manager.
@@ -262,57 +271,107 @@ public class Session
     }
     
     /**
-     * Returns the SQL context for this session. This will be null if no
+     * Returns the connection context for this session. This will be null if no
      * connection has been established yet.
      * 
      * @return The SQL context or null if no connection is available.
      */
-    public SQLContext getSQLContext() {
+    public ConnectionContext getConnectionContext() {
         
-        return sqlContext;
+        return connection;
     }
     
     /**
-     * Sets the SQL context for this session. If there is already a 
+     * Sets the connection context for this session. If there is already a 
      * context established, then the current one is closed and discarded.
      * 
      * @param context The new context.
      * @param doClose If false, then the existing context is not closed
      */
-    public void setSQLContext(SQLContext context, boolean doClose) {
+    public void setConnectionContext(ConnectionContext context, boolean doClose) {
         
-        if (doClose && this.sqlContext != null) {
+        if (doClose && this.connection != null) {
             
-            this.sqlContext.close();
+            this.connection.close();
         }
         
-        this.sqlContext = context;
+        this.connection = context;
     }
 
     /**
-     * Sets the SQL context for this session. If there is already a 
+     * Sets the connection context for this session. If there is already a 
      * context established, then the current one is closed and discarded.
      * 
      * @param context The new context.
      */
-    public void setSQLContext(SQLContext context) {
+    public void setConnectionContext(ConnectionContext context) {
         
-        setSQLContext(context, true);
+        setConnectionContext(context, true);
     }
     
     /**
-     * A shorthand way of issueing getSQLContext().getConnection().
-     * 
-     * @return A connection or null if no connection is available.
+     * @return If the session is currently connection to a JDBC datasource,
+     *  this will return the connection to that source, otherwise null.
      */
     public Connection getConnection() {
         
-        if (sqlContext != null) {
-            
-            return sqlContext.getConnection();
+        if (connection != null
+           && connection instanceof SQLConnectionContext)
+        {
+            return ((SQLConnectionContext)connection).getConnection();
         }
         
         return null;
+    }
+    
+    /**
+     * Adds an object to the session.  This is intended primarily for use
+     * by commands wishing to maintain some form of state between calls.
+     * 
+     * @param name The name of the object. If an object by that name already
+     *   exists its {@link SessionObject#close()} method is called and it is
+     *   replaced.
+     * @param obj The object to add.
+     */
+    public void addObject (String name, SessionObject obj)
+    {
+        SessionObject oldObj = sessionObjects.get(name);
+        if (oldObj != null)
+        {
+            oldObj.close();
+        }
+        sessionObjects.put(name, obj);
+    }
+    
+    /**
+     * Looks up a session object.
+     * 
+     * @param name The name of the session object.
+     * @return The session object that was stored under the provided name,
+     *   otherwise null is returned.
+     */
+    public SessionObject getObject (String name)
+    {
+        return sessionObjects.get(name);
+    }
+    
+    /**
+     * Removes a session object from the session.
+     * 
+     * @param name The name of the session object.
+     * @param doClose If true, the {@link SessionObject#close()} method
+     *   is called.
+     * @return The object that was removed. If the object was not found,
+     *   null is returned.
+     */
+    public SessionObject removeObject (String name, boolean doClose)
+    {
+        SessionObject o = sessionObjects.remove(name);
+        if (o != null && doClose)
+        {
+            o.close();
+        }
+        return o;
     }
 
     /**
@@ -331,7 +390,7 @@ public class Session
      */
     public boolean isConnected() {
         
-        return sqlContext != null;
+        return connection != null;
     }
     
     /**
@@ -339,12 +398,18 @@ public class Session
      */
     public void close() {
         
-        if (sqlContext != null) {
+        if (connection != null) {
             
-            sqlContext.close();
+            connection.close();
         }
         
-        sqlContext = null;
+        connection = null;
+        
+        for (SessionObject o : sessionObjects.values())
+        {
+            o.close();
+        }
+        sessionObjects.clear();
     }
     
     /**
@@ -792,8 +857,10 @@ public class Session
      */
     private boolean isTerminated(Buffer buffer) {
         
+        ConnectionContext conn = getConnectionContext();
+        
         String s = getVariable("terminator");
-        if (s == null || getSQLContext() == null) {
+        if (s == null || conn == null) {
             
             return false;
         }
@@ -820,8 +887,7 @@ public class Session
          * We have a terminator at the end, its worth doing an in-depth
          * analysis at this point.
          */
-        SQLAnalyzer analyzer = getSQLContext().getAnalyzer();
-        if (analyzer.isTerminated(sql, terminator) == false) {
+        if (conn.isTerminated(sql, terminator) == false) {
             
             return false;
         }
@@ -830,7 +896,11 @@ public class Session
          * It is terminated, so we are going to trim up our buffer
          * a tad to remove the terminator.
          */
-        buffer.setLength(idx);
+        if (conn.isTerminatorRemoved(terminator)) {
+            
+            buffer.setLength(idx);
+        }
+        
         return true;
     }
     

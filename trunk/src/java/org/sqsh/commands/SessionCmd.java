@@ -23,7 +23,7 @@ import java.util.List;
 import org.sqsh.ColumnDescription;
 import org.sqsh.Command;
 import org.sqsh.Renderer;
-import org.sqsh.SQLContext;
+import org.sqsh.ConnectionContext;
 import org.sqsh.Session;
 import org.sqsh.SqshContext;
 import org.sqsh.SqshContextSwitchMessage;
@@ -134,8 +134,8 @@ public class SessionCmd
                 row[0] = "  " + Integer.toString(sessions[i].getId());
             }
             
-            SQLContext sqlContext = sessions[i].getSQLContext();
-            if (sqlContext == null) {
+            ConnectionContext connection = sessions[i].getConnectionContext();
+            if (connection == null) {
                 
                 row[1] = "-";
                 row[2] = "-";
@@ -143,7 +143,7 @@ public class SessionCmd
             else {
                 
                 row[1] = sessions[i].getVariable("user");
-                row[2] = sqlContext.getUrl();
+                row[2] = connection.toString();
             }
             
             renderer.row(row);

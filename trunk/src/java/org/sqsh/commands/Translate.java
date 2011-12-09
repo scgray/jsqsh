@@ -42,9 +42,10 @@ import org.sqsh.options.Option;
 
 /**
  * This command is use only by me (Scott) for testing some application
- * code that is specific to the company that I work for.  This command
+ * code that is specific to the company that I used to work for.  This command
  * takes the SQL that is about to be executed and wraps it into a 
- * stored procedure call called ACS_REPOS.TRANSLATE_AND_EXECUTE.
+ * stored procedure call called ACS_REPOS.TRANSLATE_AND_EXECUTE.  I just
+ * can't bring myself to remove this yet.
  */
 public class Translate
     extends Go
@@ -85,7 +86,7 @@ public class Translate
      */
     private int login(Session session) {
 
-        Connection conn = session.getSQLContext().getConnection();
+        Connection conn = session.getConnection();
         CallableStatement stmt = null;
         ResultSet results = null;
         boolean done = false;
@@ -139,7 +140,7 @@ public class Translate
 
     private void logout(Session session) {
 
-        Connection conn = session.getSQLContext().getConnection();
+        Connection conn = session.getConnection();
         CallableStatement stmt = null;
         ResultSet results = null;
         boolean done = false;

@@ -27,6 +27,7 @@ import java.util.List;
 import org.sqsh.BufferManager;
 import org.sqsh.CannotSetValueError;
 import org.sqsh.Command;
+import org.sqsh.ConnectionContext;
 import org.sqsh.DatabaseCommand;
 import org.sqsh.RendererManager;
 import org.sqsh.SQLRenderer;
@@ -40,8 +41,7 @@ import org.sqsh.options.Option;
  * Implements the \go command.
  */
 public class Go
-    extends Command
-    implements DatabaseCommand {
+    extends Command {
     
     protected static class Options
        extends SqshOptions {
@@ -89,6 +89,15 @@ public class Go
         String origStyle = null;
         String origNull = null;
         int returnCode = 0;
+        ConnectionContext conn = session.getConnectionContext();
+        
+        if (conn == null) {
+            
+            session.err.println("You are not currently connected to a database "
+              + "or another queryable data source. Type 'help \\connect' for "
+              + "details");
+            return 1;
+        }
         
         /*
          * If we are being asked to generate INSERT statements then we need to
@@ -170,11 +179,16 @@ public class Go
 
                 try {
                     
-                    sqlRenderer.execute(session, sql);
+                    conn.eval(sql, session, sqlRenderer);
                 }
                 catch (SQLException e) {
                     
                     SQLTools.printException(session.err, e);
+                    returnCode = 1;
+                }
+                catch (Throwable e)
+                {
+                    session.err.println(e.getMessage());
                     returnCode = 1;
                 }
             }

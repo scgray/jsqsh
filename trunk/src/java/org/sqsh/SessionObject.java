@@ -18,23 +18,19 @@
 package org.sqsh;
 
 /**
- * A SQLAnalyzer is responsible for analyzing SQL (duh) so that sqsh 
- * can ask various questions of it. The expectation here is that 
- * there may be different implementations for different database
- * vendors.
+ * A session object is an object that can be attached to the session by
+ * a command. This allows commands to maintain arbitrary state in a cleaner
+ * fashion than shoving a lot of variables into the session's variable map.
  */
-public interface SQLAnalyzer {
+public class SessionObject {
     
     /**
-     * Analyzes a block of SQL to see if it is terminated with the provided
-     * terminator character (presumably the character is a semicolon most of
-     * the time). SQL is NOT considered terminated if the terminator is
-     * located within a block of code (e.g. between a BEGIN/END) or within
-     * comments or strings.
-     * 
-     * @param sql The SQL to analyze
-     * @param terminator The terminator character
-     * @return True if the SQL is terminated.
+     * Close will be called by the session when the session is closed. The
+     * default implementation does nothing, but implementations that
+     * require some sort of cleanup to happen should implement this method.
      */
-    boolean isTerminated(String sql, char terminator);
+    public void close()
+    {
+        /* EMPTY */
+    }
 }
