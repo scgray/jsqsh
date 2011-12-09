@@ -17,16 +17,22 @@
  */
 package org.sqsh.analyzers;
 
-
 /**
- * The NullAnalyzer does no analysis whatsoever. It will always refuse
- * to identify a SQL terminator.
+ * A SQLAnalyzer is responsible for analyzing the current 
+ * input batch so that jsqsh can ask various questions of it. The expectation 
+ * here is that there may be different implementations for different database
+ * vendors.
  */
-public class NullAnalyzer
-    implements SQLAnalyzer {
-
-    public boolean isTerminated (String sql, char terminator) {
-
-        return false;
-    }
+public interface SQLAnalyzer {
+    
+    /**
+     * Analyzes a SQL of text to see if it is terminated with the provided
+     * terminator character (presumably the character is a semicolon most of
+     * the time). 
+     * 
+     * @param batch The batch to analyze
+     * @param terminator The terminator character
+     * @return True if the batch is terminated.
+     */
+    boolean isTerminated(String batch, char terminator);
 }

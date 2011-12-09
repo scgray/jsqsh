@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.sqsh.analyzers.ANSIAnalyzer;
+import org.sqsh.analyzers.SQLAnalyzer;
 import org.sqsh.analyzers.NullAnalyzer;
 
 public class SQLDriver 

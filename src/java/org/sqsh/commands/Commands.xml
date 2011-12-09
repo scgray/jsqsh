@@ -289,6 +289,62 @@ VARIABLES SET
                
 ]]></Help>
 </Command>
+
+    <Command name="\jaql" class="org.sqsh.commands.Jaql">
+        <Description><![CDATA[
+           Establishes the session as a Jaql session
+        ]]></Description>
+            <Help><![CDATA[
+SYNOPSIS
+  \jaql [options]
+              
+DESCRIPTION
+  The \jaql command establishes a session to work with the Jaql query
+  language.  This is similar to establishing a connection to a database
+  with \connect, however instead of running the query query batch through
+  a JDBC connection, the batch is sent to a Jaql shell interpreter for
+  processing. Note that in this mode, many of the options to "\go" are 
+  ignored.
+  
+  Please note that jsqsh only comes packaged with the core jaql.jar and
+  does not include any dependencies required for jaql to run, so you either
+  need to add all dependant jars into the jsqsh installations share directory,
+  or set up your CLASSPATH before running jsqsh.
+  
+  For an IBM Big Insights environment, you can sort of automate this process
+  by changing the jsqsh launch script to launch it like so:
+  
+  if [ ! -z "$JAQL_HOME" ]; then
+    export HADOOP_CLASSPATH=$CLASSPATH
+    exec $JAQL_HOME/bin/jaql "-Djava.library.path=$ROOT_DIR/lib" org.sqsh.JSqsh $*
+  else
+     export CLASSPATH
+     exec java org.sqsh.JSqsh $*
+  fi
+  
+  The java.library.path setting may need to be modified to specify the 
+  directory containing the jsqsh JNI shared libraries, if you think you
+  will need them.
+              
+OPTIONS
+  -o, --outoptions=style
+                      Sets the output display style for Jaql. The available
+                      display styles are "json", "del", or "xml". Currently
+                      only style "json" is supported.
+  -i, --indent=spaces Number of spaces to indent when displaying "json"
+  -j, --jars=jars     A comma delimited list of jars that are to be made
+                      available for use within the Jaql interpreter. Note
+                      that this is a global setting, so even if multiple
+                      Jaql sessions are established, setting this for one
+                      session, impacts all sessions.
+  -p, --jaql-path=path
+                      A colon delimited set of directories in which to search
+                      for Jaql modules.
+  -n                  Creates a new session, rather than utilizing the
+                      current session as the Jaql session. 
+
+]]></Help>
+</Command>
     
 <Command name="\go" class="org.sqsh.commands.Go">
 <Description><![CDATA[

@@ -323,8 +323,13 @@ public class SQLRenderer {
             .getRenderer(session);
         
         CallableStatement statement = null;
-        Connection conn = session.getSQLContext().getConnection();
+        Connection conn = session.getConnection();
         CancelingSignalHandler sigHandler = null;
+        
+        if (conn == null) {
+            
+            throw new SQLException("No database connection has been established");
+        }
         
         try {
             
@@ -398,8 +403,13 @@ public class SQLRenderer {
             .getRenderer(session);
         
         PreparedStatement statement = null;
-        Connection conn = session.getSQLContext().getConnection();
+        Connection conn = session.getConnection();
         CancelingSignalHandler sigHandler = null;
+        
+        if (conn == null) {
+            
+            throw new SQLException("No database connection has been established");
+        }
         
         try {
             
@@ -451,13 +461,23 @@ public class SQLRenderer {
         }
         
         Statement statement = null;
-        Connection conn = session.getSQLContext().getConnection();
+        Connection conn = session.getConnection();
         CancelingSignalHandler sigHandler = null;
         
-        try {
-            SQLContext ctx = session.getSQLContext();
+        if (conn == null) {
             
-            if (ctx.getExecutionMode() == SQLContext.EXEC_PREPARE) {
+            throw new SQLException("No database connection has been established");
+        }
+        
+        try {
+            /*
+             * Since we grabbed the connection, above we know we have a 
+             * SQLConnectionContext.
+             */
+            SQLConnectionContext ctx = 
+                (SQLConnectionContext) session.getConnectionContext();
+            
+            if (ctx.getExecutionMode() == SQLConnectionContext.EXEC_PREPARE) {
 
                 statement = conn.prepareStatement(sql);
                 
@@ -616,11 +636,16 @@ public class SQLRenderer {
             Statement statement, boolean hasResults)
         throws SQLException {
         
-        Connection conn = session.getSQLContext().getConnection();
+        Connection conn = session.getConnection();
         ResultSet resultSet = null;
         boolean done = false;
         int updateCount = -1;
         boolean ok = true;
+        
+        if (conn == null) {
+            
+            throw new SQLException("No database connection has been established");
+        }
         
         firstRowTime = 0L;
         endTime = 0L;

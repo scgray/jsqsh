@@ -132,7 +132,7 @@ DESCRIPTION
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="domain" property="SQLContext.domain"
+	<Property bean="session" name="domain" property="ConnectionContext.domain"
 	          quiet="true">
         <Description>Windows domain used to establish connection</Description>
         <Help><![CDATA[
@@ -150,7 +150,7 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="user" property="SQLContext.username"
+	<Property bean="session" name="user" property="ConnectionContext.username"
 	          quiet="true">
         <Description>Username used to establish database connection</Description>
         <Help><![CDATA[
@@ -168,7 +168,7 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="server" property="SQLContext.server"
+	<Property bean="session" name="server" property="ConnectionContext.server"
 	          quiet="true">
         <Description>Database server name connected to</Description>
         <Help><![CDATA[
@@ -185,7 +185,7 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="port" property="SQLContext.port"
+	<Property bean="session" name="port" property="ConnectionContext.port"
 	          quiet="true">
         <Description>TCP port used to establish database connection</Description>
         <Help><![CDATA[
@@ -203,7 +203,7 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="server" property="SQLContext.server"
+	<Property bean="session" name="server" property="ConnectionContext.server"
 	          quiet="true">
         <Description>Database server name connected to</Description>
         <Help><![CDATA[
@@ -220,7 +220,7 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="SID" property="SQLContext.sid"
+	<Property bean="session" name="SID" property="ConnectionContext.sid"
 	          quiet="true">
         <Description>Oracle instance to which connection is established</Description>
         <Help><![CDATA[
@@ -238,7 +238,7 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="jdbc_url" property="SQLContext.url"
+	<Property bean="session" name="jdbc_url" property="ConnectionContext.url"
 	          quiet="true">
         <Description>The JDBC URL that was used for connection</Description>
         <Help><![CDATA[
@@ -255,7 +255,7 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="driver" property="SQLContext.driver"
+	<Property bean="session" name="driver" property="ConnectionContext.driver"
 	          quiet="true">
         <Description>The JSqsh driver used to establish connection</Description>
         <Help><![CDATA[
@@ -272,7 +272,7 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="name" property="SQLContext.logicalName"
+	<Property bean="session" name="name" property="ConnectionContext.logicalName"
 	          quiet="true">
         <Description>The logical name used for the current connection</Description>
         <Help><![CDATA[
@@ -292,7 +292,7 @@ SEE ALSO
 	</Property>
 
 	<Property bean="session" name="exec_mode" 
-                  property="SQLContext.executionModeName"
+                  property="ConnectionContext.executionModeName"
 	          quiet="true">
         <Description>The SQL execution style for the current connection</Description>
         <Help><![CDATA[

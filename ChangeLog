@@ -1,4 +1,9 @@
 Release 1.5
+* Added support for Jaql - a hadoop query language. The command
+  \jaql establishes the session as a jaql session and causes 
+  \go to execute the current statement through the Jaql interpreter.
+  Also a --jaql command line flag was added to jsqsh to jump
+  straight into jaql mode.
 * The --debug flag can now be specified multiple times.
 * Fixed bug where connection names supplied on the command line
   are not recognized.

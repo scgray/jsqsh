@@ -826,7 +826,7 @@ public class SqshContext {
                         currentSession.out.println("Current session: " 
                             + currentSession.getId() + " ("
                             + (currentSession.isConnected() 
-                                    ? currentSession.getSQLContext().getUrl()
+                                    ? currentSession.getConnectionContext().toString()
                                             : "*no connection*") + ")");
                     }
                 }

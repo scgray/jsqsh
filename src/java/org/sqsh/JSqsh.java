@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.LogManager;
 
+import org.sqsh.commands.Jaql;
 import org.sqsh.options.Argv;
 import org.sqsh.options.Option;
 import org.sqsh.options.OptionException;
@@ -65,6 +66,11 @@ public class JSqsh {
            description="Force the session to be non-interactive "
                            + "(not yet implemented)")
         public boolean nonInteractive = false;
+       
+       @Option(
+           option='j', longOption="jaql", arg=NONE,
+           description="Start the session in Jaql mode")
+        public boolean jaqlMode = false;
        
        @Option(
            option='b', longOption="debug", arg=REQUIRED, argName="class",
@@ -116,7 +122,7 @@ public class JSqsh {
             System.out.println(optParser.getUsage());
             System.exit(0);
         }
-
+        
         configureLogging(options.debug);
         
         
@@ -149,11 +155,19 @@ public class JSqsh {
                 (options.inputFile == null));
             session.setOut(out, options.outputFile != null);
             
-            if (!doConnect(session, options)) {
+            if (options.jaqlMode) {
+                
+                if (!doJaql(session, options)) {
+                    
+                    rc = 1;
+                }
+            }
+            else if (!doConnect(session, options)) {
                 
                 rc = 1;
             }
-            else {
+            
+            if (rc == 0) {
             
                 rc = sqsh.run();
             }
@@ -301,6 +315,35 @@ public class JSqsh {
     }
     
     /**
+     * If --jaql was provided, sets up the session to be a jaql session.
+     * 
+     * @param session The session
+     * @param options The options provided to start jsqsh
+     * @return true if teh jaql session was successfully started, false
+     *   otherwise.
+     */
+    private static boolean doJaql(Session session, Options options) {
+        
+        Jaql.Options jaqlOptions = new Jaql.Options();
+        Jaql cmd = new Jaql();
+        
+        try {
+            
+            if (cmd.execute(session, jaqlOptions) != 0) {
+                
+                return false;
+            }
+        }
+        catch (Exception e) {
+            
+            e.printStackTrace();
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
      * 
      * Ok, I'm lazy. Since most of the command line options are there
      * to allow the caller to pre-connect sqsh, I am actually just
@@ -350,9 +393,9 @@ public class JSqsh {
             
             try {
                 
-                SQLContext ctx = 
+                ConnectionContext ctx = 
                     session.getDriverManager().connect(session, connDesc);
-                session.setSQLContext(ctx);
+                session.setConnectionContext(ctx);
             }
             catch (SQLException e) {
                 

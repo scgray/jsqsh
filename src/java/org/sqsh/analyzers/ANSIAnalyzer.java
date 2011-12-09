@@ -17,7 +17,6 @@
  */
 package org.sqsh.analyzers;
 
-import org.sqsh.SQLAnalyzer;
 import org.sqsh.SimpleKeywordTokenizer;
 
 
