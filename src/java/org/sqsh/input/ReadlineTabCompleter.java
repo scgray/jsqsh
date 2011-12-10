@@ -19,6 +19,7 @@ package org.sqsh.input;
 
 import org.gnu.readline.Readline;
 import org.gnu.readline.ReadlineCompleter;
+import org.sqsh.ConnectionContext;
 import org.sqsh.Session;
 import org.sqsh.SqshContext;
 import org.sqsh.input.completion.Completer;
@@ -117,10 +118,11 @@ public class ReadlineTabCompleter
         }
         
         Session session = sqshContext.getCurrentSession();
-        if (session.getConnection() != null) {
+        ConnectionContext conn = session.getConnectionContext();
+        if (conn != null) {
             
-            completer = new DatabaseObjectCompleter(session,
-                wholeLine, position, word);
+            completer = conn.getTabCompleter(session, wholeLine, 
+                position, word);
         }
         else {
             

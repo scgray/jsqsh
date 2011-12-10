@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.sqsh.analyzers.SQLAnalyzer;
+import org.sqsh.input.completion.Completer;
+import org.sqsh.input.completion.DatabaseObjectCompleter;
 
 public class SQLConnectionContext
     extends ConnectionContext {
@@ -287,6 +289,14 @@ public class SQLConnectionContext
     public boolean isTerminated(String batch, char terminator) {
 
         return analyzer.isTerminated(batch, terminator);
+    }
+    
+
+    @Override
+    public Completer getTabCompleter(Session session, String line,
+                    int position, String word) {
+
+        return new DatabaseObjectCompleter(session, line, position, word);
     }
 
     @Override
