@@ -103,6 +103,9 @@ public class History
                 }
             }
             
+            if (line == 0)
+                sb.append(lineSep);
+            
             session.out.print(sb.toString());
         }
         
