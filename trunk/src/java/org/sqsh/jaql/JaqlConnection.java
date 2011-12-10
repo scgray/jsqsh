@@ -38,13 +38,25 @@ import com.ibm.jaql.lang.JaqlQuery;
 public class JaqlConnection
     extends ConnectionContext {
     
+    private Session session;
     private JaqlQuery engine;
     private JaqlFormatter formatter;
+    private String oldPrompt = null;
     
-    public JaqlConnection (JaqlQuery engine, JaqlFormatter formatter) {
+    public JaqlConnection (Session session, JaqlQuery engine, 
+        JaqlFormatter formatter) {
  
+        this.session     = session;
         this.engine      = engine;
         this.formatter   = formatter;
+        
+        String jaqlPrompt = session.getVariable("jaql_prompt");
+        if (jaqlPrompt == null) {
+            
+            jaqlPrompt = "jaql [$lineno]>";
+        }
+        oldPrompt = session.getVariable("prompt");
+        session.setVariable("prompt", jaqlPrompt);
     }
     
     /**
@@ -220,6 +232,11 @@ public class JaqlConnection
 
     @Override
     public void close() {
+        
+        if (oldPrompt != null) {
+            
+            session.setVariable("prompt", oldPrompt);
+        }
 
         try {
             

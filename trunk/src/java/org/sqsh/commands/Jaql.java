@@ -54,7 +54,7 @@ public class Jaql
          @Option(
              option='o', longOption="outoptions", arg=REQUIRED, argName="style",
              description="Sets the display style for output (json, del, or xml)")
-         public String style = "json";
+         public String style = null;
          
          @Option(
              option='j', longOption="jars", arg=REQUIRED, argName="jars",
@@ -69,7 +69,7 @@ public class Jaql
          @Option(
              option='i', longOption="indent", arg=REQUIRED, argName="spaces",
              description="Number of spaces to indent when using json formatting")
-         public int indent = 3;
+         public int indent = -1;
          
          @Option(
              option='n', longOption="new-session", arg=NONE,
@@ -86,7 +86,37 @@ public class Jaql
 
         return new Options();
     }
-
+    
+    /**
+     * Set up configuration options based upon variables.
+     * 
+     * @param session The session
+     * @param options The options that may be changed by variables.
+     */
+    private void configVariables (Session session, Options options) {
+        
+        if (options.style == null) {
+            
+            options.style = session.getVariable("jaql_style");
+        }
+        if (options.jars == null) {
+            
+            options.jars = session.getVariable("jaql_jars");
+        }
+        if (options.jaqlPath == null) {
+            
+            options.jaqlPath = session.getVariable("jaql_path");
+        }
+        if (options.indent == -1) {
+            
+            String str = session.getVariable("jaql_indent");
+            if (str != null) {
+                
+                options.indent = Integer.parseInt(str);
+            }
+        }
+    }
+    
     @Override
     public int execute(Session session, SqshOptions opts)
         throws Exception {
@@ -95,7 +125,12 @@ public class Jaql
         JaqlQuery engine  = new JaqlQuery();
         JaqlFormatter formatter = null;
         
-        if (options.style.equals("json")) {
+        configVariables(session, options);
+        
+        if (options.indent == -1)
+            options.indent = 3;
+        
+        if (options.style == null || options.style.equals("json")) {
             formatter = new JsonFormatter(session, options.indent);
         }
         else if (options.style.equals("xml") 
@@ -121,10 +156,7 @@ public class Jaql
             com.ibm.jaql.lang.Jaql.addExtensionJars(options.jars.split(","));
         }
         
-        JaqlConnection conn = new JaqlConnection(engine, formatter);
-        
-        session.setVariable("prompt", "jaql [$lineno]>");
-        session.setVariable("expand", "false");
+        JaqlConnection conn = new JaqlConnection(session, engine, formatter);
         
         /*
          * If we are asked to create a new session, then we will do so.
