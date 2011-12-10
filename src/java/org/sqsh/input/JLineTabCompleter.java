@@ -19,6 +19,7 @@ package org.sqsh.input;
 
 import java.util.List;
 
+import org.sqsh.ConnectionContext;
 import org.sqsh.Session;
 import org.sqsh.SqshContext;
 import org.sqsh.input.completion.Completer;
@@ -68,9 +69,10 @@ public class JLineTabCompleter
         }
         
         Session session = ctx.getCurrentSession();
-        if (session.getConnection() != null) {
+        ConnectionContext conn = session.getConnectionContext();
+        if (conn != null) {
             
-            Completer completer = new DatabaseObjectCompleter(session,
+            Completer completer = conn.getTabCompleter(session,
                 buffer, cursor, word);
             String name = completer.next();
             while (name != null) {
