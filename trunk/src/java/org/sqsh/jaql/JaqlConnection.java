@@ -22,6 +22,7 @@ import java.io.IOException;
 import org.sqsh.ConnectionContext;
 import org.sqsh.SQLRenderer;
 import org.sqsh.Session;
+import org.sqsh.input.completion.Completer;
 
 import com.ibm.jaql.io.converter.JsonToStream;
 import com.ibm.jaql.json.type.JsonArray;
@@ -122,6 +123,17 @@ public class JaqlConnection
     public boolean isTerminatorRemoved(char terminator) {
 
         return terminator != ';';
+    }
+    
+    /**
+     * Returns a Jaql tab completer. This completer attempts to complete
+     * the current word from the set of Jaql global variables.
+     */
+    @Override
+    public Completer getTabCompleter(Session session, String line,
+                    int position, String word) {
+
+        return new JaqlCompleter(engine, session, line, position, word);
     }
 
     /**

@@ -17,6 +17,9 @@
  */
 package org.sqsh;
 
+import org.sqsh.input.completion.Completer;
+import org.sqsh.input.completion.NullCompleter;
+
 /**
  * "Connections" are theoretically abstract things, and this is the base
  * representation of a connection.  For most of jsqsh, a connection is a 
@@ -61,6 +64,23 @@ public abstract class ConnectionContext {
      * @return True if the batch is terminated.
      */
     public abstract boolean isTerminated(String batch, char terminator);
+    
+    /**
+     * Returns a tab word completer for the current connection type.
+     * The default implementation returns a NullTabCompleter which
+     * effectively disables tab completion altogether.
+     * 
+     * @param session The current session
+     * @param line The line being typed into when the tab was struck
+     * @param position The current cursor position in the line
+     * @param word The current word at the point the tab was struct
+     * @return The completer
+     */
+    public Completer getTabCompleter (Session session, String line, 
+        int position, String word) {
+        
+        return new NullCompleter(session, line, position, word);
+    }
     
     /**
      * Every sub-class of ConnectionContext needs to override this
