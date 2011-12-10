@@ -11,7 +11,6 @@ Release 1.5
       and "jaql_style" can be used to affect the behavior of the jaql shell
       (these are all documented under "\help jaql").
     - Tab completion will complete any global Jaql variable name.  
-    
 * The --debug flag can now be specified multiple times.
 * Fixed bug where connection names supplied on the command line
   are not recognized.
