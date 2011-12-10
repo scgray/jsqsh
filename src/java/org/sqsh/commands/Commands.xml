@@ -342,7 +342,21 @@ OPTIONS
                       for Jaql modules.
   -n                  Creates a new session, rather than utilizing the
                       current session as the Jaql session. 
+                      
+VARIABLES
+  The following variables can be used to affect the behavior of Jaql.
+  Note that most of these will not show up in the "\help vars", list. This
+  is the only place in which they are documented (sorry!).
+  
+  jaql_prompt     Allows you to specify a prompt other than the default prompt
+                  of "jaql [$lineno]>".  Note that the jaql prompt is always
+                  used while in a Jaql session.
+  jaql_style      Default output style to use (same as --outoptions, above)
+  jaql_jars       Jars to utilize from jaql (same as --jars, above)
+  jaql_jars       Module search path (same as --jaql-path, below)
 
+  Please note that the above variables are only utilized when starting the
+  Jaql shell and will not have an effect after the shell is started.
 ]]></Help>
 </Command>
     
