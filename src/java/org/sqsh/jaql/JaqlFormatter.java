@@ -17,9 +17,23 @@ public abstract class JaqlFormatter {
         this.session = session;
     }
     
-    public abstract void write (JsonIterator iter)
+    /**
+     * Write the results from a {@link JsonIterator}
+     * @param iter The iterator
+     * @return The number of "rows" returned, which typically corresponds
+     *   to the number of elements in the outer most array.
+     * @throws Exception
+     */
+    public abstract int write (JsonIterator iter)
         throws Exception;
     
-    public abstract void write (JsonValue v) 
+    /**
+     * Write the results from a {@link JsonValue}
+     * @param v The value to write
+     * @return The number of "rows" returned, which typically corresponds
+     *   to the number of elements in the outer most array.
+     * @throws Exception
+     */
+    public abstract int write (JsonValue v) 
         throws Exception;
 }

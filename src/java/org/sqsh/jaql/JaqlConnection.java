@@ -216,11 +216,32 @@ public class JaqlConnection
     public void eval(String batch, Session session, SQLRenderer renderer)
         throws Exception {
         
+        long start = System.currentTimeMillis();
         engine.setQueryString(batch);
+        
+        int nrows = 0;
         
         while (engine.moveNextQuery()) {
             
-            formatter.write(engine.currentQuery());
+            nrows += formatter.write(engine.currentQuery());
+        }
+        long stop = System.currentTimeMillis();
+        
+        /*
+         * Only display counts in interactive mode and if show timings
+         * is enabled, if rowcounts are zero we'll also supress timings 
+         * that are very low, because the assumption is this is something
+         * like a simple assignment.
+         */
+        if (session.isInteractive() && renderer.isShowTimings()
+           && (nrows > 0 || (stop - start) > 10L))
+        {
+            session.out.println("ok. ("
+               + nrows
+               + " row"
+               + ((nrows != 1) ? "s in " : " in ")
+               + (stop - start)
+               + "ms)");
         }
     }
 

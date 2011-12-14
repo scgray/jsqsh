@@ -6,6 +6,7 @@ import java.util.Map.Entry;
 import org.sqsh.Session;
 
 import com.ibm.jaql.json.type.JsonArray;
+import com.ibm.jaql.json.type.JsonError;
 import com.ibm.jaql.json.type.JsonRecord;
 import com.ibm.jaql.json.type.JsonString;
 import com.ibm.jaql.json.type.JsonValue;
@@ -29,8 +30,10 @@ public class JsonFormatter
     }
     
     @Override
-    public void write (JsonIterator iter)
+    public int write (JsonIterator iter)
         throws Exception {
+        
+        int nrows = 0;
         
         if (iter.moveNext()) {
             
@@ -40,11 +43,14 @@ public class JsonFormatter
                 session.out.println('[');
                 session.out.print(defaultIndent);
                 write(v, defaultIndent);
+                ++nrows;
                 do {
                     
                     session.out.println(",");
                     session.out.print(defaultIndent);
-                    write(iter.current(), defaultIndent);
+                    v = iter.current();
+                    write(v, defaultIndent);
+                    ++nrows;
                 }
                 while (iter.moveNext());
                 session.out.println();
@@ -53,30 +59,37 @@ public class JsonFormatter
             else {
                 
                 write(v, "");
+                ++nrows;
                 session.out.println();
             }
         }
+        
+        return nrows;
     }
     
     @Override
-    public void write (JsonValue v) 
+    public int write (JsonValue v) 
         throws Exception {
         
-        write(v, "");
+        int nrows = write(v, "");
         session.out.println();
+        return nrows;
     }
     
-    private void write (JsonValue v, String indent)
+    private int write (JsonValue v, String indent)
         throws Exception {
+        
+        int nrows = 0;
         
         if (v == null) {
             
             session.out.print("null");
+            nrows = 1;
         }
         else if (v instanceof JsonArray) {
             
             session.out.println('[');
-            printArrayBody((JsonArray)v, indent + defaultIndent);
+            nrows = printArrayBody((JsonArray)v, indent + defaultIndent);
             session.out.println();
             session.out.print(indent);
             session.out.print(']');
@@ -88,18 +101,50 @@ public class JsonFormatter
             session.out.println();
             session.out.print(indent);
             session.out.print('}');
+            nrows = 1;
         }
+        /*
+        else if (v instanceof JsonError) {
+            
+            JsonError e = (JsonError)v;
+            
+            session.err.println("["
+               + e.getFilename()
+               + ", line " + e.getLine()
+               + " ]: "
+               + e.getMessage());
+            
+            Exception ex = e.getException();
+            if (ex != null) {
+                
+                session.err.println("Stack trace:");
+                ex.printStackTrace(session.err);
+            }
+        }
+        */
         else if (v instanceof JsonString) {
             
             session.out.print(JsonUtil.quote(v.toString()));
+            nrows = 1;
         }
         else {
             
             session.out.print(v.toString());
+            nrows = 1;
         }
+        
+        /*
+         * This is a super hack. If the indent is currently zero long
+         * then we return the row count because we know that we just 
+         * printed the outermost element.
+         */
+        if (indent.length() != 0)
+            nrows = 0;
+        
+        return nrows;
     }
     
-    private void printArrayBody (JsonArray a, String indent)
+    private int printArrayBody (JsonArray a, String indent)
         throws Exception {
         
         JsonIterator iter = a.iter();
@@ -116,6 +161,8 @@ public class JsonFormatter
             session.out.print(indent);
             write(av, indent);
         }
+        
+        return count;
     }
     
     private void printRecordBody (JsonRecord r, String indent)
