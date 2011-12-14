@@ -23,6 +23,7 @@ import org.sqsh.ConnectionContext;
 import org.sqsh.SQLRenderer;
 import org.sqsh.Session;
 import org.sqsh.input.completion.Completer;
+import org.sqsh.util.TimeUtils;
 
 import com.ibm.jaql.io.converter.JsonToStream;
 import com.ibm.jaql.json.type.JsonArray;
@@ -234,14 +235,14 @@ public class JaqlConnection
          * like a simple assignment.
          */
         if (session.isInteractive() && renderer.isShowTimings()
-           && (nrows > 0 || (stop - start) > 10L))
-        {
+           && (nrows > 0 || (stop - start) > 10L)) {
+            
             session.out.println("ok. ("
                + nrows
                + " row"
                + ((nrows != 1) ? "s in " : " in ")
-               + (stop - start)
-               + "ms)");
+               + TimeUtils.millisToDurationString(stop - start)
+               + ")");
         }
     }
 
