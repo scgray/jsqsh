@@ -31,6 +31,8 @@ import com.ibm.jaql.json.type.JsonRecord;
 import com.ibm.jaql.json.type.JsonValue;
 import com.ibm.jaql.json.util.JsonIterator;
 import com.ibm.jaql.lang.JaqlQuery;
+import com.ibm.jaql.predict.JobInfo;
+import com.ibm.jaql.predict.ProgressEstimation;
 
 /**
  * Used to allow a Jaql instance to be used like a JDBC connection (well,
@@ -43,6 +45,7 @@ public class JaqlConnection
     private JaqlQuery engine;
     private JaqlFormatter formatter;
     private String oldPrompt = null;
+    private long sleepTime = 10000;
     
     public JaqlConnection (Session session, JaqlQuery engine, 
         JaqlFormatter formatter) {
@@ -58,6 +61,12 @@ public class JaqlConnection
         }
         oldPrompt = session.getVariable("prompt");
         session.setVariable("prompt", jaqlPrompt);
+        
+        String str = session.getVariable("jaql_sleeptime");
+        if (str != null) {
+            
+            sleepTime = Long.parseLong(str);
+        }
     }
     
     /**
@@ -218,15 +227,79 @@ public class JaqlConnection
         throws Exception {
         
         long start = System.currentTimeMillis();
+        long stop;
         engine.setQueryString(batch);
         
-        int nrows = 0;
+        int totalRows = 0;
         
-        while (engine.moveNextQuery()) {
+        long currentStart = start;
+        int nResults = 0;
+        try {
             
-            nrows += formatter.write(engine.currentQuery());
+            while (engine.moveNextQuery()) {
+                
+                /*
+                 * Check to see if we have been requested to track progress.
+                 */
+                ProgressEstimation progress = engine.getProgressEstimation();
+                if (progress != null && progress.getWorkLeft() < 1.0) {
+                    
+                    double oldWorkLeft = Double.NaN;
+                    int    oldJobsLeft = -1;
+                    while (progress.getMRJobsLeft() > 0) {
+                        
+                        try {
+                            
+                            Thread.sleep(sleepTime);
+                        }
+                        catch (InterruptedException e) {
+                            
+                            break;
+                        }
+                    
+                        double workLeft = progress.getWorkLeft();
+                        int jobsLeft = progress.getMRJobsLeft();
+                        if (workLeft != oldWorkLeft || jobsLeft != oldJobsLeft) {
+                            
+                            session.out.printf(
+                               "[%1$d job%2$s, %3$.1f%% complete]\n",
+                               jobsLeft,
+                               (jobsLeft != 1 ? "s" : ""),
+                               workLeft * 100.0);
+                            
+                            oldWorkLeft = workLeft;
+                            oldJobsLeft = jobsLeft;
+                        }
+                    }
+                }
+                
+                int nrows = formatter.write(engine.currentQuery());
+                
+                long currentStop = System.currentTimeMillis();
+                
+                if (session.isInteractive()
+                    && renderer.isShowTimings()
+                    && (nrows > 0 || (currentStop - currentStart) > 10L)) {
+                    
+                    session.out.println("("
+                       + nrows
+                       + " row"
+                       + ((nrows != 1) ? "s in " : " in ")
+                       + TimeUtils.millisToDurationString(currentStop - currentStart)
+                       + ")");
+                }
+                
+                currentStart = System.currentTimeMillis();
+                totalRows += nrows;
+                ++nResults;
+            }
         }
-        long stop = System.currentTimeMillis();
+        catch (Throwable e) {
+            
+            handleException(session, e);
+        }
+        
+        stop = System.currentTimeMillis();
         
         /*
          * Only display counts in interactive mode and if show timings
@@ -234,15 +307,28 @@ public class JaqlConnection
          * that are very low, because the assumption is this is something
          * like a simple assignment.
          */
-        if (session.isInteractive() && renderer.isShowTimings()
-           && (nrows > 0 || (stop - start) > 10L)) {
+        if (nResults > 1
+           && session.isInteractive() && renderer.isShowTimings()
+           && (totalRows > 0 || (stop - start) > 10L)) {
             
-            session.out.println("ok. ("
-               + nrows
-               + " row"
-               + ((nrows != 1) ? "s in " : " in ")
+            session.out.println(nResults + " results ("
+               + totalRows
+               + " total row"
+               + ((totalRows != 1) ? "s in " : " in ")
                + TimeUtils.millisToDurationString(stop - start)
                + ")");
+        }
+    }
+    
+    private void handleException (Session session, Throwable e) {
+        
+        session.err.println("["+e.getClass().getName()+"]: " + e.toString());
+        
+        e = e.getCause();
+        while (e != null) {
+            
+            session.err.println("["+e.getClass().getName()+"]: " + e.toString());
+            e = e.getCause();
         }
     }
 

@@ -353,7 +353,7 @@ VARIABLES
                   used while in a Jaql session.
   jaql_style      Default output style to use (same as --outoptions, above)
   jaql_jars       Jars to utilize from jaql (same as --jars, above)
-  jaql_jars       Module search path (same as --jaql-path, below)
+  jaql_path       Module search path (same as --jaql-path, below)
 
   Please note that the above variables are only utilized when starting the
   Jaql shell and will not have an effect after the shell is started.

@@ -75,6 +75,16 @@ public class Jaql
              option='n', longOption="new-session", arg=NONE,
              description="Create a new session for the connection")
          public boolean newSession = false;
+         
+         /*
+          * DISBALED FOR NOW -- THIS DOESN'T WORK PROPERTY (OR AT LEAST
+          * THE WAY I THINK IT SHOULD
+          * 
+         @Option(
+             option='s', longOption="progress", arg=NONE,
+             description="Enable progress tracking of MR jobs")
+         */
+         public boolean progress = false;
         
          @Argv(program="\\jaql", min=0, max=0,
              usage="[-o style] [-j jars] [-p path]")
@@ -107,6 +117,17 @@ public class Jaql
             
             options.jaqlPath = session.getVariable("jaql_path");
         }
+        if (options.progress == false) {
+            
+            String str = session.getVariable("jaql_progress");
+            if (str != null 
+                  && (str.equalsIgnoreCase("true")
+                        || str.equalsIgnoreCase("on")
+                        || str.equals("1"))) {
+                
+                options.progress = true;
+            }
+        }
         if (options.indent == -1) {
             
             String str = session.getVariable("jaql_indent");
@@ -122,10 +143,19 @@ public class Jaql
         throws Exception {
 
         Options   options = (Options) opts;
+        configVariables(session, options);
+        
+        /*
+         * Has to happen before we instantiate the engine.
+         */
+        if (options.progress) {
+            
+            System.setProperty("jaql.progress.monitor", "true");
+        }
+        
         JaqlQuery engine  = new JaqlQuery();
         JaqlFormatter formatter = null;
         
-        configVariables(session, options);
         
         if (options.indent == -1)
             options.indent = 3;
