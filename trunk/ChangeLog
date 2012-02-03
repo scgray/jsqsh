@@ -10,6 +10,8 @@ Release 1.5
     - The variables "jaql_prompt", "jaql_indent", "jaql_jars", "jaql_path",
       and "jaql_style" can be used to affect the behavior of the jaql shell
       (these are all documented under "\help jaql").
+    - Jsqsh options --jaql-path and --jaql-jars have been added. Use of
+      these options implies --jaql.
     - Tab completion will complete any global Jaql variable name.  
 * The --debug flag can now be specified multiple times.
 * Fixed bug where connection names supplied on the command line

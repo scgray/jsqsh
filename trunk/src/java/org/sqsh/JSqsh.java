@@ -65,12 +65,22 @@ public class JSqsh {
            option='n', longOption="non-interactive", arg=NONE,
            description="Force the session to be non-interactive "
                            + "(not yet implemented)")
-        public boolean nonInteractive = false;
+       public boolean nonInteractive = false;
        
        @Option(
            option='j', longOption="jaql", arg=NONE,
            description="Start the session in Jaql mode")
-        public boolean jaqlMode = false;
+       public boolean jaqlMode = false;
+       
+       @Option(
+           option='p', longOption="jaql-path", arg=REQUIRED,
+           description="Colon separated list of jaql module search directories")
+       public String jaqlSearchPath = null;
+       
+       @Option(
+           option='J', longOption="jaql-jars", arg=REQUIRED,
+           description="Comma separated list of jars to be used by the jaql shell")
+       public String jaqlJars = null;
        
        @Option(
            option='b', longOption="debug", arg=REQUIRED, argName="class",
@@ -155,7 +165,12 @@ public class JSqsh {
                 (options.inputFile == null));
             session.setOut(out, options.outputFile != null);
             
-            if (options.jaqlMode) {
+            if (options.nonInteractive)
+                session.setInteractive(false);
+            
+            if (options.jaqlMode 
+                    || options.jaqlJars != null
+                    || options.jaqlSearchPath != null) {
                 
                 if (!doJaql(session, options)) {
                     
@@ -326,6 +341,11 @@ public class JSqsh {
         
         Jaql.Options jaqlOptions = new Jaql.Options();
         Jaql cmd = new Jaql();
+        
+        if (options.jaqlJars != null)
+            jaqlOptions.jars = options.jaqlJars;
+        if (options.jaqlSearchPath != null)
+            jaqlOptions.jaqlPath = options.jaqlSearchPath;
         
         try {
             
