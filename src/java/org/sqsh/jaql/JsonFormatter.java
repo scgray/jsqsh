@@ -35,30 +35,53 @@ public class JsonFormatter
         
         int nrows = 0;
         
+        /*
+        System.out.println("SHOULD BE");
+        iter.print(System.out);
+        System.out.println("IS");
+        */
+        
         if (iter.moveNext()) {
             
-            JsonValue v = iter.current();
+            /*
+             * The getImmutableCopy() is because some functions, such
+             * as strSplit(), re-use an internal buffer during each
+             * call at a given call-site, so the current value is only
+             * good "right now".  That is, the JsonValue I have in my 
+             * hand will have its guts re-used on the next call to
+             * moveNext(), which has icky side effects in terms of our
+             * display.
+             */
+            JsonValue first = iter.current().getImmutableCopy();
             if (iter.moveNext()) {
-                
+            
                 session.out.println('[');
                 session.out.print(defaultIndent);
-                write(v, defaultIndent);
+                write(first, defaultIndent);
                 ++nrows;
+                
+                /*
+                 * Just in case "first" was big, we are holding a copy
+                 * right now, so free that up.
+                 */
+                first = null;
+                
                 do {
                     
                     session.out.println(",");
                     session.out.print(defaultIndent);
-                    v = iter.current();
-                    write(v, defaultIndent);
+                    JsonValue next = iter.current();
+                    write(next, defaultIndent);
                     ++nrows;
                 }
                 while (iter.moveNext());
+                
                 session.out.println();
                 session.out.println(']');
             }
             else {
                 
-                write(v, "");
+                write(first, "");
                 ++nrows;
                 session.out.println();
             }
