@@ -296,7 +296,7 @@ public class JaqlConnection
         }
         catch (Throwable e) {
             
-            handleException(session, e);
+            session.printException(e);
         }
         
         stop = System.currentTimeMillis();
@@ -320,18 +320,6 @@ public class JaqlConnection
         }
     }
     
-    private void handleException (Session session, Throwable e) {
-        
-        session.err.println("["+e.getClass().getName()+"]: " + e.toString());
-        
-        e = e.getCause();
-        while (e != null) {
-            
-            session.err.println("["+e.getClass().getName()+"]: " + e.toString());
-            e = e.getCause();
-        }
-    }
-
     @Override
     public String toString() {
 

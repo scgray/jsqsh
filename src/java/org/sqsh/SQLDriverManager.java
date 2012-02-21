@@ -76,6 +76,57 @@ public class SQLDriverManager {
     private URLClassLoader classLoader = new URLClassLoader(
         new URL[0], getClass().getClassLoader());
     
+    /**
+     * Wrapper class around drivers that are to be loaded with my custom
+     * class loader. This idea was taken from:
+     * 
+     *    http://www.kfu.com/~nsayer/Java/dyn-jdbc.html
+     */
+    public static class DriverShim 
+        implements Driver {
+        
+        private Driver driver;
+        
+        public DriverShim(Driver driver) {
+            
+            this.driver = driver;
+        }
+
+        public boolean acceptsURL(String arg0)
+            throws SQLException {
+
+            return driver.acceptsURL(arg0);
+        }
+
+        public Connection connect(String arg0, Properties arg1)
+                        throws SQLException {
+
+            return driver.connect(arg0, arg1);
+        }
+
+        public int getMajorVersion() {
+
+            return driver.getMajorVersion();
+        }
+
+        public int getMinorVersion() {
+
+            return driver.getMinorVersion();
+        }
+
+        public DriverPropertyInfo[] getPropertyInfo(String arg0, Properties arg1)
+                        throws SQLException {
+
+            return driver.getPropertyInfo(arg0, arg1);
+        }
+
+        public boolean jdbcCompliant() {
+
+            return driver.jdbcCompliant();
+        }
+    }
+    
+    
     public SQLDriverManager() {
         
         /*
@@ -219,11 +270,17 @@ public class SQLDriverManager {
             
             try {
                 
-                Class.forName(driver.getDriverClass(), true, classLoader);
+                Class<? extends Driver> driverClass = Class.forName(
+                    driver.getDriverClass(), true, classLoader).asSubclass(Driver.class);
+                Driver d = driverClass.newInstance();
+                DriverManager.registerDriver(new DriverShim(d));
+                
                 driver.setAvailable(true);
             }
             catch (Exception e) {
                 
+                LOG.fine("Unable to load " + driver.getDriverClass() + ": "
+                    + e.getMessage());
                 driver.setAvailable(false);
             }
         }
@@ -323,7 +380,10 @@ public class SQLDriverManager {
             
             try {
                 
-                loadClass(connDesc.getJdbcClass());
+                Class<? extends Driver> driverClass = Class.forName(
+                    connDesc.getJdbcClass(), true, classLoader).asSubclass(Driver.class);
+                Driver d = driverClass.newInstance();
+                DriverManager.registerDriver(new DriverShim(d));
             }
             catch (Exception e) {
                 
@@ -356,14 +416,13 @@ public class SQLDriverManager {
         Connection conn = null;
         try {
             
-            Driver jdbcDriver = getDriverFromUrl(url);
+            Driver jdbcDriver = DriverManager.getDriver(url);
             
             /*
              * Similar to above, we'll iterate through the properties supported by
              * the driver and set them as necessary.
              */
             Properties props = new Properties();
-            
             try {
                 
                 /*
@@ -423,7 +482,7 @@ public class SQLDriverManager {
             }
             props.put(SQLDriver.PASSWORD_PROPERTY, s);
             
-            conn = jdbcDriver.connect(url, props);
+            conn = DriverManager.getConnection(url, props);
             SQLTools.printWarnings(session, conn);
         }
         catch (SQLException e) {
