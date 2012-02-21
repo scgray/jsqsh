@@ -86,15 +86,6 @@
        <Property name="emulateParameterMetaDataForZCalls">1</Property>
    </Driver>
 
-   <Driver name="sql-skin"
-           target="IBM DB2 SSacSA"
-           class="com.ants.sybase.db2.jdbc3.jdbc.AntsSybDB2Driver"
-           analyzer="org.sqsh.analyzers.TSQLAnalyzer"
-           url="jdbc:ants:sybase:${server}:${port}#if($db)/${db}#end">
-        <Variable name="server">localhost</Variable>
-        <Variable name="port">50000</Variable>
-    </Driver>
-   
    <Driver name="mysql" 
            target="MySQL"
            class="org.gjt.mm.mysql.Driver"

@@ -186,9 +186,9 @@ public class Go
                     SQLTools.printException(session.err, e);
                     returnCode = 1;
                 }
-                catch (Throwable e)
-                {
-                    session.err.println(e.getMessage());
+                catch (Throwable e) {
+                    
+                    session.printException(e);
                     returnCode = 1;
                 }
             }

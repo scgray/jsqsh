@@ -13,6 +13,16 @@ Release 1.5
     - Jsqsh options --jaql-path and --jaql-jars have been added. Use of
       these options implies --jaql.
     - Tab completion will complete any global Jaql variable name.  
+* Added ${show_stack} and ${show_exclass} configuration variables that
+  allow parts of exceptions to be enabled/disabled (specifically 
+  displaying of the stack trace and the exception class name).
+* Changed the way in which JDBC drivers are loaded via a custom class
+  path (using the ${classpath} variable).  Apparently some drivers don't
+  like to be used directly to establish the connection, so this change
+  will use the JDBC DriverManager to get connections.
+* Removed support for ANTs DB2 SQL Skin for Sybase ASE driver. The company 
+  is dead except for the nails in the coffin. Too bad, I was extremely proud of 
+  what we built.
 * The --debug flag can now be specified multiple times.
 * Fixed bug where connection names supplied on the command line
   are not recognized.
