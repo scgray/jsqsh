@@ -29,13 +29,11 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
 import org.sqsh.input.ConsoleLineReader;
 import org.sqsh.jni.ShellManager;
-import org.sqsh.signals.SignalManager;
 
 /**
  * The SqshContext is the master container of all things jsqsh. Its primary
@@ -129,11 +127,6 @@ public class SqshContext {
     private SQLRenderer sqlRenderer = new SQLRenderer(this);
     
     /**
-     * The signal manager.
-     */
-    private SignalManager signalManager = SignalManager.getInstance();
-    
-    /**
      * The shell manager is responsible for executing command in a sub-shell
      * (such as during pipes and back-ticks).
      */
@@ -193,6 +186,13 @@ public class SqshContext {
      * b) readline says "yes", then this will remain true.
      */
     private boolean isInteractive = true;
+    
+    /**
+     * If true, then user input will be echoed back to stdout. This is
+     * useful when you want to watch the SQL behind a script fly by along
+     * with the results.
+     */
+    private boolean isInputEchoed = false;
     
     /**
      * Records if we have given the copyright banner yet.
@@ -278,6 +278,27 @@ public class SqshContext {
         prevSessionId = 1;
     }
     
+    
+    /**
+     * @return true if the user's input is to be echoed back.
+     */
+    public boolean isInputEchoed() {
+    
+        return isInputEchoed;
+    }
+
+    /**
+     * Sets whether or not input that is read in is echoed back out. This
+     * is usually used in non-interactive mode to display the SQL being run
+     * along with the output of the SQL.
+     * 
+     * @param isInputEchoed set to true if you want input echoed back.
+     */
+    public void setInputEchoed(boolean isInputEchoed) {
+    
+        this.isInputEchoed = isInputEchoed;
+    }
+
     /**
      * @return The command manager.
      */
@@ -372,15 +393,6 @@ public class SqshContext {
     }
     
     /**
-     * Returns the SignalManager.
-     * @return The signal manager.
-     */
-    public SignalManager getSignalManager() {
-        
-        return signalManager;
-    }
-    
-    /**
      * Returns the shell manager.
      * 
      * @return The shell manager.
@@ -431,7 +443,7 @@ public class SqshContext {
         
         variableManager.put(name, value);
     }
-
+    
     /**
      * Adds an additional configuration directory to be processed
      * when the context is run(). This method may be called multiple
@@ -966,27 +978,6 @@ public class SqshContext {
             }
             
             out.close();
-        }
-    }
-
-    /**
-     * Loads any driver.xml files that have been configured.
-     */
-    private void loadDriverFiles() {
-
-        Iterator<String> iter = driverFiles.iterator();
-        while (iter.hasNext()) {
-
-            File driverFile = new File(iter.next());
-            if (driverFile.exists()) {
-
-                driverManager.load(driverFile);
-            }
-            else {
-
-                System.err.println("WARNING: Could not load driver file '"
-                    + driverFile.toString() + "'");
-            }
         }
     }
 

@@ -749,6 +749,21 @@ SEE ALSO
         ]]></Help>
     </Property>
     
+    <Property bean="global" name="echo" property="inputEchoed">
+        <Description>Echo all input</Description>
+        <Help><![CDATA[
+VARIABLE
+   echo - Controls echoing of input to stdout 
+   
+DESCRIPTION
+   If set to "true" the ${echo} variable causes every line that is read
+   as input to be echoed back out to output. The typical use of this is
+   when running jsqsh non-interactively with a script. With this option on,
+   you will see all of the SQL and commands as well as the output of all of
+   the commands.
+        ]]></Help>
+    </Property>
+    
     <Property bean="global" name="perfect_sample_rows"
               property="rendererManager.perfectSampleSize">
         <Description>Determines number of rows sampled by "perfect" renderers</Description>

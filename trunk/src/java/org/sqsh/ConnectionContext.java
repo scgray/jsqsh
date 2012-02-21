@@ -17,6 +17,9 @@
  */
 package org.sqsh;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.sqsh.input.completion.Completer;
 import org.sqsh.input.completion.NullCompleter;
 
@@ -80,6 +83,18 @@ public abstract class ConnectionContext {
         int position, String word) {
         
         return new NullCompleter(session, line, position, word);
+    }
+    
+    /**
+     * Returns global variables/objects. This is primarily intended for
+     * use by scripting-language "connections" and is used by the \globals
+     * command.
+     * @return The list of globals. The default implementation will return
+     *   an empty list.
+     */
+    public List<String> getGlobals() {
+        
+        return new ArrayList<String>(0);
     }
     
     /**

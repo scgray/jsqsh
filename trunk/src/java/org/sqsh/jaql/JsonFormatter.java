@@ -35,13 +35,7 @@ public class JsonFormatter
         
         int nrows = 0;
         
-        /*
-        System.out.println("SHOULD BE");
-        iter.print(System.out);
-        System.out.println("IS");
-        */
-        
-        if (iter.moveNext()) {
+        if (!isCanceled() && iter.moveNext()) {
             
             /*
              * The getImmutableCopy() is because some functions, such
@@ -53,7 +47,7 @@ public class JsonFormatter
              * display.
              */
             JsonValue first = iter.current().getImmutableCopy();
-            if (iter.moveNext()) {
+            if (!isCanceled() && iter.moveNext()) {
             
                 session.out.println('[');
                 session.out.print(defaultIndent);
@@ -74,7 +68,7 @@ public class JsonFormatter
                     write(next, defaultIndent);
                     ++nrows;
                 }
-                while (iter.moveNext());
+                while (!isCanceled() && iter.moveNext());
                 
                 session.out.println();
                 session.out.println(']');

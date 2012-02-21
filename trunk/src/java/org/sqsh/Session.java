@@ -17,14 +17,11 @@
  */
 package org.sqsh;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -34,7 +31,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.sqsh.analyzers.SQLAnalyzer;
 import org.sqsh.jni.Shell;
 import org.sqsh.jni.ShellException;
 import org.sqsh.jni.ShellManager;
@@ -562,15 +558,6 @@ public class Session
     }
     
     /**
-     * Returns the signal manager.
-     * @return The signal manager.
-     */
-    public SignalManager getSignalManager() {
-        
-        return sqshContext.getSignalManager();
-    }
-    
-    /**
      * Returns the variable manager for the session.
      * 
      * @return The variable manager for the session.
@@ -651,7 +638,7 @@ public class Session
      * @param str The string to expand.
      * @return The expanded string.
      */
-    public String expand(Map variables, String str) {
+    public String expand(Map<String, String> variables, String str) {
         
         return getStringExpander().expand(this, variables, str);
     }
@@ -711,7 +698,8 @@ public class Session
          * interrupt when a signal is received.
          */
         FlaggingSignalHandler sigHandler = new FlaggingSignalHandler();
-        getSignalManager().push(sigHandler);
+        SignalManager sigMan = SignalManager.getInstance();
+        sigMan.push(sigHandler);
         
         try {
             
@@ -743,7 +731,7 @@ public class Session
         }
         finally {
             
-            getSignalManager().pop();
+            sigMan.pop();
         }
     }
                 
@@ -910,6 +898,9 @@ public class Session
             
             /* EOF */
         }
+        
+        if (sqshContext.isInputEchoed())
+            out.println(line);
             
         return line;
     }

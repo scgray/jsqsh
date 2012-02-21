@@ -18,20 +18,21 @@
 package org.sqsh.jaql;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.sqsh.ConnectionContext;
 import org.sqsh.SQLRenderer;
 import org.sqsh.Session;
 import org.sqsh.input.completion.Completer;
+import org.sqsh.signals.SignalManager;
 import org.sqsh.util.TimeUtils;
 
-import com.ibm.jaql.io.converter.JsonToStream;
 import com.ibm.jaql.json.type.JsonArray;
-import com.ibm.jaql.json.type.JsonRecord;
 import com.ibm.jaql.json.type.JsonValue;
 import com.ibm.jaql.json.util.JsonIterator;
 import com.ibm.jaql.lang.JaqlQuery;
-import com.ibm.jaql.predict.JobInfo;
+import com.ibm.jaql.lang.core.Context;
 import com.ibm.jaql.predict.ProgressEstimation;
 
 /**
@@ -157,6 +158,42 @@ public class JaqlConnection
 
         return new JaqlCompleter(engine, session, line, position, word);
     }
+    
+    /**
+     * Returns all of the currently defined global variables.
+     */
+    @Override
+    public List<String> getGlobals() {
+        
+        ArrayList<String> vars = new ArrayList<String>();
+
+        /*
+         * Yuck. The distinct() is because of a bug in listVariables()
+         */
+        engine.setQueryString("distinct(listVariables().var)");
+        try {
+        
+            JsonValue v = engine.evaluate();
+            if (!(v instanceof JsonArray)) {
+                
+                session.err.println("Expected JsonArray from listVariables()!!");
+            }
+            else {
+                
+                JsonIterator iter = ((JsonArray)v).iter();
+                while (iter.moveNext()) {
+                    
+                    vars.add(iter.current().toString());
+                }
+            }
+        }
+        catch (Exception e) {
+            
+            session.err.println(e.getMessage());
+        }
+        
+        return vars;
+    }
 
     /**
      * Given a quoted string, skip it.
@@ -228,6 +265,21 @@ public class JaqlConnection
         
         long start = System.currentTimeMillis();
         long stop;
+        
+        /*
+         * Install our signal handler.
+         */
+        SignalManager sigMan = SignalManager.getInstance();
+        JaqlSignalHandler sigHandler = 
+            new JaqlSignalHandler(Context.current());
+        sigMan.push(sigHandler);
+        
+        /*
+         * The formatter polls the signal handler to find out if it 
+         * should stop writing.
+         */
+        formatter.setSignalHandler(sigHandler);
+        
         engine.setQueryString(batch);
         
         int totalRows = 0;
@@ -236,7 +288,7 @@ public class JaqlConnection
         int nResults = 0;
         try {
             
-            while (engine.moveNextQuery()) {
+            while (!sigHandler.isTriggered() && engine.moveNextQuery()) {
                 
                 /*
                  * Check to see if we have been requested to track progress.
@@ -282,6 +334,7 @@ public class JaqlConnection
                     && (nrows > 0 || (currentStop - currentStart) > 10L)) {
                     
                     session.out.println("("
+                       + (sigHandler.isTriggered() ? "Canceled at " : "")
                        + nrows
                        + " row"
                        + ((nrows != 1) ? "s in " : " in ")
@@ -299,6 +352,11 @@ public class JaqlConnection
             session.printException(e);
         }
         
+        /*
+         * Make sure we uninstall our signal handler.
+         */
+        sigMan.pop();
+        
         stop = System.currentTimeMillis();
         
         /*
@@ -307,7 +365,8 @@ public class JaqlConnection
          * that are very low, because the assumption is this is something
          * like a simple assignment.
          */
-        if (nResults > 1
+        if (!sigHandler.isTriggered()
+           && nResults > 1
            && session.isInteractive() && renderer.isShowTimings()
            && (totalRows > 0 || (stop - start) > 10L)) {
             

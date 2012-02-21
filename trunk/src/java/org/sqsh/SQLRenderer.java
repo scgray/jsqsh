@@ -31,6 +31,7 @@ import java.util.Set;
 
 import org.sqsh.signals.CancelingSignalHandler;
 import org.sqsh.signals.SigHandler;
+import org.sqsh.signals.SignalManager;
 import org.sqsh.SqshTypes;
 
 public class SQLRenderer {
@@ -325,6 +326,7 @@ public class SQLRenderer {
         CallableStatement statement = null;
         Connection conn = session.getConnection();
         CancelingSignalHandler sigHandler = null;
+        SignalManager sigMan = SignalManager.getInstance();
         
         if (conn == null) {
             
@@ -337,7 +339,7 @@ public class SQLRenderer {
             bindParameters(statement, params);
             
             sigHandler = new CancelingSignalHandler(statement);
-            session.getSignalManager().push((SigHandler) sigHandler);
+            sigMan.push(sigHandler);
             
             startTime = System.currentTimeMillis();
             ok = execute(renderer, session, statement, statement.execute());
@@ -372,7 +374,7 @@ public class SQLRenderer {
             
             if (sigHandler != null) {
                 
-                session.getSignalManager().pop();
+                sigMan.pop();
             }
             
             SQLTools.close(statement);
@@ -405,6 +407,7 @@ public class SQLRenderer {
         PreparedStatement statement = null;
         Connection conn = session.getConnection();
         CancelingSignalHandler sigHandler = null;
+        SignalManager sigMan = SignalManager.getInstance();
         
         if (conn == null) {
             
@@ -417,7 +420,7 @@ public class SQLRenderer {
             bindParameters(statement, params);
             
             sigHandler = new CancelingSignalHandler(statement);
-            session.getSignalManager().push((SigHandler) sigHandler);
+            sigMan.push(sigHandler);
             
             startTime = System.currentTimeMillis();
             ok = execute(renderer, session, statement, statement.execute());
@@ -426,7 +429,7 @@ public class SQLRenderer {
             
             if (sigHandler != null) {
                 
-                session.getSignalManager().pop();
+                sigMan.pop();
             }
             
             SQLTools.close(statement);
@@ -463,6 +466,7 @@ public class SQLRenderer {
         Statement statement = null;
         Connection conn = session.getConnection();
         CancelingSignalHandler sigHandler = null;
+        SignalManager sigMan = SignalManager.getInstance();
         
         if (conn == null) {
             
@@ -482,7 +486,7 @@ public class SQLRenderer {
                 statement = conn.prepareStatement(sql);
                 
                 sigHandler = new CancelingSignalHandler(statement);
-                session.getSignalManager().push((SigHandler) sigHandler);
+                sigMan.push(sigHandler);
                 
                 startTime = System.currentTimeMillis();
                 ok = execute(renderer, session, statement, 
@@ -493,7 +497,7 @@ public class SQLRenderer {
                 statement = conn.createStatement();
                 
                 sigHandler = new CancelingSignalHandler(statement);
-                session.getSignalManager().push((SigHandler) sigHandler);
+                sigMan.push(sigHandler);
                 
                 startTime = System.currentTimeMillis();
                 ok = execute(renderer, session, statement, statement.execute(sql));
@@ -503,7 +507,7 @@ public class SQLRenderer {
             
             if (sigHandler != null) {
                 
-                session.getSignalManager().pop();
+                sigMan.pop();
             }
             
             SQLTools.close(statement);
