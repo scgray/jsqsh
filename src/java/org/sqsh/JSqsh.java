@@ -36,7 +36,6 @@ import org.sqsh.options.OptionException;
 import org.sqsh.options.OptionProcessor;
 
 import static org.sqsh.options.ArgumentRequired.REQUIRED;
-import static org.sqsh.options.ArgumentRequired.OPTIONAL;
 import static org.sqsh.options.ArgumentRequired.NONE;
 
 /**
@@ -60,6 +59,11 @@ public class JSqsh {
            option='o', longOption="output-file", arg=REQUIRED, argName="file",
            description="Name of file send output instead of stdout")
        public String outputFile = null;
+       
+       @Option(
+           option='e', longOption="echo", arg=NONE, 
+           description="Echoes all input back. Useful for running scripts.")
+       public boolean isInputEchoed = false;
        
        @Option(
            option='n', longOption="non-interactive", arg=NONE,
@@ -157,6 +161,8 @@ public class JSqsh {
 
             sqsh.addDriverFile(file);
         }
+        
+        sqsh.setInputEchoed(options.isInputEchoed);
         
         try {
             

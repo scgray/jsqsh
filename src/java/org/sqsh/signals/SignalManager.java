@@ -34,41 +34,50 @@ public class SignalManager
         "org.sqsh.signals.NullSignalCatcher",
     };
     
-    private static Stack<SigHandler> handlers = new Stack<SigHandler>();
     private static SignalManager instance = null;
-    private static AbstractSignalCatcher handlerImpl = null;
-    private static int signalCount = 0;
+    private static Object lock = new Object();
+    
+    private Stack<SigHandler> handlers = new Stack<SigHandler>();
+    private int signalCount = 0;
+    private AbstractSignalCatcher handlerImpl = null;
     
     private SignalManager() {
         
     }
     
     /**
-     * Grabs ahold of the one-true signal handler.
+     * Grabs a hold of the one-true signal handler.
      * 
      * @return A handle to the manager.
      */
-    public static synchronized SignalManager getInstance() {
+    public static SignalManager getInstance() {
         
         if (instance == null) {
             
-            instance = new SignalManager();
-            
-            boolean done = false;
-            for (int i = 0; !done && i < SIGNAL_IMPLEMENTATIONS.length; i++) {
+            synchronized (lock) {
                 
-                try {
-                    
-                    Class sigClass = Class.forName(SIGNAL_IMPLEMENTATIONS[i]);
-                    Constructor constructor = 
-                         sigClass.getConstructor(SignalManager.class);
-                    handlerImpl = (AbstractSignalCatcher)
-                        constructor.newInstance(instance);
-                    done = true;
-                }
-                catch (Exception e) {
-                    
-                    /* IGNORED */
+                if (instance == null) {
+            
+                    for (int i = 0; i < SIGNAL_IMPLEMENTATIONS.length; i++) {
+                        
+                        try {
+                            
+                            Class<? extends AbstractSignalCatcher> sigClass = 
+                                Class.forName(SIGNAL_IMPLEMENTATIONS[i]).asSubclass(
+                                    AbstractSignalCatcher.class);
+                            
+                            Constructor<? extends AbstractSignalCatcher> constructor = 
+                                 sigClass.getConstructor(SignalManager.class);
+                            
+                            instance = new SignalManager();
+                            instance.handlerImpl = constructor.newInstance(instance);
+                            break;
+                        }
+                        catch (Exception e) {
+                            
+                            /* IGNORED */
+                        }
+                    }
                 }
             }
         }
@@ -83,7 +92,7 @@ public class SignalManager
      * 
      * @param handler The new handler.
      */
-    public static synchronized void push(SigHandler handler) {
+    public synchronized void push(SigHandler handler) {
         
         signalCount = 0;
         handlers.push(handler);
@@ -95,7 +104,7 @@ public class SignalManager
      * 
      * @return The current handler.
      */
-    public static synchronized SigHandler pop() {
+    public synchronized SigHandler pop() {
         
         signalCount = 0;
         return handlers.pop();
@@ -104,7 +113,7 @@ public class SignalManager
     /**
      * Used to acknowledge the receipt of the current signal.
      */
-    public static synchronized void acknowledge() {
+    public synchronized void acknowledge() {
         
         signalCount = 0;
     }

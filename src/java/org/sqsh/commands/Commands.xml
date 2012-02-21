@@ -1302,7 +1302,7 @@ SEE ALSO
     <Command name="\tree" class="org.sqsh.commands.Tree">
 
         <Description><![CDATA[
-           Shows A tree view of all the tables
+           Shows a tree view of all the tables
         ]]></Description>
             <Help><![CDATA[
 SYNOPSIS
@@ -1330,6 +1330,28 @@ OPTIONS:
                 synonym  - Displays only synonyms
 
 
+      ]]></Help>
+    </Command>
+    
+    <Command name="\globals" class="org.sqsh.commands.Globals">
+
+        <Description><![CDATA[
+           Displays all global variables
+        ]]></Description>
+            <Help><![CDATA[
+SYNOPSIS
+   \globals
+
+DESCRIPTION
+   Displays all global variables. The definition of what constitutes a
+   global variable depends on the type of session you are running. For
+   a JDBC session this returns no results (since SQL typically does not
+   have the concept of globals), and for a Jaql session it will display
+   all Jaql global objects.
+
+OPTIONS:
+
+   None.
       ]]></Help>
     </Command>
 

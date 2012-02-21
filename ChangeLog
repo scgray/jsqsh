@@ -16,6 +16,11 @@ Release 1.5
 * Added ${show_stack} and ${show_exclass} configuration variables that
   allow parts of exceptions to be enabled/disabled (specifically 
   displaying of the stack trace and the exception class name).
+* Added --echo jsqsh flag and ${echo} variable to echo the input back out 
+  to stdout. This is useful when running scripts (non-interactive mode)
+  see both the SQL and commands executed as well as the results.
+* Added \globals command. Right now this only works for a Jaql session,
+  and displays all variables defined for the current session.
 * Changed the way in which JDBC drivers are loaded via a custom class
   path (using the ${classpath} variable).  Apparently some drivers don't
   like to be used directly to establish the connection, so this change
