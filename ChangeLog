@@ -42,6 +42,9 @@ Release 1.5
   is dead except for the nails in the coffin. Too bad, I was extremely proud of 
   what we built.
 * The --debug flag can now be specified multiple times.
+* Fixed a longstanding irritation of empty entries appearing in the
+  \history list. Now empty SQL buffers will be thrown away so no
+  empty entries should appear in the history.
 * Fixed bug where connection names supplied on the command line
   are not recognized.
 
