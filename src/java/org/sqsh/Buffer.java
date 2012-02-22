@@ -96,6 +96,37 @@ public class Buffer {
     }
     
     /**
+     * Checks whether or not a buffer is empty.
+     * 
+     * @param ignoreWhitespace If true, then a buffer that is full of nothing
+     *    but whitespace (as determined by {@link Character#isWhitespace(char)})
+     *    is considered empty.
+     * @return true if the buffer is empty.
+     */
+    public boolean isEmpty (boolean ignoreWhitespace) {
+        
+        int len = buffer.length();
+        boolean isEmpty = false;
+        
+        if (len == 0)
+            isEmpty = true;
+        else if (!ignoreWhitespace)
+            isEmpty = false;
+        else {
+            
+            int idx = 0;
+            while (idx < len && Character.isWhitespace(buffer.charAt(idx))) {
+                
+                ++idx;
+            }
+            
+            isEmpty = (idx == len);
+        }
+        
+        return isEmpty;
+    }
+    
+    /**
      * @return The id of the buffer. An id of -1 indicates that the
      * buffer has not yet been assigned an id.
      */
