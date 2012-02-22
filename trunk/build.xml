@@ -68,10 +68,13 @@
                 <include name="**/*.properties"/>
                 <include name="**/template/*"/>
             </fileset>
-            <filterset>
-                <filter token="VERSION" value="${version}"/>
-            </filterset>
         </copy>
+
+        <propertyfile file="build/classes/build.properties">
+            <entry key="build.date" type="date" default="now" operation="="
+                   pattern="yyyyMMdd"/>
+            <entry key="build.version" value="${version}"/>
+        </propertyfile>
      </target>
 
      <!-- 

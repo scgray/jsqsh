@@ -1,12 +1,10 @@
 Release 1.5
 * Added support for Jaql - a hadoop query language. The support consists of
   the following:
-    - The \jaql command or --jaql when starting jsqsh, establishes the 
-      current session as a jaql session.
-    - In a jaql session,  \go executes the current statement through the 
-      Jaql interpreter.
-    - Semicolon (";") is recognized as a command terminator and will also
-      run the command. 
+    - The \jaql command starts a Jaql session
+    - The --jaql when starting jsqsh, automatically starts a session
+    - When in a jaql session, \go or the command terminator (";" by default)
+      executes the current statement through the Jaql interpreter.
     - The variables "jaql_prompt", "jaql_indent", "jaql_jars", "jaql_path",
       and "jaql_style" can be used to affect the behavior of the jaql shell
       (these are all documented under "\help jaql").
