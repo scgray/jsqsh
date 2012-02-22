@@ -80,4 +80,25 @@ for jar in "$ROOT_DIR/share/"*.jar; do
 done
 export CLASSPATH
 
-java org.sqsh.JSqsh $*
+#
+# If there is a lib directory, then make sure that
+# LD_LIBRARY_PATH points to that.
+#
+if [ -d "$ROOT_DIR/lib/jni" ]; then
+   LD_LIBRARY_PATH="$ROOT_DIR/lib"
+   export LD_LIBRARY_PATH
+fi
+
+#
+# This is for jaql support in jsqsh. If $JAQL_HOME is defined and there
+# is a 'jaql' launch script in there, then use it to launch Jsqsh. This
+# will ensure that the classpath is all good to run jsqsh. As far as I
+# know this configuration will only work on BigInsights. 
+#
+if [ ! -z "$JAQL_HOME" -a -f "$JAQL_HOME/bin/jaql" ]; then
+   export HADOOP_CLASSPATH=$CLASSPATH
+   exec $JAQL_HOME/bin/jaql "-Djava.library.path=$LD_LIBRARY_PATH" org.sqsh.JSqsh $*
+else
+   export CLASSPATH
+   exec java org.sqsh.JSqsh $*
+fi

@@ -200,6 +200,12 @@ public class SqshContext {
     private boolean doneBanner = false;
     
     /**
+     * The command terminator that is currently in use. Setting this to -1
+     * disables command termination.
+     */
+    private int terminator = ';';
+    
+    /**
      * Creates a new SqshContext.
      * 
      * @param readerType The type of readline implementation to utilize. This
@@ -298,6 +304,55 @@ public class SqshContext {
     
         this.isInputEchoed = isInputEchoed;
     }
+    
+    /**
+     * @return The current command terminator character. A negative value
+     *    indicates that there is no terminator.
+     */
+    public int getTerminator() {
+    
+        return terminator;
+    }
+    
+    /**
+     * Sets the command terminator.
+     * @param terminator The character that should be used to terminate commands.
+     *   A negative value disabled character termination.
+     */
+    public void setTerminator(int terminator) {
+    
+        this.terminator = terminator;
+    }
+
+    /**
+     * Sets the command terminator using a string. This method is
+     * primarily intended for use when setting the value using BeanUtils,
+     * which is done with the $terminator variable is set.
+     * 
+     * @param terminator The command terminator. If the string is null or
+     *    zero length, then the command terminator is disabled, otherwise 
+     *    the first character of the string is used.
+     */
+    public void setTerminatorString(String terminator) {
+    
+        setTerminator((terminator == null || terminator.length() == 0)
+            ? -1 : terminator.charAt(0));
+    }
+    
+    /**
+     * Returns the command terminator using a string. This method is
+     * primarily intended for use when setting the value using BeanUtils,
+     * which is done with the $terminator variable is set.
+     * @return The current command terminator as a string. 
+     */
+    public String getTerminatorString() {
+        
+        if (terminator < 0)
+            return null;
+        
+        return Character.toString((char) terminator);
+    }
+    
 
     /**
      * @return The command manager.

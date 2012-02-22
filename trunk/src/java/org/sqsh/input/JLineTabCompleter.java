@@ -23,12 +23,9 @@ import org.sqsh.ConnectionContext;
 import org.sqsh.Session;
 import org.sqsh.SqshContext;
 import org.sqsh.input.completion.Completer;
-import org.sqsh.input.completion.DatabaseObjectCompleter;
-
-import jline.Completor;
 
 public class JLineTabCompleter 
-    implements Completor {
+    implements jline.console.completer.Completer {
     
     static final String WORD_BREAK_CHARS = " \t,/.()<>=?'\":;$%&+-*[]^{}|";
     SqshContext ctx;

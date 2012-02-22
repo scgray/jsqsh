@@ -117,6 +117,11 @@
         <mkdir dir="build/jsqsh-${version}/"/>
         <mkdir dir="build/jsqsh-${version}/bin"/>
         <mkdir dir="build/jsqsh-${version}/share"/>
+         
+        <!-- If requested, install the JNI libraries -->
+        <antcall target="_dist-libs">
+           <param name="prefix" value="${basedir}/build/jsqsh-${version}"/>
+        </antcall>
 
         <!--
           == Copy our dependant jar into share/.
@@ -151,7 +156,25 @@
             includes="jsqsh-${version}/**"
             basedir="build"/>
      </target>
-
+    
+     <!-- Conditionally do a 'make-install' if install-libs is set -->
+     <target name="_dist-libs" if="install-libs">
+        <antcall target="make-install"/>
+     </target>
+    
+     <!-- 
+       == ************************************************************
+       == dist-bin - Produces a binary zip file
+       ==
+       == This is identical to just "dist" except that the Jsqsh JNI
+       == library is compiled and made part of the zip file.
+       == ************************************************************
+       -->
+     <target name="dist-bin">
+        <antcall target="dist">
+           <param name="install-libs" value="true"/>
+        </antcall>
+     </target>
 
      <!-- 
        == ************************************************************
