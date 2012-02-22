@@ -946,7 +946,11 @@ public class Session
         ConnectionContext conn = getConnectionContext();
         int terminator = sqshContext.getTerminator();
         
-        if (terminator < 0) {
+        /*
+         * The connection determines whether or not the buffer is terminated,
+         * so if there is no connection, then we cannot make that decision.
+         */
+        if (conn == null || terminator < 0) {
             
             return false;
         }
