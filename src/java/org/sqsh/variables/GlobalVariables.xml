@@ -113,6 +113,36 @@ SEE ALSO
    \go, \unset
         ]]></Help>
 	</Property>
+    
+	<Property bean="version" name="version" property="version" settable="false">
+        <Description>The jsqsh version number</Description>
+        <Help><![CDATA[
+VARIABLE
+   version - Contains the jsqsh version number
+
+DESCRIPTION
+   The ${version} variable contains the jsqsh version number. This variable
+   is not settable.
+   
+SEE ALSO
+   build_date
+        ]]></Help>
+	</Property>
+    
+	<Property bean="version" name="build_date" property="buildDate" settable="false">
+        <Description>The jsqsh build date</Description>
+        <Help><![CDATA[
+VARIABLE
+   build_date - Contains the jsqsh build date
+
+DESCRIPTION
+   The ${build_date} variable contains the date at which the version of jsqsh
+   was compiled.
+   
+SEE ALSO
+   build_date
+        ]]></Help>
+	</Property>
 	
 	
 	

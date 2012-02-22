@@ -17,9 +17,7 @@
  */
 package org.sqsh;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -48,12 +46,6 @@ public class VariableManager
     
     private Map<String, Variable>variables = 
         new HashMap<String, Variable>();
-    
-    /**
-     * File that defines the default variable values.
-     */
-    private static final String DEFINITION_FILE = 
-        "org/sqsh/variables/Variables.xml";
     
     /**
      * Map of named beans that the PropertyVariable can refer to.
@@ -397,7 +389,7 @@ public class VariableManager
             return variables.keySet();
         }
         
-        Set set = new HashSet();
+        Set<String> set = new HashSet<String>();
         set.addAll(variables.keySet());
         set.addAll(parent.keySet());
         

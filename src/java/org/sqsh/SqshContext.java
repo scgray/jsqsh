@@ -27,6 +27,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
@@ -230,6 +232,12 @@ public class SqshContext {
          * sqsh variables.
          */
         variableManager.addBean("global", this);
+        
+        /*
+         * This allows information about the jsqsh version to be exposed as
+         * variables.
+         */
+        variableManager.addBean("version", new Version.Bean());
         
         if (in == null) {
             
@@ -788,9 +796,16 @@ public class SqshContext {
                     + "). Run '\\help jni' for details");
             }
             
-            String version = variableManager.get("version");
-            currentSession.out.println("JSqsh Release " + version 
-                + ", Copyright (C) 2007-2011, Scott C. Gray");
+            /*
+             * End year in the copyright will always be right. I'm a sneaky
+             * bastard.
+             */
+            Calendar cal = Calendar.getInstance();
+            int year = cal.get(Calendar.YEAR);
+            
+            currentSession.out.println("JSqsh Release " 
+                + Version.getVersion() 
+                + ", Copyright (C) 2007-" + year + ", Scott C. Gray");
             currentSession.out.println("Type \\help for available help "
                 + "topics. Using " + console.getName() + ".");
             
