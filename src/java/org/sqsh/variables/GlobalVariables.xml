@@ -88,7 +88,7 @@ SEE ALSO
         ]]></Help>
 	</String>
 	
-	<String name="terminator" value=";">
+	<Property bean="global" name="terminator" property="terminatorString">
         <Description>Defines the SQL statement terminator</Description>
         <Help><![CDATA[
 VARIABLE
@@ -112,7 +112,7 @@ DESCRIPTION
 SEE ALSO
    \go, \unset
         ]]></Help>
-	</String>
+	</Property>
 	
 	
 	

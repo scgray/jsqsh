@@ -44,23 +44,52 @@ public class Tokenizer {
     /**
      * Current parse index into the line to be parsed.
      */
-    private int     curIdx = 0;
+    private int curIdx;
     
     /**
      * Number of tokens processed.
      */
-    private int tokenCount = 0;
+    private int tokenCount;
+    
+    /**
+     * Line terminator
+     */
+    private int terminator;
+    
+    /**
+     * Creates an empty tokenizer. The tokenizer must not be used until
+     * reset() is called on it with valid input.
+     */
+    public Tokenizer ()
+    {
+        reset(null, -1);
+    }
     
     /**
      * Creates a command line parser representing the parsed 
      * version of the provided string.
      * 
-     * @param str String to be parsed.
-     *    within string.
+     * @param str String to be parsed
+     * @param terminator The line termination character. This is passed
+     *   in to ensure that it is treated as a standalone token.
      */
-    public Tokenizer (String str) {
+    public Tokenizer (String str, int terminator) {
+        
+        reset(str, terminator);
+    }
+    
+    /**
+     * Allows the tokenizer to be re-used with a new input.
+     * 
+     * @param str The string to parse
+     * @param terminator The current command terminator
+     */
+    public void reset (String str, int terminator) {
         
         this.line = str;
+        this.terminator = terminator;
+        this.tokenCount = 0;
+        this.curIdx = 0;
     }
     
     /**
@@ -86,7 +115,7 @@ public class Tokenizer {
         
         /*
          * First we are going to check to see if we have hit a file descriptor 
-         * output redirection operaion. This can be of the form:
+         * output redirection operation. This can be of the form:
          * 
          *    X>&Y
          *    >
@@ -106,6 +135,10 @@ public class Tokenizer {
             
             token = parsePipe();
         }
+        else if (isTerminator(ch)) {
+            
+            token = parseTerminator();
+        }
         else {
             
             /*
@@ -117,6 +150,18 @@ public class Tokenizer {
         }
         
         ++tokenCount;
+        return token;
+    }
+    
+    /**
+     * @return A token representing the terminator.
+     */
+    private TerminatorToken parseTerminator() {
+        
+        TerminatorToken token = 
+            new TerminatorToken(line, curIdx, line.charAt(curIdx));
+        
+        ++curIdx;
         return token;
     }
     
@@ -248,6 +293,16 @@ public class Tokenizer {
     }
     
     /**
+     * Test if a character is the terminator
+     * @param ch The character
+     * @return true if it is the terminator
+     */
+    private final boolean isTerminator(char ch) {
+        
+        return (terminator < 0 ? false : (ch == terminator));
+    }
+    
+    /**
      * Helper function used to consume a generic "string" from the
      * command line.
      * 
@@ -338,6 +393,7 @@ public class Tokenizer {
                     
                     ch = line.charAt(curIdx);
                     if (Character.isWhitespace(ch)
+                        || isTerminator(ch)
                         || ch == '\''
                         || ch == '"'
                         || ch == '|'
@@ -457,7 +513,7 @@ public class Tokenizer {
             
             if (line != null) {
                 
-                tokenizer = new Tokenizer(line);
+                tokenizer = new Tokenizer(line, ';');
                 
                 try {
                     

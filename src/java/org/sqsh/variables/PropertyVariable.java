@@ -106,12 +106,12 @@ public class PropertyVariable
     public String setValue (String value)
         throws CannotSetValueError {
         
-        String failure = null;
+        Throwable failure = null;
         
         if (settable == false) {
             
-            failure = "The value of '" + getName() 
-                + "' is immutable and cannot be changed";
+            throw new CannotSetValueError("The value of \"" 
+                + getName() + "\" is read only");
         }
         
         if (failure == null) {
@@ -123,17 +123,20 @@ public class PropertyVariable
             }
             catch (InvocationTargetException e) {
                 
-                failure = e.getTargetException().getMessage();
+                failure = e.getTargetException();
             }
             catch (Throwable e) {
                 
-                failure = e.getMessage();
+                failure = e;
             }
         }
         
         if (failure != null) {
             
-            throw new CannotSetValueError(failure);
+            throw new CannotSetValueError("Cannot set variable \"" 
+               + getName() + "\" (bean property " 
+               + bean + "." + property + ") to \""
+               + value + "\": " + failure.getMessage(), failure);
         }
         
         return null;
@@ -162,7 +165,8 @@ public class PropertyVariable
                 return null;
             }
             
-            return e.getMessage() + "(" + e.getClass().getName() + ")";
+            return "Cannot read variable '" + getName() + "': " 
+                + e.getMessage() + " (" + e.getClass().getName() + ")";
         }
     }
 }

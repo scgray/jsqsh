@@ -18,24 +18,21 @@
 package org.sqsh;
 
 /**
- * Thrown by {@link Variable#setValue(String)} if the value of the variable
- * cannot be set, either because the variable is immutable or because 
- * the value provided is invalid.
+ * Command line token to represent the terminator character.
  */
-public class CannotSetValueError
-    extends Error {
+public class TerminatorToken extends Token {
     
-    /**
-     * Creates a new error.
-     * @param message The message of the error.
-     */
-    public CannotSetValueError(String message) {
+    String terminator;
+    
+    public TerminatorToken(String line, int pos, char terminator) {
         
-        super(message);
+        super(line, pos);
+        this.terminator = Character.toString(terminator);
     }
-    
-    public CannotSetValueError(String message, Throwable cause) {
-        
-        super(message, cause);
+
+    @Override
+    public String toString() {
+
+        return terminator;
     }
 }

@@ -132,6 +132,11 @@ public class Session
     private boolean printExceptionClass = false;
     
     /**
+     * Command line tokenizer.
+     */
+    private Tokenizer tokenizer = new Tokenizer();
+    
+    /**
      * Creates a new session.
      * 
      * @param sqshContext Handle back to the instance of sqsh that
@@ -939,14 +944,12 @@ public class Session
     private boolean isTerminated(Buffer buffer) {
         
         ConnectionContext conn = getConnectionContext();
+        int terminator = sqshContext.getTerminator();
         
-        String s = getVariable("terminator");
-        if (s == null || conn == null) {
+        if (terminator < 0) {
             
             return false;
         }
-        
-        char terminator = s.charAt(0);
         
         /*
          * First we'll do a simplistic check to see if our buffer ends
@@ -968,7 +971,7 @@ public class Session
          * We have a terminator at the end, its worth doing an in-depth
          * analysis at this point.
          */
-        if (conn.isTerminated(sql, terminator) == false) {
+        if (conn.isTerminated(sql, (char) terminator) == false) {
             
             return false;
         }
@@ -977,7 +980,7 @@ public class Session
          * It is terminated, so we are going to trim up our buffer
          * a tad to remove the terminator.
          */
-        if (conn.isTerminatorRemoved(terminator)) {
+        if (conn.isTerminatorRemoved((char) terminator)) {
             
             buffer.setLength(idx);
         }
@@ -1043,7 +1046,7 @@ public class Session
         /*
          * Next we will attempt to parse the line.
          */
-        Tokenizer tokenizer = new Tokenizer(str);
+        tokenizer.reset(str, sqshContext.getTerminator());
         Token token = null;
             
         /*
@@ -1089,7 +1092,7 @@ public class Session
                  * And re-parse it because the expansion may have
                  * produced more than one token.
                  */
-                tokenizer = new Tokenizer(cmd);
+                tokenizer.reset(cmd, sqshContext.getTerminator());
                 try {
                         
                     token = tokenizer.next();
@@ -1141,10 +1144,11 @@ public class Session
         
         try {
             
+            
             commandLine = 
                 getStringExpander().expandWithQuotes(this, commandLine);
         
-        	Tokenizer tokenizer = new Tokenizer(commandLine);
+        	tokenizer.reset(commandLine, sqshContext.getTerminator());
             
             /*
              * We can safely skip the first word in the command line because
@@ -1154,10 +1158,24 @@ public class Session
             tokenizer.next();
             
             List<String> argv = new ArrayList<String>();
+            boolean haveTerminator = false;
             token = tokenizer.next();
             while (token != null) {
                 
-                if (token instanceof RedirectOutToken) {
+                if (haveTerminator) {
+                    
+                    throw new CommandLineSyntaxException(
+                        "Input is not allowed after the command terminator "
+                            + "\"" + sqshContext.getTerminatorString() + "\"",
+                        token.getPosition(),
+                        token.getLine());
+                }
+                
+                if (token instanceof TerminatorToken) {
+                    
+                    haveTerminator = true;
+                }
+                else if (token instanceof RedirectOutToken) {
                     
                     doRedirect((RedirectOutToken) token);
                 }
@@ -1229,6 +1247,10 @@ public class Session
              * get thrown from here.
              */
             throw e;
+        }
+        catch (CommandLineSyntaxException e) {
+            
+            err.println(e.getMessage());
         }
         catch (Exception e) {
                     

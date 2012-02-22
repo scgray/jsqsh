@@ -13,6 +13,21 @@ Release 1.5
     - Jsqsh options --jaql-path and --jaql-jars have been added. Use of
       these options implies --jaql.
     - Tab completion will complete any global Jaql variable name.  
+* The command terminator may now end a jsqsh command. For example, the
+  following are now legal:
+        1> quit;
+  or
+        1> \echo hello how are you;
+        hello how are you
+* Upgraded to jline-2.5. I'm excited as it appears that the upcoming
+  code line for jline is adding 'vi' support, which we all know is the
+  One True Editor.  If you have a different opinion, you are wrong.
+* Added new build target called 'dist-bin'. This produces a standalone
+  zip package containing a jsqsh run-time, just like 'dist', but it
+  also includes the jsqsh JNI interface.
+* The shell script included with 'dist' and 'dist-bin' is now wired
+  to recognize if $JAQL_HOME is set and to launch jsqsh using the
+  Jaql launcher so it will pick up all the necessary libraries.
 * Added ${show_stack} and ${show_exclass} configuration variables that
   allow parts of exceptions to be enabled/disabled (specifically 
   displaying of the stack trace and the exception class name).

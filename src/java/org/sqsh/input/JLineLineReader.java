@@ -24,8 +24,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
-import jline.ConsoleReader;
-import jline.History;
+import jline.console.ConsoleReader;
+import jline.console.history.FileHistory;
+import jline.console.history.History;
 
 import org.sqsh.SqshContext;
 
@@ -44,8 +45,8 @@ public class JLineLineReader
             
             reader = new ConsoleReader();
             reader.setBellEnabled(false);
-            reader.setUseHistory(true);
-            reader.addCompletor(new JLineTabCompleter(ctx));
+            reader.setHistoryEnabled(true);
+            reader.addCompleter(new JLineTabCompleter(ctx));
         }
         catch (IOException e) {
             
@@ -56,7 +57,7 @@ public class JLineLineReader
     @Override
     public void addToHistory(String line) {
 
-        reader.getHistory().addToHistory(line);
+        reader.getHistory().add(line);
     }
 
     @Override
@@ -77,7 +78,7 @@ public class JLineLineReader
 
         try {
             
-            History history = new History(new File(filename));
+            History history = new FileHistory(new File(filename));
             reader.setHistory(history);
         }
         catch (IOException e) {
@@ -105,11 +106,8 @@ public class JLineLineReader
         
         try {
             
-            PrintWriter out = new PrintWriter(new File(filename));
-            reader.getHistory().setOutput(out);
-            reader.getHistory().flushBuffer();
-            reader.getHistory().setOutput(null);
-            out.close();
+            FileHistory history = (FileHistory)reader.getHistory();
+            history.flush();
         }
         catch (IOException e) {
             
