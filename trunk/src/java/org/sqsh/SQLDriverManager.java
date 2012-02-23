@@ -538,7 +538,8 @@ public class SQLDriverManager {
          */
         ConnectionContext oldContext = session.getConnectionContext();
         SQLConnectionContext newContext = 
-            new SQLConnectionContext(connDesc, conn, url, sqlDriver.getAnalyzer());
+            new SQLConnectionContext(session, connDesc, conn, url, 
+                sqlDriver.getAnalyzer());
         session.setConnectionContext(newContext, false);
 
         try {

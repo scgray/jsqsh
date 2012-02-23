@@ -340,6 +340,53 @@ public class Session
     }
     
     /**
+     * Returns the current display style. If no connection is established,
+     * then the display style is considered the default style that the
+     * RenderManager is configured with, otherwise the connection is 
+     * consulted to determine the style. 
+     * 
+     * @return The name of the display style.
+     */
+    public String getStyle() {
+        
+        /*
+         * If there is a connection, then the connection is the definitive
+         * source of the style name.
+         */
+        if (this.connection != null) {
+            
+            return connection.getStyle().getName();
+        }
+        else {
+            
+            return getRendererManager().getDefaultRenderer();
+        }
+    }
+    
+    /**
+     * Sets the display style. Setting the style is a bit of a complex
+     * operation under the hood.  If there is a connection established,
+     * then the style is set for the connection - this is done because
+     * some styles apply to one type of connection and other style to
+     * another type.  If there is no connection, the style is set for
+     * the RenderManager.  
+     * 
+     * @param name The name of the style
+     * @throws CannotSetValueError If the style name does not exist.
+     */
+    public void setStyle (String name) {
+        
+        if (connection != null) {
+            
+            connection.setStyle(name);
+        }
+        else {
+        
+            getRendererManager().setDefaultRenderer(name);
+        }
+    }
+    
+    /**
      * Adds an object to the session.  This is intended primarily for use
      * by commands wishing to maintain some form of state between calls.
      * 

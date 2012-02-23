@@ -11,12 +11,21 @@ Release 1.5
     - Jsqsh options --jaql-path and --jaql-jars have been added. Use of
       these options implies --jaql.
     - Tab completion will complete any global Jaql variable name.  
+    - There are three display styles that apply to Jaql: "json", "lines",
+      and "discard".
 * The command terminator may now end a jsqsh command. For example, the
   following are now legal:
         1> quit;
   or
         1> \echo hello how are you;
         hello how are you
+* Added new SQL display style "json". 
+* The behavior of setting $style is slightly different now, and is documented
+  in the help for style. The support styles vary based upon the session type
+  (e.g. a JDBC session vs. a Jaql session). Setting a SQL style with no
+  session started, or a SQL session started sets it globally for all session.
+  Jaql styles can only be applied during a jaql session, and only sets the
+  value locally for the jaql session.
 * Upgraded to jline-2.5. I'm excited as it appears that the upcoming
   code line for jline is adding 'vi' support, which we all know is the
   One True Editor.  If you have a different opinion, you are wrong.

@@ -28,6 +28,11 @@ public class SQLConnectionContext
     private int executionMode = EXEC_IMMEDIATE;
     
     /**
+     * The session that owns the connection.
+     */
+    private Session session;
+    
+    /**
      * The actual SQL connection.
      */
     private Connection connection;
@@ -58,15 +63,36 @@ public class SQLConnectionContext
      * analyzer is available).
      */
     public SQLConnectionContext (
+            Session session,
             ConnectionDescriptor connDesc,
             Connection conn, String url, SQLAnalyzer analyzer) {
         
+        this.session = session;
         this.analyzer = analyzer;
         this.connDesc = connDesc;
         this.connection = conn;
         this.url = url;
     }
     
+    
+    @Override
+    public Style getStyle() {
+        
+        return new Style (session.getRendererManager().getDefaultRenderer());
+    }
+
+    @Override
+    public void setStyle(Style style) {
+
+        session.getRendererManager().setDefaultRenderer(style.getName());
+    }
+    
+    @Override
+    public void setStyle(String name) {
+        
+        session.getRendererManager().setDefaultRenderer(name);
+    }
+
     /**
      * Executes SQL on the connection.
      */

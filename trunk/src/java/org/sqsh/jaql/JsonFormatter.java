@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007 by Scott C. Gray
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
+ * Cambridge, MA 02139, USA.
+ */
 package org.sqsh.jaql;
 
 import java.util.Iterator;
@@ -6,18 +23,43 @@ import java.util.Map.Entry;
 import org.sqsh.Session;
 
 import com.ibm.jaql.json.type.JsonArray;
-import com.ibm.jaql.json.type.JsonError;
+import com.ibm.jaql.json.type.JsonNumber;
 import com.ibm.jaql.json.type.JsonRecord;
 import com.ibm.jaql.json.type.JsonString;
 import com.ibm.jaql.json.type.JsonValue;
 import com.ibm.jaql.json.util.JsonIterator;
 import com.ibm.jaql.json.util.JsonUtil;
 
+/**
+ * Used to format Json output in the "traditional" style of:
+ * <pre>
+ * [
+ *    { 
+ *       name: "value",
+ *       name2: 10,
+ *       name3: {
+ *          foo: "a"
+ *       },
+ *       name4: [
+ *          1,
+ *          2,
+ *          3
+ *       ]
+ *    }
+ *    ...
+ * ]
+ * </pre>
+ */
 public class JsonFormatter
     extends JaqlFormatter {
     
     private String defaultIndent;
     
+    /**
+     * Creates a new formatter
+     * @param session The session to which the output is to be sent
+     * @param indent The indent for the session
+     */
     public JsonFormatter (Session session, int indent) {
         
         super(session);
@@ -29,6 +71,12 @@ public class JsonFormatter
         defaultIndent = sb.toString(); 
     }
     
+    @Override
+    public String getName() {
+
+        return "json";
+    }
+
     @Override
     public int write (JsonIterator iter)
         throws Exception {
@@ -120,33 +168,14 @@ public class JsonFormatter
             session.out.print('}');
             nrows = 1;
         }
-        /*
-        else if (v instanceof JsonError) {
+        else if (v instanceof JsonNumber) {
             
-            JsonError e = (JsonError)v;
-            
-            session.err.println("["
-               + e.getFilename()
-               + ", line " + e.getLine()
-               + " ]: "
-               + e.getMessage());
-            
-            Exception ex = e.getException();
-            if (ex != null) {
-                
-                session.err.println("Stack trace:");
-                ex.printStackTrace(session.err);
-            }
-        }
-        */
-        else if (v instanceof JsonString) {
-            
-            session.out.print(JsonUtil.quote(v.toString()));
+            session.out.print(v.toString());
             nrows = 1;
         }
         else {
             
-            session.out.print(v.toString());
+            session.out.print(JsonUtil.quote(v.toString()));
             nrows = 1;
         }
         
