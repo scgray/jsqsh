@@ -108,6 +108,20 @@ DESCRIPTION
    
    Be very careful choosing an alternative terminator, since you don't
    want to be inadvertantly executing queries.
+
+COMMAND TERMINATOR
+   As of jsqsh 1.5, the terminator may also be used to terminate a line
+   with a jsqsh command. For example, if ";" is the current terminator
+   then you can type:
+   
+      1> \echo hello how are you;
+      hello how are you
+   
+   and the terminator will be silently ignored. If any input follows 
+   the terminator, an error will be issued:
+   
+      1> \echo hello; there
+      Input is not allowed after the command terminator ";"
    
 SEE ALSO
    \go, \unset
