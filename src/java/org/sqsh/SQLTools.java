@@ -323,6 +323,44 @@ public class SQLTools {
         return identifier;
     }
     
+    /**
+     * Given a SQL data type, returns true if the type should be quoted
+     * when displayed.
+     * @param type The type
+     * @return true fi the type should be quoted.
+     */
+    public static boolean needsQuotes (int type) {
+        
+        boolean needsQuotes = false;
+        
+        switch (type) {
+        
+        case Types.BINARY:
+        case Types.VARBINARY:
+        case Types.LONGVARBINARY:
+        case Types.BLOB:
+        case Types.CHAR:
+        case Types.VARCHAR:
+        case Types.NVARCHAR:
+        case Types.LONGNVARCHAR:
+        case Types.LONGVARCHAR:
+        case Types.NCHAR:
+        case Types.CLOB:
+        case Types.NCLOB:
+        case Types.DATE:
+        case Types.TIME:
+        case Types.TIMESTAMP:
+        case Types.SQLXML:
+            needsQuotes = true;
+            break;
+            
+        default:
+            break;
+        }
+        
+        return needsQuotes;
+    }
+    
     
     /**
      * This method is used to convert a {@link java.sql.Type} datatype

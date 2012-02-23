@@ -31,6 +31,8 @@ import org.sqsh.SqshOptions;
 import org.sqsh.jaql.JaqlConnection;
 import org.sqsh.jaql.JaqlFormatter;
 import org.sqsh.jaql.JsonFormatter;
+import org.sqsh.jaql.JsonFormatterFactory;
+import org.sqsh.jaql.JsonLinesFormatter;
 import org.sqsh.options.Argv;
 import org.sqsh.options.Option;
 
@@ -160,20 +162,28 @@ public class Jaql
         if (options.indent == -1)
             options.indent = 3;
         
-        if (options.style == null || options.style.equals("json")) {
-            formatter = new JsonFormatter(session, options.indent);
-        }
-        else if (options.style.equals("xml") 
-            || options.style.equals("del")) {
+        /*
+         * There may be some overlap in SQL display styles and Jaql
+         * display styles. If no style was provided, then check to see
+         * if the current display style will work.
+         */
+        if (options.style == null) {
             
-            session.err.println("Sorry format style '" + options.style + "' is"
-              + " not yet implemented");
-            return 1;
+            formatter = JsonFormatterFactory.getFormatter(
+                session, session.getStyle());
         }
-        else {
+        
+        if (formatter == null) {
             
-            session.err.println("Invalid format style '" + options.style + "'");
-            return 1;
+            formatter = JsonFormatterFactory.getFormatter(
+                session, options.style, options.indent);
+        }
+        
+        if (formatter == null) {
+            
+            session.err.println("Display style '" + options.style 
+                + "' is not a supported Jaql style. Using default style");
+            formatter = JsonFormatterFactory.getFormatter(session, null);
         }
         
         if (options.jaqlPath != null) {

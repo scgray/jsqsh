@@ -21,9 +21,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.sqsh.CannotSetValueError;
 import org.sqsh.ConnectionContext;
 import org.sqsh.SQLRenderer;
 import org.sqsh.Session;
+import org.sqsh.Style;
 import org.sqsh.input.completion.Completer;
 import org.sqsh.signals.SignalManager;
 import org.sqsh.util.TimeUtils;
@@ -48,6 +50,23 @@ public class JaqlConnection
     private String oldPrompt = null;
     private long sleepTime = 10000;
     
+    private static class JaqlStyle
+        extends Style {
+        
+        JaqlFormatter formatter;
+        
+        public JaqlStyle (JaqlFormatter formatter) {
+            
+            super(formatter.getName());
+            this.formatter = formatter;
+        }
+        
+        public JaqlFormatter getFormatter() {
+            
+            return formatter;
+        }
+    }
+    
     public JaqlConnection (Session session, JaqlQuery engine, 
         JaqlFormatter formatter) {
  
@@ -68,6 +87,41 @@ public class JaqlConnection
             
             sleepTime = Long.parseLong(str);
         }
+    }
+    
+    @Override
+    public Style getStyle() {
+
+        return new JaqlStyle(formatter);
+    }
+
+    @Override
+    public void setStyle(Style style) {
+
+        this.formatter = ((JaqlStyle)style).getFormatter();
+    }
+    
+    @Override
+    public void setStyle(String name) {
+
+        JaqlFormatter formatter = JsonFormatterFactory.getFormatter(session, name);
+        if (formatter == null) {
+            
+            throw new CannotSetValueError("Display style '" + name
+                 + "' is not valid for Jaql sessions. See \"help \\style\"");
+        }
+        
+        this.formatter = formatter;
+    }
+
+    public JaqlFormatter getFormatter() {
+        
+        return formatter;
+    }
+    
+    public void setFormatter (JaqlFormatter formatter) {
+        
+        this.formatter = formatter;
     }
     
     /**

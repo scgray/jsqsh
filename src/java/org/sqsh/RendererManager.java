@@ -40,7 +40,8 @@ public class RendererManager {
     private int perfectSampleSize = 500;
     private String defaultRenderer = "perfect";
     
-    private Map<String, Class> renderers = new HashMap<String, Class>();
+    private Map<String, Class<? extends Renderer>> renderers = 
+        new HashMap<String, Class<? extends Renderer>>();
     
     /**
      * Creates a renderer manager.
@@ -76,6 +77,8 @@ public class RendererManager {
             org.sqsh.renderers.VerticalRenderer.class);
         renderers.put("vertical",
             org.sqsh.renderers.VerticalRenderer.class);
+        renderers.put("json",
+            org.sqsh.renderers.JsonRenderer.class);
     }
     
     /**
@@ -108,10 +111,10 @@ public class RendererManager {
      */
     public Renderer getRenderer(Session session, String name) {
         
-        Class renderer = renderers.get(name);
+        Class<? extends Renderer> renderer = renderers.get(name);
         try {
             
-            Constructor<Renderer> constructor = 
+            Constructor<? extends Renderer> constructor = 
                 renderer.getConstructor(Session.class, RendererManager.class);
             
             return constructor.newInstance(session, this);
@@ -138,8 +141,8 @@ public class RendererManager {
             return;
         }
         
-        throw new CannotSetValueError("Invalid renderer name '"
-            + renderer + "'");
+        throw new CannotSetValueError("Display style '" + renderer
+            + "' is not a valid SQL display style. See \"help \\style\"");
     }
     
     /**

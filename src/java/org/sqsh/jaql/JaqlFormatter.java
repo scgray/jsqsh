@@ -18,7 +18,6 @@
 package org.sqsh.jaql;
 
 import org.sqsh.Session;
-import org.sqsh.signals.FlaggingSignalHandler;
 
 import com.ibm.jaql.json.type.JsonValue;
 import com.ibm.jaql.json.util.JsonIterator;
@@ -35,6 +34,11 @@ public abstract class JaqlFormatter {
         
         this.session = session;
     }
+    
+    /**
+     * @return the name of the formatter.
+     */
+    public abstract String getName();
     
     /**
      * Installs a flagging signal handler that will be (well, SHOULD be)

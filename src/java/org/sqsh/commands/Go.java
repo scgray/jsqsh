@@ -34,6 +34,7 @@ import org.sqsh.SQLRenderer;
 import org.sqsh.SQLTools;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
+import org.sqsh.Style;
 import org.sqsh.options.Argv;
 import org.sqsh.options.Option;
 
@@ -86,7 +87,7 @@ public class Go
         
         Options options = (Options) opts;
         RendererManager renderMan = session.getRendererManager();
-        String origStyle = null;
+        Style origStyle = null;
         String origNull = null;
         int returnCode = 0;
         ConnectionContext conn = session.getConnectionContext();
@@ -117,17 +118,15 @@ public class Go
             	session.getDataFormatter().setNull("NULL");
             }
             
-            origStyle = renderMan.getDefaultRenderer();
+            origStyle = conn.getStyle();
             
             try {
                 
-                session.getRendererManager().setDefaultRenderer(options.style);
+                conn.setStyle(options.style);
             }
             catch (CannotSetValueError e) {
                 
-                session.err.println("Display style '" + options.style 
-                    + "' is not a valid display style. See '\\help style' "
-                    + "for list of available styles");
+                session.err.println(e.getMessage());
                 return 1;
             }
         }
@@ -203,7 +202,7 @@ public class Go
             
             if (origStyle != null) {
                 
-                renderMan.setDefaultRenderer(origStyle);
+                conn.setStyle(origStyle);
             }
             
             renderMan.setShowHeaders(origHeaders);

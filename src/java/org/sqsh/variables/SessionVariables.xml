@@ -32,6 +32,134 @@ SEE ALSO
         ]]></Help>	
 	</Property>
 	
+  <Property bean="session" name="style" property="style">
+        <Description>Controls the output display style</Description>
+        <Help><![CDATA[
+VARIABLE
+   style - Controls the output display style.
+   
+DESCRIPTION
+   The '$style' variable can be set to switch how jsqsh displays its results
+   to the user.  This variable is a little different from most jsqsh variables,
+   please read the NOTES section, below carefully.
+
+SQL STYLES
+   The following styles may be set for a SQL (JDBC) session established
+   using \connect, or may be set when no session has been started.
+   
+   csv     - Displays the output as a set of comma separated values suitable
+        for loading into, say, Excel. The results displayed attempts to 
+        conform to: http://www.creativyst.com/Doc/Articles/CSV/CSV01.htm.
+        Here are some things you should be aware of, though:
+        
+        - Unless headers are suppressed with the ${headers} variable or
+          via the --no-headers (-H) option to \go, the first row in the
+          file will contain the column headers.
+        - A NULL value is represented by a completely empty field.
+        - A zero-length string is represented by "" in order to differentiate
+          it from NULL.
+        - A field will be quoted with double-quotes if the value contains:
+             - A double quote (which will be escaped with as "").
+             - Leading or trailing white space
+             - A comma
+             - A newline
+
+   discard  - This causes all rows to be retrieved from the query but to
+        be discarded (i.e. not displayed). This is primarily useful only
+        for timing queries that return rows where you want to discount 
+        (most of) the overhead of actually displaying the rows.  It is 
+        important to note that jsqsh will still fetch the row and format
+        the columns into strings for display so there is still that overhead
+        involved in the process.
+        
+   graphical - Displays the results in a graphical window (GUI). This will
+        only work on environments where the graphical interface is 
+        available to the JVM. 
+        
+        Note: the variable ${window_size} can be used to control the size
+        of the window that is opened to display results.
+   
+   graph    - A synonym for "graphical".     
+   
+   isql     - This formats its output in a fashion similar to that of Sybase's
+        (or Microsoft SQL Server's) 'isql' program.
+        
+   json     - Displays results as an array of JSON records (http://json.org).
+   
+   perfect  - This is the default display style and is very similar to how
+        tools like the mySQL client display their output. The output is 
+        contained in a text-based grid, like so:
+              
+           +----------+----------+
+           | COLUMN 1 | COLUMN 2 |
+           +----------+----------+
+           |     1234 | hello    |
+           +----------+----------+
+              
+        The 'perfect' display style is so-called because it holds rows 
+        in memory prior to display, then analyzes the maximum amount of
+        data to be displayed in each column and attempts to adjust the
+        display accordingly so that as much data as possible fits cleanly
+        on the display. To avoid consuming too much memory, the variable 
+        ${perfect_sample_rows} is used to determine how many rows are 
+        sampled before the display  process begins--after which point 
+        no more rows are held in memory and results are streamed to the
+        display as they arrive. For example:
+        
+            \set perfect_sample_rows=20
+            
+        indicates that the first 20 rows of the results will be held in
+        memory for analysis before display begins. Setting this variable
+        to a value less than one will cause all rows to be sampled.
+   
+   pretty   - This is visually identical to 'perfect' except that it does not
+        attempt to perform a perfect fit on the data before display and,
+        thus, does not need to hold the results in memory during display.
+        Use this style when you need to work with very large result sets.
+   
+   vertical - The vert (or vertical) style rotates the output, so that every 
+        line is represented by a column name followed by a column value. This 
+        is nice for looking at particularly wide output.
+   
+   vert     - A synonym for "vertical".
+   
+   tree     - Displays the results in a graphical window (GUI).  Just like 
+        graphical except it  displays the resuts in a tree syle format. 
+
+        Note: the variable ${window_size} can be used to control the size
+        of the window that is opened to display results.
+        
+JAQL STYLES
+   The following display styles may be set when a Jaql session is established.
+   
+   json     - Output is displayed as nicely formatted Json records, (this 
+         closely mimics the default display style of jaqlshell).
+   lines    - Outputs one entire JSON record per line. This is typically
+         not as readable, but useful for reading the file in later.
+   discard  - This causes all values to be retrieved from the query but to
+        be discarded (i.e. not displayed). This is primarily useful only
+        for timing queries that return rows where you want to discount 
+        (most of) the overhead of actually displaying the values.
+    
+        
+NOTES
+   This variable is a little odd in that it has slightly different
+   behavior in different contexts:
+   
+      * If no session/connection is established, then the style name provided
+        must be a valid SQL display style.
+      * If a session is established, then the style name must be a valid
+        display style for that type of session. For example, a Jaql session
+        will only support styles valid for Jaql output.
+   
+   This means that you cannot use ${style} to set the display style of a non-
+   SQL session type before the session is started, and when the session ends
+   the value of ${style} will revert to the current SQL display style.
+
+SEE ALSO
+   maxrows, maxlen, perfect_sample_rows
+        ]]></Help>
+    </Property>
 	
 	<Property bean="session" name="rc" property="lastCommandResult"
 		setable="false">

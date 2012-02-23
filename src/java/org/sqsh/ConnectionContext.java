@@ -45,6 +45,29 @@ public abstract class ConnectionContext {
     public abstract void eval (String batch, Session session, SQLRenderer renderer)
         throws Exception;
     
+    /**
+     * Retrieve the current display style for the connection. This is an
+     * abstract representation of the style. Under the hood is carries enough
+     * information to restore the style to its original state with 
+     * {@link #setStyle(Style)}.
+     * 
+     * @return The current display style.
+     */
+    public abstract Style getStyle();
+    
+    /**
+     * Sets the display style. This *must* be a style that is returned from
+     * {@link #getStyle()} from this connection.
+     * 
+     * @param style The style to set.
+     */
+    public abstract void setStyle(Style style);
+    
+    /**
+     * Attempts to set the display style for the connection by name. 
+     * @param name The name of the style
+     */
+    public abstract void setStyle(String name);
     
     /**
      * Returns whether or not the connection wants the terminator character

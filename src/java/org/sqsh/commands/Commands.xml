@@ -311,7 +311,7 @@ DESCRIPTION
   need to add all dependant jars into the jsqsh installations share directory,
   or set up your CLASSPATH before running jsqsh.
   
-  For an IBM Big Insights environment, you can sort of automate this process
+  For an IBM BigInsights environment, you can sort of automate this process
   by changing the jsqsh launch script to launch it like so:
   
   if [ ! -z "$JAQL_HOME" ]; then
@@ -328,9 +328,8 @@ DESCRIPTION
               
 OPTIONS
   -o, --outoptions=style
-                      Sets the output display style for Jaql. The available
-                      display styles are "json", "del", or "xml". Currently
-                      only style "json" is supported.
+                      Sets the output display style for Jaql. See "\help styles"
+                      for a list of the valid Jaql display styles.
   -i, --indent=spaces Number of spaces to indent when displaying "json"
   -j, --jars=jars     A comma delimited list of jars that are to be made
                       available for use within the Jaql interpreter. Note
@@ -378,7 +377,11 @@ OPTIONS
                       value provided by "-m" to be ignored.
    -m, --display-style=style  Specifies a custom display style for showing
                       the results of the execution. The available styles
-                      may be found by running '\help style'.
+                      may be found by running '\help style'. Note that the
+                      set of valid display styles depends upon the type
+                      of session that is currently established. For example,
+                      attempting to set a SQL display style, such as "pretty"
+                      for a Jaql session will cause an error.
    -H, --no-headers   Toggles the display of column header information. 
                       This flag  effectively flips the  value of ${header}
                       for the duration of the query execution.
