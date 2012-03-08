@@ -91,29 +91,6 @@ public class BufferManager
     public void addBuffer(Buffer buf) {
         
         /*
-         * This is a hack. There are cases where empty buffers are being
-         * appended into the buffer array. Technically I need to allow this
-         * because the "current" buffer needs to start out empty. But
-         * to avoid leaving turds when two empty buffers are appended,
-         * if the current tail is empty, I discard it and replace it with
-         * this one.
-         */
-        if (buffers.size() > 0) {
-            
-            Buffer prev = buffers.get(buffers.size() - 1);
-            if (prev.isEmpty(true)) {
-                
-                if (buf.getId() == -1) {
-                    
-                    buf.setId(prev.getId());
-                }
-                buffers.set(buffers.size()-1, buf);
-                current = buf;
-                return;
-            }
-        }
-        
-        /*
          * Assign an ID if the buffer doesn't already have one
          */
         if (buf.getId() == -1) {
@@ -329,10 +306,15 @@ public class BufferManager
              * history yet.
              */
             for (int i = buffers.size() - 1; i >= 0; i--) {
+
+                Buffer b = buffers.get(i);
                 
-                out.println("   <Buffer><![CDATA[");
-                out.println(buffers.get(i));
-                out.println("   ]]></Buffer>");
+                if (!b.isEmpty(true)) {
+
+                    out.println("   <Buffer><![CDATA[");
+                    out.println(buffers.get(i));
+                    out.println("   ]]></Buffer>");
+                }
             }
             
             out.println("</Buffers>");

@@ -85,7 +85,7 @@ export CLASSPATH
 # LD_LIBRARY_PATH points to that.
 #
 if [ -d "$ROOT_DIR/lib/jni" ]; then
-   LD_LIBRARY_PATH="$ROOT_DIR/lib"
+   LD_LIBRARY_PATH="$ROOT_DIR/lib/jni"
    export LD_LIBRARY_PATH
 fi
 
