@@ -94,7 +94,12 @@ public class JsonFormatter
              * moveNext(), which has icky side effects in terms of our
              * display.
              */
-            JsonValue first = iter.current().getImmutableCopy();
+            JsonValue first = iter.current();
+            if (first != null) {
+
+                first = first.getImmutableCopy();
+            }
+
             if (!isCanceled() && iter.moveNext()) {
             
                 session.out.println('[');
