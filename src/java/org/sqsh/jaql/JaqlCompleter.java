@@ -48,7 +48,7 @@ public class JaqlCompleter
             sb.append(" -> filter startsWith($.var, ")
                 .append(JsonUtil.quote(word)).append(")");
         }
-        sb.append(" -> transform $.var;");
+        sb.append(" -> distinct() -> transform $.var;");
         
         /*
          * I would like to have a cleaner way to do this, but....
@@ -69,7 +69,7 @@ public class JaqlCompleter
         }
         catch (Exception e) {
             
-            session.err.println(e.getMessage());
+            session.err.println("[" + sb + "]: " + e.getMessage());
         }
     }
 
