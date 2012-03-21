@@ -154,6 +154,27 @@ public abstract class ConsoleLineReader {
     }
     
     /**
+     * Switches the key mapping for the editing to the specified map name.
+     * If the name is not recognized then {@link UnsupportedOperationException}
+     * is thrown.
+     * 
+     * @param name The name of the editing mode.
+     */
+    public void setEditingMode(String name) {
+        throw new UnsupportedOperationException("Cannot change the editing "
+           + "mode for " + getClass().getName());
+    }
+    
+    /**
+     * Retrieves the current key mapping for the reader.
+     * @return The name of the key mapping or null if the mapping name
+     *   cannot be determined or is not changeable for the implementation.
+     */
+    public String getEditingMode() {
+        return null;
+    }
+    
+    /**
      * Returns the name of the reader.
      * 
      * @return the name of the reader.
@@ -201,6 +222,6 @@ public abstract class ConsoleLineReader {
      * @param filename Filename to write to.
      * @throws ConsoleException If the file cannot be written.
      */
-    public abstract void writeHistory (String filename)
+    public abstract void writeHistory ()
         throws ConsoleException;
 }

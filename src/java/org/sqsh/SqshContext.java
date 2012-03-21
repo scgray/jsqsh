@@ -1216,12 +1216,11 @@ public class SqshContext {
      */
     private void saveReadlineHistory(File homedir) {
         
-        File history = new File(homedir, "readline_history");
         if (homedir.exists()) {
             
             try {
                 
-                console.writeHistory(history.toString());
+                console.writeHistory();
             }
             catch (Throwable e) {
                 

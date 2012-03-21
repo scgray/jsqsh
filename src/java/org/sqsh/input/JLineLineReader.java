@@ -19,13 +19,11 @@ package org.sqsh.input;
 
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
-import jline.ConsoleReader;
-import jline.History;
+import jline.console.ConsoleReader;
+import jline.console.history.FileHistory;
 
 import org.sqsh.SqshContext;
 
@@ -43,9 +41,15 @@ public class JLineLineReader
         try {
             
             reader = new ConsoleReader();
-            reader.setBellEnabled(false);
-            reader.setUseHistory(true);
-            reader.addCompletor(new JLineTabCompleter(ctx));
+            
+            /* 
+             * Jsqsh interprets the "!" for itself, so we can't let jline
+             * do that for us.
+             */
+            reader.setExpandEvents(false);
+            
+            reader.setHistoryEnabled(true);
+            reader.addCompleter(new JLineTabCompleter(ctx));
         }
         catch (IOException e) {
             
@@ -54,9 +58,24 @@ public class JLineLineReader
     }
     
     @Override
+    public void setEditingMode(String name) {
+
+        if (!reader.setKeyMap(name)) {
+            throw new UnsupportedOperationException("Invalid keymap name '"
+               + name + "'");
+        }
+    }
+
+    @Override
+    public String getEditingMode() {
+
+        return reader.getKeyMap();
+    }
+
+    @Override
     public void addToHistory(String line) {
 
-        reader.getHistory().addToHistory(line);
+        reader.getHistory().add(line);
     }
 
     @Override
@@ -77,7 +96,7 @@ public class JLineLineReader
 
         try {
             
-            History history = new History(new File(filename));
+            FileHistory history = new FileHistory(new File(filename));
             reader.setHistory(history);
         }
         catch (IOException e) {
@@ -100,16 +119,13 @@ public class JLineLineReader
     }
 
     @Override
-    public void writeHistory(String filename)
+    public void writeHistory()
         throws ConsoleException {
         
         try {
             
-            PrintWriter out = new PrintWriter(new File(filename));
-            reader.getHistory().setOutput(out);
-            reader.getHistory().flushBuffer();
-            reader.getHistory().setOutput(null);
-            out.close();
+            FileHistory hist = (FileHistory) reader.getHistory();
+            hist.flush();
         }
         catch (IOException e) {
             
