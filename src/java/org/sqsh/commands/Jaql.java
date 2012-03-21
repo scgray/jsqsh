@@ -74,6 +74,11 @@ public class Jaql
          public int indent = -1;
          
          @Option(
+             option='N', longOption="jobname", arg=REQUIRED, argName="name",
+             description="Sets the $jaql_jobname variable")
+         public String jobName = null;
+         
+         @Option(
              option='n', longOption="new-session", arg=NONE,
              description="Create a new session for the connection")
          public boolean newSession = false;
@@ -153,6 +158,11 @@ public class Jaql
         if (options.progress) {
             
             System.setProperty("jaql.progress.monitor", "true");
+        }
+        
+        if (options.jobName != null) {
+            
+            session.setVariable("jaql_jobname", options.jobName);
         }
         
         JaqlQuery engine  = new JaqlQuery();

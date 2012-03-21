@@ -6,8 +6,8 @@ Release 1.5
     - When in a jaql session, \go or the command terminator (";" by default)
       executes the current statement through the Jaql interpreter.
     - The variables "jaql_prompt", "jaql_indent", "jaql_jars", "jaql_path",
-      and "jaql_style" can be used to affect the behavior of the jaql shell
-      (these are all documented under "\help jaql").
+      "jaql_jobname", and "jaql_style" can be used to affect the behavior 
+      of the jaql shell (these are all documented under "\help jaql").
     - Jsqsh options --jaql-path and --jaql-jars have been added. Use of
       these options implies --jaql.
     - Tab completion will complete any global Jaql variable name.  
@@ -26,6 +26,8 @@ Release 1.5
   session started, or a SQL session started sets it globally for all session.
   Jaql styles can only be applied during a jaql session, and only sets the
   value locally for the jaql session.
+* Added $histid variable that contains the current buffer number you are 
+  working on. Really useful for adding to your prompt.
 * Upgraded to a customized version of jline-2.7-SNAPSHOT. JLine is a pure
   java line editing library, similar to readline. This version is my own
   version, which is available here:

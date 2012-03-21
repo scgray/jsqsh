@@ -221,6 +221,23 @@ SEE ALSO
    buffers, \history
         ]]></Help>
 	</Property>
+    
+	<Property bean="global" name="histid" property="bufferManager.current.id">
+		<Description>The history id of the current buffer</Description>
+        <Help><![CDATA[
+VARIABLE
+   histid - The history id of the current buffer
+
+DESCRIPTION
+   The read-only ${histid} variable can be used to retrieve the history
+   id of the current buffer.  That is, the number under which the current
+   buffer will appear from "\history" after it is executed. This is particularly
+   useful within the ${prompt} variable. 
+   
+SEE ALSO
+   buffers, prompt, \history
+        ]]></Help>
+	</Property>
 	
 	<Property bean="global" name="readline" property="console.name">
 		<Description>Displays the readline implementation in use</Description>
