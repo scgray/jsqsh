@@ -135,20 +135,6 @@ public class Go
         SQLRenderer sqlRenderer = session.getSQLRenderer();
         String sql = bufferMan.getCurrent().toString();
         
-        /*
-         * If this is an interactive session, then we create a new
-         * buffer to work with, otherwise we just re-use the current
-         * buffer.
-         */
-        if (session.isInteractive()) {
-            
-            bufferMan.newBuffer();
-        }
-        else {
-            
-            bufferMan.getCurrent().clear();
-        }
-        
         boolean origHeaders = renderMan.isShowHeaders();
         boolean origFooters = renderMan.isShowFooters();
         
@@ -193,7 +179,20 @@ public class Go
             }
         }
         finally {
-
+            
+            /*
+             * If this is an interactive session, then we create a new
+             * buffer to work with, otherwise we just re-use the current
+             * buffer.
+             */
+            if (session.isInteractive()) {
+                
+                bufferMan.newBuffer();
+            }
+            else {
+                
+                bufferMan.getCurrent().clear();
+            }
             
             if (origNull != null) {
                 

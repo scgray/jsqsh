@@ -339,6 +339,7 @@ OPTIONS
   -p, --jaql-path=path
                       A colon delimited set of directories in which to search
                       for Jaql modules.
+  -N, --jobname=name  Sets the ${jaql_jobname} variable. See below.                    
   -n                  Creates a new session, rather than utilizing the
                       current session as the Jaql session. 
                       
@@ -348,11 +349,18 @@ VARIABLES
   is the only place in which they are documented (sorry!).
   
   jaql_prompt     Allows you to specify a prompt other than the default prompt
-                  of "jaql [$lineno]>".  Note that the jaql prompt is always
-                  used while in a Jaql session.
+                  of "jaql [$histid:$lineno]>".  Note that the jaql prompt is 
+                  always used while in a Jaql session.
   jaql_style      Default output style to use (same as --outoptions, above)
   jaql_jars       Jars to utilize from jaql (same as --jars, above)
   jaql_path       Module search path (same as --jaql-path, below)
+  jaql_jobname    If set, this variable becomes the name of any jaql MR
+                  jobs that are spawned as a result of a query. This
+                  variable will be expanded of any other variable 
+                  references during each execution. For example, setting it
+                  to "jsqsh-$histid" will allow you to tie the job to
+                  the entry in your local history buffer that spawned the
+                  job.
 
   Please note that the above variables are only utilized when starting the
   Jaql shell and will not have an effect after the shell is started.

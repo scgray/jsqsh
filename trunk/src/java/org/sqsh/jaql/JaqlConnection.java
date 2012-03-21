@@ -20,6 +20,8 @@ package org.sqsh.jaql;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.sqsh.CannotSetValueError;
 import org.sqsh.ConnectionContext;
@@ -30,8 +32,12 @@ import org.sqsh.input.completion.Completer;
 import org.sqsh.signals.SignalManager;
 import org.sqsh.util.TimeUtils;
 
+import com.ibm.jaql.json.type.BufferedJsonRecord;
 import com.ibm.jaql.json.type.JsonArray;
+import com.ibm.jaql.json.type.JsonRecord;
+import com.ibm.jaql.json.type.JsonString;
 import com.ibm.jaql.json.type.JsonValue;
+import com.ibm.jaql.json.type.MutableJsonString;
 import com.ibm.jaql.json.util.JsonIterator;
 import com.ibm.jaql.lang.JaqlQuery;
 import com.ibm.jaql.lang.core.Context;
@@ -44,11 +50,21 @@ import com.ibm.jaql.predict.ProgressEstimation;
 public class JaqlConnection
     extends ConnectionContext {
     
+    private static final Logger LOG =
+            Logger.getLogger(JaqlConnection.class.getName());
+    
     private Session session;
     private JaqlQuery engine;
     private JaqlFormatter formatter;
     private String oldPrompt = null;
     private long sleepTime = 10000;
+    
+    /*
+     * Record that is used to configure job properties.
+     */
+    private BufferedJsonRecord confRecord = new BufferedJsonRecord(1);
+    private BufferedJsonRecord confValues = new BufferedJsonRecord(2);
+    private MutableJsonString  jobName    = new MutableJsonString("");
     
     private static class JaqlStyle
         extends Style {
@@ -77,7 +93,7 @@ public class JaqlConnection
         String jaqlPrompt = session.getVariable("jaql_prompt");
         if (jaqlPrompt == null) {
             
-            jaqlPrompt = "jaql [$lineno]>";
+            jaqlPrompt = "jaql [$histid:$lineno]>";
         }
         oldPrompt = session.getVariable("prompt");
         session.setVariable("prompt", jaqlPrompt);
@@ -87,9 +103,14 @@ public class JaqlConnection
             
             sleepTime = Long.parseLong(str);
         }
+        
+        /*
+         * Create the job property configuration record.
+         */
+        confRecord.add(new JsonString("conf"), confValues);
+        confValues.add(new JsonString("mapred.job.name"), jobName);
     }
     
-    @Override
     public Style getStyle() {
 
         return new JaqlStyle(formatter);
@@ -313,6 +334,7 @@ public class JaqlConnection
         return idx;
     }
     
+    
     @Override
     public void eval(String batch, Session session, SQLRenderer renderer)
         throws Exception {
@@ -334,6 +356,13 @@ public class JaqlConnection
          */
         formatter.setSignalHandler(sigHandler);
         
+        if (LOG.isLoggable(Level.FINE)) {
+            
+            LOG.fine("Executing: [" + batch + "]");
+        }
+        
+        setJobConf(session);
+        
         engine.setQueryString(batch);
         
         int totalRows = 0;
@@ -344,9 +373,12 @@ public class JaqlConnection
             
             while (!sigHandler.isTriggered() && engine.moveNextQuery()) {
                 
+                LOG.fine("==== JAQL RESULT =====");
+                
                 /*
                  * Check to see if we have been requested to track progress.
                  */
+                /*
                 ProgressEstimation progress = engine.getProgressEstimation();
                 if (progress != null && progress.getWorkLeft() < 1.0) {
                     
@@ -378,6 +410,7 @@ public class JaqlConnection
                         }
                     }
                 }
+                */
                 
                 int nrows = formatter.write(engine.currentQuery());
                 
@@ -430,6 +463,29 @@ public class JaqlConnection
                + ((totalRows != 1) ? "s in " : " in ")
                + TimeUtils.millisToDurationString(stop - start)
                + ")");
+        }
+    }
+    
+    /**
+     * Attempts to configure the Jaql jobname.
+     * @param session The name of the session.
+     */
+    private void setJobConf(Session session) {
+        
+        String name = session.getVariable("jaql_jobname");
+        if (name != null) {
+            
+            jobName.setCopy(session.expand(name));
+            
+            Context context = Context.current();
+            try {
+                
+                context.setOptions(confRecord);
+            }
+            catch (Exception e) {
+                
+                session.printException(e);
+            }
         }
     }
     
