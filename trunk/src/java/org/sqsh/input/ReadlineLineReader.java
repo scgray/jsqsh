@@ -33,6 +33,8 @@ import org.sqsh.SqshContext;
 public abstract class ReadlineLineReader
         extends ConsoleLineReader {
     
+    private String historyFile;
+    
     protected void init(SqshContext ctx) {
         
         Readline.initReadline("JSqsh");
@@ -72,6 +74,7 @@ public abstract class ReadlineLineReader
         try {
             
             Readline.readHistoryFile(filename);
+            this.historyFile = filename;
         }
         catch (Throwable e) {
             
@@ -87,12 +90,15 @@ public abstract class ReadlineLineReader
     }
 
     @Override
-    public void writeHistory(String filename)
+    public void writeHistory()
         throws ConsoleException {
 
         try {
             
-            Readline.writeHistoryFile(filename);
+            if (historyFile != null)
+            {
+                Readline.writeHistoryFile(historyFile);
+            }
         }
         catch (Throwable e) {
             

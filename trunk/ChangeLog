@@ -26,9 +26,17 @@ Release 1.5
   session started, or a SQL session started sets it globally for all session.
   Jaql styles can only be applied during a jaql session, and only sets the
   value locally for the jaql session.
-* Upgraded to jline-2.5. I'm excited as it appears that the upcoming
-  code line for jline is adding 'vi' support, which we all know is the
-  One True Editor.  If you have a different opinion, you are wrong.
+* Upgraded to a customized version of jline-2.7-SNAPSHOT. JLine is a pure
+  java line editing library, similar to readline. This version is my own
+  version, which is available here:
+      https://github.com/scgray/jline2
+  but should hopefully make it into the mainline soon. It adds
+  support for most of the basic "vi" command set.  The only big-ticket
+  missing items are undo/redo support and multi-command support 
+  (like "dw" to delete-to-word, "d$" to delete to end of line, etc.).
+* Added $editing_mode to allow you to set the editing keymap. Currently
+  this is only supported by JLine, so to switch to "vi" mode, do:
+     \set editing_mode=vi
 * Added new build target called 'dist-bin'. This produces a standalone
   zip package containing a jsqsh run-time, just like 'dist', but it
   also includes the jsqsh JNI interface.
