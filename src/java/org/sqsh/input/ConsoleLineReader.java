@@ -37,6 +37,28 @@ import org.sqsh.SqshContext;
  */
 public abstract class ConsoleLineReader {
     
+    /**
+     * Name of the console reader that utilizes the JNI readline library.
+     */
+    public static final String READLINE = "readline";
+    /**
+     * Name of the console reader that utilizes the JNI editline library.
+     */
+    public static final String EDITLINE = "editline";
+    /**
+     * Name of the console reader that utilizes the JNI getline library.
+     */
+    public static final String GETLINE = "getline";
+    /**
+     * Name of the console reader that utilizes the pure java jline library
+     */
+    public static final String JLINE    = "jline";
+    /**
+     * A basic console reader that provides no line editing capabilities,
+     * using direct java I/O.
+     */
+    public static final String NONE     = "purejava";
+    
     /** 
      * Attempts to determine which readline API you happen to have available
      * (and that really works) and configures itself to use that API. 
@@ -71,7 +93,7 @@ public abstract class ConsoleLineReader {
          * Readline initialization
          */
         if (readerType == null 
-                || "readline".equalsIgnoreCase(readerType)) {
+                || READLINE.equalsIgnoreCase(readerType)) {
             
             try {
                 
@@ -89,7 +111,7 @@ public abstract class ConsoleLineReader {
          */
         if (reader == null
                 && (readerType == null  
-                        || "editline".equalsIgnoreCase(readerType))) {
+                        || EDITLINE.equalsIgnoreCase(readerType))) {
             
             try {
             
@@ -103,7 +125,7 @@ public abstract class ConsoleLineReader {
         
         if (reader == null
                 && (readerType == null  
-                        || "jline".equalsIgnoreCase(readerType))) {
+                        || JLINE.equalsIgnoreCase(readerType))) {
             
             try {
             
@@ -120,7 +142,7 @@ public abstract class ConsoleLineReader {
          */
         if (reader == null
                 && (readerType == null  
-                        || "getline".equalsIgnoreCase(readerType))) {
+                        || GETLINE.equalsIgnoreCase(readerType))) {
             
             try {
             
