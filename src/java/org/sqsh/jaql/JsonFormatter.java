@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 import org.sqsh.Session;
 
 import com.ibm.jaql.json.type.JsonArray;
+import com.ibm.jaql.json.type.JsonDouble;
 import com.ibm.jaql.json.type.JsonNumber;
 import com.ibm.jaql.json.type.JsonRecord;
 import com.ibm.jaql.json.type.JsonString;
@@ -55,6 +56,7 @@ public class JsonFormatter
     
     private String defaultIndent;
     
+    
     /**
      * Creates a new formatter
      * @param session The session to which the output is to be sent
@@ -63,6 +65,7 @@ public class JsonFormatter
     public JsonFormatter (Session session, int indent) {
         
         super(session);
+        
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < indent; i++) {
             
@@ -82,6 +85,8 @@ public class JsonFormatter
         throws Exception {
         
         int nrows = 0;
+        
+        setScale();
         
         if (!isCanceled() && iter.moveNext()) {
             
@@ -173,14 +178,8 @@ public class JsonFormatter
             session.out.print('}');
             nrows = 1;
         }
-        else if (v instanceof JsonNumber) {
-            
-            session.out.print(v.toString());
-            nrows = 1;
-        }
         else {
-            
-            session.out.print(JsonUtil.quote(v.toString()));
+            writeScalar(v);
             nrows = 1;
         }
         

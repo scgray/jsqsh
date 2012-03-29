@@ -132,6 +132,11 @@ SQL STYLES
 JAQL STYLES
    The following display styles may be set when a Jaql session is established.
    
+   csv      - Values are displayed in comma delimited file format. If the
+        first value received is a record, then the field names in the record
+        are assumed to be the column headers and displayed (if $headers is 
+        true). Nested JSON records and arrays a retained as JSON objects
+        and treated as a single quoted string on output.
    json     - Output is displayed as nicely formatted Json records, (this 
          closely mimics the default display style of jaqlshell).
    lines    - Outputs one entire JSON record per line. This is typically

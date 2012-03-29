@@ -64,6 +64,10 @@ public class JsonFormatterFactory {
             
             return new DiscardFormatter (session);
         }
+        else if (name.equals("csv")) {
+            
+            return new JsonCSVFormatter (session);
+        }
         else {
             
             return null;

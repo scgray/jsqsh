@@ -53,6 +53,7 @@ public class JsonLinesFormatter
         throws Exception {
         
         int nrows = 0;
+        setScale();
         
         while (!isCanceled() && iter.moveNext()) {
             
@@ -114,14 +115,9 @@ public class JsonLinesFormatter
             session.out.print(" }");
             nrows = 1;
         }
-        else if (v instanceof JsonNumber) {
-            
-            session.out.print(v.toString());
-            nrows = 1;
-        }
         else {
             
-            session.out.print(JsonUtil.quote(v.toString()));
+            writeScalar(v);
             nrows = 1;
         }
         
