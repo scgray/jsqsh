@@ -23,8 +23,6 @@ import java.util.Map.Entry;
 import org.sqsh.Session;
 
 import com.ibm.jaql.json.type.JsonArray;
-import com.ibm.jaql.json.type.JsonDouble;
-import com.ibm.jaql.json.type.JsonNumber;
 import com.ibm.jaql.json.type.JsonRecord;
 import com.ibm.jaql.json.type.JsonString;
 import com.ibm.jaql.json.type.JsonValue;
@@ -107,8 +105,8 @@ public class JsonFormatter
 
             if (!isCanceled() && iter.moveNext()) {
             
-                session.out.println('[');
-                session.out.print(defaultIndent);
+                out.println('[');
+                out.print(defaultIndent);
                 write(first, defaultIndent);
                 ++nrows;
                 
@@ -120,25 +118,26 @@ public class JsonFormatter
                 
                 do {
                     
-                    session.out.println(",");
-                    session.out.print(defaultIndent);
+                    out.println(",");
+                    out.print(defaultIndent);
                     JsonValue next = iter.current();
                     write(next, defaultIndent);
                     ++nrows;
                 }
                 while (!isCanceled() && iter.moveNext());
                 
-                session.out.println();
-                session.out.println(']');
+                out.println();
+                out.println(']');
             }
             else {
                 
                 write(first, "");
                 ++nrows;
-                session.out.println();
+                out.println();
             }
         }
         
+        out.flush();
         return nrows;
     }
     
@@ -147,7 +146,7 @@ public class JsonFormatter
         throws Exception {
         
         int nrows = write(v, "");
-        session.out.println();
+        out.println();
         return nrows;
     }
     
@@ -158,28 +157,28 @@ public class JsonFormatter
         
         if (v == null) {
             
-            session.out.print("null");
+            out.print("null");
             nrows = 1;
         }
         else if (v instanceof JsonArray) {
             
-            session.out.println('[');
+            out.println('[');
             nrows = printArrayBody((JsonArray)v, indent + defaultIndent);
-            session.out.println();
-            session.out.print(indent);
-            session.out.print(']');
+            out.println();
+            out.print(indent);
+            out.print(']');
         }
         else if (v instanceof JsonRecord) {
             
-            session.out.println('{');
+            out.println('{');
             printRecordBody((JsonRecord)v, indent + defaultIndent);
-            session.out.println();
-            session.out.print(indent);
-            session.out.print('}');
+            out.println();
+            out.print(indent);
+            out.print('}');
             nrows = 1;
         }
         else {
-            writeScalar(v);
+            writeScalar(v, true);
             nrows = 1;
         }
         
@@ -203,12 +202,12 @@ public class JsonFormatter
         while (iter.moveNext()) {
                 
             if (count > 0)
-                session.out.println(',');
+                out.println(',');
             ++count;
                 
             JsonValue av = iter.current();
             
-            session.out.print(indent);
+            out.print(indent);
             write(av, indent);
         }
         
@@ -229,11 +228,11 @@ public class JsonFormatter
             JsonValue val  = e.getValue();
             
             if (idx > 0)
-                session.out.println(",");
+                out.println(",");
             
-            session.out.print(indent);
-            session.out.print(name);
-            session.out.print(": ");
+            out.print(indent);
+            out.print(name);
+            out.print(": ");
             write(val, indent);
             
             ++idx;

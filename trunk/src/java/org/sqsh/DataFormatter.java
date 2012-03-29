@@ -97,6 +97,8 @@ public class DataFormatter {
      *                              DATE
      * ==================================================================== */
     
+    private DateFormatter dateFormatter = null;
+    
     /**
      * @return the dateFormat
      */
@@ -111,6 +113,7 @@ public class DataFormatter {
     public void setDateFormat (String dateFormat) {
     
         this.dateFormat = dateFormat;
+        this.dateFormatter = null;
         maxDateWidth = -1;
     }
     
@@ -121,7 +124,12 @@ public class DataFormatter {
             maxDateWidth = getMaxDateWidth(dateFormat);
         }
         
-        return new DateFormatter(dateFormat, maxDateWidth);
+        if (dateFormatter == null) {
+            
+            dateFormatter =  new DateFormatter(dateFormat, maxDateWidth);
+        }
+        
+        return dateFormatter;
     }
     
     /* ====================================================================
@@ -159,6 +167,8 @@ public class DataFormatter {
      *                              DATETIME
      * ==================================================================== */
     
+    private DateFormatter datetimeFormatter = null;
+    
     /**
      * @return the dateFormat
      */
@@ -173,6 +183,7 @@ public class DataFormatter {
     public void setDatetimeFormat (String datetimeFormat) {
     
         this.datetimeFormat = datetimeFormat;
+        this.datetimeFormatter = null;
         maxDatetimeWidth = -1;
     }
     
@@ -183,7 +194,13 @@ public class DataFormatter {
             maxDatetimeWidth = getMaxDateWidth(datetimeFormat);
         }
         
-        return new DateFormatter(datetimeFormat, maxDatetimeWidth);
+        if (datetimeFormatter == null) {
+            
+            this.datetimeFormatter = 
+                new DateFormatter(datetimeFormat, maxDatetimeWidth);
+        }
+        
+        return datetimeFormatter;
     }
     
     /* ====================================================================

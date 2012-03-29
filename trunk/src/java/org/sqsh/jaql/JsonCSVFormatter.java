@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007 by Scott C. Gray
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
+ * Cambridge, MA 02139, USA.
+ */
 package org.sqsh.jaql;
 
 import java.util.Iterator;
@@ -13,7 +30,31 @@ import com.ibm.jaql.json.type.JsonValue;
 import com.ibm.jaql.json.util.JsonIterator;
 import com.ibm.jaql.json.util.JsonUtil;
 
-
+/**
+ * Attempts to format Jaql/JSON output as CSV output.  The logic involved
+ * here makes a lot of assumptions like that the input is an array of arrays
+ * (of the same size) or an array of records (of the same structure) and any
+ * attempt to pass anything else in will result in undefined output.
+ * 
+ * <p>If the input is an array of records, then if $header is true, the
+ * name of the fields in the first record encountered is assumed to be the
+ * column headers and are output accordingly. if there are nested complex
+ * structures, like records or arrays, they are flattened into JSON strings
+ * as a single comma delimited value, thus:
+ * 
+ *   [ {a: 10, b: { c: 20 }} ]
+ *   
+ * will become:
+ * 
+ *   a,b
+ *   10,"{ ""c"": 20 }"
+ *   
+ * When formatting scalar values, some attempt is made to format the values
+ * according to jsqsh configured rules. For example, to honor $scale when
+ * printing doubles and to honor the datetime format when printing dates.
+ * For other "odd" types that jsqsh isn't aware of the value is printed as
+ * Jaql would normally print them, such as regex will be "regex('...')".
+ */
 public class JsonCSVFormatter
     extends JaqlFormatter {
     
@@ -41,8 +82,9 @@ public class JsonCSVFormatter
             
             write(iter.current());
             ++nrows;
-            session.out.println();
+            out.println();
         }
+        out.flush();
         
         return nrows;
     }
@@ -58,7 +100,7 @@ public class JsonCSVFormatter
         
         if (v == null) {
             
-            session.out.print("null");
+            out.print("");
             nrows = 1;
         }
         else if (v instanceof JsonArray) {
@@ -66,31 +108,31 @@ public class JsonCSVFormatter
             JsonIterator iter = ((JsonArray)v).iter();
             
             if (nesting == 1)
-                session.out.print("\"[");
+                out.print("\"[");
             else if (nesting > 1)
-                session.out.print('[');
+                out.print('[');
                 
             while (iter.moveNext()) {
                 
                 if (nrows > 0)
-                    session.out.print(",");
+                    out.print(",");
                 
                 write(iter.current(), nesting+1);
                 ++nrows;
             }
             
             if (nesting == 1)
-                session.out.print("]\"");
+                out.print("]\"");
             else if (nesting > 1)
-                session.out.print(']');
+                out.print(']');
         }
         else if (v instanceof JsonRecord) {
             
             
             if (nesting == 1)
-                session.out.print("\"{");
+                out.print("\"{");
             else if (nesting > 1)
-                session.out.print('{');
+                out.print('{');
             
             if (nesting == 0 && !doneHeader) {
                 
@@ -104,13 +146,13 @@ public class JsonCSVFormatter
                         
                         if (count > 0) {
                             
-                            session.out.print(',');
+                            out.print(',');
                         }
-                        session.out.print(quote(name, nesting));
+                        out.print(quote(name, nesting));
                         ++count;
                     }
                     
-                    session.out.println();
+                    out.println();
                 }
                 
                 doneHeader = true;
@@ -125,13 +167,13 @@ public class JsonCSVFormatter
                 JsonValue val  = e.getValue();
             
                 if (count > 0)
-                    session.out.print(",");
+                    out.print(",");
                 
                 if (nesting > 0) {
                     
                     String  name = JsonUtil.quote(e.getKey().toString());
-                    session.out.print(quote(name, nesting+1));
-                    session.out.print(": ");
+                    out.print(quote(name, nesting+1));
+                    out.print(": ");
                 }
                 
                 write(val, nesting + 1);
@@ -140,9 +182,9 @@ public class JsonCSVFormatter
             }
             
             if (nesting == 1)
-                session.out.print("}\"");
+                out.print("}\"");
             else if (nesting > 1)
-                session.out.print('}');
+                out.print('}');
             
             nrows = 1;
         }
@@ -151,14 +193,14 @@ public class JsonCSVFormatter
             String val;
             if (nesting > 1 && !(v instanceof JsonNumber)) {
                 
-                val = JsonUtil.quote(getScalar(v));
+                val = JsonUtil.quote(getScalar(v, true));
             }
             else {
                 
-                val = getScalar(v);
+                val = getScalar(v, false);
             }
             
-            session.out.print(quote(val, nesting));
+            out.print(quote(val, nesting));
             nrows = 1;
         }
         

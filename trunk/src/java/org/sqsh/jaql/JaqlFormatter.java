@@ -17,13 +17,24 @@
  */
 package org.sqsh.jaql;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.Date;
+
+import org.sqsh.DataFormatter;
 import org.sqsh.Session;
 
+import com.ibm.jaql.io.serialization.text.def.DefaultTextFullSerializer;
+import com.ibm.jaql.json.type.JsonBinary;
+import com.ibm.jaql.json.type.JsonDate;
+import com.ibm.jaql.json.type.JsonDecimal;
 import com.ibm.jaql.json.type.JsonDouble;
-import com.ibm.jaql.json.type.JsonNumber;
+import com.ibm.jaql.json.type.JsonEncoding;
+import com.ibm.jaql.json.type.JsonLong;
 import com.ibm.jaql.json.type.JsonValue;
 import com.ibm.jaql.json.util.JsonIterator;
-import com.ibm.jaql.json.util.JsonUtil;
+import com.ibm.jaql.util.FastPrintStream;
 
 /**
  * Interface for a class capable of print JSON.
@@ -32,12 +43,16 @@ public abstract class JaqlFormatter {
     
     protected Session session;
     protected JaqlSignalHandler sigHandler = null;
+    protected DataFormatter formatter;
     private String doubleFormat = null;
     private int currentScale = -1;
+    protected FastPrintStream out;
     
     public JaqlFormatter (Session session) {
         
         this.session = session;
+        this.formatter = session.getDataFormatter();
+        this.out = new FastPrintStream(session.out);
         setScale();
     }
     
@@ -95,6 +110,17 @@ public abstract class JaqlFormatter {
     public abstract int write (JsonValue v) 
         throws Exception;
     
+    
+    private static final char  HEX_CHARS[] = {
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 
+        'A', 'B', 'C', 'D', 'E', 'F'
+    };    
+    
+    private Date date = new Date(0L);
+    private DefaultTextFullSerializer serializer = DefaultTextFullSerializer.getInstance();
+    private ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    private FastPrintStream byteStream = new FastPrintStream(buffer);
+    
     /**
      * Writes a simple scalar value (i.e. not a record or array) to the
      * session's output, taking care to ensure that settings such as
@@ -102,28 +128,53 @@ public abstract class JaqlFormatter {
      * 
      * @param v The value to print.
      */
-    protected void writeScalar (JsonValue v) {
+    protected void writeScalar (JsonValue v, boolean isJsonFormat)
+        throws IOException {
         
-        if (v instanceof JsonDouble) {
+        if (!isJsonFormat) {
             
-            double d = ((JsonDouble)v).doubleValue();
-            if (doubleFormat != null) {
-                
-                session.out.printf(doubleFormat, d);
+            switch (v.getEncoding()) {
+            
+                case BINARY: {
+                        int len = ((JsonBinary)v).bytesLength();
+                        byte[] bytes = ((JsonBinary)v).getInternalBytes();
+                        for (int i = 0; i < len; i++) {
+                            
+                            byte b = bytes[i];
+                            out.append(HEX_CHARS[(b >> 4) & 0x0f]);
+                            out.append(HEX_CHARS[b & 0x0f]);
+                        }
+                        return;
+                    }
+                    
+                case DATE:
+                    date.setTime(((JsonDate)v).get());
+                    out.append(formatter.getDatetimeFormatter().format(date));
+                    return;
+                    
+                case DOUBLE:
+                    double d = ((JsonDouble)v).doubleValue();
+                    if (!isJsonFormat && doubleFormat != null) {
+                    
+                        out.append(String.format(doubleFormat, d));
+                    }
+                    else {
+                        
+                        out.append(Double.toString(d));
+                    }
+                    return;
+                    
+                case LONG:
+                case STRING:
+                    out.append(v.toString());
+                    return;
+                    
+                default:
+                    break;
             }
-            else {
-                
-                session.out.print(d);
-            }
         }
-        else if (v instanceof JsonNumber) {
             
-            session.out.print(v.toString());
-        }
-        else {
-            
-            session.out.print(JsonUtil.quote(v.toString()));
-        }
+        serializer.write(out, v);
     }
     
     /**
@@ -132,23 +183,75 @@ public abstract class JaqlFormatter {
      * 
      * @param v The value to print.
      */
-    protected String getScalar (JsonValue v) {
+    protected String getScalar (JsonValue v, boolean isJsonFormat) {
         
-        if (v instanceof JsonDouble) {
+        JsonEncoding encoding = v.getEncoding();
+        
+        /*
+         * The normal serializer/encoder will throw double quotes around 
+         * the string, which this method must not allow, so we never let
+         * that happen.
+         */
+        if (encoding == JsonEncoding.STRING)
+            return v.toString();
+        
+        if (!isJsonFormat) {
             
-            double d = ((JsonDouble)v).doubleValue();
-            if (doubleFormat != null) {
-                
-                return String.format(doubleFormat, d);
-            }
-            else {
-                
-                return Double.toString(d);
+            switch (encoding) {
+            
+                case BINARY: {
+                        StringBuilder sb = new StringBuilder();
+                        int len = ((JsonBinary)v).bytesLength();
+                        byte[] bytes = ((JsonBinary)v).getInternalBytes();
+                        for (int i = 0; i < len; i++) {
+                            
+                            byte b = bytes[i];
+                            sb.append(HEX_CHARS[(b >> 4) & 0x0f]);
+                            sb.append(HEX_CHARS[b & 0x0f]);
+                        }
+                        return sb.toString();
+                    }
+                    
+                case BOOLEAN:
+                    return v.toString();
+                    
+                case DATE:
+                    date.setTime(((JsonDate)v).get());
+                    return formatter.getDatetimeFormatter().format(date);
+                    
+                case DECFLOAT:
+                    BigDecimal bd = ((JsonDecimal)v).decimalValue();
+                    return bd.toString();
+                    
+                case DOUBLE:
+                    double d = ((JsonDouble)v).doubleValue();
+                    if (!isJsonFormat && doubleFormat != null) {
+                    
+                        return String.format(doubleFormat, d);
+                    }
+                    else {
+                    
+                        return Double.toString(d);
+                    }
+                    
+                case LONG:
+                    return Long.toString(((JsonLong)v).longValue());
+                   
+                default:
+                    break;
             }
         }
-        else {
             
-            return v.toString();
+        buffer.reset();
+        try {
+                
+            serializer.write(byteStream, v);
+            byteStream.flush();
+            return buffer.toString();
+        }
+        catch (IOException e) {
+               
+            return e.getMessage();
         }
     }
     

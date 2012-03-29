@@ -39,8 +39,13 @@ public class ByteFormatter
         
         this(maxBytes, false);
     }
-
+    
     public String format (Object value) {
+        
+        return format(value, -1);
+    }
+
+    public String format (Object value, int len) {
         
         byte []bytes;
         
@@ -67,7 +72,12 @@ public class ByteFormatter
             "a", "b", "c", "d", "e", "f"
         };
         
-        for (int i = 0; i < bytes.length; i++) {
+        if (len < 0) {
+            
+            len = bytes.length;
+        }
+        
+        for (int i = 0; i < len; i++) {
 
             ch = (byte) (bytes[i] & 0xF0);
             ch = (byte) (ch >>> 4);
