@@ -17,8 +17,6 @@
  */
 package org.sqsh.jaql;
 
-import java.util.Iterator;
-
 import org.sqsh.Session;
 import org.sqsh.input.completion.Completer;
 

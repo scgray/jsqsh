@@ -59,8 +59,9 @@ public class JsonLinesFormatter
             
             write(iter.current());
             ++nrows;
-            session.out.println();
+            out.println();
         }
+        out.flush();
         
         return nrows;
     }
@@ -73,29 +74,29 @@ public class JsonLinesFormatter
         
         if (v == null) {
             
-            session.out.print("null");
+            out.print("null");
             nrows = 1;
         }
         else if (v instanceof JsonArray) {
             
             JsonIterator iter = ((JsonArray)v).iter();
             
-            session.out.print('[');
+            out.print('[');
             while (iter.moveNext()) {
                 
                 if (nrows > 0)
-                    session.out.print(", ");
+                    out.print(", ");
                 
                 write(iter.current());
                 ++nrows;
             }
-            session.out.print(']');
+            out.print(']');
         }
         else if (v instanceof JsonRecord) {
             
             Iterator<Entry<JsonString, JsonValue>> iter = ((JsonRecord)v).iterator();
             int count = 0;
-            session.out.print("{ ");
+            out.print("{ ");
             while (iter.hasNext()) {
             
                 Entry<JsonString, JsonValue> e = iter.next();
@@ -104,20 +105,20 @@ public class JsonLinesFormatter
                 JsonValue val  = e.getValue();
             
                 if (count > 0)
-                    session.out.print(", ");
+                    out.print(", ");
             
-                session.out.print(name);
-                session.out.print(": ");
+                out.print(name);
+                out.print(": ");
                 write(val);
             
                 ++count;
             }
-            session.out.print(" }");
+            out.print(" }");
             nrows = 1;
         }
         else {
             
-            writeScalar(v);
+            writeScalar(v, true);
             nrows = 1;
         }
         
