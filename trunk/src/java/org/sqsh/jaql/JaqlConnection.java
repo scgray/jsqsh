@@ -341,6 +341,7 @@ public class JaqlConnection
         
         long start = System.currentTimeMillis();
         long stop;
+        boolean showFooters = session.getRendererManager().isShowFooters();
         
         /*
          * Install our signal handler.
@@ -418,6 +419,7 @@ public class JaqlConnection
                 
                 if (session.isInteractive()
                     && renderer.isShowTimings()
+                    && showFooters
                     && (nrows > 0 || (currentStop - currentStart) > 10L)) {
                     
                     session.out.println("("
@@ -455,6 +457,7 @@ public class JaqlConnection
         if (!sigHandler.isTriggered()
            && nResults > 1
            && session.isInteractive() && renderer.isShowTimings()
+           && showFooters
            && (totalRows > 0 || (stop - start) > 10L)) {
             
             session.out.println(nResults + " results ("

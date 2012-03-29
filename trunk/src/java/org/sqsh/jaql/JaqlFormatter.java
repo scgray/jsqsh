@@ -19,8 +19,11 @@ package org.sqsh.jaql;
 
 import org.sqsh.Session;
 
+import com.ibm.jaql.json.type.JsonDouble;
+import com.ibm.jaql.json.type.JsonNumber;
 import com.ibm.jaql.json.type.JsonValue;
 import com.ibm.jaql.json.util.JsonIterator;
+import com.ibm.jaql.json.util.JsonUtil;
 
 /**
  * Interface for a class capable of print JSON.
@@ -29,10 +32,13 @@ public abstract class JaqlFormatter {
     
     protected Session session;
     protected JaqlSignalHandler sigHandler = null;
+    private String doubleFormat = null;
+    private int currentScale = -1;
     
     public JaqlFormatter (Session session) {
         
         this.session = session;
+        setScale();
     }
     
     /**
@@ -88,4 +94,80 @@ public abstract class JaqlFormatter {
      */
     public abstract int write (JsonValue v) 
         throws Exception;
+    
+    /**
+     * Writes a simple scalar value (i.e. not a record or array) to the
+     * session's output, taking care to ensure that settings such as
+     * "scale" are honored.
+     * 
+     * @param v The value to print.
+     */
+    protected void writeScalar (JsonValue v) {
+        
+        if (v instanceof JsonDouble) {
+            
+            double d = ((JsonDouble)v).doubleValue();
+            if (doubleFormat != null) {
+                
+                session.out.printf(doubleFormat, d);
+            }
+            else {
+                
+                session.out.print(d);
+            }
+        }
+        else if (v instanceof JsonNumber) {
+            
+            session.out.print(v.toString());
+        }
+        else {
+            
+            session.out.print(JsonUtil.quote(v.toString()));
+        }
+    }
+    
+    /**
+     * Returns a scalar value as a string. This string is not quoted or
+     * protected in any way.
+     * 
+     * @param v The value to print.
+     */
+    protected String getScalar (JsonValue v) {
+        
+        if (v instanceof JsonDouble) {
+            
+            double d = ((JsonDouble)v).doubleValue();
+            if (doubleFormat != null) {
+                
+                return String.format(doubleFormat, d);
+            }
+            else {
+                
+                return Double.toString(d);
+            }
+        }
+        else {
+            
+            return v.toString();
+        }
+    }
+    
+    /**
+     * This method should be called at the beginning of each batch of output
+     * from the formatter. It retrieves the current "scale" variable setting
+     * and sets things up so that doubles that are printed, are printed with
+     * the correct scale.
+     */
+    protected void setScale() {
+        int scale = session.getDataFormatter().getScale();
+        if (scale != currentScale) {
+            if (scale >= 0) {
+                doubleFormat = "%1$." + scale + "f";
+            }
+            else {
+                doubleFormat = null;
+            }
+            currentScale = scale;
+        }
+    }
 }
