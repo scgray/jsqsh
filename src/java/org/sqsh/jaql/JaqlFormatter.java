@@ -25,6 +25,7 @@ import java.util.Date;
 import org.sqsh.DataFormatter;
 import org.sqsh.Session;
 
+import com.ibm.jaql.io.serialization.text.TextFullSerializer;
 import com.ibm.jaql.io.serialization.text.def.DefaultTextFullSerializer;
 import com.ibm.jaql.json.type.JsonBinary;
 import com.ibm.jaql.json.type.JsonDate;
@@ -117,7 +118,7 @@ public abstract class JaqlFormatter {
     };    
     
     private Date date = new Date(0L);
-    private DefaultTextFullSerializer serializer = DefaultTextFullSerializer.getInstance();
+    private TextFullSerializer serializer = TextFullSerializer.getDefault();
     private ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     private FastPrintStream byteStream = new FastPrintStream(buffer);
     
