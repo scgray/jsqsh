@@ -126,30 +126,34 @@ public class SQLTools {
      * @param out The stream to write to.
      * @param e The exception.
      */
-    public static void printException(PrintStream out, SQLException e) {
+    public static void printException(Session session, SQLException e) {
         
-        StringBuilder sb = new StringBuilder();
-        String lineSep = System.getProperty("line.separator");
-        int indent;
-        int start;
+        SQLException origException = e;
         
-        sb.append("SQL Exception(s) Encountered: ").append(lineSep);
+        session.err.println("SQL Exception(s) Encountered: ");
         while (e != null) {
             
-            start = sb.length();
-            sb.append("[State: ");
-            sb.append(e.getSQLState());
-            sb.append("][Code: ");
-            sb.append(e.getErrorCode());
-            sb.append("]: ");
-            sb.append(e.getMessage());
-            sb.append(lineSep);
+            session.err.print("[State: ");
+            session.err.print(e.getSQLState());
+            session.err.print("][Code: ");
+            session.err.print(e.getErrorCode());
+            session.err.print("]: ");
+            session.err.print(e.getMessage());
+            session.err.println();
             
             e = e.getNextException();
         }
         
-        out.print(sb.toString());
-        out.flush();
+        if (session.isPrintStackTrace()) {
+            
+            origException.printStackTrace(session.err);
+            if (origException.getCause() != null)
+            {
+                origException.getCause().printStackTrace(session.err);
+            }
+        }
+        
+        session.err.flush();
     }
     
     /**

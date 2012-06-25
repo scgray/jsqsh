@@ -48,8 +48,8 @@ public class TimeUtils {
         val = millis / 1000L;
         sb.append (val);
 
-        val %= 1000L;
-        sb.append ('.').append (val / 10L).append ('s');
+        millis %= 1000L;
+        sb.append ('.').append (millis / 10L).append ('s');
 
         return sb.toString ();
     }

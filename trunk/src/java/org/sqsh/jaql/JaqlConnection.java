@@ -18,6 +18,7 @@
 package org.sqsh.jaql;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -34,14 +35,14 @@ import org.sqsh.util.TimeUtils;
 
 import com.ibm.jaql.json.type.BufferedJsonRecord;
 import com.ibm.jaql.json.type.JsonArray;
-import com.ibm.jaql.json.type.JsonRecord;
 import com.ibm.jaql.json.type.JsonString;
 import com.ibm.jaql.json.type.JsonValue;
 import com.ibm.jaql.json.type.MutableJsonString;
 import com.ibm.jaql.json.util.JsonIterator;
+import com.ibm.jaql.lang.ExceptionHandler;
 import com.ibm.jaql.lang.JaqlQuery;
 import com.ibm.jaql.lang.core.Context;
-import com.ibm.jaql.predict.ProgressEstimation;
+// import com.ibm.jaql.predict.ProgressEstimation;
 
 /**
  * Used to allow a Jaql instance to be used like a JDBC connection (well,
@@ -53,6 +54,38 @@ public class JaqlConnection
     private static final Logger LOG =
             Logger.getLogger(JaqlConnection.class.getName());
     
+    /**
+     * Used to capture and process exceptions from a Jaql statement.
+     */
+    private static class JaqlExceptionHandler
+        extends ExceptionHandler {
+        
+        private boolean handledException = false;
+        private Session session;
+        
+        public JaqlExceptionHandler (Session session) {
+            this.session = session;
+        }
+        
+        public void clear() {
+            this.handledException = false;
+        }
+        
+        public boolean handledException() {
+            return handledException;
+        }
+
+        @Override
+        public void handleException(Throwable e, JsonValue ctx) throws Exception {
+            session.printException(e);
+            if (ctx != null) {
+                
+                session.err.println("Current value: " + ctx.toString());
+            }
+            handledException = true;
+        }
+    }
+    
     private Session session;
     private JaqlQuery engine;
     private JaqlFormatter formatter;
@@ -62,9 +95,10 @@ public class JaqlConnection
     /*
      * Record that is used to configure job properties.
      */
-    private BufferedJsonRecord confRecord = new BufferedJsonRecord(1);
-    private BufferedJsonRecord confValues = new BufferedJsonRecord(2);
-    private MutableJsonString  jobName    = new MutableJsonString("");
+    private BufferedJsonRecord confRecord  = new BufferedJsonRecord(1);
+    private BufferedJsonRecord confValues  = new BufferedJsonRecord(2);
+    private MutableJsonString  jobName     = new MutableJsonString("");
+    private JaqlExceptionHandler exceptionHandler;
     
     private static class JaqlStyle
         extends Style {
@@ -86,9 +120,12 @@ public class JaqlConnection
     public JaqlConnection (Session session, JaqlQuery engine, 
         JaqlFormatter formatter) {
  
-        this.session     = session;
-        this.engine      = engine;
-        this.formatter   = formatter;
+        this.session          = session;
+        this.engine           = engine;
+        this.formatter        = formatter;
+        this.exceptionHandler = new JaqlExceptionHandler(session);
+        
+        setExceptionHandler();
         
         String jaqlPrompt = session.getVariable("jaql_prompt");
         if (jaqlPrompt == null) {
@@ -109,6 +146,36 @@ public class JaqlConnection
          */
         confRecord.add(new JsonString("conf"), confValues);
         confValues.add(new JsonString("mapred.job.name"), jobName);
+    }
+    
+    private void setExceptionHandler() {
+        
+        /*
+         * There was a problem where the setExceptionHandler() method was
+         * not public in one version of Jaql, so I test for it here.
+         */
+        try {
+            
+            Method m = JaqlQuery.class.getMethod("setExceptionHandler", 
+                            ExceptionHandler.class);
+            if (m.isAccessible()) {
+                
+                engine.setExceptionHandler(exceptionHandler);
+            }
+            else {
+                
+                m.setAccessible(true);
+                m.invoke(engine, exceptionHandler);
+            }
+        }
+        catch (Throwable e) {
+            
+            /*
+             * If the method doesn't exist at all, then our handler will never
+             * get called and we will handle it locally here in jsqsh.
+             */
+            e.printStackTrace();
+        }
     }
     
     public Style getStyle() {
@@ -364,6 +431,8 @@ public class JaqlConnection
         
         setJobConf(session);
         
+        exceptionHandler.clear();
+        
         engine.setQueryString(batch);
         
         int totalRows = 0;
@@ -438,7 +507,10 @@ public class JaqlConnection
         }
         catch (Throwable e) {
             
-            session.printException(e);
+            if (!exceptionHandler.handledException()) {
+                
+                session.printException(e);
+            }
         }
         
         /*

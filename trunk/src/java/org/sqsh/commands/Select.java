@@ -176,7 +176,7 @@ public class Select
                 }
                 catch (SQLException e) {
                     
-                    SQLTools.printException(session.err, e);
+                    SQLTools.printException(session, e);
                     return 1;
                 }
             }

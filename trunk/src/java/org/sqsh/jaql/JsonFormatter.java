@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 
 import org.sqsh.Session;
 
+import com.ibm.jaql.json.type.BufferedJsonArray;
 import com.ibm.jaql.json.type.JsonArray;
 import com.ibm.jaql.json.type.JsonRecord;
 import com.ibm.jaql.json.type.JsonString;
@@ -162,19 +163,35 @@ public class JsonFormatter
         }
         else if (v instanceof JsonArray) {
             
-            out.println('[');
-            nrows = printArrayBody((JsonArray)v, indent + defaultIndent);
-            out.println();
-            out.print(indent);
-            out.print(']');
+            JsonArray a = (JsonArray)v;
+            if (a.isEmpty()) {
+                
+                out.print("[ ]");
+            }
+            else {
+                
+                out.println('[');
+                nrows = printArrayBody(a, indent + defaultIndent);
+                out.println();
+                out.print(indent);
+                out.print(']');
+            }
         }
         else if (v instanceof JsonRecord) {
             
-            out.println('{');
-            printRecordBody((JsonRecord)v, indent + defaultIndent);
-            out.println();
-            out.print(indent);
-            out.print('}');
+            JsonRecord r = (JsonRecord)v;
+            if (r.isEmpty()) {
+                
+                out.print("{ }");
+            }
+            else {
+            
+                out.println('{');
+                printRecordBody((JsonRecord)v, indent + defaultIndent);
+                out.println();
+                out.print(indent);
+                out.print('}');
+            }
             nrows = 1;
         }
         else {
