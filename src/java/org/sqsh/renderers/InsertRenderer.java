@@ -293,7 +293,7 @@ public class InsertRenderer
         }
         catch (SQLException e) {
             
-            SQLTools.printException(session.err, e);
+            SQLTools.printException(session, e);
             
             insertBatch.setLength(0);
             return false;

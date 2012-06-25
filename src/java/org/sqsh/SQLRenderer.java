@@ -977,7 +977,7 @@ public class SQLRenderer {
         }
         catch (SQLException e) {
             
-            SQLTools.printException(session.out, e);
+            SQLTools.printException(session, e);
         }
     }
     

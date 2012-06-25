@@ -168,7 +168,7 @@ public class Go
                 }
                 catch (SQLException e) {
                     
-                    SQLTools.printException(session.err, e);
+                    SQLTools.printException(session, e);
                     returnCode = 1;
                 }
                 catch (Throwable e) {
