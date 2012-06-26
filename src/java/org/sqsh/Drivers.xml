@@ -113,4 +113,13 @@
             url="jdbc:h2:${server}">
         <Variable name="server">mem:</Variable>
     </Driver>
+    
+    <Driver name="hive" 
+            target="Hive"
+            class="org.apache.hadoop.hive.jdbc.HiveDriver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:hive://${server}:${port}#if($db)/${db}#end">
+        <Variable name="server">localhost</Variable>
+        <Variable name="port">7052</Variable>
+    </Driver>
 </Drivers>
