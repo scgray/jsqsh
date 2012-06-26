@@ -28,9 +28,8 @@ Release 1.5
   value locally for the jaql session.
 * Added $histid variable that contains the current buffer number you are 
   working on. Really useful for adding to your prompt.
-* Upgraded to a customized version of jline-2.7-SNAPSHOT. JLine is a pure
-  java line editing library, similar to readline. This version is my own
-  version, which is available here:
+* Upgraded to jline-2.7. JLine is an almost pure java line editing library, 
+  similar to readline. This version is my own version, which is available here:
       https://github.com/scgray/jline2
   but should hopefully make it into the mainline soon. It adds
   support for most of the basic "vi" command set.  The only big-ticket
@@ -53,6 +52,7 @@ Release 1.5
   see both the SQL and commands executed as well as the results.
 * Added \globals command. Right now this only works for a Jaql session,
   and displays all variables defined for the current session.
+* Added "hive" as a pre-defined JDBC source.
 * Changed the way in which JDBC drivers are loaded via a custom class
   path (using the ${classpath} variable).  Apparently some drivers don't
   like to be used directly to establish the connection, so this change
