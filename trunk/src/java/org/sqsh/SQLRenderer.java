@@ -19,7 +19,6 @@ package org.sqsh;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -27,14 +26,15 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.Set;
-
+import java.util.logging.Logger;
 
 import org.sqsh.signals.CancelingSignalHandler;
-import org.sqsh.signals.SigHandler;
 import org.sqsh.signals.SignalManager;
 import org.sqsh.SqshTypes;
 
 public class SQLRenderer {
+    
+    private static final Logger LOG = Logger.getLogger(SQLRenderer.class.getName());
     
     SqshContext sqshContext;
     
@@ -757,15 +757,39 @@ public class SQLRenderer {
                 }
                 
                 /*
-                 * Check for more results.
+                 * Check for more results. 
+                 * 
+                 * PLEASE READ: The try/catch block is TEMPORARY and only here to
+                 * support the Hive driver. Yes, instead of doing something simple
+                 * like returning false here, they declare they do not support the
+                 * method. The same is true of getUpdateCount() by the way.
                  */
-                hasResults = statement.getMoreResults();
-                SQLTools.printWarnings(session, statement);
+                try {
+                    
+                    hasResults = statement.getMoreResults();
+                    SQLTools.printWarnings(session, statement);
+                }
+                catch (SQLException e) {
+                    
+                    if (e.getMessage().equals("Method not supported")) {
+                        
+                        session.err.println("WARNING: Statement class " 
+                            + statement.getClass().getName()
+                            + " does not support getMoreResults()");
+                                        
+                        hasResults = false;
+                        done = true;
+                    }
+                    else {
+                        
+                        throw e;
+                    }
+                }
                 
                 /*
                  * And check the update count.
                  */
-                if (!hasResults) {
+                if (!done && !hasResults) {
                     
                     updateCount = statement.getUpdateCount();
                 	SQLTools.printWarnings(session, statement);
