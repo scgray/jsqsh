@@ -17,7 +17,6 @@
  */
 package org.sqsh;
 
-import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.sql.Connection;
@@ -26,11 +25,6 @@ import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-
-import org.sqsh.parser.SimpleSQLTokenizer;
 
 /**
  * This class provides a bunch of static methods that help process

@@ -174,7 +174,6 @@ public class JaqlConnection
              * If the method doesn't exist at all, then our handler will never
              * get called and we will handle it locally here in jsqsh.
              */
-            e.printStackTrace();
         }
     }
     
