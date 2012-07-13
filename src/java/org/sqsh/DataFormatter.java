@@ -22,6 +22,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import org.sqsh.format.ArrayFormatter;
 import org.sqsh.format.BitFormatter;
 import org.sqsh.format.BlobFormatter;
 import org.sqsh.format.BooleanFormatter;
@@ -30,6 +31,7 @@ import org.sqsh.format.ClobFormatter;
 import org.sqsh.format.NumberFormatter;
 import org.sqsh.format.DateFormatter;
 import org.sqsh.format.Unformatter;
+import org.sqsh.format.UnsupportedTypeFormatter;
 import org.sqsh.format.XMLFormatter;
 
 /**
@@ -444,6 +446,35 @@ public class DataFormatter {
     public Formatter getByteFormatter(int maxBytes) {
         
         return new ByteFormatter(maxBytes, byteStringFormat);
+    }
+    
+    /* ====================================================================
+     *                          ARRAY FORMATTER
+     * ==================================================================== */
+    
+    /**
+     * Creates an array formatter
+     * @param renderer The SQLRenderer that will be used to grab formatting
+     *   information for formatting the elements of the array
+     * @return The new formatter
+     */
+    public Formatter getArrayFormatter (SQLRenderer renderer) {
+        
+        return new ArrayFormatter(renderer, getNull());
+    }
+    
+    /* ====================================================================
+     *                          UNSUPPORTED TYPES 
+     * ==================================================================== */
+    private static UnsupportedTypeFormatter unsupportedFormatter =
+                    new UnsupportedTypeFormatter();
+    
+    /**
+     * @return A formatter that attempts to render an unsupported type by
+     * simply requesting the value to convert itself to a string.
+     */
+    public Formatter getUnsupportedTypeFormatter() {
+        return unsupportedFormatter;
     }
     
     /* ====================================================================

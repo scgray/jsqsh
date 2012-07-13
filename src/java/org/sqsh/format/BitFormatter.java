@@ -22,6 +22,7 @@ import org.sqsh.Formatter;
 public class BitFormatter
     implements Formatter {
 
+    @Override
     public String format (Object value) {
 
         if (value instanceof Number) {
@@ -44,6 +45,7 @@ public class BitFormatter
         return "1";
     }
 
+    @Override
     public int getMaxWidth () {
         
         return 1;
