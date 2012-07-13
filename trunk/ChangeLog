@@ -35,6 +35,8 @@ Release 1.5
   support for most of the basic "vi" command set.  The only big-ticket
   missing items are undo/redo support and multi-command support 
   (like "dw" to delete-to-word, "d$" to delete to end of line, etc.).
+* Added support for ARRAY data type and hopefully better support for
+  unrecognized data types.
 * Added $editing_mode to allow you to set the editing keymap. Currently
   this is only supported by JLine, so to switch to "vi" mode, do:
      \set editing_mode=vi

@@ -856,7 +856,6 @@ public class SQLRenderer {
         DataFormatter formatter = sqshContext.getDataFormatter();
         ColumnDescription []columns = getDescription(resultSet, displayCols);
         int nCols = resultSet.getMetaData().getColumnCount();
-        ResultSetMetaData meta = resultSet.getMetaData();
         int rowCount = 0;
         
         /*
@@ -959,7 +958,7 @@ public class SQLRenderer {
         
         Renderer renderer = session.getRendererManager().getCommandRenderer(
             session);
-        ColumnDescription []cols = new ColumnDescription[8];
+        ColumnDescription []cols = new ColumnDescription[9];
         
         cols[0] = new ColumnDescription("NAME", -1);
         cols[1] = new ColumnDescription("LABEL", -1);
@@ -973,8 +972,9 @@ public class SQLRenderer {
         cols[5] = new ColumnDescription("SCALE", -1,
             ColumnDescription.Alignment.RIGHT,
             ColumnDescription.OverflowBehavior.TRUNCATE);
-        cols[6] = new ColumnDescription("SCHEMA", -1);
-        cols[7] = new ColumnDescription("TABLE", -1);
+        cols[6] = new ColumnDescription("CATALOG", -1);
+        cols[7] = new ColumnDescription("SCHEMA", -1);
+        cols[8] = new ColumnDescription("TABLE", -1);
         
         renderer.header(cols);
         
@@ -984,15 +984,26 @@ public class SQLRenderer {
             
             for (int i = 1; i <= meta.getColumnCount(); i++) {
                 
-                String row[] = new String[8];
+                String schema = null;
+                String catalog = null;
+                String table = null;
+                try { schema = meta.getSchemaName(i); }
+                    catch (SQLException e) { /* IGNORED */ }
+                try { catalog = meta.getCatalogName(i); }
+                    catch (SQLException e) { /* IGNORED */ }
+                try { table = meta.getTableName(i); }
+                    catch (SQLException e) { /* IGNORED */ }
+                
+                String row[] = new String[9];
                 row[0] = meta.getColumnName(i);
                 row[1] = meta.getColumnLabel(i);
                 row[2] = meta.getColumnTypeName(i);
                 row[3] = Integer.toString(meta.getColumnDisplaySize(i));
                 row[4] = Integer.toString(meta.getPrecision(i));
                 row[5] = Integer.toString(meta.getScale(i));
-                row[6] = meta.getSchemaName(i);
-                row[7] = meta.getTableName(i);
+                row[6] = catalog;
+                row[7] = schema;
+                row[8] = table;
                 
                 renderer.row(row);
             }
@@ -1044,11 +1055,10 @@ public class SQLRenderer {
      * @return The description
      * @throws SQLException Thrown if the type cannot be displayed.
      */
-    private ColumnDescription getDescription(ResultSetMetaData meta, int idx)
+    public ColumnDescription getDescription(ResultSetMetaData meta, int idx)
         throws SQLException {
         
         DataFormatter formatter = sqshContext.getDataFormatter();
-        boolean supported = true;
         ColumnDescription.Type colType =
             ColumnDescription.Type.STRING;
         ColumnDescription.Alignment alignment =
@@ -1158,23 +1168,14 @@ public class SQLRenderer {
             case Types.SQLXML:
                 format = formatter.getXMLFormatter();
                 break;
+            
+            case Types.ARRAY:
+                format = formatter.getArrayFormatter(this);
+                break;
                 
             default:
-                supported = false;
+                format = formatter.getUnsupportedTypeFormatter();
                 break;
-        }
-        
-        if (supported == false) {
-            
-            throw new SQLException(
-                "Column #" + idx 
-                    + (meta.getColumnLabel(idx) == null 
-                        ? ": "
-                        : " [" + meta.getColumnLabel(idx) + "]: ")
-                    + "Datatype is not currently supported by jsqsh "
-                    + "(type "
-                    + SQLTools.getTypeName(meta.getColumnType(idx))
-                    + ", #" + type + ")");
         }
         
         ColumnDescription c = new ColumnDescription(

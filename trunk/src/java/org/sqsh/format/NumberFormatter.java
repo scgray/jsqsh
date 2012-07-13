@@ -49,11 +49,13 @@ public class NumberFormatter
         }
     }
 
+    @Override
     public String format (Object value) {
         
         return format.format(value);
     }
 
+    @Override
     public int getMaxWidth () {
 
         /*
