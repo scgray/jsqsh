@@ -61,7 +61,7 @@ public class ArrayFormatter
         StringBuilder sb    = new StringBuilder();
         int           idx   = 0;
         String        str   = null;
-        
+
         try  {
             
             ResultSet rs = array.getResultSet();
@@ -79,7 +79,7 @@ public class ArrayFormatter
             sb.append('[');
             while (rs.next()) {
                 
-                Object element = rs.getObject(1);
+                Object element = rs.getObject(2);
                 if (!rs.wasNull()) {
                     
                     str = elementFormatter.format(element);
