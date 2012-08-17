@@ -31,6 +31,7 @@ import org.sqsh.Command;
 import org.sqsh.DatabaseCommand;
 import org.sqsh.Renderer;
 import org.sqsh.SQLRenderer;
+import org.sqsh.SQLTools;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
 import org.sqsh.options.Argv;
@@ -149,9 +150,7 @@ public class Describe
         }
         catch (SQLException e) {
             
-            session.err.println("Failed to retrieve database metadata: "
-                + e.getMessage());
-            
+            SQLTools.printException(session, e);
             return 1;
         }
         finally {

@@ -43,6 +43,7 @@ import com.ibm.jaql.lang.ExceptionHandler;
 import com.ibm.jaql.lang.JaqlQuery;
 import com.ibm.jaql.lang.core.Context;
 // import com.ibm.jaql.predict.ProgressEstimation;
+import com.ibm.jaql.util.FastPrintStream;
 
 /**
  * Used to allow a Jaql instance to be used like a JDBC connection (well,
@@ -408,6 +409,7 @@ public class JaqlConnection
         long start = System.currentTimeMillis();
         long stop;
         boolean showFooters = session.getRendererManager().isShowFooters();
+        FastPrintStream out = new FastPrintStream(session.out);
         
         /*
          * Install our signal handler.
@@ -481,7 +483,7 @@ public class JaqlConnection
                 }
                 */
                 
-                int nrows = formatter.write(engine.currentQuery());
+                int nrows = formatter.write(out, engine.currentQuery());
                 
                 long currentStop = System.currentTimeMillis();
                 

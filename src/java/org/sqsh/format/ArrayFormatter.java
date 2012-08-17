@@ -71,7 +71,7 @@ public class ArrayFormatter
              */
             if (elementFormatter == null) {
                 ResultSetMetaData meta = rs.getMetaData();
-                ColumnDescription desc = renderer.getDescription(meta, 1);
+                ColumnDescription desc = renderer.getDescription(meta, 2);
                 
                 elementFormatter = desc.getFormatter();
             }

@@ -29,6 +29,7 @@ import com.ibm.jaql.json.type.JsonString;
 import com.ibm.jaql.json.type.JsonValue;
 import com.ibm.jaql.json.util.JsonIterator;
 import com.ibm.jaql.json.util.JsonUtil;
+import com.ibm.jaql.util.FastPrintStream;
 
 /**
  * Attempts to format Jaql/JSON output as CSV output.  The logic involved
@@ -71,7 +72,7 @@ public class JsonCSVFormatter
     }
 
     @Override
-    public int write(JsonIterator iter) throws Exception {
+    public int write(FastPrintStream out, JsonIterator iter) throws Exception {
 
         int nrows = 0;
         
@@ -80,7 +81,7 @@ public class JsonCSVFormatter
         
         while (!isCanceled() && iter.moveNext()) {
             
-            write(iter.current());
+            write(out, iter.current());
             ++nrows;
             out.println();
         }
@@ -90,11 +91,11 @@ public class JsonCSVFormatter
     }
 
     @Override
-    public int write(JsonValue v) throws Exception {
-        return write(v, 0);
+    public int write(FastPrintStream out, JsonValue v) throws Exception {
+        return write(out, v, 0);
     }
     
-    public int write(JsonValue v, int nesting) throws Exception {
+    public int write(FastPrintStream out, JsonValue v, int nesting) throws Exception {
 
         int nrows = 0;
         
@@ -117,7 +118,7 @@ public class JsonCSVFormatter
                 if (nrows > 0)
                     out.print(",");
                 
-                write(iter.current(), nesting+1);
+                write(out, iter.current(), nesting+1);
                 ++nrows;
             }
             
@@ -176,7 +177,7 @@ public class JsonCSVFormatter
                     out.print(": ");
                 }
                 
-                write(val, nesting + 1);
+                write(out, val, nesting + 1);
             
                 ++count;
             }
