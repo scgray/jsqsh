@@ -29,6 +29,7 @@ import com.ibm.jaql.json.type.JsonString;
 import com.ibm.jaql.json.type.JsonValue;
 import com.ibm.jaql.json.util.JsonIterator;
 import com.ibm.jaql.json.util.JsonUtil;
+import com.ibm.jaql.util.FastPrintStream;
 
 /**
  * Formatter used by jaql output to write JSON values out as one line
@@ -49,7 +50,7 @@ public class JsonLinesFormatter
     }
     
     @Override
-    public int write (JsonIterator iter)
+    public int write (FastPrintStream out, JsonIterator iter)
         throws Exception {
         
         int nrows = 0;
@@ -57,7 +58,7 @@ public class JsonLinesFormatter
         
         while (!isCanceled() && iter.moveNext()) {
             
-            write(iter.current());
+            write(out, iter.current());
             ++nrows;
             out.println();
         }
@@ -67,7 +68,7 @@ public class JsonLinesFormatter
     }
     
     @Override
-    public int write (JsonValue v)
+    public int write (FastPrintStream out, JsonValue v)
         throws Exception {
         
         int nrows = 0;
@@ -87,7 +88,7 @@ public class JsonLinesFormatter
                 if (nrows > 0)
                     out.print(", ");
                 
-                write(iter.current());
+                write(out, iter.current());
                 ++nrows;
             }
             out.print(']');
@@ -109,7 +110,7 @@ public class JsonLinesFormatter
             
                 out.print(name);
                 out.print(": ");
-                write(val);
+                write(out, val);
             
                 ++count;
             }
@@ -118,7 +119,7 @@ public class JsonLinesFormatter
         }
         else {
             
-            writeScalar(v, true);
+            writeScalar(out, v, true);
             nrows = 1;
         }
         

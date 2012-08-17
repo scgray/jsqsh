@@ -926,7 +926,17 @@ public class SQLRenderer {
                     }
                     else {
                         
-                        row[idx] = columns[idx].getFormatter().format(value);
+                        if (value == null)
+                        {
+                            session.err.println("WARNING: Row #" 
+                                + rowCount + ", column " + i + ", driver indicated "
+                                + "a value present, but returned NULL");
+                            row[idx] = formatter.getNull();
+                        }
+                        else
+                        {
+                            row[idx] = columns[idx].getFormatter().format(value);
+                        }
                     }
                     
                     ++idx;

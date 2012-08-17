@@ -26,7 +26,6 @@ import org.sqsh.DataFormatter;
 import org.sqsh.Session;
 
 import com.ibm.jaql.io.serialization.text.TextFullSerializer;
-import com.ibm.jaql.io.serialization.text.def.DefaultTextFullSerializer;
 import com.ibm.jaql.json.type.JsonBinary;
 import com.ibm.jaql.json.type.JsonDate;
 import com.ibm.jaql.json.type.JsonDecimal;
@@ -47,13 +46,11 @@ public abstract class JaqlFormatter {
     protected DataFormatter formatter;
     private String doubleFormat = null;
     private int currentScale = -1;
-    protected FastPrintStream out;
     
     public JaqlFormatter (Session session) {
         
         this.session = session;
         this.formatter = session.getDataFormatter();
-        this.out = new FastPrintStream(session.out);
         setScale();
     }
     
@@ -98,7 +95,7 @@ public abstract class JaqlFormatter {
      *   to the number of elements in the outer most array.
      * @throws Exception
      */
-    public abstract int write (JsonIterator iter)
+    public abstract int write (FastPrintStream out, JsonIterator iter)
         throws Exception;
     
     /**
@@ -108,7 +105,7 @@ public abstract class JaqlFormatter {
      *   to the number of elements in the outer most array.
      * @throws Exception
      */
-    public abstract int write (JsonValue v) 
+    public abstract int write (FastPrintStream out, JsonValue v) 
         throws Exception;
     
     
@@ -129,7 +126,7 @@ public abstract class JaqlFormatter {
      * 
      * @param v The value to print.
      */
-    protected void writeScalar (JsonValue v, boolean isJsonFormat)
+    protected void writeScalar (FastPrintStream out, JsonValue v, boolean isJsonFormat)
         throws IOException {
         
         if (!isJsonFormat) {

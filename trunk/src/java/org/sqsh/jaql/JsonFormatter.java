@@ -29,6 +29,7 @@ import com.ibm.jaql.json.type.JsonString;
 import com.ibm.jaql.json.type.JsonValue;
 import com.ibm.jaql.json.util.JsonIterator;
 import com.ibm.jaql.json.util.JsonUtil;
+import com.ibm.jaql.util.FastPrintStream;
 
 /**
  * Used to format Json output in the "traditional" style of:
@@ -80,7 +81,7 @@ public class JsonFormatter
     }
 
     @Override
-    public int write (JsonIterator iter)
+    public int write (FastPrintStream out, JsonIterator iter)
         throws Exception {
         
         int nrows = 0;
@@ -108,7 +109,7 @@ public class JsonFormatter
             
                 out.println('[');
                 out.print(defaultIndent);
-                write(first, defaultIndent);
+                write(out, first, defaultIndent);
                 ++nrows;
                 
                 /*
@@ -122,7 +123,7 @@ public class JsonFormatter
                     out.println(",");
                     out.print(defaultIndent);
                     JsonValue next = iter.current();
-                    write(next, defaultIndent);
+                    write(out, next, defaultIndent);
                     ++nrows;
                 }
                 while (!isCanceled() && iter.moveNext());
@@ -132,7 +133,7 @@ public class JsonFormatter
             }
             else {
                 
-                write(first, "");
+                write(out, first, "");
                 ++nrows;
                 out.println();
             }
@@ -143,15 +144,15 @@ public class JsonFormatter
     }
     
     @Override
-    public int write (JsonValue v) 
+    public int write (FastPrintStream out, JsonValue v) 
         throws Exception {
         
-        int nrows = write(v, "");
+        int nrows = write(out, v, "");
         out.println();
         return nrows;
     }
     
-    private int write (JsonValue v, String indent)
+    private int write (FastPrintStream out, JsonValue v, String indent)
         throws Exception {
         
         int nrows = 0;
@@ -171,7 +172,7 @@ public class JsonFormatter
             else {
                 
                 out.println('[');
-                nrows = printArrayBody(a, indent + defaultIndent);
+                nrows = printArrayBody(out, a, indent + defaultIndent);
                 out.println();
                 out.print(indent);
                 out.print(']');
@@ -187,7 +188,7 @@ public class JsonFormatter
             else {
             
                 out.println('{');
-                printRecordBody((JsonRecord)v, indent + defaultIndent);
+                printRecordBody(out, (JsonRecord)v, indent + defaultIndent);
                 out.println();
                 out.print(indent);
                 out.print('}');
@@ -195,7 +196,7 @@ public class JsonFormatter
             nrows = 1;
         }
         else {
-            writeScalar(v, true);
+            writeScalar(out, v, true);
             nrows = 1;
         }
         
@@ -210,7 +211,7 @@ public class JsonFormatter
         return nrows;
     }
     
-    private int printArrayBody (JsonArray a, String indent)
+    private int printArrayBody (FastPrintStream out, JsonArray a, String indent)
         throws Exception {
         
         JsonIterator iter = a.iter();
@@ -225,13 +226,13 @@ public class JsonFormatter
             JsonValue av = iter.current();
             
             out.print(indent);
-            write(av, indent);
+            write(out, av, indent);
         }
         
         return count;
     }
     
-    private void printRecordBody (JsonRecord r, String indent)
+    private void printRecordBody (FastPrintStream out, JsonRecord r, String indent)
         throws Exception {
         
         int idx = 0;
@@ -250,7 +251,7 @@ public class JsonFormatter
             out.print(indent);
             out.print(name);
             out.print(": ");
-            write(val, indent);
+            write(out, val, indent);
             
             ++idx;
         }

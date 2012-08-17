@@ -21,6 +21,7 @@ import org.sqsh.Session;
 
 import com.ibm.jaql.json.type.JsonValue;
 import com.ibm.jaql.json.util.JsonIterator;
+import com.ibm.jaql.util.FastPrintStream;
 
 /**
  * Formatter that discards all values without displaying them. This
@@ -42,7 +43,7 @@ public class DiscardFormatter
     }
 
     @Override
-    public int write(JsonIterator iter) throws Exception {
+    public int write(FastPrintStream out, JsonIterator iter) throws Exception {
         
         int nrows = 0;
         
@@ -55,7 +56,7 @@ public class DiscardFormatter
     }
 
     @Override
-    public int write(JsonValue v) throws Exception {
+    public int write(FastPrintStream out, JsonValue v) throws Exception {
 
         return 1;
     }

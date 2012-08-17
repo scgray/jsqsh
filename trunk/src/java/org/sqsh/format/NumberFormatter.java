@@ -52,6 +52,12 @@ public class NumberFormatter
     @Override
     public String format (Object value) {
         
+        if (!(value instanceof Number))
+        {
+            throw new IllegalArgumentException("Cannot format " 
+               + value.getClass().getName() + " as a number");
+        }
+        
         return format.format(value);
     }
 
