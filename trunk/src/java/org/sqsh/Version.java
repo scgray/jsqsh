@@ -27,7 +27,7 @@ import java.util.Properties;
  */
 public class Version {
     
-    private static final String VERSION_FILE = "build.properties";
+    private static final String VERSION_FILE = "jsqsh.properties";
     
     private static String version = "UNKNOWN";
     private static String buildDate = "UNKNOWN";
