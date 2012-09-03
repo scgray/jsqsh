@@ -1,19 +1,17 @@
 /*
- * Copyright (C) 2007 by Scott C. Gray
- * 
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
- * Cambridge, MA 02139, USA.
+ * Copyright 2007-2012 Scott C. Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.sqsh;
 
@@ -21,7 +19,6 @@ import java.awt.BorderLayout;
 import java.awt.Font;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.logging.Logger;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -54,11 +51,7 @@ import org.sqsh.options.OptionProcessor;
  * That's pretty much it!
  */
 public abstract class Command
-    extends HelpTopic
-    implements Comparable {
-    
-    private static final Logger LOG = 
-        Logger.getLogger(Command.class.getName());
+    extends HelpTopic {
     
     private String name;
     
@@ -96,6 +89,14 @@ public abstract class Command
     protected void setManager(CommandManager manager) {
         
         this.manager = manager;
+    }
+    
+    /**
+     * @return The managing command manager.
+     */
+    protected CommandManager getManager() {
+        
+        return manager;
     }
     
     /**
@@ -224,23 +225,6 @@ public abstract class Command
     }
     
     /**
-     * Compares the names of two commands. This method is provided primarily
-     * to allow for easy sorting of commands on display.
-     * 
-     * @param o The object to compare to.
-     * @return The results of the comparison.
-     */
-    public int compareTo(Object o) {
-        
-        if (o instanceof Command) {
-            
-            return name.compareTo(((Command) o).getName());
-        }
-        
-        return -1;
-    }
-    
-    /**
      * Compares two commands for equality. Commands are considered
      * equal if their names match.
      * 
@@ -276,6 +260,7 @@ public abstract class Command
         extends PrintStream {
         
         private JTextArea textArea;
+        @SuppressWarnings("unused")
         private Session session;
         private ByteArrayOutputStream buffer;
         

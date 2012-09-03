@@ -45,7 +45,7 @@ teriminal's size (such as 'more') will not function properly.
 Licensing
 =========
 
-JSqsh is held under the GNU General Public License (GPL). The details
+JSqsh is held under the Apache License Version 2.0. The details
 of the license are available in the LICENSE file included herein.
 
 Building and Installing

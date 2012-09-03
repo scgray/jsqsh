@@ -1,29 +1,23 @@
 /*
- * Copyright (C) 2007 by Scott C. Gray
- * 
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
- * Cambridge, MA 02139, USA.
+ * Copyright 2007-2012 Scott C. Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.sqsh.options;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-
-import gnu.getopt.Getopt;
-import gnu.getopt.LongOpt;
 
 /**
  * The option processor is responsible for analyzing objects that were
@@ -38,8 +32,8 @@ import gnu.getopt.LongOpt;
  */
 public class OptionProcessor {
     
-    private OptionInfo[] options = null;
-    private List argList = null;
+    private Option[] options = null;
+    private List<String> argList = null;
     private String program = null;
     private String programUsage = "";
     private int minArgs = 0;
@@ -52,7 +46,7 @@ public class OptionProcessor {
      * member fields that are annotated with the @Option annotation.
      * 
      * @param optionBean An object that has member fields annotated with
-     *   the {@link Option} annotation.
+     *   the {@link OptionProperty} annotation.
      */
     public OptionProcessor (Object optionBean) {
         
@@ -70,82 +64,137 @@ public class OptionProcessor {
     public void parseOptions (String []argv)
         throws OptionException {
         
-        StringBuilder optChars = new StringBuilder();
-        LongOpt []longOpts = new LongOpt[options.length];
+        final int sz = argv.length;
+        int idx = 0;
         
         /*
-         * Build up the arguments required for GetOpt.
-         */
-        for (int i = 0; i < options.length; i++) {
-            
-            longOpts[i] = options[i].longOpt;
-            optChars.append((char) (options[i].longOpt.getVal()));
-            switch (options[i].longOpt.getHasArg()) {
-                
-                case LongOpt.OPTIONAL_ARGUMENT:
-                    optChars.append("::");
-                    break;
-                
-                case LongOpt.REQUIRED_ARGUMENT:
-                    optChars.append(":");
-                    break;
-                    
-                default:
-                    break;
-            }
-        }
-        
-        Getopt getopt = new Getopt("<none>", argv, optChars.toString(),
-            longOpts);
-        getopt.setOpterr(false);
-        
-        /*
-         * Ok, now process the command line arguments.
-         */
-        int rc;
-        while ((rc = getopt.getopt()) != -1) {
-            
-            /*
-             * If we hit a bad option, then throw up.
-             */
-            if (rc == '?') {
-                
-                throw new OptionException(program
-                    + ": Invalid option '-"
-                    + ((char) getopt.getOptopt()) + "'");
-            }
-            
-            /*
-             * Otherwise, go back and try to find out which field we are
-             * supposed to set when we see that option.
-             */
-            for (int i = 0; i < options.length; i++) {
-                
-                if (options[i].longOpt.getVal() == rc) {
-                    
-                    setValue(options[i], getopt.getOptarg());
-                    break;
-                }
-            }
-        }
-        
-        /*
-         * JIC, we will try to clear out any existing contents
-         * of the list.
+         * JIC, we will try to clear out any existing contents of the list.
          */
         if (argList.size() > 0) {
                     
             argList.clear();
         }
+        
+        // Set to true when we hit a naked "--"
+        boolean noMoreArgs = false;
+        
+        while (idx < sz) {
+            
+            String arg = argv[idx++];
+            Option opt = null;
+            
+            // If we had previously hit a raw "--", then just absorbe the args
+            if (noMoreArgs) {
                 
-        /*
-         * Now, populate our list.
-         */
-        for (int i = getopt.getOptind(); i < argv.length; i++) {
+                argList.add(arg);
+                continue;
+            }
+            
+            /*
+             * If the argument is part of the option (e.g. "--foo=bar" or 
+             * "-Usa" then this will point to the start of the argument.
+             */
+            int argIdx = -1;
+            
+            /*
+             * Check for long option name.
+             */
+            if (arg.startsWith("--")) {
+                
+                // Once we hit a "--" all by itself, we are done parsing arguments
+                if (arg.equals("--")) {
                     
-            argList.add(argv[i]);
-        }
+                    noMoreArgs = true;
+                    continue;
+                }
                 
+                int eqIdx = arg.indexOf('=');
+                String optName = arg.substring(2, (eqIdx < 0 ? arg.length() : eqIdx));
+                
+                opt = findOption(optName);
+                
+                if (eqIdx > 0) {
+                    
+                    argIdx = eqIdx+1;
+                }
+            }
+            else if (arg.startsWith("-")) {
+                
+                if (arg.length() == 1) {
+                    
+                    throw new OptionException(program + ": Missing option character "
+                        + " following \"-\"");
+                }
+                
+                char optChar = arg.charAt(1);
+                opt = findOption(optChar);
+                
+                if (arg.length() > 2) {
+                    
+                    argIdx = 2;
+                }
+            }
+            
+            /*
+             * If there was no option, then just stuff it in the argument list
+             */
+            if (opt == null) {
+                
+                argList.add(arg);
+            }
+            else {
+                
+                String optArg = null;
+                
+                // Does the option take an argument?
+                if (opt.hasArg()) {
+                    
+                    
+                    // If we had an "=" then the argument is part of the string
+                    if (argIdx > 0) {
+                        
+                        optArg = arg.substring(argIdx);
+                    }
+                    else {
+                        
+                        // No "=" so the argument could be the next string
+                        if (opt.getOptRequired() == ArgumentRequired.REQUIRED) {
+                            
+                            // No more arguments or next is an option, then error
+                            if (idx == sz || argv[idx].startsWith("-")) {
+                                
+                                throw new OptionException(program
+                                    + ": option " + opt + " is missing an argument");
+                            }
+                            
+                            // Consume the next entry as an argument
+                            optArg = argv[idx++];
+                        }
+                        else {     // ArgumentRequired.OPTIONAL
+                            
+                            // For optional argument, if there is an argument left
+                            // and it isn't an option, then use it
+                            if (idx < sz || ! argv[idx].startsWith("-")) {
+                                
+                                optArg = argv[idx++];
+                            }
+                        }
+                    }
+                }
+                else {
+                    
+                    if (argIdx >= 0) {
+                        
+                        throw new OptionException(program
+                            + ": option " + opt + " does not take an argument");
+                    }
+                }
+                
+                setValue(opt, optArg);
+            }
+        }
+        
+        
         /*
          * Check if we have hit the minimum required arguments.
          */
@@ -177,17 +226,24 @@ public class OptionProcessor {
         sb.append("Use: ").append(program).append(' ').append(programUsage)
             .append(linesep);
         
-        for (OptionInfo optionInfo : options) {
+        for (Option option : options) {
             
             int start = sb.length();
             sb.append("   ");
-            sb.append('-').append(optionInfo.option.option());
-            if (optionInfo.option.longOption().length() != 0) {
+            sb.append('-').append(option.getShortOpt());
+            
+            String longOpt = option.getLongOpt();
+            if (longOpt != null && longOpt.length() == 0) {
                 
-                sb.append(", --").append(optionInfo.option.longOption());
+                longOpt = null;
+            }
+                
+            if (longOpt != null) {
+                
+                sb.append(", --").append(option.getLongOpt());
             }
             
-            ArgumentRequired req = optionInfo.option.arg();
+            ArgumentRequired req = option.getOptRequired();
             if (req == ArgumentRequired.OPTIONAL) {
                 
                 sb.append('[');
@@ -195,7 +251,7 @@ public class OptionProcessor {
             
             if (req != ArgumentRequired.NONE) {
                 
-                if (optionInfo.option.longOption().length() != 0) {
+                if (longOpt != null) {
                     
                     sb.append('=');
                 }
@@ -204,7 +260,7 @@ public class OptionProcessor {
                     sb.append('=');
                 }
                 
-                sb.append(optionInfo.option.argName());
+                sb.append(option.getArgName());
             }
             
             if (req == ArgumentRequired.OPTIONAL) {
@@ -220,7 +276,7 @@ public class OptionProcessor {
                 sb.append(' ');
             }
             
-            sb.append(optionInfo.option.description());
+            sb.append(option.getDescription());
             sb.append(linesep);
         }
         
@@ -236,13 +292,13 @@ public class OptionProcessor {
      * @throws OptionException Thrown if there is a problem setting
      *   the value of that option.
      */
-    private void setValue(OptionInfo option, String value)
+    private void setValue(Option option, String value)
         throws OptionException {
         
         try {
             
             Field field = optionBean.getClass().getField(option.fieldName);
-            Class type = field.getType();
+            Class<?> type = field.getType();
             
             if (field.isAccessible() == false) {
                 
@@ -250,18 +306,17 @@ public class OptionProcessor {
             }
             
             /*
-         	 * This is a special case. If the option takes no arguments
-         	 * then we have to assume that it is toggling a boolean 
-         	 * value.
-         	 */
-            if (option.longOpt.getHasArg() == LongOpt.NO_ARGUMENT) {
+              * This is a special case. If the option takes no arguments
+              * then we have to assume that it is toggling a boolean 
+              * value.
+              */
+            if (! option.hasArg()) {
                 
                 /*
                  * Options with no arguments, *must* correspond to a 
                  * boolean field.
                  */
-                if (type == Boolean.TYPE
-                        || type == Boolean.class) {
+                if (type == Boolean.TYPE || type == Boolean.class) {
                     
                     toggleBoolean(option, field);
                 }
@@ -309,7 +364,8 @@ public class OptionProcessor {
                 }
                 else if (type.isAssignableFrom(java.util.List.class)) {
 
-                    List c = (List)field.get(optionBean);
+                    @SuppressWarnings("unchecked")
+                    List<String> c = (List<String>)field.get(optionBean);
                     c.add(value);
                 }
                 else {
@@ -355,7 +411,7 @@ public class OptionProcessor {
      * @param field The field to be toggled.
      * @throws OptionException Thrown if the toggle fails.
      */
-    private void toggleBoolean (OptionInfo optionInfo, Field field)
+    private void toggleBoolean (Option option, Field field)
         throws OptionException {
         
         try {
@@ -368,7 +424,7 @@ public class OptionProcessor {
             throw new OptionException(program
                 + ": Unable to toggle value of field "
                 + field.getName() + " via option "
-                + optionInfo.toString() + ": " + e.getMessage());
+                + option + ": " + e.getMessage());
         }
     }
     
@@ -378,19 +434,20 @@ public class OptionProcessor {
      * 
      * @param opts The object to traverse.
      */
+    @SuppressWarnings("unchecked")
     private void doAnnotations() {
         
         /*
          * First, look for @Options.
          */
-        ArrayList<OptionInfo> optionsList = new ArrayList<OptionInfo>();
+        ArrayList<Option> optionsList = new ArrayList<Option>();
         Field []fields = optionBean.getClass().getFields();
         for (int i = 0;i < fields.length; i++) {
             
-            Option option = (Option) fields[i].getAnnotation(Option.class);
+            OptionProperty option = (OptionProperty) fields[i].getAnnotation(OptionProperty.class);
             if (option != null) {
                 
-                optionsList.add(new OptionInfo(option, fields[i].getName()));
+                optionsList.add(new Option(option, fields[i].getName()));
             }
             
             Argv argv = (Argv) fields[i].getAnnotation(Argv.class);
@@ -410,8 +467,8 @@ public class OptionProcessor {
                 catch (IllegalAccessException e) {
                     
                     System.err.println("WARNING: "
-                    	+ "Unable to access field '"
-                    	+ fields[i].getName() + "': " + e.getMessage());
+                        + "Unable to access field '"
+                        + fields[i].getName() + "': " + e.getMessage());
                 }
                 
                 if (!(val instanceof List)) {
@@ -424,7 +481,7 @@ public class OptionProcessor {
                         + "annotated in this way must implement java.util.List");
                 }
                 
-                argList      = (List)val;
+                argList      = (List<String>) val;
                 program      = argv.program();
                 programUsage = argv.usage();
                 minArgs      = argv.min();
@@ -432,7 +489,7 @@ public class OptionProcessor {
             }
         }
         
-        options = optionsList.toArray(new OptionInfo[0]);
+        options = optionsList.toArray(new Option[0]);
         if (argList == null) {
             
             System.err.println("WARNING: Option object must contain "
@@ -440,67 +497,31 @@ public class OptionProcessor {
         }
     }
     
-    /**
-     * Used internally to hold everything necessary for the option
-     * processing.
-     */
-    private static class OptionInfo {
+    private Option findOption (String longOpt) throws OptionException {
         
-        /**
-         * The actual option.
-         */
-        public Option option;
-        
-        /**
-         * This it the option information for actually doing the 
-         * command line processing.
-         */
-        public LongOpt longOpt;
-        
-        /**
-         * This is the field in the object that is annotated with 
-         * the {@link Option} annotation.
-         */
-        public String fieldName;
-        
-        public OptionInfo (Option option, String fieldName) {
+        for (Option opt : options) {
             
-            this.option = option;
-            this.fieldName = fieldName;
-            
-            String longName = option.longOption();
-            int required = LongOpt.NO_ARGUMENT;
-            char optChar = option.option();
+            if (longOpt.equals(opt.getLongOpt())) {
                 
-            if (option.arg() == ArgumentRequired.NONE) {
-                    
-                required = LongOpt.NO_ARGUMENT;
+                return opt;
             }
-            else if (option.arg() == ArgumentRequired.OPTIONAL) {
-                    
-                required = LongOpt.OPTIONAL_ARGUMENT;
-            }
-            else if (option.arg() == ArgumentRequired.REQUIRED) {
-                    
-                required = LongOpt.REQUIRED_ARGUMENT;
-            }
-                
-            this.longOpt = new LongOpt(longName, required, null, optChar);
-            this.fieldName = fieldName;
         }
         
-        public String toString() {
+        throw new OptionException(program
+            + ": Unrecognized option \"--" + longOpt + "\"");
+    }
+    
+    private Option findOption (char shortOpt) throws OptionException {
+        
+        for (Option opt : options) {
             
-            StringBuilder sb = new StringBuilder();
-            sb.append('-').append((char) longOpt.getVal());
-            if (longOpt.getName() != null) {
+            if (shortOpt == opt.getShortOpt()) {
                 
-                sb.append(" (")
-                    .append("--").append(longOpt.getName())
-                    .append(")");
+                return opt;
             }
-            
-            return sb.toString();
         }
+        
+        throw new OptionException(program
+            + ": Unrecognized option \"-" + shortOpt + "\"");
     }
 }

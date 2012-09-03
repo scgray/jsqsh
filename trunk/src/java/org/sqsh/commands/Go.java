@@ -1,19 +1,17 @@
 /*
- * Copyright (C) 2007 by Scott C. Gray
- * 
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
- * Cambridge, MA 02139, USA.
+ * Copyright 2007-2012 Scott C. Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.sqsh.commands;
 
@@ -28,7 +26,6 @@ import org.sqsh.BufferManager;
 import org.sqsh.CannotSetValueError;
 import org.sqsh.Command;
 import org.sqsh.ConnectionContext;
-import org.sqsh.DatabaseCommand;
 import org.sqsh.RendererManager;
 import org.sqsh.SQLRenderer;
 import org.sqsh.SQLTools;
@@ -36,7 +33,7 @@ import org.sqsh.Session;
 import org.sqsh.SqshOptions;
 import org.sqsh.Style;
 import org.sqsh.options.Argv;
-import org.sqsh.options.Option;
+import org.sqsh.options.OptionProperty;
 
 /**
  * Implements the \go command.
@@ -47,27 +44,27 @@ public class Go
     protected static class Options
        extends SqshOptions {
        
-        @Option(
+        @OptionProperty(
             option='m', longOption="display-style", arg=REQUIRED, argName="style",
             description="Sets the display style for output")
         public String style = null;
        
-        @Option(
+        @OptionProperty(
             option='i', longOption="insert", arg=REQUIRED, argName="table",
             description="Generates INSERT statements for specified table")
         public String insertTable = null;
 
-        @Option(
+        @OptionProperty(
             option='n', longOption="repeat", arg=REQUIRED, argName="count",
             description="Repeates the query execution count times")
         public int repeat = 1;
        
-        @Option(
+        @OptionProperty(
             option='H', longOption="no-headers", arg=NONE,
             description="Toggles display of result header information")
            public boolean toggleHeaders = false;
        
-        @Option(
+        @OptionProperty(
             option='F', longOption="no-footers", arg=NONE,
             description="Toggles display of result footer information")
            public boolean toggleFooters = false;
@@ -115,7 +112,7 @@ public class Go
             if (options.style.equals("insert")) {
                 
                 origNull = session.getDataFormatter().getNull();
-            	session.getDataFormatter().setNull("NULL");
+                session.getDataFormatter().setNull("NULL");
             }
             
             origStyle = conn.getStyle();

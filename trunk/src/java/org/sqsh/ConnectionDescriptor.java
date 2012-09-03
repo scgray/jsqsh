@@ -1,26 +1,24 @@
 /*
- * Copyright (C) 2007 by Scott C. Gray
- * 
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
- * Cambridge, MA 02139, USA.
+ * Copyright 2007-2012 Scott C. Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.sqsh;
 
 import static org.sqsh.options.ArgumentRequired.NONE;
 import static org.sqsh.options.ArgumentRequired.REQUIRED;
 
-import org.sqsh.options.Option;
+import org.sqsh.options.OptionProperty;
 
 /**
  * Container for a block of settings that are used for connecting
@@ -33,52 +31,52 @@ public class ConnectionDescriptor
     implements Cloneable {
     
     
-    @Option(
+    @OptionProperty(
         option='S', longOption="server", arg=REQUIRED, argName="server",
         description="Name of the database server to connect to")
      public String server = null;
 
-    @Option(
+    @OptionProperty(
         option='p', longOption="port", arg=REQUIRED, argName="port",
         description="Listen port for the server to connect to")
     public int port = -1;
 
-    @Option(
+    @OptionProperty(
         option='D', longOption="database", arg=REQUIRED, argName="db",
         description="Database (catalog) context to use upon connection")
     public String database = null;
 
-    @Option(
+    @OptionProperty(
         option='U', longOption="user", arg=REQUIRED, argName="user",
         description="Username utilized for connection")
     public String username = null;
 
-    @Option(
+    @OptionProperty(
         option='P', longOption="password", arg=REQUIRED, argName="pass",
         description="Password utilized for connection")
     public String password = null;
     
-    @Option(
+    @OptionProperty(
         option='w', longOption="domain", arg=REQUIRED, argName="domain",
         description="Windows domain to be used for authentication")
     public String domain = null;
 
-    @Option(
+    @OptionProperty(
         option='s', longOption="sid", arg=REQUIRED, argName="SID",
         description="Instance id (e.g. Oracle SID) to utilize")
     public String SID = null;
 
-    @Option(
+    @OptionProperty(
         option='c', longOption="jdbc-class", arg=REQUIRED, argName="driver",
         description="JDBC driver class to utilize")
     public String driverClass = null;
     
-    @Option(
+    @OptionProperty(
         option='d', longOption="driver", arg=REQUIRED, argName="driver",
         description="Name of jsqsh driver to be used for connection")
     public String driverName = null;
     
-    @Option(
+    @OptionProperty(
         option='u', longOption="jdbc-url", arg=REQUIRED, argName="url",
         description="JDBC url to use for connection")
     public String url = null;
