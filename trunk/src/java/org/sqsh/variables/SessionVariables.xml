@@ -453,49 +453,6 @@ SEE ALSO
         ]]></Help>	
 	</Property>
     
-	<Property bean="session" name="show_stack" property="printStackTrace">
-        <Description>Enables/disables display of stack trace from exceptions</Description>
-        <Help><![CDATA[
-VARIABLE
-   show_stack - Controls whether or not stack traces are display from exceptions
-
-DESCRIPTION
-   The ${show_stack} boolean variable controls whether or not exceptions
-   thrown during the execution of a command (such as "\go") will display
-   just the text of the exception or the full stack trace.  The default 
-   is "false", limiting the output to just the text of the exception.
-   This is typically only set to true if you need to debug a problem within
-   a driver or possibly a specific command.
-   
-   Currently not all places that deal with exceptions in jsqsh honor this
-   setting.
-   
-SEE ALSO
-   show_exclass
-        ]]></Help>	
-	</Property>
-    
-	<Property bean="session" name="show_exclass" property="printExceptionClass">
-        <Description>Enables/disables display of exceptions class name</Description>
-        <Help><![CDATA[
-VARIABLE
-   show_exclass - Controls whether or not the exception class name is displayed
-
-DESCRIPTION
-   The ${show_exclass} boolean variable controls whether or not exceptions
-   thrown during the execution of a command (such as "\go") will display
-   the class name of the exception, along with the text of the exception. The
-   default is "false". This is typically only set to true if you need to 
-   debug a problem within a driver or possibly a specific command.
-   
-   Currently not all places that deal with exceptions in jsqsh honor this
-   setting.
-   
-SEE ALSO
-   show_stack
-        ]]></Help>	
-	</Property>
-
 	<Property bean="session" name="exec_mode" 
                   property="connectionContext.executionModeName"
 	          quiet="true">
