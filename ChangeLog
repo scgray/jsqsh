@@ -1,18 +1,13 @@
 Release 1.5
-* Added support for Jaql - a hadoop query language. The support consists of
-  the following:
-    - The \jaql command starts a Jaql session
-    - The --jaql when starting jsqsh, automatically starts a session
-    - When in a jaql session, \go or the command terminator (";" by default)
-      executes the current statement through the Jaql interpreter.
-    - The variables "jaql_prompt", "jaql_indent", "jaql_jars", "jaql_path",
-      "jaql_jobname", and "jaql_style" can be used to affect the behavior 
-      of the jaql shell (these are all documented under "\help jaql").
-    - Jsqsh options --jaql-path and --jaql-jars have been added. Use of
-      these options implies --jaql.
-    - Tab completion will complete any global Jaql variable name.  
-    - There are three display styles that apply to Jaql: "json", "lines",
-      and "discard".
+* Switched to Apache 2.0 License. This has the following side effects
+  (mostly not visible to users)
+    - Option processing switched from GNU getopt to Apache CLI
+    - JLine is made default line reader. Readline has to be enabled
+      by the user, and the readline jar is not distributed with jsqsh.
+      For those worried about this descision: java-readline hasn't been
+      updated in over 7 years and JLine 2.x is approaching it pretty well
+      in terms of functionality.  Java-readline can be installed on most
+      linux machines by your package manager, so it is easy to add on.
 * The command terminator may now end a jsqsh command. For example, the
   following are now legal:
         1> quit;
@@ -28,18 +23,29 @@ Release 1.5
   value locally for the jaql session.
 * Added $histid variable that contains the current buffer number you are 
   working on. Really useful for adding to your prompt.
-* Upgraded to jline-2.7. JLine is an almost pure java line editing library, 
-  similar to readline. This version is my own version, which is available here:
-      https://github.com/scgray/jline2
-  but should hopefully make it into the mainline soon. It adds
-  support for most of the basic "vi" command set.  The only big-ticket
-  missing items are undo/redo support and multi-command support 
-  (like "dw" to delete-to-word, "d$" to delete to end of line, etc.).
+* Upgraded to jline-2.8. JLine is an almost pure java line editing library, 
+  similar to readline.  This version of jline adds support for most of the 
+  basic "vi" command set.  
 * Added support for ARRAY data type and hopefully better support for
   unrecognized data types.
 * Added $editing_mode to allow you to set the editing keymap. Currently
   this is only supported by JLine, so to switch to "vi" mode, do:
      \set editing_mode=vi
+* Added support for launching a Jaql interpreter from within jsqsh. Jaql 
+  is a programming language designed for working with Hadoop. JSqsh's 
+  support for jaql consists of:
+    - The \jaql command starts a Jaql session
+    - The --jaql when starting jsqsh, automatically starts a session
+    - When in a jaql session, \go or the command terminator (";" by default)
+      executes the current statement through the Jaql interpreter.
+    - The variables "jaql_prompt", "jaql_indent", "jaql_jars", "jaql_path",
+      "jaql_jobname", and "jaql_style" can be used to affect the behavior 
+      of the jaql shell (these are all documented under "\help jaql").
+    - Jsqsh options --jaql-path and --jaql-jars have been added. Use of
+      these options implies --jaql.
+    - Tab completion will complete any global Jaql variable name.  
+    - There are three display styles that apply to Jaql: "json", "lines",
+      and "discard".
 * Added new build target called 'dist-bin'. This produces a standalone
   zip package containing a jsqsh run-time, just like 'dist', but it
   also includes the jsqsh JNI interface.

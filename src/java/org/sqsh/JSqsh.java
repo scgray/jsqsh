@@ -1,19 +1,17 @@
 /*
- * Copyright (C) 2007 by Scott C. Gray
- * 
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
- * Cambridge, MA 02139, USA.
+ * Copyright 2007-2012 Scott C. Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.sqsh;
 
@@ -31,7 +29,7 @@ import java.util.logging.LogManager;
 
 import org.sqsh.commands.Jaql;
 import org.sqsh.options.Argv;
-import org.sqsh.options.Option;
+import org.sqsh.options.OptionProperty;
 import org.sqsh.options.OptionException;
 import org.sqsh.options.OptionProcessor;
 
@@ -50,59 +48,59 @@ public class JSqsh {
     private static class Options
         extends ConnectionDescriptor {
         
-       @Option(
+       @OptionProperty(
            option='i', longOption="input-file", arg=REQUIRED, argName="file",
            description="Name of file to read as input instead of stdin")
        public String inputFile = null;
        
-       @Option(
+       @OptionProperty(
            option='o', longOption="output-file", arg=REQUIRED, argName="file",
            description="Name of file send output instead of stdout")
        public String outputFile = null;
        
-       @Option(
+       @OptionProperty(
            option='e', longOption="echo", arg=NONE, 
            description="Echoes all input back. Useful for running scripts.")
        public boolean isInputEchoed = false;
        
-       @Option(
+       @OptionProperty(
            option='n', longOption="non-interactive", arg=NONE,
            description="Force the session to be non-interactive "
                            + "(not yet implemented)")
        public boolean nonInteractive = false;
        
-       @Option(
+       @OptionProperty(
            option='j', longOption="jaql", arg=NONE,
            description="Start the session in Jaql mode")
        public boolean jaqlMode = false;
        
-       @Option(
+       @OptionProperty(
            option='p', longOption="jaql-path", arg=REQUIRED,
            description="Colon separated list of jaql module search directories")
        public String jaqlSearchPath = null;
        
-       @Option(
+       @OptionProperty(
            option='J', longOption="jaql-jars", arg=REQUIRED,
            description="Comma separated list of jars to be used by the jaql shell")
        public String jaqlJars = null;
        
-       @Option(
+       @OptionProperty(
            option='b', longOption="debug", arg=REQUIRED, argName="class",
            description="Turn on debugging for a java class or package")
        public List<String> debug = new ArrayList<String>();
        
-       @Option(
+       @OptionProperty(
            option='r', longOption="readline", arg=REQUIRED, argName="method",
            description="Readline method "
                      + "(readline,editline,getline,jline,purejava)")
        public String readline = null;
 
-       @Option(
+       @OptionProperty(
            option='C', longOption="config-dir", arg=REQUIRED, argName="dir",
            description="Configuration directory in addition to $HOME/.jsqsh.")
        public List<String> configDirectories = new ArrayList<String>();
 
-       @Option(
+       @OptionProperty(
            option='R', longOption="drivers", arg=REQUIRED, argName="file",
            description="Specifies additional drivers.xml files to be loaded")
        public List<String> driverFiles = new ArrayList<String>();

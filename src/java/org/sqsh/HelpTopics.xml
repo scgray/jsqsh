@@ -63,8 +63,8 @@ WELCOME TO JSQSH!
 </Topic>
 
 <Topic name="buffers">
-		<Description>SQL buffers and how they are referenced.</Description>
-		<HelpText><![CDATA[
+    <Description>SQL buffers and how they are referenced.</Description>
+    <HelpText><![CDATA[
 JSQSH SQL BUFFERS
     
     Each time you create and execute a SQL statement, that statement is saved
@@ -72,7 +72,7 @@ JSQSH SQL BUFFERS
     can be displayed using the '\history' command.
     
     Many jsqsh command allow you to refer to SQL buffers via special syntax,
-    each starting with an esclamation character (!).  This syntax allows for
+    each starting with an exclamation character (!).  This syntax allows for
     the following forms:
     
     !.   Refers to the current SQL buffer that you are currently 
@@ -116,72 +116,19 @@ EXAMPLES
 <Topic name="license">
 		<Description>Displays the jsqsh license</Description>
 		<HelpText><![CDATA[
-JSQSH GNU PUBLIC LICENSE		
-
-   JSqsh, Copyright (C) 2007 by Scott C. Gray
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program. If not, write to the Free Software
-   Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-	  ]]></HelpText>
-</Topic>
-
-<Topic name="readline">
-		<Description>Describes jsqsh's use of GNU Readline</Description>
-		<HelpText><![CDATA[
-GNU READLINE SUPPORT
-
-   The GNU Readline library provides support for command line editing features,
-   allowing the user to scroll back and forth through the history of lines
-   that they have typed and remembering those lines between sessions with
-   jsqsh.  
-   
-   The readline library is a native C library that jsqsh utilizes 
-   via JNI (Java Native Interface) and may or may not be available or
-   installed on your platform. If the library is not installed or jsqsh
-   cannot load it you will receive a message:
-   
-     WARNING: Unable to load GNU Readline library (no JavaReadline in
-        java.library.path). Run '\help readline' for details.
-        
-   If you receive this message, then you first want to ensure that you have
-   the readline library installed on your system. The library is available
-   from:
-   
-      http://tiswww.case.edu/php/chet/readline/rltop.html
-      
-   You'll also want to refer to the site above for details on configuration
-   and utilization of readline.
-      
-   All Linux systems and most other UNIX systems should already have this
-   library installed or readily installable via your distributions package
-   manager (on Debian distributions the package is 'libreadline5')
-   
-   Next, you'll need to ensure that you have the readline JNI library 
-   installed on your system. This library is available from:
-   
-      http://java-readline.sourceforge.net/
-      
-   Again, many Linux distributions have this library available in a pre-
-   packaged version (on Debian distributions, the package is 
-   'libreadline-java').
-   
-   Finally, you'll need to ensure that both libraries can be found by jsqsh.
-   On most UNIX distributions, this means setting your LD_LIBRARY_PATH
-   environment variable to point to the directories containing the libraries.
-   On my Ubuntu distribution, my LD_LIBRARY_PATH contains:
-   
-        LD_LIBRARY_PATH=/usr/lib/jni
+   Copyright 2007-2012 Scott C. Gray
+  
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
 	  ]]></HelpText>
 </Topic>
 
@@ -194,11 +141,6 @@ JSQSH CONTRIBUTORS
    jsqsh either by direct contribution of code, suggestions, or 
    inspiration.
    
-   Henner Zeller <h.zeller at acm.org>
-       Developer of HenPlus (http://henplus.sourceforge.net/). HenPlus was
-       the inspiration for development of jsqsh--a demonstration that a
-       reasonable command line interface can be built with Java.
-       
    Walter Jordan <walter.gator at gmail.com>
        Patches and useful suggestions.
        
@@ -301,7 +243,7 @@ OPTIONS SUPPORTED BY ALL COMMANDS
 		<HelpText><![CDATA[
 COMMAND LINE REDIRECTION
     As with standard Bourne shell (and most other shells, for that 
-    matter), a command’s output may be redirected using a special
+    matter), a command's output may be redirected using a special
     notation interpreted by the jsqsh. The following may appear anywhere
     on the command line, but only redirection that is specified prior
     to a pipe (|) actually has any effect on the behavior of internal

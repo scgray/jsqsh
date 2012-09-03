@@ -1,19 +1,17 @@
 /*
- * Copyright (C) 2007 by Scott C. Gray
- * 
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
- * Cambridge, MA 02139, USA.
+ * Copyright 2007-2012 Scott C. Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.sqsh.input;
 
@@ -53,11 +51,17 @@ public abstract class ConsoleLineReader {
      * Name of the console reader that utilizes the pure java jline library
      */
     public static final String JLINE    = "jline";
+    
+    /**
+     * A synonym for "none"
+     */
+    public static final String PUREJAVA = "purejava";
+    
     /**
      * A basic console reader that provides no line editing capabilities,
      * using direct java I/O.
      */
-    public static final String NONE     = "purejava";
+    public static final String NONE     = "none";
     
     /** 
      * Attempts to determine which readline API you happen to have available
@@ -90,10 +94,26 @@ public abstract class ConsoleLineReader {
         StringBuffer errors = new StringBuffer();
         
         /*
+         * JLine initialization
+         */
+        if (readerType == null  || JLINE.equalsIgnoreCase(readerType)) {
+            
+            try {
+            
+                reader = new JLineLineReader(ctx);
+            }
+            catch (Throwable e) {
+                
+                errors.append("[JLine: ").append(e.getMessage()).append("]");
+            }
+        }
+        
+        /*
          * Readline initialization
          */
-        if (readerType == null 
-                || READLINE.equalsIgnoreCase(readerType)) {
+        if (reader == null
+                && (readerType == null 
+                        || READLINE.equalsIgnoreCase(readerType))) {
             
             try {
                 
@@ -123,19 +143,6 @@ public abstract class ConsoleLineReader {
             }
         }
         
-        if (reader == null
-                && (readerType == null  
-                        || JLINE.equalsIgnoreCase(readerType))) {
-            
-            try {
-            
-                reader = new JLineLineReader(ctx);
-            }
-            catch (Throwable e) {
-                
-                errors.append("[JLine: ").append(e.getMessage()).append("]");
-            }
-        }
         
         /*
          * Getline initialization
@@ -152,6 +159,14 @@ public abstract class ConsoleLineReader {
                 
                 errors.append("[Getline: ").append(e.getMessage()).append("]");
             }
+        }
+        
+        if (reader == null
+                && (readerType == null  
+                        || NONE.equalsIgnoreCase(readerType)
+                        || PUREJAVA.equalsIgnoreCase(readerType))) {
+            
+            reader = new PureJavaLineReader(ctx);
         }
         
         if (reader == null) {

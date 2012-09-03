@@ -1,19 +1,17 @@
 /*
- * Copyright (C) 2007 by Scott C. Gray
- * 
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
- * Cambridge, MA 02139, USA.
+ * Copyright 2007-2012 Scott C. Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.sqsh;
 
@@ -760,9 +758,9 @@ public class Session
                 sigHandler.clear();
                     
                 line = readLine();
-            	if (line == null) {
+                if (line == null) {
                     
-            	    done = true;
+                    done = true;
                 }
                 else {
                 
@@ -918,7 +916,7 @@ public class Session
                                 
                 String prompt = getVariableManager().get("prompt");
                 prompt =  (prompt == null)  
-            	    ? ">" : getStringExpander().expand(this, prompt);
+                    ? ">" : getStringExpander().expand(this, prompt);
                                 
                 line = sqshContext.getConsole().readline(prompt + " ", true);
                 if (line == null) {
@@ -1179,19 +1177,19 @@ public class Session
     private void runCommand(Command command, String commandLine)
         throws SqshContextMessage {
         
-    	Token token = null;
-       	Shell pipeShell = null;
-       	
-       	SessionRedirectToken sessionRedirect = null;
-       	File sessionOutput = null;
-       	
-       	/*
-       	 * Because our commandline may redirect I/O via >file, 1>&2,
-       	 * or a pipe, we want to save away the state of our file descriptors
-       	 * prior to doing this redirection, so that we can restore the
-       	 * state of the world when we are done...
-       	 */
-       	saveInputOutput();
+        Token token = null;
+           Shell pipeShell = null;
+           
+           SessionRedirectToken sessionRedirect = null;
+           File sessionOutput = null;
+           
+           /*
+            * Because our commandline may redirect I/O via >file, 1>&2,
+            * or a pipe, we want to save away the state of our file descriptors
+            * prior to doing this redirection, so that we can restore the
+            * state of the world when we are done...
+            */
+           saveInputOutput();
         
         try {
             
@@ -1199,7 +1197,7 @@ public class Session
             commandLine = 
                 getStringExpander().expandWithQuotes(this, commandLine);
         
-        	tokenizer.reset(commandLine, sqshContext.getTerminator());
+            tokenizer.reset(commandLine, sqshContext.getTerminator());
             
             /*
              * We can safely skip the first word in the command line because
@@ -1583,7 +1581,7 @@ public class Session
         extends Thread {
         
         private static final Logger LOG = 
-        	Logger.getLogger(Session.class.getName());
+            Logger.getLogger(Session.class.getName());
         
         private InputStream in;
         private PrintStream out;

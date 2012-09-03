@@ -1,23 +1,19 @@
 /*
- * Copyright (C) 2007 by Scott C. Gray
- * 
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
- * Cambridge, MA 02139, USA.
+ * Copyright 2007-2012 Scott C. Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.sqsh.commands;
-
-import static org.sqsh.options.ArgumentRequired.NONE;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -38,7 +34,7 @@ import org.sqsh.format.BlobFormatter;
 import org.sqsh.format.ByteFormatter;
 import org.sqsh.format.ClobFormatter;
 import org.sqsh.options.Argv;
-import org.sqsh.options.Option;
+import org.sqsh.options.OptionProperty;
 
 /**
  * Implements the \diff command.
@@ -54,7 +50,7 @@ public class Diff
          * 1  - Only check non-zero update counts
          * >  - Check and compare update counts
          */
-        @Option(
+        @OptionProperty(
             option='u', longOption="update-stringency", arg=REQUIRED,
             description="Stringency for update count checks")
             public int updateStringency = 2;
@@ -65,7 +61,7 @@ public class Diff
          * 2  - Check the SQLStatus of the exception
          * >  - Check the error code
          */
-        @Option(
+        @OptionProperty(
             option='e', longOption="exception-stringency", arg=REQUIRED,
             description="Stringency for exception checking")
             public int exceptionStringency = 1;
@@ -133,8 +129,8 @@ public class Diff
                     
                     if (sessions.contains(nextSession) == false) {
                     
-                    	sessions.add(nextSession);
-                	}
+                        sessions.add(nextSession);
+                    }
                 }
             }
             catch (NumberFormatException e) {
@@ -310,17 +306,17 @@ public class Diff
                             
                             results[i] = statements[i].getResultSet();
                             ++resultCount[i];
-                    	
-                        	if (results[i] == null) {
-    	                        
-                        	    /*
-                        	     * If we have no result sets, then fetch the
-                        	     * update count.
-                        	     */
-                            	results[i] = null;
-                            	updateCounts[i] =
-                            	    statements[i].getUpdateCount();
-                        	}
+                        
+                            if (results[i] == null) {
+                                
+                                /*
+                                 * If we have no result sets, then fetch the
+                                 * update count.
+                                 */
+                                results[i] = null;
+                                updateCounts[i] =
+                                    statements[i].getUpdateCount();
+                            }
                         }
                     }
                     while (results[i] == null 
@@ -490,9 +486,9 @@ public class Diff
                 System.err.println("Number of available rows differs:");
                 for (int i = 0; i < sessions.length; i++) {
                     
-                	System.err.println("   Session #"
-                    	+ sessions[i].getId() + ": " 
-                    	+ (isNext[i] ? "More rows" : "No more rows"));
+                    System.err.println("   Session #"
+                        + sessions[i].getId() + ": " 
+                        + (isNext[i] ? "More rows" : "No more rows"));
                 }
             }
             
@@ -503,10 +499,10 @@ public class Diff
             if (ok) {
                 
                 if (gotException) {
-	                
-                	ok = compareExceptions(sessions, exceptions);
-                	done = true;
-            	}
+                    
+                    ok = compareExceptions(sessions, exceptions);
+                    done = true;
+                }
                 else {
                     
                     if (isNext[0]) {
@@ -589,8 +585,8 @@ public class Diff
             for (int i = 0; i < results.length; i++) {
                 
                 System.err.println("   Session #"
-                    	+ sessions[i].getId() + ": " 
-                    	+ values[i][badColumn].toString());
+                        + sessions[i].getId() + ": " 
+                        + values[i][badColumn].toString());
             }
         }
         
@@ -716,11 +712,11 @@ public class Diff
                 System.err.println("Column count differs in results");
                 for (int i = 0; i < results.length; i++) {
                 
-                	System.err.println("   Session #"
-                    	+ sessions[i].getId() + ": " 
-                    	+ results[i].getMetaData().getColumnCount()
-                    	+ " column(s)");
-            	}
+                    System.err.println("   Session #"
+                        + sessions[i].getId() + ": " 
+                        + results[i].getMetaData().getColumnCount()
+                        + " column(s)");
+                }
                 
                 return false;
             }
@@ -744,31 +740,31 @@ public class Diff
                     meta = results[i].getMetaData();
                     StringBuilder sb = new StringBuilder();
                     
-                	sb.append("Type #")
-                	    .append(meta.getColumnType(c))
-                	    .append(" (")
-                	    .append(SQLTools.getTypeName(meta.getColumnType(c)))
-                	    .append(")");
-                	
-                	if (meta.getColumnType(c) == Types.NUMERIC
-                	   || meta.getColumnType(c) == Types.DECIMAL) {
-                	    
-                	    sb.append(", Precision=")
-                	        .append(meta.getPrecision(c))
-                	        .append(", Scale=")
-                	        .append(meta.getScale(c));
-                	}
-                	
-                	descriptions[i] = sb.toString();
-                	
-                	if (ok && i > 0) {
-                	    
-                	    if (!(descriptions[0].equals(descriptions[i]))) {
-                	        
-                	        ok = false;
-                	        badColumn = c;
-                	    }
-                	}
+                    sb.append("Type #")
+                        .append(meta.getColumnType(c))
+                        .append(" (")
+                        .append(SQLTools.getTypeName(meta.getColumnType(c)))
+                        .append(")");
+                    
+                    if (meta.getColumnType(c) == Types.NUMERIC
+                       || meta.getColumnType(c) == Types.DECIMAL) {
+                        
+                        sb.append(", Precision=")
+                            .append(meta.getPrecision(c))
+                            .append(", Scale=")
+                            .append(meta.getScale(c));
+                    }
+                    
+                    descriptions[i] = sb.toString();
+                    
+                    if (ok && i > 0) {
+                        
+                        if (!(descriptions[0].equals(descriptions[i]))) {
+                            
+                            ok = false;
+                            badColumn = c;
+                        }
+                    }
                 }
             }
                     
@@ -779,10 +775,10 @@ public class Diff
                 
                 for (int i = 0; i < sessions.length; i++) {
                     
-                	System.err.println("   Session #"
-                	    + sessions[i].getId()
-                	    + ": " + descriptions[i]);
-            	}
+                    System.err.println("   Session #"
+                        + sessions[i].getId()
+                        + ": " + descriptions[i]);
+                }
                 
                 return false;
             }
@@ -821,11 +817,11 @@ public class Diff
             System.err.println("Update count differs:");
             for (int i = 0; i < updateCounts.length; i++) {
                 
-            	System.err.println("   Session #"
-                	+ sessions[i].getId() + ": " 
-                	+ updateCounts[i]
-                	+ " row(s)");
-        	}
+                System.err.println("   Session #"
+                    + sessions[i].getId() + ": " 
+                    + updateCounts[i]
+                    + " row(s)");
+            }
         }
         
         return ok;
@@ -856,12 +852,12 @@ public class Diff
             System.err.println("Number of result sets differ:");
             for (int i = 0; i < sessions.length; i++) {
                 
-            	System.err.println("   Session #"
-                	+ sessions[i].getId() + ": " 
-                	+ (moreResults[i]
-                	        ? "Results pending"
-                	        : "No more results"));
-        	}
+                System.err.println("   Session #"
+                    + sessions[i].getId() + ": " 
+                    + (moreResults[i]
+                            ? "Results pending"
+                            : "No more results"));
+            }
         }
         
         return ok;

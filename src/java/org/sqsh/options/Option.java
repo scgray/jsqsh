@@ -1,74 +1,115 @@
 /*
- * Copyright (C) 2007 by Scott C. Gray
- * 
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, write to the Free Software Foundation, 675 Mass Ave,
- * Cambridge, MA 02139, USA.
+ * Copyright 2007-2012 Scott C. Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.sqsh.options;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-/**
- * Marker for defining a command line option that is used to set a 
- * member of an object when provided. This annotation can be provided
- * for a field of an object to indicate that the value of that field
- * can be set with a command line option.  It is important to ensure
- * that the field is public or that it is running in a security context
- * that allows the field to be set.
- */
-@Retention(RUNTIME)
-@Target({FIELD})
-public @interface Option {
+public class Option {
     
     /**
-     * Specifies the command line option character (e.g. 'e' indicates '-e'
-     * is the option)
+     * The property/annotation that defined this option.
      */
-    char option();
+    protected OptionProperty option;
     
     /**
-     * If non-null specifies the a long name for the option. This name should
-     * not include any leading dashes (e.g. it should be "long-name" not
-     * "--long-name")
+     * This is the field in the object that is annotated with 
+     * the {@link OptionProperty} annotation.
      */
-    String longOption() default "";
+    protected String fieldName;
     
     /**
-     * String describing the meaning of this option.
+     * Creates an option that is associated with a field of a java bean. 
+     * @param option The option property that is associated with the field of
+     *   the java bean
+     * @param fieldName The name of the field the property is associated with
      */
-    String description() default "";
+    public Option (OptionProperty option, String fieldName) {
+        
+        this.option      = option;
+        this.fieldName   = fieldName;
+    }
     
     /**
-     * Specifies if an argument to the option is required, optional, or
-     * not required.
+     * @return The name of the field of the option bean that should be set
+     *   with this property
      */
-    ArgumentRequired arg() default ArgumentRequired.NONE;
+    public String getFieldName() {
+        
+        return fieldName;
+    }
     
     /**
-     * Specifies a display name for the argument to the option that will
-     * be used when generating usage text. If not provided, the usage
-     * text will be:
-     * <pre>
-     *   -x val  This is the usage for the option
-     * </pre>
-     * If argName is provided then "val" will be replaced with the name
-     * provided.
+     * @return The short form of the option
      */
-    String argName() default "val";
+    public char getShortOpt() {
+        
+        return option.option();
+    }
+    
+    /**
+     * @return The long form of the option, or null if there is no long form
+     */
+    public String getLongOpt() {
+        
+        return option.longOption();
+    }
+    
+    /**
+     * @return A description of the option.
+     */
+    public String getDescription() {
+        
+        return option.description();
+    }
+    
+    /**
+     * @return true if the option could possibly have an argument
+     */
+    public boolean hasArg() {
+        
+        return option.arg() != ArgumentRequired.NONE;
+    }
+    
+    /**
+     * @return Whether or not the option requires an argument
+     */
+    public ArgumentRequired getOptRequired() {
+        
+        return option.arg();
+    }
+    
+    /**
+     * @return If the option requires and argument, this is a logic name to
+     *   use when displaying the argument name.
+     */
+    public String getArgName() {
+        
+        return option.argName();
+    }
+    
+    @Override
+    public String toString() {
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append('-').append(option.option());
+        if (option.longOption() != null) {
+            
+            sb.append(" (")
+                .append("--").append(option.longOption())
+                .append(")");
+        }
+        
+        return sb.toString();
+    }
 }
