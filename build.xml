@@ -70,7 +70,7 @@
             </fileset>
         </copy>
 
-        <propertyfile file="build/classes/build.properties">
+        <propertyfile file="build/classes/jsqsh.properties">
             <entry key="build.date" type="date" default="now" operation="="
                    pattern="yyyyMMdd"/>
             <entry key="build.version" value="${version}"/>
@@ -142,7 +142,7 @@
           == For now I just install a shell script to launch it. 
           == I'm considering the use of Launch4j here as well.
           -->
-        <copy file="dist/generic/jsqsh"
+        <copy file="dist/unix/jsqsh.sh"
               tofile="build/jsqsh-${version}/bin/jsqsh"/>
         <copy file="dist/generic/jsqsh.bat"
               todir="build/jsqsh-${version}/bin"/>
