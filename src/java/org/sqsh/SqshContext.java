@@ -205,6 +205,20 @@ public class SqshContext {
     private int terminator = ';';
     
     /**
+     * Used to control whether or not exceptions that are printed out 
+     * using the session's printStackTrace() method will include
+     * the full stack, or will just print the exception text.
+     */
+    private boolean printStackTrace = false;
+    
+    /**
+     * Used to control whether or not exceptions that are printed out 
+     * using the session's printStackTrace() method will include
+     * the name of the exception class in the output.
+     */
+    private boolean printExceptionClass = false;
+    
+    /**
      * Creates a new SqshContext.
      * 
      * @param readerType The type of readline implementation to utilize. This
@@ -308,6 +322,80 @@ public class SqshContext {
     public void setInputEchoed(boolean isInputEchoed) {
     
         this.isInputEchoed = isInputEchoed;
+    }
+    
+    /**
+     * Determines whether or not exceptions that are printed out via
+     * the sessions printException() method will show the stack trace.
+     * 
+     * @param printStackTrace if true, then exceptions will have
+     *   their stack trace printed.
+     */
+    public void setPrintStackTrace(boolean printStackTrace) {
+    
+        this.printStackTrace = printStackTrace;
+    }
+    
+    /**
+     * @return whether or not exceptions that are printed out via
+     * the sessions printException() method will show the stack trace.
+     */
+    public boolean isPrintStackTrace() {
+    
+        return printStackTrace;
+    }
+    
+    /**
+     * Determines whether or not exceptions printed with the printException()
+     * method will include the name of the exception class in the output.
+     * 
+     * @param printExceptionClass if true, then the class name will be
+     *   included in the output.
+     */
+    public void setPrintExceptionClass(boolean printExceptionClass) {
+    
+        this.printExceptionClass = printExceptionClass;
+    }
+
+    /**
+     * @return whether or not exceptions printed with the printException()
+     * method will include the name of the exception class in the output.
+     */
+    public boolean isPrintExceptionClass() {
+    
+        return printExceptionClass;
+    }
+    
+    /**
+     * This is a utility method that should be used by any command attempting
+     * to print an exception. It prints the exception to the sessions error
+     * output, and honors the session settings for {@link #setPrintExceptionClass(boolean)}
+     * and {@link #setPrintStackTrace(boolean)}.
+     * 
+     * @param e The exception to print.
+     */
+    public void printException (PrintStream out, Throwable e) {
+        
+        if (printExceptionClass)
+            out.print("["+e.getClass().getName()+"]: ");
+        
+        if (printStackTrace) {
+            
+            e.printStackTrace(out);
+        }
+        else {
+            
+            out.println(e.toString());
+            
+            e = e.getCause();
+            while (e != null) {
+            
+                if (printExceptionClass)
+                    out.print("["+e.getClass().getName()+"]: ");
+                out.println(e.toString());
+                e = e.getCause();
+            }
+        }
     }
     
     /**
