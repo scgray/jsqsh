@@ -761,6 +761,8 @@ DESCRIPTION
    all drivers support (although most do).
    
 OPTIONS
+   -a           Display all metadata description columns instead of the
+                default reduced set.
    -p, --table-pattern=pattern  A SQL pattern to be used to filter the 
                 set of object names that are displayed.
    -s, --schema-pattern=pattern A SQL pattern to be used to filter the

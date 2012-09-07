@@ -46,6 +46,11 @@ public class Tables
         extends SqshOptions {
         
         @OptionProperty(
+            option='a', longOption="all", arg=NONE,
+            description="Show all available information")
+        public boolean showAll = false;
+        
+        @OptionProperty(
             option='t', longOption="table-pattern", arg=REQUIRED, argName="pattern",
             description="Provides a pattern to match against table names")
         public String tablePattern = "%";
@@ -126,10 +131,15 @@ public class Tables
             /*
              * We don't want to show all columns.
              */
-            HashSet<Integer> cols = new HashSet<Integer>();
-            cols.add(2); /* Owner */
-            cols.add(3); /* Table name */
-            cols.add(4); /* Table Type */
+            HashSet<Integer> cols = null;
+            
+            if (options.showAll == false) {
+                
+                cols = new HashSet<Integer>();
+                cols.add(2); /* Owner */
+                cols.add(3); /* Table name */
+                cols.add(4); /* Table Type */
+            }
             
             result = meta.getTables(con.getCatalog(),
                 options.schemaPattern, options.tablePattern, types);
