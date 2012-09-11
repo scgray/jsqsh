@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 import org.sqsh.signals.CancelingSignalHandler;
 import org.sqsh.signals.SignalManager;
 import org.sqsh.SqshTypes;
+import org.sqsh.util.TimeUtils;
 
 public class SQLRenderer {
     
@@ -810,13 +811,13 @@ public class SQLRenderer {
                                 
                     if (firstRowTime > 0L) {
                         footer.append("(first row: "
-                            + (firstRowTime - startTime) + "ms; total: "
-                            + (endTime - startTime) + "ms)");
+                            +  TimeUtils.millisToDurationString(firstRowTime - startTime) + "; total: "
+                            +  TimeUtils.millisToDurationString(endTime - startTime) + ")");
                     }
                     else {
                                     
                         footer.append("(total: "
-                            + (endTime - startTime) + "ms)");
+                            +  TimeUtils.millisToDurationString(endTime - startTime) + ")");
                     }
                 }
                 
