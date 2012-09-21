@@ -484,6 +484,8 @@ public class SQLRenderer {
 
                 statement = conn.prepareStatement(sql);
                 
+                initStatement(session, statement);
+                
                 sigHandler = new CancelingSignalHandler(statement);
                 sigMan.push(sigHandler);
                 
@@ -494,6 +496,8 @@ public class SQLRenderer {
             else  {
 
                 statement = conn.createStatement();
+                
+                initStatement(session, statement);
                 
                 sigHandler = new CancelingSignalHandler(statement);
                 sigMan.push(sigHandler);
@@ -513,6 +517,31 @@ public class SQLRenderer {
         }
         
         return ok;
+    }
+    
+    /**
+     * Called for each newly created statement to initialize it based upon session
+     * settings.
+     * @param session The session
+     * @param statement The statement
+     */
+    private void initStatement(Session session, Statement statement) {
+        
+        int fetchSize = session.getFetchSize();
+        if (fetchSize > 0) {
+            
+            try {
+                
+                statement.setFetchSize(fetchSize);
+            }
+            catch (SQLException e) {
+                
+                session.err.println("WARNING: Requested fetch size "
+                   + fetchSize + " is invalid: " + e.getMessage()
+                   + ". Resetting to -1");
+                session.setFetchSize(-1);
+            }
+        }
     }
     
     /**
