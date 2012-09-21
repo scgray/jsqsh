@@ -494,7 +494,7 @@ public class JaqlConnection
                     && showFooters
                     && (nrows > 0 || (currentStop - currentStart) > 10L)) {
                     
-                    session.out.println("("
+                    session.err.println("("
                        + (sigHandler.isTriggered() ? "Canceled at " : "")
                        + nrows
                        + " row"
@@ -535,7 +535,7 @@ public class JaqlConnection
            && showFooters
            && (totalRows > 0 || (stop - start) > 10L)) {
             
-            session.out.println(nResults + " results ("
+            session.err.println(nResults + " results ("
                + totalRows
                + " total row"
                + ((totalRows != 1) ? "s in " : " in ")

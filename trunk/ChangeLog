@@ -8,6 +8,10 @@ Release 1.5
       updated in over 7 years and JLine 2.x is approaching it pretty well
       in terms of functionality.  Java-readline can be installed on most
       linux machines by your package manager, so it is easy to add on.
+* NOTE: Footer information (#rows processed and timing) is now displayed
+  to stderr so that this information isn't written to the output file
+  if the output is redirected.  Use 2>&1 if you want to write this to
+  your output file now.
 * The command terminator may now end a jsqsh command. For example, the
   following are now legal:
         1> quit;
@@ -28,6 +32,7 @@ Release 1.5
   basic "vi" command set.  
 * Added support for ARRAY data type and hopefully better support for
   unrecognized data types.
+* Added $fetchsize variable to set the JDBC Statement.fetchSize() property.
 * Added $editing_mode to allow you to set the editing keymap. Currently
   this is only supported by JLine, so to switch to "vi" mode, do:
      \set editing_mode=vi

@@ -252,6 +252,21 @@ SEE ALSO
    \connect, dflt_autocommit
         ]]></Help>	
 	</Property>
+	
+	<Property bean="session" name="fetchsize" property="fetchSize" 
+	          settable="true" quiet="false">
+        <Description>The number of rows per fetch to be retrieved</Description>
+        <Help><![CDATA[
+VARIABLE
+   fetchsize - The number of rows per fetch to request from the server
+
+DESCRIPTION
+   The ${fetchsize} controls the JDBC "fetch size" setting, which requests that
+   the driver return the specified number of rows per network request to the
+   server.  This variable may not be honor by all drivers, but for those that
+   do, it can increase performance at the expense of memory.
+        ]]></Help>	
+	</Property>
 	          
 	<Property bean="session" name="interactive" property="interactive">
         <Description>Whether or not the current session is interactive</Description>

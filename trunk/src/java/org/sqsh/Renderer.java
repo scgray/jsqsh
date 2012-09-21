@@ -237,7 +237,7 @@ public abstract class Renderer {
         
         if (manager.isShowFooters()) {
             
-            session.out.println(footer);
+            session.err.println(footer);
         }
     }
 }

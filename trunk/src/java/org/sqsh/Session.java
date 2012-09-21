@@ -121,6 +121,12 @@ public class Session
     private Tokenizer tokenizer = new Tokenizer();
     
     /**
+     * This is the number of rows-per-fetch to ask the driver (Statement
+     * object) to use when fetching data.
+     */
+    private int fetchSize = -1;
+    
+    /**
      * Creates a new session.
      * 
      * @param sqshContext Handle back to the instance of sqsh that
@@ -370,6 +376,29 @@ public class Session
         }
     }
     
+    /**
+     * @return The number of rows-per-fetch that will be requested of the driver
+     *   when rows are fetched from the server.  Note that the driver may not
+     *   necessarily obey this setting! A value of -1, indicates that the driver
+     *   will run with its default value.
+     */
+    public int getFetchSize() {
+    
+        return fetchSize;
+    }
+    
+    /**
+     * Sets the number of rows-per-fetch that will be requested of the driver
+     *   when rows are fetched from the server.  Note that the driver may not
+     *   necessarily obey this setting! 
+     * @param fetchSize The rows per fetch. A value of -1, indicates that the
+     *   driver should use its default value.
+     */
+    public void setFetchSize(int fetchSize) {
+    
+        this.fetchSize = fetchSize;
+    }
+
     /**
      * Adds an object to the session.  This is intended primarily for use
      * by commands wishing to maintain some form of state between calls.

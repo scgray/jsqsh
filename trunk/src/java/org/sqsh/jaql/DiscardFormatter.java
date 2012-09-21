@@ -45,7 +45,7 @@ public class DiscardFormatter
         
         int nrows = 0;
         
-        if (!isCanceled() && iter.moveNext()) {
+        while (!isCanceled() && iter.moveNext()) {
             
             ++nrows;
         }
