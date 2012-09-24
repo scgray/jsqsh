@@ -3,7 +3,7 @@ Name: jsqsh
 Version: @VERSION@
 Release: 1
 Group: Applications/Databases
-License: GPL
+License: Apache 2.0
 Source0: jsqsh-@VERSION@-src.tar.gz
 Requires: libreadline-java >= 0.8.0
 
