@@ -39,11 +39,11 @@ import org.sqsh.format.XMLFormatter;
 public class DataFormatter {
     
     private String nullFormat = "[NULL]";
-    private String dateFormat = "dd-MMM-yyyy";
+    private String dateFormat = "yyyy-MM-dd";
     private int maxDateWidth = -1;
-    private String datetimeFormat = "MMM dd yyyy HH:mm:ss";
+    private String datetimeFormat = "yyyy-MM-dd HH:mm:ss.SSS";
     private int maxDatetimeWidth = -1;
-    private String timeFormat = "HH:mm";
+    private String timeFormat = "HH:mm:ss";
     private int maxTimeWidth = -1;;
     private boolean byteStringFormat = false;
     

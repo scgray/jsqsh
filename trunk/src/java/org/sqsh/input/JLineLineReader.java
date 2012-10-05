@@ -115,6 +115,20 @@ public class JLineLineReader
         
         return str;
     }
+    
+
+    @Override
+    public String readPassword(String prompt) 
+        throws IOException {
+        
+        String str = reader.readLine(prompt, '*');
+        if (str == null) {
+            
+            throw new EOFException();
+        }
+        
+        return str;
+    }
 
     @Override
     public void writeHistory()

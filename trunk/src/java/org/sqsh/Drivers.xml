@@ -115,7 +115,7 @@
     </Driver>
     
     <Driver name="hive" 
-            target="Hive"
+            target="Apache Hive"
             class="org.apache.hadoop.hive.jdbc.HiveDriver"
             analyzer="org.sqsh.analyzers.ANSIAnalyzer"
             url="jdbc:hive://${server}:${port}#if($db)/${db}#end">
@@ -124,7 +124,7 @@
     </Driver>
 
     <Driver name="bigsql" 
-            target="BigSQL"
+            target="IBM Big SQL"
             class="com.cognos.bigsql.jdbc.BigSQLDriver"
             analyzer="org.sqsh.analyzers.ANSIAnalyzer"
             url="jdbc:bigsql://${server}:${port}#if($db)/${db}#end">
@@ -133,7 +133,7 @@
     </Driver>
 
     <Driver name="derby" 
-            target="Derby"
+            target="Apache Derby"
             class="org.apache.derby.jdbc.ClientDriver"
             analyzer="org.sqsh.analyzers.ANSIAnalyzer"
             url="jdbc:derby://${server}:${port}#if($db)/${db}#end">

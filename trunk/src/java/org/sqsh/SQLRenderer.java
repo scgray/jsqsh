@@ -71,7 +71,7 @@ public class SQLRenderer {
     /**
      * Whether or not variable expansion will take place.
      */
-    private boolean expand = true;
+    private boolean expand = false;
     
     /**
      * The maximum number of rows that will be rendered. A value <= 0
