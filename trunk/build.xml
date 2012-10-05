@@ -38,6 +38,12 @@
           -->
         <property name="launch4j.dir" value="C:/Program Files/Launch4j"/>
 
+        <!--
+          == Directory into which we will build the distribution
+          == package.
+          -->
+        <property name="dist.dir" value="build/jsqsh-${version}"/>
+
         <mkdir dir="build/classes"/>
      </target>
 
@@ -117,19 +123,19 @@
        -->
      <target name="dist" depends="clean,_init,jar">
 
-        <mkdir dir="build/jsqsh-${version}/"/>
-        <mkdir dir="build/jsqsh-${version}/bin"/>
-        <mkdir dir="build/jsqsh-${version}/share"/>
+        <mkdir dir="${dist.dir}/"/>
+        <mkdir dir="${dist.dir}/bin"/>
+        <mkdir dir="${dist.dir}/share"/>
          
         <!-- If requested, install the JNI libraries -->
         <antcall target="_dist-libs">
-           <param name="prefix" value="${basedir}/build/jsqsh-${version}"/>
+           <param name="prefix" value="${basedir}/${dist.dir}"/>
         </antcall>
 
         <!--
           == Copy our dependant jar into share/.
           -->
-        <copy todir="build/jsqsh-${version}/share">
+        <copy todir="${dist.dir}/share">
             <fileset dir="lib">
                 <include name="**/*.jar"/>
             </fileset>
@@ -143,14 +149,14 @@
           == I'm considering the use of Launch4j here as well.
           -->
         <copy file="dist/unix/jsqsh.sh"
-              tofile="build/jsqsh-${version}/bin/jsqsh"/>
+              tofile="${dist.dir}/bin/jsqsh"/>
         <copy file="dist/generic/jsqsh.bat"
-              todir="build/jsqsh-${version}/bin"/>
+              todir="${dist.dir}/bin"/>
 
         <!--
           == Make sure its executable.
           -->
-        <chmod file="build/jsqsh-${version}/bin/jsqsh" perm="u=rwx,go=rx"/>
+        <chmod file="${dist.dir}/bin/jsqsh" perm="u=rwx,go=rx"/>
 
         <!--
           == Finaly package everything up.
@@ -191,14 +197,14 @@
      <target name="dist-deb" depends="clean,_init,jar">
 
         <antcall target="make-install">
-           <param name="prefix" value="${basedir}/build/jsqsh-${version}/usr"/>
+           <param name="prefix" value="${basedir}/${dist.dir}/usr"/>
         </antcall>
 
-        <mkdir dir="build/jsqsh-${version}/DEBIAN"/>
-        <mkdir dir="build/jsqsh-${version}/usr"/>
-        <mkdir dir="build/jsqsh-${version}/usr/bin"/>
-        <mkdir dir="build/jsqsh-${version}/usr/share"/>
-        <mkdir dir="build/jsqsh-${version}/usr/lib/jni"/>
+        <mkdir dir="${dist.dir}/DEBIAN"/>
+        <mkdir dir="${dist.dir}/usr"/>
+        <mkdir dir="${dist.dir}/usr/bin"/>
+        <mkdir dir="${dist.dir}/usr/share"/>
+        <mkdir dir="${dist.dir}/usr/lib/jni"/>
 
         <!--
           == The control file describes the package. Note that we
@@ -206,7 +212,7 @@
           == copy it.
           -->
         <copy file="dist/deb/control.in"
-              tofile="build/jsqsh-${version}/DEBIAN/control">
+              tofile="${dist.dir}/DEBIAN/control">
             <filterset>
                 <filter token="VERSION" value="${version}"/>
                 <filter token="ARCH" value="${arch}"/>
@@ -219,7 +225,7 @@
           == requires that the appropriate Debian package that includes
           == it (and its .so) already be in place.
           -->
-        <copy todir="build/jsqsh-${version}/usr/share/jsqsh">
+        <copy todir="build/${dist.dir}/usr/share/jsqsh">
             <fileset dir="lib">
                 <include name="**/*.jar"/>
                 <exclude name="**/*readline*.jar"/>
@@ -234,12 +240,12 @@
           == I'm considering the use of Launch4j here as well.
           -->
         <copy file="dist/unix/jsqsh.sh"
-              tofile="build/jsqsh-${version}/usr/bin/jsqsh"/>
+              tofile="${dist.dir}/usr/bin/jsqsh"/>
 
         <!--
           == Make sure its executable.
           -->
-        <chmod file="build/jsqsh-${version}/usr/bin/jsqsh" perm="u=rwx,go=rx"/>
+        <chmod file="${dist.dir}/usr/bin/jsqsh" perm="u=rwx,go=rx"/>
 
         <!--
           == Finaly package everything up.
@@ -264,12 +270,12 @@
      <target name="dist-sol-sparc" depends="clean,_init,jar">
 
         <antcall target="make-install">
-           <param name="prefix" value="${basedir}/build/jsqsh-${version}"/>
+           <param name="prefix" value="${basedir}/${dist.dir}"/>
         </antcall>
 
-        <mkdir dir="build/jsqsh-${version}/bin"/>
-        <mkdir dir="build/jsqsh-${version}/share"/>
-        <mkdir dir="build/jsqsh-${version}/lib/jni"/>
+        <mkdir dir="${dist.dir}/bin"/>
+        <mkdir dir="${dist.dir}/share"/>
+        <mkdir dir="${dist.dir}/lib/jni"/>
 
         <!--
           == Copy our dependant jar into usr/share/jsqsh. Note that
@@ -277,7 +283,7 @@
           == requires that the appropriate Debian package that includes
           == it (and its .so) already be in place.
           -->
-        <copy todir="build/jsqsh-${version}/share/jsqsh">
+        <copy todir="${dist.dir}/share/jsqsh">
             <fileset dir="lib">
                 <include name="**/*.jar"/>
             </fileset>
@@ -290,13 +296,13 @@
           == Copy our pre-compiled libJavaReadline.so file into the
           == lib/ directory.
           -->
-        <copy todir="build/jsqsh-${version}/lib/jni">
+        <copy todir="${dist.dir}/lib/jni">
             <fileset dir="dist/sol-sparc">
                 <include name="*.so"/>
             </fileset>
         </copy>
 
-        <copy todir="build/jsqsh-${version}">
+        <copy todir="${dist.dir}">
             <fileset dir="dist/sol-sparc">
                 <include name="*.txt"/>
             </fileset>
@@ -307,14 +313,14 @@
           == I'm considering the use of Launch4j here as well.
           -->
         <copy file="dist/unix/jsqsh.sh"
-              tofile="build/jsqsh-${version}/bin/jsqsh"/>
+              tofile="${dist.dir}/bin/jsqsh"/>
 
         <!--
           == Make sure its executable.
           -->
-        <chmod file="build/jsqsh-${version}/bin/jsqsh" perm="u=rwx,go=rx"/>
+        <chmod file="${dist.dir}/bin/jsqsh" perm="u=rwx,go=rx"/>
 
-        <tar destfile="build/jsqsh-${version}.tar.gz"
+        <tar destfile="${dist.dir}.tar.gz"
             includes="jsqsh-${version}/**"
             basedir="build"
             compression="gzip"/>
@@ -500,13 +506,13 @@
      <target name="_dist-win" depends="clean,jar">
 
         <!-- Create directory structure -->
-        <mkdir dir="build/jsqsh-${version}/bin"/>
-        <mkdir dir="build/jsqsh-${version}/lib"/>
+        <mkdir dir="${dist.dir}/bin"/>
+        <mkdir dir="${dist.dir}/lib"/>
 
         <!--
           == Copy all dependant jars into the lib directory
           -->
-        <copy todir="build/jsqsh-${version}/lib">
+        <copy todir="${dist.dir}/lib">
             <fileset dir="lib">
                 <include name="**/*.jar"/>
             </fileset>
@@ -522,7 +528,7 @@
           == going to the effort to automate the build process for
           == these DLL's.
           -->
-        <copy todir="build/jsqsh-${version}/bin">
+        <copy todir="${dist.dir}/bin">
 	    <fileset dir="dist/${win_ver}">
                 <include name="**/*.dll"/>
             </fileset>
@@ -541,12 +547,12 @@
           == Fire off launch4j.
           -->
 	<launch4j configFile="./dist/${win_ver}/launch4j.xml" 
-                  outfile="build/jsqsh-${version}/bin/jsqsh.exe"/>
+                  outfile="${dist.dir}/bin/jsqsh.exe"/>
 
         <!--
           == Finally build the distribution ZIP file.
           -->
-        <zip destfile="build/jsqsh-${version}.zip"
+        <zip destfile="${dist.dir}.zip"
             includes="jsqsh-${version}/**"
             basedir="build"/>
      </target>
