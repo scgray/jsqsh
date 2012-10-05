@@ -467,7 +467,7 @@ public class SQLDriverManager {
                 sqlDriver.getVariables(), SQLDriver.USER_PROPERTY);
             if (s == null) {
                 
-                s = promptInput("Username", false);
+                s = promptInput(session, "Username", false);
                 connDesc.setUsername(s);
             }
             props.put(SQLDriver.USER_PROPERTY, s);
@@ -476,7 +476,7 @@ public class SQLDriverManager {
                 SQLDriver.PASSWORD_PROPERTY);
             if (s == null) {
                 
-                s = promptInput("Password", true);
+                s = promptInput(session, "Password", true);
             }
             props.put(SQLDriver.PASSWORD_PROPERTY, s);
             
@@ -665,34 +665,24 @@ public class SQLDriverManager {
     /**
      * Used to prompt input from a user.
      * 
+     * @param session The session
      * @param prompt The prompt to use.
      * @param isMasked true if the input is to be masked.
      * @return The input
      */
-    private static String promptInput(String prompt, boolean isMasked) {
+    private static String promptInput(Session session, String prompt, boolean isMasked) {
         
         try {
         
             if (isMasked == false) {
                 
-                System.out.print(prompt);
-                System.out.print(": ");
-                
-                BufferedReader input = new
-                    BufferedReader(new InputStreamReader(System.in));
-                
-                String results = input.readLine();
-                return results;
+                String result = session.getContext().getConsole().readline(prompt + ": ", false);
+                return result;
             }
             else {
                 
-                char[] pwd = PasswordInput.getPassword(System.in, prompt + ": ");
-                if (pwd == null) {
-                    
-                    return null;
-                }
-                
-                return new String(pwd);
+                String pwd = session.getContext().getConsole().readPassword(prompt + ": ");
+                return pwd;
             }
         }
         catch (IOException e) {

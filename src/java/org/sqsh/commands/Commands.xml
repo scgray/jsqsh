@@ -1367,5 +1367,169 @@ OPTIONS:
    None.
       ]]></Help>
     </Command>
+    
+    <Command name="\show" class="org.sqsh.commands.Show">
 
+        <Description><![CDATA[
+           Show various database metadata
+        ]]></Description>
+            <Help><![CDATA[
+SYNOPSIS
+   See SUB-COMMANDS for specific command details
+
+DESCRIPTION
+   The \show command can be used to query about various aspects of the
+   remote server by polling the JDBC driver for information. This
+   command is boken into several sub-commands
+
+SUB-COMMANDS   
+   \show attributes [-c catalog] [-s pattern] [-t pattern] <pattern>
+   
+       Displays the attributes of a user defined type (UDT) within a
+       particular schema.  The provided "pattern" may be used to limit
+       which attributes are displayed.  Although the "-t" flag is typically
+       used to denote a table name, in this context it is used to limit
+       which user defined types are displayed.
+       
+   \show catalogs
+   
+       Shows the set of catalogs (typically databases) that are available 
+       within the target server. This command has no options.
+       
+   \show client info
+       
+       Displays the client driver information properties (if any).
+   
+   \show column privs [-c catalog] [-s pattern] [-t pattern] [<column-pattern>]
+       
+       Displays permissions for coluns of a table. The last pattern may be
+       used to restrict which columns are returned.
+       
+   \show columns [-e] [-c catalog] [-s pattern] [ -t pattern | <table-pattern> ]
+       
+       Displays columns for a table or set of tables. The -e flag can be used
+       to reduce the number of columns displayed to what is considered the
+       "essential" set of columns.
+       
+   \show exported keys [-c catalog] [-s pattern] [-t pattern | <table-pattern>]
+   
+       Displays a description of the foriegn key columns that reference a 
+       given table's primary key columns (the foreign key is exported by a
+       table). 
+   
+   \show features
+   
+       Displays a list of supported server features.
+    
+   \show function params [-e] [-c catalog] [-s pattern] [<function-pattern>]
+       
+       Displays parameter information for a function or set of functions.
+       The function-pattern argument can be used to filter to specific
+       functions. The -e flag limits the set of columns returned those that
+       are most likely to prove useful.
+       
+   \show functions [-e] [-c catalog] [-s pattern] [<function-pattern>]
+       
+       Displays a list of functions matching the provided search criteria. The
+       -e flag limits the set of columns returned to those that are considered
+       most likely to be useful.
+   
+   \show imported keys [-c catalog] [-s pattern] [-t pattern | <table-pattern>]
+   
+       Retrieves a description of the primary key columns that are referenced 
+       by the given table's foreign key columns (the primary keys imported 
+       by a table)
+       
+   \show primary keys [-c catalog] [-s pattern] [-t pattern | <table-pattern>]
+   
+       Displays the primary keys for a given table or set of tables.
+       
+   \show procedure params [-e] [-c catalog] [-s pattern] [<proc-pattern>]
+       
+       Displays parameter information for a procedure or set of procedure.
+       The procedure-pattern argument can be used to filter to specific
+       procedures. The -e flag reduces the display output to columns that
+       are most likely to be considered useful.
+       
+   \show procedures [-c catalog] [-s pattern] [<proc-pattern>]
+       
+       Displays a list of procedures matching the provided search criteria.
+       
+   \show schemas [-c catalog] [-s schema-pattern | <schema-pattern>]
+       
+       Lists the available schemas in a catalog
+       
+   \show super tables [-c catalog] [-s pattern] [-t pattern | <table-pattern>]
+       
+       Retrieves a description of the table hierarchies defined in a particular 
+       schema in this database.
+       
+   \show super types [-c catalog] [-s pattern] [<type-pattern>]
+   
+       Retrieves a description of the user-defined type (UDT) hierarchies 
+       defined in a particular schema in this database.
+       
+   \show table privs [-c catalog] [-s pattern] [ -t pattern | <table-pattern> ]
+   
+       Displays information able privileges on a given table.        
+       
+   \show tables [-e] [-c catalog] [-s pattern] [-T type] [-t pattern | <table-pattern>]
+   
+       Displays information about any tabular object that appears in the
+       server, this includes tables, views, synonyms, etc.  The -T flag can
+       be used to filter on only specific table types (the set of available
+       types can be determined using "\show table types").  The -e flag 
+       reduces the number of columns returned to just basic information 
+       about the tables (catalog, schema, name, and type).
+       
+   \show table types
+    
+       Shows the available types of tables in the database. The names returned
+       in this list, can be used to filter tables in the "\show tables" command.
+       
+   \show types [-e]
+   
+       Lists the available data types in the server. The -e flag can be used
+       to produce a more simplified set of information about the available types.
+       
+   \show user types [-c catalog] [-s pattern] [<type-pattern>]
+   
+       Lists the available data user defined types in the server. The 
+       type-pattern argument may be used to restrict the list of types
+       to a specific set.
+       
+   \show version columns [-c catalog] [-s pattern] <table>
+   
+       Retrieves a description of a table's columns that are automatically 
+       updated when any value in a row is updated. They are unordered
+       
+COMMON OPTIONS
+   The following options are common to many of the object types that are
+   displayed via the show commands:
+   
+   -c,--catalog=catalog
+                The name of the catalog to search in. If not provided then the
+                current catalog that the driver is in is utilized (which can
+                be set via jsqsh via "\set catalog=foo").
+   -s,--scheman=pattern    
+                A SQL pattern to be used to filter the set of object schema 
+                names that are displayed. For most databases, the "schema name" 
+                refers to the name of the owner of the object.
+   -t,--table=pattern  
+                A SQL pattern to be used to filter the set of table names that 
+                are displayed.
+   -T,--type=pattern
+                Used by \show tables to limit the tables returned to only 
+                specific types of tables.
+   -e,--essential
+                This option is available for some commands that can return a
+                large number of columns, and attempts to reduce the number of
+                columns down to an "essential" set. That is, a set of columns
+                that are thought to be the most useful.
+   
+SHOW CATALOGS
+   
+      ]]></Help>
+    </Command>
+    
 </Commands>

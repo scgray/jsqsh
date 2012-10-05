@@ -86,7 +86,7 @@ public abstract class ReadlineLineReader
 
         return Readline.readline(prompt, addToHistory);
     }
-
+    
     @Override
     public void writeHistory()
         throws ConsoleException {
