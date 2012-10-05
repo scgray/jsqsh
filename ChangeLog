@@ -12,6 +12,9 @@ Release 1.5
   to stderr so that this information isn't written to the output file
   if the output is redirected.  Use 2>&1 if you want to write this to
   your output file now.
+* NOTE: The default display style for timestamp and date have changed
+  to the ISO standard of yyyy-mm-dd hh:mm:ss.fff and yyy-mm-dd
+  respectively.
 * The command terminator may now end a jsqsh command. For example, the
   following are now legal:
         1> quit;
@@ -32,6 +35,8 @@ Release 1.5
   basic "vi" command set.  
 * Added support for ARRAY data type and hopefully better support for
   unrecognized data types.
+* Added \show command which can display almost all of the major database
+  metadata information (tables, functions, columns, procedures, etc.)
 * Added $fetchsize variable to set the JDBC Statement.fetchSize() property.
 * Added $editing_mode to allow you to set the editing keymap. Currently
   this is only supported by JLine, so to switch to "vi" mode, do:
