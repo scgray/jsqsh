@@ -169,6 +169,20 @@ public class Show
             doFeatures(session, renderer, con);
             return 0;
         }
+        else if ("server".equalsIgnoreCase(subCommand)) {
+            
+            Renderer renderer = 
+                session.getRendererManager().getCommandRenderer(session);
+            doServer(session, renderer, con, options);
+            return 0;
+        }
+        else if ("driver".equalsIgnoreCase(subCommand)) {
+            
+            Renderer renderer = 
+                session.getRendererManager().getCommandRenderer(session);
+            doDriver(session, renderer, con, options);
+            return 0;
+        }
         
         Renderer renderer = 
             session.getRendererManager().getCommandRenderer(session);
@@ -776,6 +790,56 @@ public class Show
             options.arguments.get(2));
     }
     
+    private void doServer (Session session, Renderer renderer, Connection con, Options options) 
+        throws SQLException {
+        
+        if (options.arguments.size() != 2
+            || !options.arguments.get(1).equalsIgnoreCase("version")) {
+            
+            session.err.println("Use: \\show server version");
+            return;
+        }
+        
+        ColumnDescription []columns = new ColumnDescription[2];
+        columns[0] = new ColumnDescription("Property", 20);
+        columns[1] = new ColumnDescription("Value", 50);
+        
+        renderer.header(columns);
+        
+        DatabaseMetaData meta = con.getMetaData();
+        addPair(renderer, "Major version", meta.getDatabaseMajorVersion());
+        addPair(renderer, "Minor version", meta.getDatabaseMinorVersion());
+        addPair(renderer, "Product name",  meta.getDatabaseProductName());
+        addPair(renderer, "Product version", meta.getDatabaseProductVersion());
+        
+        renderer.flush();
+    }
+    
+    private void doDriver (Session session, Renderer renderer, Connection con, Options options) 
+        throws SQLException {
+        
+        if (options.arguments.size() != 2
+            || !options.arguments.get(1).equalsIgnoreCase("version")) {
+            
+            session.err.println("Use: \\show driver version");
+            return;
+        }
+        
+        ColumnDescription []columns = new ColumnDescription[2];
+        columns[0] = new ColumnDescription("Property", 20);
+        columns[1] = new ColumnDescription("Value", 50);
+        
+        renderer.header(columns);
+        
+        DatabaseMetaData meta = con.getMetaData();
+        addPair(renderer, "Major version", meta.getDriverMajorVersion());
+        addPair(renderer, "Minor version", meta.getDriverMinorVersion());
+        addPair(renderer, "Driver name",  meta.getDriverName());
+        addPair(renderer, "Driver version", meta.getDriverVersion());
+        
+        renderer.flush();
+    }
+    
     private void doFeatures (Session session, Renderer renderer, Connection con) 
         throws SQLException {
         
@@ -787,37 +851,51 @@ public class Show
         
         renderer.header(columns);
         
-        bool(renderer, "All procedures are callable", meta.allProceduresAreCallable());
-        bool(renderer, "All tables are selectable", meta.allTablesAreSelectable());
-        bool(renderer, "Auto-commit closes results", meta.autoCommitFailureClosesAllResultSets());
-        bool(renderer, "DDL causes commit", meta.dataDefinitionCausesTransactionCommit());
-        bool(renderer, "DDL ignored in transactions", meta.dataDefinitionIgnoredInTransactions());
-        bool(renderer, "Deletes are detected (forward)", 
+        addPair(renderer, "All procedures are callable", meta.allProceduresAreCallable());
+        addPair(renderer, "All tables are selectable", meta.allTablesAreSelectable());
+        addPair(renderer, "Auto-commit closes results", meta.autoCommitFailureClosesAllResultSets());
+        addPair(renderer, "DDL causes commit", meta.dataDefinitionCausesTransactionCommit());
+        addPair(renderer, "DDL ignored in transactions", meta.dataDefinitionIgnoredInTransactions());
+        addPair(renderer, "Deletes are detected (forward)", 
             meta.deletesAreDetected(ResultSet.TYPE_FORWARD_ONLY));
-        bool(renderer, "Deletes are detected (insensitive)", 
+        addPair(renderer, "Deletes are detected (insensitive)", 
             meta.deletesAreDetected(ResultSet.TYPE_SCROLL_INSENSITIVE));
-        bool(renderer, "Deletes are detected (sensitive)", 
+        addPair(renderer, "Deletes are detected (sensitive)", 
             meta.deletesAreDetected(ResultSet.TYPE_SCROLL_SENSITIVE));
-        bool(renderer, "Max size includes blobs", meta.doesMaxRowSizeIncludeBlobs());
-        bool(renderer, "Inserts are detected (forward)", 
+        addPair(renderer, "Max size includes blobs", meta.doesMaxRowSizeIncludeBlobs());
+        addPair(renderer, "Inserts are detected (forward)", 
             meta.insertsAreDetected(ResultSet.TYPE_FORWARD_ONLY));
-        bool(renderer, "Inserts are detected (insensitive)", 
+        addPair(renderer, "Inserts are detected (insensitive)", 
             meta.insertsAreDetected(ResultSet.TYPE_SCROLL_INSENSITIVE));
-        bool(renderer, "Inserts are detected (sensitive)", 
+        addPair(renderer, "Inserts are detected (sensitive)", 
             meta.insertsAreDetected(ResultSet.TYPE_SCROLL_SENSITIVE));
-        bool(renderer, "Catalog in fully qualified name", 
+        addPair(renderer, "Catalog in fully qualified name", 
             meta.isCatalogAtStart());
-        bool(renderer, "Read only", meta.isReadOnly());
+        addPair(renderer, "Read only", meta.isReadOnly());
         renderer.flush();
     }
     
-    private void bool(Renderer renderer, String name, boolean value) {
+    private void addPair(Renderer renderer, String name, boolean value) {
         
         String row[] = new String[2];
         row[0] = name;
         row[1] = Boolean.toString(value);
         renderer.row(row);
-        renderer.flush();
     }
     
+    private void addPair(Renderer renderer, String name, int value) {
+        
+        String row[] = new String[2];
+        row[0] = name;
+        row[1] = Integer.toString(value);
+        renderer.row(row);
+    }
+    
+    private void addPair(Renderer renderer, String name, String value) {
+        
+        String row[] = new String[2];
+        row[0] = name;
+        row[1] = value;
+        renderer.row(row);
+    }
 }
