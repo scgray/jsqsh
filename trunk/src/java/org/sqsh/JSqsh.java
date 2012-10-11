@@ -50,8 +50,8 @@ public class JSqsh {
         
        @OptionProperty(
            option='i', longOption="input-file", arg=REQUIRED, argName="file",
-           description="Name of file to read as input instead of stdin")
-       public String inputFile = null;
+           description="Name of file to read as input. This option may be repeated")
+       public List<String> inputFiles = new ArrayList<String>();
        
        @OptionProperty(
            option='o', longOption="output-file", arg=REQUIRED, argName="file",
@@ -105,6 +105,11 @@ public class JSqsh {
            description="Specifies additional drivers.xml files to be loaded")
        public List<String> driverFiles = new ArrayList<String>();
        
+       @OptionProperty(
+           option='v', longOption="var", arg=REQUIRED, argName="name=value",
+           description="Sets a jsqsh variable. This option may be repeated")
+       public List<String> vars = new ArrayList<String>();
+       
        @Argv(program="jsqsh", min=0, max=1, usage="[options] [connection-name]")
        public List<String> arguments = new ArrayList<String>();
     }
@@ -122,6 +127,8 @@ public class JSqsh {
             
             System.err.println(e.getMessage());
             System.err.println(optParser.getUsage());
+            System.err.println("Type \"help jsqsh\" at the jsqsh prompt for "
+                + "additional information");
             
             System.exit(1);
         }
@@ -132,24 +139,32 @@ public class JSqsh {
         if (options.doHelp) {
             
             System.out.println(optParser.getUsage());
+            System.out.println("Type \"help jsqsh\" at the jsqsh prompt for "
+                + "additional information");
             System.exit(0);
         }
         
         configureLogging(options.debug);
         
+        /*
+         * No input files, then add a "null" input file.
+         */
+        if (options.inputFiles.size() == 0) {
+            
+            options.inputFiles.add(null);
+        }
         
-        InputStream in = getInputStream(options);
         PrintStream out = getOutputStream(options);
         PrintStream err = System.err;
         
-        if (in == null || out == null || err == null) {
+        if (out == null || err == null) {
             
             System.exit(1);
         }
         
         SqshContext sqsh = new SqshContext(options.readline);
         int rc = 0;
-
+        
         for (String dir : options.configDirectories) {
 
             sqsh.addConfigurationDirectory(dir);
@@ -162,34 +177,57 @@ public class JSqsh {
         
         sqsh.setInputEchoed(options.isInputEchoed);
         
+        setVariables(sqsh, options.vars);
+        
+        InputStream in = null;
         try {
             
             Session session = sqsh.newSession();
-            session.setIn(in, (options.inputFile != null), 
-                (options.inputFile == null));
-            session.setOut(out, options.outputFile != null);
             
-            if (options.nonInteractive)
-                session.setInteractive(false);
-            
-            if (options.jaqlMode 
-                    || options.jaqlJars != null
-                    || options.jaqlSearchPath != null) {
+            for (int i = 0; i < options.inputFiles.size(); i++) {
                 
-                if (!doJaql(session, options)) {
+                if (i > 0) {
                     
-                    rc = 1;
+                    session.getBufferManager().getCurrent().clear();
                 }
-            }
-            else if (!doConnect(session, options)) {
                 
-                rc = 1;
-            }
+                in = getInputStream(options.inputFiles.get(i));
+                if (in == null) {
+                    
+                    break;
+                }
+                
+                session.setIn(in, (options.inputFiles != null), (in == System.in));
+                session.setOut(out, options.outputFile != null);
             
-            if (rc == 0) {
+                if (options.nonInteractive)
+                    session.setInteractive(false);
             
-                rc = sqsh.run();
-            }
+	            if (options.jaqlMode 
+	                    || options.jaqlJars != null
+	                    || options.jaqlSearchPath != null) {
+	                
+	                if (!doJaql(session, options)) {
+	                    
+	                    rc = 1;
+	                }
+	            }
+	            else if (!doConnect(session, options)) {
+	                
+	                rc = 1;
+	            }
+	            
+	            if (rc == 0) {
+	            
+	                rc = sqsh.run(session);
+	            }
+	            
+	            if (in != System.in) {
+	                
+	                in.close();
+	                in = null;
+	            }
+	        }
         }
         catch (Throwable e) {
             
@@ -210,7 +248,7 @@ public class JSqsh {
                 err.close();
             }
             
-            if (in != System.in) {
+            if (in != null && in != System.in) {
                 
                 try {
                     
@@ -274,27 +312,63 @@ public class JSqsh {
     }
     
     /**
+     * Sets any variables that were assigned with the "-v" argument.
+     * @param session The session to apply them to
+     * @param vars The variables to set
+     */
+    private static void setVariables(SqshContext ctx, List<String> vars) {
+        
+        if (vars == null || vars.size() == 0) {
+            
+            return;
+        }
+        
+        for (int i = 0; i < vars.size(); i++) {
+            
+            String v = vars.get(i);
+            int idx = v.indexOf('=');
+            String name;
+            String value = null;
+            
+            if (idx < 0) {
+                
+                name = v;
+            }
+            else {
+                
+                name  = v.substring(0, idx);
+                if (idx < (v.length() - 1)) {
+                    
+                    value = v.substring(idx+1);
+                }
+            }
+            
+            ctx.getVariableManager().put(name, value);
+        }
+    }
+    
+    /**
      * Returns the input stream to be used by the session.
      * 
      * @param options Configuration options.
      * @return The input stream or null if the requested one cannot be
      *    opened.
      */
-    private static InputStream getInputStream(Options options) {
+    private static InputStream getInputStream(String filename) {
         
-        if (options.inputFile != null) {
+        if (filename != null && !"-".equals(filename)) {
             
             try {
                 
                 InputStream in = new BufferedInputStream(
-                    new FileInputStream(options.inputFile));
+                    new FileInputStream(filename));
                 
                 return in;
             }
             catch (IOException e) {
                 
                 System.err.println("Unable to open input file '" 
-                    + options.inputFile + "' for read: "
+                    + filename + "' for read: "
                     + e.getMessage());
                 
                 return null;

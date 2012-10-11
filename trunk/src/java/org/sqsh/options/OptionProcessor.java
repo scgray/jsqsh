@@ -161,7 +161,8 @@ public class OptionProcessor {
                         if (opt.getOptRequired() == ArgumentRequired.REQUIRED) {
                             
                             // No more arguments or next is an option, then error
-                            if (idx == sz || argv[idx].startsWith("-")) {
+                            if (idx == sz 
+                                || (argv[idx].startsWith("-") && argv[idx].length() > 1)) {
                                 
                                 throw new OptionException(program
                                     + ": option " + opt + " is missing an argument");

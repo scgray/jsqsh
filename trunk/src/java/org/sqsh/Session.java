@@ -135,6 +135,7 @@ public class Session
      */
     protected Session(SqshContext sqshContext, int sessionId) {
         
+        
         this.sessionId = sessionId;
         this.sqshContext = sqshContext;
         
@@ -1148,21 +1149,20 @@ public class Session
         throws SqshContextMessage {
         
         Token token = null;
-           Shell pipeShell = null;
+        Shell pipeShell = null;
            
-           SessionRedirectToken sessionRedirect = null;
-           File sessionOutput = null;
+        SessionRedirectToken sessionRedirect = null;
+        File sessionOutput = null;
            
-           /*
-            * Because our commandline may redirect I/O via >file, 1>&2,
-            * or a pipe, we want to save away the state of our file descriptors
-            * prior to doing this redirection, so that we can restore the
-            * state of the world when we are done...
-            */
-           saveInputOutput();
+        /*
+         * Because our commandline may redirect I/O via >file, 1>&2,
+         * or a pipe, we want to save away the state of our file descriptors
+         * prior to doing this redirection, so that we can restore the
+         * state of the world when we are done...
+         */
+        saveInputOutput();
         
         try {
-            
             
             commandLine = 
                 getStringExpander().expandWithQuotes(this, commandLine);
@@ -1239,6 +1239,16 @@ public class Session
             }
             
             /*
+             * If the command requested that its output be paged, then lets 
+             * attempt to do so.
+             */
+            if (command instanceof PagedCommand 
+                && pipeShell == null && out == System.out) {
+                
+                pipeShell = getPager();
+            }
+            
+            /*
              * Sweet, it parsed! Now run that bad boy.
              */
             commandReturn =
@@ -1301,6 +1311,46 @@ public class Session
                 sessionRedirect.getSessionId(), sessionRedirect.isAppend());
             sessionOutput.delete();
         }
+    }
+    
+    /**
+     * Attempts to launch a process to page output of a command through a 
+     * pager command, such as "more" or "less". 
+     * @return The piped shell or null if one could not be created.
+     */
+    private Shell getPager() {
+        
+        ShellManager shellMan = sqshContext.getShellManager();
+        
+        /*
+         * No auto-paging in non-interactive mode. Also if the shell
+         * manager cannot do JNI, then it can't open a proper pipe anyway
+         * so we can't page.
+         */
+        if (!isInteractive() || !shellMan.isJNI()) {
+            
+            return null;
+        }
+        
+        String pager = variableManager.get("PAGER");
+        if (pager == null) {
+            
+            pager = "more";
+        }
+        
+        try {
+            
+            Shell shell = sqshContext.getShellManager().pipeShell(pager);
+            setOut(new PrintStream(shell.getStdin()), true);
+            return shell;
+        }
+        catch (ShellException e) {
+            
+            err.println("Could not launch pager \"" + pager + "\". Set $PAGER "
+                + "variable to specify an alternative pager");
+        }
+        
+        return null;
     }
     
     

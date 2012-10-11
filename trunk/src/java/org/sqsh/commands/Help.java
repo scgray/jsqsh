@@ -22,6 +22,7 @@ import java.util.List;
 import org.sqsh.ColumnDescription;
 import org.sqsh.Command;
 import org.sqsh.HelpTopic;
+import org.sqsh.PagedCommand;
 import org.sqsh.Renderer;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
@@ -32,7 +33,8 @@ import org.sqsh.options.Argv;
  * Implements the 'help' command.
  */
 public class Help
-    extends Command {
+    extends Command
+    implements PagedCommand {
     
     /**
      * Used to contain the command line options that were passed in by

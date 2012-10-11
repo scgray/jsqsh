@@ -646,7 +646,7 @@ public class SqshContext {
         
         Session session = new Session(this, nextSessionId);
         session.setInteractive(isInteractive);
-        
+            
         ++nextSessionId;
         
         sessions.add(session);
