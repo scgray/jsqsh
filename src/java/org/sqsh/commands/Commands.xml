@@ -1411,6 +1411,10 @@ SUB-COMMANDS
        to reduce the number of columns displayed to what is considered the
        "essential" set of columns.
        
+   \show driver version
+   
+       Displays JDBC driver version information.
+       
    \show exported keys [-c catalog] [-s pattern] [-t pattern | <table-pattern>]
    
        Displays a description of the foriegn key columns that reference a 
@@ -1454,6 +1458,10 @@ SUB-COMMANDS
    \show procedures [-c catalog] [-s pattern] [<proc-pattern>]
        
        Displays a list of procedures matching the provided search criteria.
+       
+   \show server version
+   
+       Shows server version and product information.
        
    \show schemas [-c catalog] [-s schema-pattern | <schema-pattern>]
        
