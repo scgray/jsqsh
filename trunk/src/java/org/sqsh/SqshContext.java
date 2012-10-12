@@ -72,6 +72,15 @@ public class SqshContext {
         Logger.getLogger(SqshContext.class.getName());
     
     /**
+     * The levels of detail that are available when displaying stack traces.
+     */
+    public static enum ExceptionDetail {
+        LOW,     /// Just the SQL state/code and exception class
+        MEDIUM,  /// Default display level. Includes message text and nested message text
+        HIGH,    /// Displays stack trace
+    }
+    
+    /**
      * Path to the built-in file full of variable definitions.
      */
     private static final String CONTEXT_VARS
@@ -205,11 +214,9 @@ public class SqshContext {
     private int terminator = ';';
     
     /**
-     * Used to control whether or not exceptions that are printed out 
-     * using the session's printStackTrace() method will include
-     * the full stack, or will just print the exception text.
+     * Controls how much detail is displayed in exceptions.
      */
-    private boolean printStackTrace = false;
+    private ExceptionDetail exceptionDetail = ExceptionDetail.MEDIUM;
     
     /**
      * Used to control whether or not exceptions that are printed out 
@@ -327,13 +334,22 @@ public class SqshContext {
     /**
      * Determines whether or not exceptions that are printed out via
      * the sessions printException() method will show the stack trace.
+     * This method is kept around just for compatibility reasons. You
+     * should use setExceptionDetail() now.
      * 
      * @param printStackTrace if true, then exceptions will have
      *   their stack trace printed.
      */
     public void setPrintStackTrace(boolean printStackTrace) {
     
-        this.printStackTrace = printStackTrace;
+        if (printStackTrace) {
+            
+            exceptionDetail = ExceptionDetail.HIGH;
+        }
+        else {
+            
+            exceptionDetail = ExceptionDetail.MEDIUM;
+        }
     }
     
     /**
@@ -342,9 +358,54 @@ public class SqshContext {
      */
     public boolean isPrintStackTrace() {
     
-        return printStackTrace;
+        return exceptionDetail == ExceptionDetail.HIGH;
     }
     
+    /**
+     * @return The current level of detail that is used when displaying
+     *    exceptions.
+     */
+    public ExceptionDetail getExceptionDetail() {
+    
+        return exceptionDetail;
+    }
+
+    /**
+     * Sets the level of detail for displaying exceptions.
+     * @param exceptionDetail The new level.
+     */
+    public void setExceptionDetail(ExceptionDetail exceptionDetail) {
+    
+        this.exceptionDetail = exceptionDetail;
+    }
+    
+    /**
+     * @return The current level of detail that is used when displaying
+     *    exceptions.
+     */
+    public String getExceptionDetailString() {
+    
+        return exceptionDetail.toString();
+    }
+
+    /**
+     * Sets the level of detail for displaying exceptions.
+     * @param exceptionDetail The new level.
+     */
+    public void setExceptionDetailString(String exceptionDetail) {
+    
+        ExceptionDetail detail = ExceptionDetail.valueOf(exceptionDetail.toUpperCase());
+        if (detail != null) {
+            
+            this.exceptionDetail = detail;
+        }
+        else {
+            
+            throw new IllegalArgumentException("Illegal detail level \""
+                + exceptionDetail + "\" use low, medium, or high");
+        }
+    }
+
     /**
      * Determines whether or not exceptions printed with the printException()
      * method will include the name of the exception class in the output.
@@ -376,14 +437,20 @@ public class SqshContext {
      */
     public void printException (PrintStream out, Throwable e) {
         
+        if (exceptionDetail == ExceptionDetail.LOW) {
+            
+            out.println("Exception: " + e.getClass().getName());
+            return;
+        }
+        
         if (printExceptionClass)
             out.print("["+e.getClass().getName()+"]: ");
         
-        if (printStackTrace) {
+        if (exceptionDetail == ExceptionDetail.HIGH) {
             
             e.printStackTrace(out);
         }
-        else {
+        else if (exceptionDetail == ExceptionDetail.MEDIUM) {
             
             out.println(e.toString());
             

@@ -22,6 +22,8 @@ import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.sql.Types;
 
+import org.sqsh.SqshContext.ExceptionDetail;
+
 /**
  * This class provides a bunch of static methods that help process
  * JDBC results.
@@ -119,6 +121,7 @@ public class SQLTools {
     public static void printException(Session session, SQLException e) {
         
         SQLException origException = e;
+        ExceptionDetail detail = session.getContext().getExceptionDetail();
         
         session.err.println("SQL Exception(s) Encountered: ");
         while (e != null) {
@@ -127,18 +130,28 @@ public class SQLTools {
             session.err.print(e.getSQLState());
             session.err.print("][Code: ");
             session.err.print(e.getErrorCode());
-            session.err.print("]: ");
-            session.err.print(e.getMessage());
-            session.err.println();
+            session.err.print("]");
+            
+            if (detail != ExceptionDetail.LOW) {
+                
+                session.err.print(": ");
+                session.err.print(e.getMessage());
+                session.err.println();
+            }
+            else {
+                
+                session.err.println();
+                break;
+            }
             
             e = e.getNextException();
         }
         
-        if (session.isPrintStackTrace()) {
+        if (detail == ExceptionDetail.HIGH) {
             
             origException.printStackTrace(session.err);
-            if (origException.getCause() != null)
-            {
+            if (origException.getCause() != null) {
+                
                 origException.getCause().printStackTrace(session.err);
             }
         }
