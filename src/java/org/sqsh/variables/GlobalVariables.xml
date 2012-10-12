@@ -780,6 +780,9 @@ VARIABLE
    show_stack - Controls whether or not stack traces are display from exceptions
 
 DESCRIPTION
+   Note: this variable has been depricated. You should use ${ex_detail} now
+   to control the level of detail in exceptions.
+   
    The ${show_stack} boolean variable controls whether or not exceptions
    thrown during the execution of a command (such as "\go") will display
    just the text of the exception or the full stack trace.  The default 
@@ -813,6 +816,28 @@ DESCRIPTION
    
 SEE ALSO
    show_stack
+        ]]></Help>	
+	</Property>
+	
+  	<Property bean="global" name="ex_detail" property="exceptionDetailString">
+        <Description>Sets the level of detail when displaying exceptions</Description>
+        <Help><![CDATA[
+VARIABLE
+   ex_detail - Controls the level of detail when displaying exceptions
+
+DESCRIPTION
+   The ${ex_detail} variable can be used to control the amount of information
+   produced by exceptions.  The available levels are:
+   
+   * low    - Displays just the exception class name and, for SQL exceptions,
+              the SQL code and state.
+   * medium - (default) Displays the SQL code and state (for SQL exceptions)
+              the text of the exception, and the same information for any
+              nested exceptions.
+   * high   - Displays everything from medium, plus the stack trace for each.
+   
+SEE ALSO
+   show_exclass
         ]]></Help>	
 	</Property>
 </Variables>

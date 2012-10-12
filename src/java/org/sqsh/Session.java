@@ -460,15 +460,6 @@ public class Session
     }
     
     /**
-     * @return whether or not exceptions that are printed out via
-     * the sessions printException() method will show the stack trace.
-     */
-    public boolean isPrintStackTrace() {
-    
-        return sqshContext.isPrintStackTrace();
-    }
-    
-    /**
      * @return whether or not exceptions printed with the printException()
      * method will include the name of the exception class in the output.
      */

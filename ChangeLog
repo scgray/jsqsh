@@ -43,6 +43,8 @@ New Features
     of a variable like so
         jsqsh --var expand=true
     this flag can be provided multiple times so set multiple variables.
+ 
+  * Added ex_detail to adjust the level of detail in exceptions.
   
 Changed Behavior
   * The "$expand" variable now defaults to false, meaning that by default
