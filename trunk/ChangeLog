@@ -43,6 +43,9 @@ New Features
     of a variable like so
         jsqsh --var expand=true
     this flag can be provided multiple times so set multiple variables.
+
+  * Added --width (-W) flag and ${width} variable to force the display width to a 
+    specific value rather than using the terminal width.
  
   * Added ex_detail to adjust the level of detail in exceptions.
   

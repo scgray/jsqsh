@@ -15,7 +15,7 @@
  */
 package org.sqsh.options;
 
-public class Option {
+public class Option implements Comparable<Option> {
     
     /**
      * The property/annotation that defined this option.
@@ -98,6 +98,12 @@ public class Option {
         return option.argName();
     }
     
+    @Override
+    public int compareTo(Option o) {
+
+        return this.getLongOpt().compareTo(o.getLongOpt());
+    }
+
     @Override
     public String toString() {
         

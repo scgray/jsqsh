@@ -148,7 +148,7 @@ public class PerfectPrettyRenderer
          * Attempt to grab the width of the console. If we can't get it,
          * then don't go any further.
          */
-        int screenWidth = session.getShellManager().getConsoleWidth();
+        int screenWidth = session.getScreenWidth();
         if (screenWidth <= 0) {
             
             return;

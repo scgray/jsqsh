@@ -590,6 +590,14 @@ public class Session
     }
     
     /**
+     * @return The display width of the screen.
+     */
+    public int getScreenWidth() {
+        
+        return sqshContext.getScreenWidth();
+    }
+    
+    /**
      * Returns the value of a sqsh variable. If the variable is defined
      * locally, then the local value is returned, otherwise the global
      * variable is returned.
@@ -911,8 +919,10 @@ public class Session
             /* EOF */
         }
         
-        if (sqshContext.isInputEchoed())
+        if (line != null && sqshContext.isInputEchoed()) {
+            
             out.println(line);
+        }
             
         return line;
     }

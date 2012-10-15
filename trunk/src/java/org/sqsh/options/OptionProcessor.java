@@ -17,6 +17,7 @@ package org.sqsh.options;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -39,6 +40,7 @@ public class OptionProcessor {
     private int minArgs = 0;
     private int maxArgs = -1;
     private Object optionBean;
+    private boolean isSorted = false;
     
     /**
      * Creates an option process for a provided bean. In this case,
@@ -226,6 +228,12 @@ public class OptionProcessor {
         
         sb.append("Use: ").append(program).append(' ').append(programUsage)
             .append(linesep);
+        
+        if (!isSorted) {
+            
+            Arrays.sort(options);
+            isSorted = true;
+        }
         
         for (Option option : options) {
             

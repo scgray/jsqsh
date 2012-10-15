@@ -16,7 +16,6 @@
 package org.sqsh.renderers;
 
 import org.sqsh.ColumnDescription;
-import org.sqsh.LineIterator;
 import org.sqsh.Renderer;
 import org.sqsh.RendererManager;
 import org.sqsh.Session;
@@ -33,7 +32,7 @@ public class ISQLRenderer
         /*
          * We use this a lot so fetch it once.
          */
-        screenWidth = session.getShellManager().getConsoleWidth();
+        screenWidth = session.getScreenWidth();
     }
     
     /** {@inheritDoc} */

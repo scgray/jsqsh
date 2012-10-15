@@ -75,7 +75,7 @@ public class JSqsh {
        public boolean jaqlMode = false;
        
        @OptionProperty(
-           option='p', longOption="jaql-path", arg=REQUIRED,
+           option='a', longOption="jaql-path", arg=REQUIRED,
            description="Colon separated list of jaql module search directories")
        public String jaqlSearchPath = null;
        
@@ -109,6 +109,11 @@ public class JSqsh {
            option='v', longOption="var", arg=REQUIRED, argName="name=value",
            description="Sets a jsqsh variable. This option may be repeated")
        public List<String> vars = new ArrayList<String>();
+       
+       @OptionProperty(
+           option='W', longOption="width", arg=REQUIRED, argName="cols",
+           description="Sets the display width of output")
+       public int width = -1;
        
        @Argv(program="jsqsh", min=0, max=1, usage="[options] [connection-name]")
        public List<String> arguments = new ArrayList<String>();
@@ -165,6 +170,11 @@ public class JSqsh {
         SqshContext sqsh = new SqshContext(options.readline);
         int rc = 0;
         
+        if (options.width > 0) {
+            
+            sqsh.setScreenWidth(options.width);
+        }
+        
         for (String dir : options.configDirectories) {
 
             sqsh.addConfigurationDirectory(dir);
@@ -184,6 +194,25 @@ public class JSqsh {
             
             Session session = sqsh.newSession();
             
+            if (options.jaqlMode 
+                    || options.jaqlJars != null
+                    || options.jaqlSearchPath != null) {
+                
+                if (!doJaql(session, options)) {
+                    
+                    rc = 1;
+                }
+            }
+            else if (!doConnect(session, options)) {
+                
+                rc = 1;
+            }
+            
+            if (rc != 0) {
+                
+                System.exit(rc);
+            }
+            
             for (int i = 0; i < options.inputFiles.size(); i++) {
                 
                 if (i > 0) {
@@ -202,26 +231,13 @@ public class JSqsh {
             
                 if (options.nonInteractive)
                     session.setInteractive(false);
-            
-	            if (options.jaqlMode 
-	                    || options.jaqlJars != null
-	                    || options.jaqlSearchPath != null) {
-	                
-	                if (!doJaql(session, options)) {
-	                    
-	                    rc = 1;
-	                }
-	            }
-	            else if (!doConnect(session, options)) {
-	                
-	                rc = 1;
-	            }
 	            
-	            if (rc == 0) {
-	            
-	                rc = sqsh.run(session);
-	            }
-	            
+                int curRc = sqsh.run(session);
+                if (curRc != 0) {
+                    
+                    rc = curRc;
+                }
+                
 	            if (in != System.in) {
 	                
 	                in.close();
