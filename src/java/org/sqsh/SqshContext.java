@@ -208,6 +208,11 @@ public class SqshContext {
     private boolean doneBanner = false;
     
     /**
+     * The width to use when displaying output.
+     */
+    private int screenWidth = -1;
+    
+    /**
      * The command terminator that is currently in use. Setting this to -1
      * disables command termination.
      */
@@ -352,6 +357,31 @@ public class SqshContext {
         }
     }
     
+    /**
+     * @return The width of the screen to use when rendering output.
+     */
+    public int getScreenWidth() {
+    
+        if (screenWidth < 1) {
+            
+            return shellManager.getConsoleWidth();
+        }
+        
+        return screenWidth;
+    }
+    
+    /**
+     * Sets the screen width to use when displaying output. Setting this
+     * to a value <= 0 indicates that jsqsh should automatically attempt to
+     * determine the width of the screen
+     * 
+     * @param screenWidth The new screen width.
+     */
+    public void setScreenWidth(int screenWidth) {
+    
+        this.screenWidth = screenWidth;
+    }
+
     /**
      * @return whether or not exceptions that are printed out via
      * the sessions printException() method will show the stack trace.
