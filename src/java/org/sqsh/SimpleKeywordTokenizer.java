@@ -184,8 +184,10 @@ public class SimpleKeywordTokenizer {
                     ++idx;
                     done = true;
                 }
+                else {
                 
-                ++idx;
+                    ++idx;
+                }
             }
         }
     }

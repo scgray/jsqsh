@@ -16,6 +16,7 @@ package org.sqsh;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.sql.Connection;
+import java.sql.ParameterMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
@@ -406,6 +407,38 @@ public class SQLTools {
         }
         
         return "[TYPE #" + type + "]";
+    }
+    
+    /**
+     * Decodes a parameter mode number into a readable string
+     * @param mode The mode
+     * @return The string
+     */
+    public static String getParameterMode(int mode) {
+        
+        switch (mode) {
+        case ParameterMetaData.parameterModeIn: return "IN";
+        case ParameterMetaData.parameterModeInOut: return "INOUT";
+        case ParameterMetaData.parameterModeOut: return "OUT";
+        case ParameterMetaData.parameterModeUnknown: return "UNKNOWN";
+        default:
+            return "UNRECOGNIZED";
+        }
+    }
+    
+    /***
+     * Decodes a parameter nullability indicator into a readable string
+     * @param isnull The nullability indicator
+     * @return The string
+     */
+    public static String getParameterNullability(int isnull) {
+        switch (isnull) {
+        case ParameterMetaData.parameterNoNulls: return "NOT NULL";
+        case ParameterMetaData.parameterNullable: return "NULL";
+        case ParameterMetaData.parameterNullableUnknown: return "UNKNOWN";
+        default:
+            return "UNRECOGNIZED";
+        }
     }
     
     /**

@@ -1379,19 +1379,17 @@ public class SqshContext {
     private void loadReadlineHistory(File homedir) {
         
         File history = new File(homedir, "readline_history");
-        if (history.exists()) {
-                
-            try {
+        try {
                     
-                console.readHistory(history.toString());
-            }
-            catch (Throwable e) {
+            console.readHistory(history.toString());
+        }
+        catch (Throwable e) {
                     
-                System.err.println("WARNING: Failed to process readline" +
-                        "history: " + e.getMessage());
-            }
+            System.err.println("WARNING: Failed to process readline" +
+                    "history: " + e.getMessage());
         }
     }
+    
     
     /**
      * Attempts to load the readline history file.
@@ -1407,7 +1405,7 @@ public class SqshContext {
             catch (Throwable e) {
                 
                 System.err.println("WARNING: Failed to save readline" +
-                        "history: " + e.getMessage());
+                        " history: " + e.getMessage());
             }
         }
     }

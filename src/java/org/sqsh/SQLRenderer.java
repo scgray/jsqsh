@@ -17,6 +17,7 @@ package org.sqsh;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -721,7 +722,7 @@ public class SQLRenderer {
                     
                     if (showMetadata) {
                         
-                        displayMetadata(session, resultSet);
+                        displayMetadata(session, resultSet.getMetaData());
                     }
                     
                     nRows = displayResults(renderer, session, resultSet, null);
@@ -992,7 +993,7 @@ public class SQLRenderer {
      * @param session The session.
      * @param resultSet The result set.
      */
-    private void displayMetadata(Session session, ResultSet resultSet) {
+    public void displayMetadata(Session session, ResultSetMetaData meta) {
         
         Renderer renderer = session.getRendererManager().getCommandRenderer(
             session);
@@ -1018,8 +1019,6 @@ public class SQLRenderer {
         
         try {
             
-            ResultSetMetaData meta = resultSet.getMetaData();
-            
             for (int i = 1; i <= meta.getColumnCount(); i++) {
                 
                 String schema = null;
@@ -1042,6 +1041,61 @@ public class SQLRenderer {
                 row[6] = catalog;
                 row[7] = schema;
                 row[8] = table;
+                
+                renderer.row(row);
+            }
+            
+            renderer.flush();
+        }
+        catch (SQLException e) {
+            
+            SQLTools.printException(session, e);
+        }
+    }
+    
+    /**
+     * Called to render the result set metadata as a table. This is
+     * primarily for debugging purposes.
+     * 
+     * @param session The session.
+     * @param resultSet The result set.
+     */
+    public void displayParameterMetadata(Session session, ParameterMetaData meta) {
+        
+        Renderer renderer = session.getRendererManager().getCommandRenderer(
+            session);
+        ColumnDescription []cols = new ColumnDescription[8];
+        
+        cols[0] = new ColumnDescription("PARAM", -1,
+            ColumnDescription.Alignment.RIGHT,
+            ColumnDescription.OverflowBehavior.TRUNCATE);
+        cols[1] = new ColumnDescription("TYPE", -1);
+        cols[2] = new ColumnDescription("TYPE NAME", -1);
+        cols[3] = new ColumnDescription("PREC", -1, 
+            ColumnDescription.Alignment.RIGHT,
+            ColumnDescription.OverflowBehavior.TRUNCATE);
+        cols[4] = new ColumnDescription("SCALE", -1, 
+            ColumnDescription.Alignment.RIGHT,
+            ColumnDescription.OverflowBehavior.TRUNCATE);
+        cols[5] = new ColumnDescription("MODE", -1);
+        cols[6] = new ColumnDescription("SIGNED", -1);
+        cols[7] = new ColumnDescription("NULLABLE", -1);
+        
+        renderer.header(cols);
+        
+        try {
+            
+            for (int i = 1; i <= meta.getParameterCount(); i++) {
+                
+                String row[] = new String[8];
+                row[0] = Integer.toString(i);
+                row[1] = SQLTools.getTypeName(meta.getParameterType(i));
+                row[2] = meta.getParameterTypeName(i);
+                row[3] = Integer.toString(meta.getPrecision(i));
+                row[4] = Integer.toString(meta.getScale(i));
+                row[5] = SQLTools.getParameterMode(meta.getParameterMode(i));
+                row[6] = meta.isSigned(i) ? "Y" : "N";
+                row[7] = SQLTools.getParameterNullability(meta.isNullable(i));
                 
                 renderer.row(row);
             }

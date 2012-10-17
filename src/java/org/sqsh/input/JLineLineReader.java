@@ -28,8 +28,9 @@ import org.sqsh.SqshContext;
 public class JLineLineReader
         extends ConsoleLineReader {
     
-    SqshContext   ctx;
-    ConsoleReader reader;
+    protected SqshContext   ctx;
+    protected ConsoleReader reader;
+    protected FileHistory   history = null;
     
     public JLineLineReader (SqshContext ctx)
         throws ConsoleException {
@@ -94,7 +95,7 @@ public class JLineLineReader
 
         try {
             
-            FileHistory history = new FileHistory(new File(filename));
+            this.history = new FileHistory(new File(filename));
             reader.setHistory(history);
         }
         catch (IOException e) {
@@ -136,8 +137,10 @@ public class JLineLineReader
         
         try {
             
-            FileHistory hist = (FileHistory) reader.getHistory();
-            hist.flush();
+            if (history != null) {
+                
+                history.flush();
+            }
         }
         catch (IOException e) {
             
