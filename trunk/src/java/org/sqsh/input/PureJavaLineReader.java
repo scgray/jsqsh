@@ -58,7 +58,7 @@ public class PureJavaLineReader
         int ch = session.in.read();
         if (ch == -1) {
             
-            return null;
+            throw new EOFException("The End");
         }
         
         while (ch != -1 && ch != '\n') {
@@ -89,6 +89,6 @@ public class PureJavaLineReader
     @Override
     public String getName() {
 
-        return "PureJava";
+        return ConsoleLineReader.NONE;
     }
 }

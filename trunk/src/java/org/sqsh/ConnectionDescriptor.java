@@ -15,8 +15,12 @@
  */
 package org.sqsh;
 
-import static org.sqsh.options.ArgumentRequired.NONE;
 import static org.sqsh.options.ArgumentRequired.REQUIRED;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.sqsh.options.OptionProperty;
 
@@ -65,6 +69,11 @@ public class ConnectionDescriptor
         option='s', longOption="sid", arg=REQUIRED, argName="SID",
         description="Instance id (e.g. Oracle SID) to utilize")
     public String SID = null;
+    
+    @OptionProperty(
+        option='O', longOption="prop", arg=REQUIRED, argName="name=val",
+        description="Set a driver connection property. Can be used more than once")
+    public List<String> properties = new ArrayList<String>();
 
     @OptionProperty(
         option='c', longOption="jdbc-class", arg=REQUIRED, argName="driver",
@@ -85,6 +94,8 @@ public class ConnectionDescriptor
      * The name cannot be set with a flag.
      */
     public String name = null;
+    
+    private Map<String,String> propMap = null;
     
     /**
      * Creates an empty connection descriptor.
@@ -328,6 +339,102 @@ public class ConnectionDescriptor
     }
     
     /**
+     * @param properties New connection properties to use
+     */
+    public void setProperties(List<String> properties) {
+        
+        this.propMap = null;
+        this.properties = properties;
+    }
+    
+    /**
+     * Add a property to the descriptor.
+     * @param name The name
+     * @param value The value
+     */
+    public void addProperty(String name, String value) {
+        
+        this.propMap = null;
+        properties.add(name + "=" + value);
+    }
+    
+    /**
+     * @param properties New connection properties to use
+     */
+    public void addProperties(List<String> properties) {
+        
+        propMap = null;
+        for (String prop : properties) {
+            
+            if (!this.properties.contains(prop)) {
+                
+                this.properties.add(prop);
+            }
+        }
+    }
+    
+    /**
+     * @return The set of properties for this connection
+     */
+    public List<String> getProperties() {
+        
+        return this.properties;
+    }
+    
+    /**
+     * @return The set of properties that should be passed along to the
+     *   JDBC driver during connect.
+     */
+    public Map<String,String> getPropertiesMap() {
+        
+        if (propMap == null) {
+            
+            propMap = getValues(properties);
+        }
+        
+        return propMap;
+    }
+    
+    /**
+     * Converts a list of "name=value" pairs into a hash map.
+     * @param pairs The list of "name=value" pairs.
+     * @return The newly created hash map
+     */
+    protected Map<String,String> getValues(List<String> pairs) {
+        
+        Map<String, String> map = new HashMap<String, String>();
+        if (pairs == null || pairs.size() == 0) {
+            
+            return map;
+        }
+        
+        for (int i = 0; i < pairs.size(); i++) {
+            
+            String v = pairs.get(i);
+            int idx = v.indexOf('=');
+            String name;
+            String value = null;
+            
+            if (idx < 0) {
+                
+                name = v;
+            }
+            else {
+                
+                name  = v.substring(0, idx);
+                if (idx < (v.length() - 1)) {
+                    
+                    value = v.substring(idx+1);
+                }
+            }
+            
+            map.put(name, value);
+        } 
+        
+        return map;
+    }
+    
+    /**
      * Returns true if this descriptor matches that descriptor.
      * 
      * @param that The descriptor to compare to.
@@ -345,7 +452,8 @@ public class ConnectionDescriptor
               && nullEquals(this.server, that.server)
               && nullEquals(this.SID, that.SID)
               && nullEquals(this.url, that.url)
-              && nullEquals(this.username, that.username));
+              && nullEquals(this.username, that.username)
+              && this.properties.equals(that.properties));
     }
     
     /**

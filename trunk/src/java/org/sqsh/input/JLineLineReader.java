@@ -86,7 +86,7 @@ public class JLineLineReader
     @Override
     public String getName() {
 
-        return "JLine";
+        return ConsoleLineReader.JLINE;
     }
 
     @Override

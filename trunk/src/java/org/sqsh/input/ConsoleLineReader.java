@@ -38,33 +38,34 @@ import org.sqsh.SqshContext;
  */
 public abstract class ConsoleLineReader {
     
+    
     /**
      * Name of the console reader that utilizes the JNI readline library.
      */
-    public static final String READLINE = "readline";
+    public static final String READLINE = "Readline";
     /**
      * Name of the console reader that utilizes the JNI editline library.
      */
-    public static final String EDITLINE = "editline";
+    public static final String EDITLINE = "Editline";
     /**
      * Name of the console reader that utilizes the JNI getline library.
      */
-    public static final String GETLINE = "getline";
+    public static final String GETLINE = "Getline";
     /**
      * Name of the console reader that utilizes the pure java jline library
      */
-    public static final String JLINE    = "jline";
+    public static final String JLINE    = "JLine";
     
     /**
      * A synonym for "none"
      */
-    public static final String PUREJAVA = "purejava";
+    public static final String PUREJAVA = "PureJava";
     
     /**
      * A basic console reader that provides no line editing capabilities,
      * using direct java I/O.
      */
-    public static final String NONE     = "none";
+    public static final String NONE     = "None";
     
     /** 
      * Attempts to determine which readline API you happen to have available
@@ -95,6 +96,15 @@ public abstract class ConsoleLineReader {
          * our search for a suitable reader.
          */
         StringBuffer errors = new StringBuffer();
+        
+        /*
+         * "PureJava" is just a synonym for "none". 
+         */
+        if (readerType != null 
+            && readerType.equalsIgnoreCase(ConsoleLineReader.PUREJAVA)) {
+            
+            readerType = ConsoleLineReader.NONE;
+        }
         
         /*
          * JLine initialization

@@ -19,8 +19,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -131,6 +133,10 @@ public class ConnectionDescriptorManager {
         if (c2.getUsername() != null) {
             
             n.setUsername(c2.getUsername());
+        }
+        if (c2.getProperties().size() > 0) {
+        
+            n.addProperties(c2.getProperties());
         }
         
         return n;
@@ -270,7 +276,21 @@ public class ConnectionDescriptorManager {
                     }
                     out.print("><![CDATA[");
                     out.print(connDesc.getUrl());
-                    out.println("]]></jdbc-url");
+                    out.println("]]></jdbc-url>");
+                }
+                
+                Map<String,String> props = connDesc.getPropertiesMap();
+                if (props.size() > 0) {
+                    
+                    out.println("      <properties>");
+                    for (Entry<String, String> e : props.entrySet()) {
+                        out.print("          <property name=\"");
+                        out.print(e.getKey());
+                        out.print("\"><![CDATA[");
+                        out.print(e.getValue());
+                        out.println("]]></property>");
+                    }
+                    out.println("      </properties>");
                 }
                 
                 out.println("   </connection>");
@@ -346,6 +366,13 @@ public class ConnectionDescriptorManager {
         digester.addCallMethod(path, 
             "setJdbcClass", 1, new Class[] { java.lang.String.class });
             digester.addCallParam(path, 0, "class");
+            
+        path = "connections/connection/properties/property";
+        digester.addCallMethod(path, 
+            "addProperty", 2, new Class[] {
+                java.lang.String.class, java.lang.String.class });
+            digester.addCallParam(path, 0, "name");
+            digester.addCallParam(path, 1);
             
         digester.push(this); 
         try {

@@ -133,24 +133,31 @@ SYNOPSIS
   \connect [options] [connection-name]
               
 DESCRIPTION
-  The \connect command attempts to establish a JDBC connection
-  to a database server.  If a connection is successfully 
-  established then the connection becomes the active connection
-  for the current session. If the session already had a connection
-  established, then the existing connection is closed and replaced
-  with the new connection.
+  The \connect command attempts to establish a JDBC connection to a database 
+  server.  If a connection is successfully established then the connection 
+  becomes the active connection for the current session. If the session already 
+  had a connection established, then the existing connection is closed and 
+  replaced with the new connection.
               
-OPTIONS
-  Each JDBC driver shown by the \drivers command references a 
-  number of variables in its JDBC URL. For example, the Oracle
-  driver's URL looks like:
+CONNECTION OPTIONS
+  The following options may be used to specify information required to establish 
+  a database connection (or whatever your chosen JDBC driver considers a 
+  connection).
   
-      jdbc:oracle:thin:@${server}:${port}:${SID}
+  In the help description below, you will see references to variables like
+  "${db}" or "${server}". When an option says that it sets a given variable,
+  what is referring to is that if you look at a driver definition using the
+  command "\drivers", like so:
    
-  The majority of the options shown below set the value of one
-  of these variables. For example, the "-S" flag sets the value
-  of the ${server} variable.
+   1> \drivers
+   +-----------------+-------------+--------------------------------
+   | Target          | Name        | URL                            
+   +-----------------+-------------+--------------------------------
+   | * MySQL         | mysql       | jdbc:mysql://${server}:${port} 
    
+  The option may set one of these variables. Not all variables are meaningful
+  or used by all drivers.
+  
   -d, --driver=driver The name of the jsqsh driver definition that will
                       be used for the connection (use \drivers to see
                       a list).
@@ -189,19 +196,56 @@ OPTIONS
                       define which JDBC driver class will be utilized
                       for the connection.
                           
-   -n, --new-session  Create a new session for this connect without
-                      closing the connection in the current session.
               
    -w, --domain=domain For Windows based authentication, sets the ${domain} 
                        property, specifying the windows domain to be utilized
                        when establishing the connection. Not all JDBC drivers
                        support this functionality.
                        
+   -O, --prop=name=value This option allows JDBC driver properties to be
+                      explicitly set prior to connecting, and may be listed
+                      more than once. For example:
+                      
+                        \connect --prop compress=true --prop failover=false
+                        
+                      The set of properties that are available are specific to
+                      a given JDBC driver, so you'll need to consult the
+                      documentation for your driver for details.
+                      
+   -n, --new-session  Create a new session for this connect without closing 
+                      the connection in the current session. You can manage,
+                      view, and switch active sessions with the \session 
+                      command.
+                      
+   connection-name    If provided, this indicates the logical connection name
+                      that should be used to establish the connection. If
+                      additional arguments are provided, then they will 
+                      override the same options associated with the logical
+                      connection name. See NAMED CONNECTIONS below for details.
+                      
+NAMED CONNECTION OPTIONS
+   Because many options may be required to establish a connection, it can be
+   quite tedious to provide these options each and every time you connect,
+   so jsqsh provides a mechanism by which you can establish a name for a given
+   set of connection properties and then use this name instead of providing
+   all of the connection properties.
+   
+   See NAMED CONNECTIONS, below, for details.
+   
    -l, --list         Lists all available logical connection names. See 
                       NAMED CONNECTIONS below for details.
                       
    -a, --add=name     This option is used to define (or replace) a logical
-                       connection name. See NAMED CONNECTIONS below for details.
+                      connection name. See NAMED CONNECTIONS below for details.
+ 
+   -x, --update       This option is used to merge together the settings in
+                      an existing name connection with any additional options
+                      you provide. For example, if your password was changed
+                      on a given server you can do:
+                      
+                         \connect -Pnewpass --update proddb
+                         
+                      where "proddb" is the named connection you wish to update.
                       
    -r, --remove       This option is used to remove a logical connection name.
                       If this option is provided a connection-name must also
@@ -210,23 +254,7 @@ OPTIONS
    -x, --show-password
                       When used with the --list option, causes the connection
                       password to be displayed in clear-text.
-                          
-   connection-name    If provided, this indicates the logical connection name
-                      that should be used to establish the connection. If
-                      additional arguments are provided, then they will 
-                      override the same options associated with the logical
-                      connection name. See NAMED CONNECTIONS below for details.
 
-DEFAULT VALUES
-   For any of the variables set by options described in the OPTIONS 
-   section, above, you may provide a default for that variable by
-   prefixing the variable name with "dflt_" in your session. For example:
-   
-      \set dflt_port=5555
-      
-   would cause default value of ${port} to be 5555 unless the -p option
-   is provided to override that value.
-   
 NAMED CONNECTIONS
    Because a relatively significant number of parameters are required to
    be passed to \connect in order to establish a connection, jsqsh provides
@@ -280,6 +308,17 @@ NAMED CONNECTIONS
       
    Logical connection names are persistent (they exist between executions
    of jsqsh) and are defined in the file $HOME/.jsqsh/connections.xml.
+   
+DEFAULT VALUES
+   For any of the variables set by options described in the OPTIONS 
+   section, above, you may provide a default for that variable by
+   prefixing the variable name with "dflt_" in your session. For example:
+   
+      \set dflt_port=5555
+      
+   would cause default value of ${port} to be 5555 unless the -p option
+   is provided to override that value.
+   
    
 VARIABLES SET
    After a connection is successfully established, the variables described

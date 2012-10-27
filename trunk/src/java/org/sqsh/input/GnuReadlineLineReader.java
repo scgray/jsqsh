@@ -40,6 +40,6 @@ public class GnuReadlineLineReader
     @Override
     public String getName() {
 
-        return "Readline";
+        return ConsoleLineReader.READLINE;
     }
 }

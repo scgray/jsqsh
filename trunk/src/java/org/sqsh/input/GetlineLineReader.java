@@ -40,6 +40,6 @@ public class GetlineLineReader
     @Override
     public String getName() {
     
-        return "Getline";
+        return ConsoleLineReader.EDITLINE;
     }
 }
