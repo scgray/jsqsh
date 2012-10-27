@@ -105,6 +105,16 @@ CONNECTION OPTIONS
         For Windows based authentication, sets the ${domain} property, specifying 
         the windows domain to be utilized when establishing the connection. 
         Not all JDBC drivers support this functionality.
+        
+  -O, --prop=name=value 
+        This option allows JDBC driver properties to be explicitly set prior 
+        to connecting, and may be listed more than once. For example: 
+        
+           \connect --prop compress=true --prop failover=false
+                        
+        The set of properties that are available are specific to a given JDBC 
+        driver, so you'll need to consult the documentation for your driver 
+        for details.
                        
    connection-name 
         If provided, this indicates the logical connection name that should be 
@@ -152,10 +162,15 @@ GENERAL OPTIONS
        
    -n, --non-interactive
        When input is read from a file (--input-file), the input is automatically
-       considered non-interactive and displaying of the prompt and welcome
-       banner is disabled. When input is read from stdin, however, jsqsh cannot
-       detect if the input is actual user input or is redirected input from
-       a file, like so:
+       considered non-interactive, and the following functionality is disabled:
+       
+         * Display of the welcome banner
+         * Display of the prompt
+         * Recording of line editor line history 
+         * Recording of statement history
+         
+       When input is read from stdin, however, jsqsh cannot detect if the 
+       input is actual user input or is redirected input from a file, like so:
        
            jsqsh < input.sql
            

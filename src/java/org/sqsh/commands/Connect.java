@@ -58,6 +58,11 @@ public class Connect
         public String add = null;
         
         @OptionProperty(
+            option='x', longOption="update", arg=NONE,
+            description="Update a named connection with the current settings")
+        public boolean update = false;
+        
+        @OptionProperty(
             option='l', longOption="list", arg=NONE,
             description="List all defined connections")
         public boolean list = false;
@@ -98,6 +103,16 @@ public class Connect
         }
         
         /*
+         * Sanity checking.
+         */
+        if (options.update && options.add != null) {
+            
+            session.err.println("The --update (-x) and --add (-a) options are "
+                + "mutually exclusive");
+            return 1;
+        }
+        
+        /*
          * If the current set of options include the "name" argument
          * then this is a saved connection profile.
          */
@@ -106,6 +121,14 @@ public class Connect
             String name = options.arguments.get(0);
             ConnectionDescriptorManager connDescMan = 
                 session.getConnectionDescriptorManager();
+            
+            /*
+             * An update is actually a re-adding of an existing connection.
+             */
+            if (options.update) { 
+                
+                options.add = name;
+            }
             
             ConnectionDescriptor savedOptions = connDescMan.get(name);
             if (savedOptions == null) {
@@ -131,6 +154,15 @@ public class Connect
             if (savedOptions != null) {
                 
                 connDesc = connDescMan.merge(savedOptions, connDesc);
+            }
+        }
+        else {
+            
+            if (options.update) {
+                
+                session.err.println("The --update (-x) option may only be provided "
+                    + "in conjunction with an existing named connection");
+                return 1;
             }
         }
         
@@ -202,17 +234,18 @@ public class Connect
     
     private void doList(Session session, boolean showPassword) {
         
-        ColumnDescription []columns = new ColumnDescription[10];
-        columns[0] = new ColumnDescription("Name", -1);
-        columns[1] = new ColumnDescription("Driver", -1);
-        columns[2] = new ColumnDescription("Server", -1);
-        columns[3] = new ColumnDescription("Port", -1);
-        columns[4] = new ColumnDescription("SID", -1);
-        columns[5] = new ColumnDescription("Username", -1);
-        columns[6] = new ColumnDescription("Password", -1);
-        columns[7] = new ColumnDescription("Domain", -1);
-        columns[8] = new ColumnDescription("Class", -1);
-        columns[9] = new ColumnDescription("URL", -1);
+        ColumnDescription []columns = new ColumnDescription[11];
+        columns[0]  = new ColumnDescription("Name", -1);
+        columns[1]  = new ColumnDescription("Driver", -1);
+        columns[2]  = new ColumnDescription("Server", -1);
+        columns[3]  = new ColumnDescription("Port", -1);
+        columns[4]  = new ColumnDescription("SID", -1);
+        columns[5]  = new ColumnDescription("Username", -1);
+        columns[6]  = new ColumnDescription("Password", -1);
+        columns[7]  = new ColumnDescription("Domain", -1);
+        columns[8]  = new ColumnDescription("Class", -1);
+        columns[9]  = new ColumnDescription("URL", -1);
+        columns[10] = new ColumnDescription("Properties", -1);
         
         DataFormatter formatter =
             session.getDataFormatter();
@@ -234,7 +267,7 @@ public class Connect
         
         for (ConnectionDescriptor connDesc : connDescs) {
             
-            String row[] = new String[10];
+            String row[] = new String[11];
             row[0] = connDesc.getName();
             row[1] = (connDesc.getDriver() == null ?
                         formatter.getNull() : connDesc.getDriver());
@@ -264,6 +297,22 @@ public class Connect
                         formatter.getNull() : connDesc.getJdbcClass());
             row[9] = (connDesc.getUrl() == null ? 
                         formatter.getNull() : connDesc.getUrl());
+            row[10] = null;
+            List<String> props = connDesc.getProperties();
+            if (props.size() > 0) {
+                
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < props.size(); i++) {
+                    
+                    if (i > 0) {
+                        
+                        sb.append(", ");
+                    }
+                    sb.append(props.get(i));
+                }
+                
+                row[10] = sb.toString();
+            }
             
             renderer.row(row);
         }

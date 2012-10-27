@@ -108,5 +108,5 @@ if [ $has_jaql -eq 1 ]; then
    export HADOOP_CLASSPATH=$CLASSPATH
    exec $JAQL_HOME/bin/jaql "-Djava.library.path=$LD_LIBRARY_PATH" org.sqsh.JSqsh $*
 else
-   exec java org.sqsh.JSqsh $*
+   exec java $JSQSH_JAVA_OPTS org.sqsh.JSqsh $*
 fi

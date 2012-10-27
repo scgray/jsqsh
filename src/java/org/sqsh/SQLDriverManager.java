@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Iterator;
 import java.util.logging.Logger;
@@ -461,6 +462,20 @@ public class SQLDriverManager {
             for (String name : sqlDriver.getPropertyNames()) {
                     
                 props.put(name, sqlDriver.getProperty(name));
+            }
+            
+            /*
+             * If the connection descriptor specified a set of properties to use
+             * then use them too (wow, we have a lot of ways to get properties
+             * to the driver!)
+             */
+            Map<String, String> descProps = connDesc.getPropertiesMap();
+            if (descProps.size() > 0) {
+                
+                for (Entry<String,String> e : descProps.entrySet()) {
+                    
+                    props.put(e.getKey(), e.getValue());
+                }
             }
             
             String s = getProperty(properties,

@@ -40,6 +40,6 @@ public class EditlineLineReader
     @Override
     public String getName() {
     
-        return "Editline";
+        return ConsoleLineReader.EDITLINE;
     }
 }

@@ -193,7 +193,7 @@ public class SqshContext {
      * of the terminal. If a) readline was properly initialized and 
      * b) readline says "yes", then this will remain true.
      */
-    private boolean isInteractive = true;
+    private boolean isInteractive = false;
     
     /**
      * If true, then user input will be echoed back to stdout. This is
@@ -231,7 +231,7 @@ public class SqshContext {
     private boolean printExceptionClass = false;
     
     /**
-     * Creates a new SqshContext.
+     * Creates a new SqshContext. 
      * 
      * @param readerType The type of readline implementation to utilize. This
      *   may be one of
@@ -245,7 +245,7 @@ public class SqshContext {
      *        on your platform.
      *    </ul>
      */
-    public SqshContext(String readerType) {
+    public SqshContext() {
         
         InputStream in = 
             getClass().getClassLoader().getResourceAsStream(CONTEXT_VARS);
@@ -282,10 +282,9 @@ public class SqshContext {
         }
         
         /*
-         * Grab a handle to the console.
+         * The init script should always be run with no editline support
          */
-        console = ConsoleLineReader.getReader(this, readerType);
-        isInteractive = console.isTerminal();
+        setReader(ConsoleLineReader.NONE, false);
         
         /*
          * Run the internal initializations cript.
@@ -301,10 +300,7 @@ public class SqshContext {
          * Load configuration files that may be located in the users 
          * configuration directory.
          */
-        String filesep = System.getProperty("file.separator");
-        File homedir = new File(
-            System.getProperty("user.home") + filesep + ".jsqsh");
-        loadConfigDirectory(homedir, true);
+        loadConfigDirectory(getConfigDirectory(), true);
         
         /*
          * Some of the activities above created sessions to do their
@@ -313,6 +309,57 @@ public class SqshContext {
          */
         nextSessionId = 1;
         prevSessionId = 1;
+    }
+    
+    /**
+     * @return The directory in which the jsqsh configuration can be found
+     *   (this is $HOME/.jsqsh).
+     */
+    private File getConfigDirectory() {
+        
+        /*
+         * Load configuration files that may be located in the users 
+         * configuration directory.
+         */
+        String filesep = System.getProperty("file.separator");
+        File homedir = new File(
+            System.getProperty("user.home") + filesep + ".jsqsh");
+        
+        return homedir;
+    }
+    
+    /**
+     * Changes which input handler is being used for this context.
+     * @param readerType The name of the reader
+     */
+    public void setReader(String readerType, boolean isInteractive) {
+        
+        /*
+         * If we were already interactive, and switch to (possibly) 
+         * non-interactive mode then save the current state away.
+         */
+        if (this.isInteractive) {
+            
+            try {
+                
+                console.writeHistory();
+            }
+            catch (Exception e) {
+                
+                /* IGNORED */
+            }
+        }
+        
+        /*
+         * Create the new reader and mark if we are interactive.
+         */
+        console = ConsoleLineReader.getReader(this, readerType);
+        this.isInteractive = isInteractive;
+        
+        if (isInteractive) {
+            
+            loadReadlineHistory(getConfigDirectory());
+        }
     }
     
     
@@ -1255,7 +1302,10 @@ public class SqshContext {
         /*
          * Load our readline history.
          */
-        loadReadlineHistory(configDir);
+        if (isInteractive) {
+            
+            loadReadlineHistory(configDir);
+        }
         
         /*
          * Then load any additional drivers that the user
@@ -1415,10 +1465,7 @@ public class SqshContext {
      */
     private void saveConfigDirectory() {
        
-        String filesep = System.getProperty("file.separator");
-        File homedir = new File(
-            System.getProperty("user.home") + filesep + ".jsqsh");
-        
+        File homedir = getConfigDirectory();
         File history = new File(homedir, "history.xml");
         bufferManager.save(history);
         

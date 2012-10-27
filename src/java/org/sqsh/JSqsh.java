@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import java.util.logging.LogManager;
 
 import org.sqsh.commands.Jaql;
+import org.sqsh.input.ConsoleLineReader;
 import org.sqsh.options.Argv;
 import org.sqsh.options.OptionProperty;
 import org.sqsh.options.OptionException;
@@ -65,8 +66,7 @@ public class JSqsh {
        
        @OptionProperty(
            option='n', longOption="non-interactive", arg=NONE,
-           description="Force the session to be non-interactive "
-                           + "(not yet implemented)")
+           description="Disables recording of input history, and line editing functionality")
        public boolean nonInteractive = false;
        
        @OptionProperty(
@@ -167,7 +167,21 @@ public class JSqsh {
             System.exit(1);
         }
         
-        SqshContext sqsh = new SqshContext(options.readline);
+        /*
+         * In non-interative mode, we force pure-java input. I have found
+         * all sorts of conflicts when using jline against input that doesn't
+         * come from the console.
+         */
+        if (options.nonInteractive) {
+            
+            options.readline = ConsoleLineReader.NONE;
+        }
+        
+        /*
+         * If the first input is a file, then we don't use a line reader
+         */
+        SqshContext sqsh = new SqshContext();
+        
         int rc = 0;
         
         if (options.width > 0) {
@@ -228,10 +242,29 @@ public class JSqsh {
                 
                 session.setIn(in, (options.inputFiles != null), (in == System.in));
                 session.setOut(out, options.outputFile != null);
-            
-                if (options.nonInteractive)
-                    session.setInteractive(false);
-	            
+                
+                /*
+                 * If we are forcibly non-interactive then just leave the context
+                 * untouched--it is that way by default.
+                 */
+                if (!options.nonInteractive) {
+                    
+	                /*
+	                 * It is possible that we will implicitly switch between 
+	                 * non-interactive and active mode when there is more than 
+	                 * one input.  The use of stdin is our trigger for 
+	                 * interactive mode.
+	                 */
+	                if (in == System.in) {
+	                    
+                        sqsh.setReader(options.readline, true);
+	                }
+	                else {
+	                    
+	                    sqsh.setReader(ConsoleLineReader.NONE, false);
+	                }
+                }
+                
                 int curRc = sqsh.run(session);
                 if (curRc != 0) {
                     
