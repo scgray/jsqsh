@@ -44,11 +44,6 @@ public class SQLConnectionContext
     private int executionMode = EXEC_IMMEDIATE;
     
     /**
-     * The session that owns the connection.
-     */
-    private Session session;
-    
-    /**
      * The actual SQL connection.
      */
     private Connection connection;
@@ -90,6 +85,8 @@ public class SQLConnectionContext
             Session session,
             ConnectionDescriptor connDesc,
             Connection conn, String url, SQLAnalyzer analyzer) {
+        
+        super(session);
         
         this.session = session;
         this.analyzer = analyzer;

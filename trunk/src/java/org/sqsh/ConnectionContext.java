@@ -33,6 +33,11 @@ import org.sqsh.input.completion.NullCompleter;
 public abstract class ConnectionContext {
     
     /**
+     * Parent session.
+     */
+    protected Session session;
+    
+    /**
      * If set to a value > 0, then the eval() method should time out after
      * the specified number of seconds.  Not call connections need support
      * this. If the context does not support it 
@@ -50,6 +55,28 @@ public abstract class ConnectionContext {
      * thread whether or not the connection is capable of doing it itself.
      */
     private boolean forceAssistedTimeout = false;
+    
+    /**
+     * Create a context
+     * @param session The session that created us
+     */
+    public ConnectionContext (Session session) {
+        
+        this.session = session;
+        
+        /*
+         * Transfer default context settings to this connection.
+         */
+        this.timeout = session.getContext().getQueryTimeout();
+    }
+    
+    /**
+     * @return The session to which this connection belongs.
+     */
+    public Session getSession() {
+        
+        return session;
+    }
     
     /**
      * @return The number of seconds before a query should timeout. A 

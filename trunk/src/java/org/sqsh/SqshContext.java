@@ -219,6 +219,11 @@ public class SqshContext {
     private int terminator = ';';
     
     /**
+     * The default query timeout interval
+     */
+    private int queryTimeout = 0;
+    
+    /**
      * Controls how much detail is displayed in exceptions.
      */
     private ExceptionDetail exceptionDetail = ExceptionDetail.MEDIUM;
@@ -326,6 +331,26 @@ public class SqshContext {
             System.getProperty("user.home") + filesep + ".jsqsh");
         
         return homedir;
+    }
+    
+    /**
+     * Sets the default query timeout for all queries on all sessions (only
+     * takes effect for new sessions, not already existing sessions).
+     * 
+     * @param secs The number of seconds before query timeout. A value <= 0
+     *   indicates that there is an indefinite timeout period.
+     */
+    public void setQueryTimeout(int secs) {
+        
+        this.queryTimeout = secs;
+    }
+    
+    /**
+     * @return the current query timeout interval
+     */
+    public int getQueryTimeout() {
+        
+        return queryTimeout;
     }
     
     /**

@@ -89,7 +89,6 @@ public class JaqlConnection
         }
     }
     
-    private Session session;
     private JaqlQuery engine;
     private JaqlFormatter formatter;
     private String oldPrompt = null;
@@ -123,7 +122,8 @@ public class JaqlConnection
     public JaqlConnection (Session session, JaqlQuery engine, 
         JaqlFormatter formatter) {
  
-        this.session          = session;
+        super(session);
+        
         this.engine           = engine;
         this.formatter        = formatter;
         this.exceptionHandler = new JaqlExceptionHandler(session);
