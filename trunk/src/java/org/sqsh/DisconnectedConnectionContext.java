@@ -64,7 +64,7 @@ public class DisconnectedConnectionContext extends ConnectionContext {
         throws Exception {
 
         throw new SQLException("Session is not connected. "
-            + "Run \"help connect\" for details");
+            + "Run \"\\help connect\" for details");
     }
 
     @Override
