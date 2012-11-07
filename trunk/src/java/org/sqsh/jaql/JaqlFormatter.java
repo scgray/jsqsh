@@ -160,7 +160,6 @@ public abstract class JaqlFormatter {
                     }
                     return;
                     
-                case LONG:
                 case STRING:
                     out.append(v.toString());
                     return;

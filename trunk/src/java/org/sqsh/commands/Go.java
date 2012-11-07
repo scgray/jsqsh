@@ -34,6 +34,7 @@ import org.sqsh.SqshOptions;
 import org.sqsh.Style;
 import org.sqsh.options.Argv;
 import org.sqsh.options.OptionProperty;
+import org.sqsh.util.TimeUtils;
 
 /**
  * Implements the \go command.
@@ -62,12 +63,17 @@ public class Go
         @OptionProperty(
             option='H', longOption="no-headers", arg=NONE,
             description="Toggles display of result header information")
-           public boolean toggleHeaders = false;
+        public boolean toggleHeaders = false;
        
         @OptionProperty(
             option='F', longOption="no-footers", arg=NONE,
             description="Toggles display of result footer information")
-           public boolean toggleFooters = false;
+        public boolean toggleFooters = false;
+        
+        @OptionProperty(
+            option='t', longOption="timeout", arg=REQUIRED, argName="sec",
+            description="Specifies number of seconds before the query should timeout")
+        public int queryTimeout = 0;
         
         @Argv(program="\\go", min=0, max=0,
             usage="[-m style] [-i table] [-H] [-F]")
@@ -149,6 +155,11 @@ public class Go
 
             startTime = System.currentTimeMillis();
         }
+        
+        if (options.queryTimeout > 0) {
+            
+            conn.setQueryTimeout(options.queryTimeout);
+        }
 
         try {
 
@@ -176,6 +187,15 @@ public class Go
             }
         }
         finally {
+            
+            /*
+             * If we set the connection's query timeout property, then reset 
+             * it to zero when we are finished.
+             */
+            if (options.queryTimeout > 0) {
+                
+                conn.setQueryTimeout(0);
+            }
             
             /*
              * If this is an interactive session, then we create a new
@@ -210,8 +230,8 @@ public class Go
             long endTime = System.currentTimeMillis();
             System.out.println(
                 options.repeat + " iterations (total "
-                + (endTime - startTime) + "ms., "
-                + ((endTime - startTime) / options.repeat) + "ms. ag)");
+                + TimeUtils.millisToDurationString(endTime - startTime) + ", "
+                + TimeUtils.millisToDurationString((endTime - startTime) / options.repeat) + " avg)");
         }
         
         return returnCode;

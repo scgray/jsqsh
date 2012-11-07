@@ -24,6 +24,25 @@ import org.sqsh.ColumnDescription.OverflowBehavior;
  */
 public abstract class Renderer {
     
+    private static String SPACES = null;
+    private static String DASHES = null;
+    static 
+    {
+        StringBuilder sb = new StringBuilder(512);
+        for (int i = 0; i < 512; i++)
+        {
+            sb.append(' ');
+        }
+        SPACES = sb.toString();
+        
+        sb.setLength(0);
+        for (int i = 0; i < 512; i++)
+        {
+            sb.append('-');
+        }
+        DASHES = sb.toString();
+    }
+    
     /**
      * Session that owns the renderer.
      */
@@ -68,6 +87,20 @@ public abstract class Renderer {
     }
     
     /**
+     * True if this is a renderer that simply discards data rather than 
+     * displaying it. When a renderer is a discarding renderer it is effectively
+     * just a marker for jsqsh to throw rows away, which it does without ever
+     * calling any methods on the renderer to do any work.
+     * 
+     * @return true if this is a renderer that simply discards data rather than
+     *   displaying it.
+     */
+    public boolean isDiscard() {
+        
+        return false;
+    }
+    
+    /**
      * This is a helper method to display a string representing a 
      * single line of text to the session's output stream. This value
      * will be properly aligned as per the column's alignment rules 
@@ -84,22 +117,49 @@ public abstract class Renderer {
         
         if (column.getAlignment() == ColumnDescription.Alignment.RIGHT) {
             
-            for (int i = 0; i < padding; i++) {
-                
-                session.out.print(' ');
-            }
+            spaces(padding);
         }
         
         session.out.print(str);
         
         if (column.getAlignment() == ColumnDescription.Alignment.LEFT) {
             
-            for (int i = 0; i < padding; i++) {
-                
-                session.out.print(' ');
-            }
+            spaces(padding);
         }
     }
+    
+    /**
+     * Writes N spaces to the sessions stdout
+     * @param n The number of spaces to write
+     */
+    protected void spaces(int n) {
+        
+        int sz = SPACES.length();
+        
+        while (n > 0) {
+            
+            int sp = (n > sz ? sz : n);
+            session.out.append(SPACES, 0, sp);
+            n -= sp;
+        }
+    }
+    
+    /**
+     * Writes N dashes ("-") to the sessions stdout
+     * @param n The number of dashes to write
+     */
+    protected void dashes(int n) {
+        
+        int sz = DASHES.length();
+        
+        while (n > 0) {
+            
+            int sp = (n > sz ? sz : n);
+            session.out.append(DASHES, 0, sp);
+            n -= sp;
+        }
+    }
+    
     
     /**
      * This is a helper method to display the name of a column (or a portion
@@ -110,6 +170,11 @@ public abstract class Renderer {
      * @param str A single line of text (no new-lines!)
      */
     protected void printColumnName(ColumnDescription column, String str) {
+        
+        if (str == null) {
+            
+            str = "";
+        }
         
         int padding = column.getWidth() - str.length();
         session.out.print(str);

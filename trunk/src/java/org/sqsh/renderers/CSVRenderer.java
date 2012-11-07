@@ -28,6 +28,8 @@ import org.sqsh.Session;
 public class CSVRenderer
     extends Renderer {
     
+    private StringBuilder line = new StringBuilder(); 
+    
     public CSVRenderer(Session session, RendererManager renderMan) {
         
         super(session, renderMan);
@@ -59,12 +61,39 @@ public class CSVRenderer
 
         return true;
     }
+    
+    private boolean needsQuoting(String str) {
+        
+        final int sz = str.length();
+        
+        if (sz == 0) {
+            
+            return true;
+        }
+        
+        if (Character.isWhitespace(str.charAt(0))
+            || Character.isWhitespace(str.charAt(sz -1))) {
+            
+            return true;
+        }
+        
+        for (int i = 0; i < sz; i++) {
+            
+            char ch = str.charAt(i);
+            if (ch == '"' || ch == '\n' || ch == ',') {
+                
+                return true;
+            }
+        }
+        
+        return false;
+    }
 
     /** {@inheritDoc} */
     @Override
     public boolean row (String[] row) {
 
-        StringBuffer line = new StringBuffer();
+        line.setLength(0);
         for (int i = 0; i < row.length; i++) {
             
             if (i > 0) {
@@ -76,16 +105,7 @@ public class CSVRenderer
             
             if (!isNull(field)) {
                 
-                boolean needsQuoting = 
-                    (field.length() == 0
-                        || field.indexOf('"') >= 0
-                        || field.indexOf('\n') >= 0
-                        || field.indexOf(',') >= 0
-                        || (field.length() > 0 
-                                && (Character.isWhitespace(field.charAt(0))
-                                      || Character.isWhitespace(field.charAt(field.length() -1)))));
-                
-                if (needsQuoting == false) {
+                if (!needsQuoting(field)) {
                     
                     line.append(field);
                 }

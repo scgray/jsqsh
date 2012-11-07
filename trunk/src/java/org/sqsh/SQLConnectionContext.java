@@ -17,6 +17,7 @@ package org.sqsh;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import org.sqsh.analyzers.SQLAnalyzer;
 import org.sqsh.input.completion.Completer;
@@ -63,6 +64,14 @@ public class SQLConnectionContext
     private String url;
     
     /**
+     * I don't like the way this works, but this is normally null.  When
+     * the SQLRenderer uses this connection to execute a query, it sets this
+     * to the current statement handle, which allows us to cancel() it if
+     * need be.
+     */
+    private Statement statement;
+    
+    /**
      * The properties that were used to establish the connection.
      */
     private ConnectionDescriptor connDesc;
@@ -107,17 +116,79 @@ public class SQLConnectionContext
         
         session.getRendererManager().setDefaultRenderer(name);
     }
+    
+    @Override
+    public boolean supportsQueryTimeout() {
+
+        return true;
+    }
 
     /**
      * Executes SQL on the connection.
      */
     @Override
-    public void eval(String batch, Session session, SQLRenderer renderer)
+    public void evalImpl(String batch, Session session, SQLRenderer renderer)
         throws Exception {
         
         renderer.execute(session, batch);
     }
 
+    @Override
+    public synchronized void cancel() throws Exception {
+        
+        if (statement != null) {
+            
+            statement.cancel();
+        }
+    }
+    
+    /**
+     * This method is called by the SQLRenderer when it executes a query
+     * on this connection, it lets us know which statement handle is in use.
+     * @param statement The statement handle
+     */
+    public synchronized void setStatement(Statement statement) {
+        
+        this.statement = statement;
+        
+        /*
+         * If a timeout was requested and it isn't going to be assisted by
+         * our cancel thread, then ask the statement to cancel the query
+         * when requested.
+         */
+        if (timeout > 0 && !isForceAssistedTimeout()) {
+            
+            try {
+                
+                statement.setQueryTimeout(timeout);
+                
+                /*
+                 * Some drivers silently ignore the requested timeout period,
+                 * so we will fall back to our own devices in this case
+                 */
+                if (statement.getQueryTimeout() != timeout) {
+                    
+                    statement.setQueryTimeout(0);
+                    this.startQueryTimeout();
+                }
+            }
+            catch (SQLException e) {
+                
+                /* 
+                 * Couldn't set it, so we call back to assisted mode.
+                 */
+                this.startQueryTimeout();
+            }
+        }
+    }
+    
+    /**
+     * Called by the SQLRenderer when its query is complete
+     */
+    public synchronized void clearStatement() {
+        
+        this.statement = null;
+    }
 
     /**
      * @return the connection
