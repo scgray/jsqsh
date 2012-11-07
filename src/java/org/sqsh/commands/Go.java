@@ -140,6 +140,7 @@ public class Go
         
         boolean origHeaders = renderMan.isShowHeaders();
         boolean origFooters = renderMan.isShowFooters();
+        int origTimeout = conn.getQueryTimeout();
         
         if (options.toggleFooters) {
             
@@ -194,7 +195,7 @@ public class Go
              */
             if (options.queryTimeout > 0) {
                 
-                conn.setQueryTimeout(0);
+                conn.setQueryTimeout(origTimeout);
             }
             
             /*

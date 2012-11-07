@@ -64,6 +64,8 @@ New Features
 
   * Added --timeout (-t) flag to the \go command to specify a timeout period
     (in seconds). 
+
+  * Added $timeout variable to control query timeout interval
   
 Changed Behavior
   * The "$expand" variable now defaults to false, meaning that by default

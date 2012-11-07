@@ -97,11 +97,6 @@ public class Session
      */
     private SqshContext sqshContext;
     
-    /**
-     * The database connection used by the session and the URL that was
-     * used to create it
-     */
-    private ConnectionContext connection = null;
     
     /**
      * This is a place where commands can place arbitrary objects to 
@@ -127,6 +122,13 @@ public class Session
     private int fetchSize = -1;
     
     /**
+     * The database connection used by the session and the URL that was
+     * used to create it. This will never be null, but will contain a 
+     * DisconnectedConnectionContext when there is no connection.
+     */
+    private ConnectionContext connection;
+    
+    /**
      * Creates a new session.
      * 
      * @param sqshContext Handle back to the instance of sqsh that
@@ -135,9 +137,9 @@ public class Session
      */
     protected Session(SqshContext sqshContext, int sessionId) {
         
-        
-        this.sessionId = sessionId;
+        this.sessionId   = sessionId;
         this.sqshContext = sqshContext;
+        this.connection  = new DisconnectedConnectionContext(this);
         
         /*
          * This object will be available as a bean called "global" in the
@@ -291,17 +293,23 @@ public class Session
      * Sets the connection context for this session. If there is already a 
      * context established, then the current one is closed and discarded.
      * 
-     * @param context The new context.
+     * @param context The new context. A null may be used to disconnect the
+     *   session, but leave it running.
      * @param doClose If false, then the existing context is not closed
      */
     public void setConnectionContext(ConnectionContext context, boolean doClose) {
         
-        if (doClose && this.connection != null) {
+        if (context == null) {
             
-            this.connection.close();
+            context = new DisconnectedConnectionContext(this);
         }
         
-        this.connection = context;
+        if (doClose) {
+            
+            connection.close();
+        }
+        
+        connection = context;
     }
 
     /**
@@ -321,9 +329,8 @@ public class Session
      */
     public Connection getConnection() {
         
-        if (connection != null
-           && connection instanceof SQLConnectionContext)
-        {
+        if (connection instanceof SQLConnectionContext) {
+            
             return ((SQLConnectionContext)connection).getConnection();
         }
         
@@ -340,18 +347,7 @@ public class Session
      */
     public String getStyle() {
         
-        /*
-         * If there is a connection, then the connection is the definitive
-         * source of the style name.
-         */
-        if (this.connection != null) {
-            
-            return connection.getStyle().getName();
-        }
-        else {
-            
-            return getRendererManager().getDefaultRenderer();
-        }
+        return connection.getStyle().getName();
     }
     
     /**
@@ -367,14 +363,7 @@ public class Session
      */
     public void setStyle (String name) {
         
-        if (connection != null) {
-            
-            connection.setStyle(name);
-        }
-        else {
-        
-            getRendererManager().setDefaultRenderer(name);
-        }
+        connection.setStyle(name);
     }
     
     /**
@@ -484,11 +473,11 @@ public class Session
     /**
      * Returns whether or not this session has a connection.
      * 
-     * @return whether or not the sessoin has a connection.
+     * @return whether or not the session has a connection.
      */
     public boolean isConnected() {
         
-        return connection != null;
+        return !(connection instanceof DisconnectedConnectionContext);
     }
     
     /**
@@ -496,17 +485,17 @@ public class Session
      */
     public void close() {
         
-        if (connection != null) {
+        if (!(connection instanceof DisconnectedConnectionContext)) {
             
             connection.close();
+            connection = new DisconnectedConnectionContext(this);
         }
         
-        connection = null;
-        
-        for (SessionObject o : sessionObjects.values())
-        {
+        for (SessionObject o : sessionObjects.values()) {
+            
             o.close();
         }
+        
         sessionObjects.clear();
     }
     
