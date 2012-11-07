@@ -405,7 +405,19 @@ public class JaqlConnection
     
     
     @Override
-    public void eval(String batch, Session session, SQLRenderer renderer)
+    public boolean supportsQueryTimeout() {
+
+        return false;
+    }
+
+    @Override
+    public void cancel() throws Exception {
+
+        Context.current().interrupt();
+    }
+
+    @Override
+    public void evalImpl(String batch, Session session, SQLRenderer renderer)
         throws Exception {
         
         long start = System.currentTimeMillis();

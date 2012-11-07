@@ -115,7 +115,6 @@ public abstract class AbstractPrettyRenderer
                 LineIterator iter = iterators[i];
                 if (iter.hasNext()) {
                     
-                    
                     printColumnValue(columns[i], iter.next());
                     if (iter.hasNext()) {
                         
@@ -152,10 +151,8 @@ public abstract class AbstractPrettyRenderer
             
             ColumnDescription col = columns[i];
             int width = col.getWidth();
-            for (int j = 0; j < width; j++) {
-                
-                session.out.print('-');
-            }
+            
+            dashes(width);
         }
         session.out.println("-+");
     }

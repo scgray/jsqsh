@@ -33,6 +33,90 @@ import org.sqsh.input.completion.NullCompleter;
 public abstract class ConnectionContext {
     
     /**
+     * If set to a value > 0, then the eval() method should time out after
+     * the specified number of seconds.  Not call connections need support
+     * this. If the context does not support it 
+     */
+    protected int timeout = 0;
+    
+    /**
+     * If a timeout has been scheduled, this is the thread waiting to do the
+     * dirty work and cancel the query when requested.
+     */
+    private TimeoutThread timeoutThread = null;
+    
+    /**
+     * If true, then JSqsh will take care of doing the timeout via the timeout
+     * thread whether or not the connection is capable of doing it itself.
+     */
+    private boolean forceAssistedTimeout = false;
+    
+    /**
+     * @return The number of seconds before a query should timeout. A 
+     *   value <= 0 indicates that the query should run indefinitely
+     */
+    public int getQueryTimeout() {
+    
+        return timeout;
+    }
+    
+    /**
+     * @param truefalse If true, then jsqsh will launch a thread to cancel
+     *   the current query when the timeout period has been reached (see
+     *   {@link #setQueryTimeout(long)}) rather than asking the underlying
+     *   connection implementation to do the cancel.
+     */
+    public void setForceAssistedTimeout(boolean truefalse) {
+        
+        this.forceAssistedTimeout = truefalse;
+    }
+    
+    /**
+     * @return true if timeouts will be assisted
+     */
+    public boolean isForceAssistedTimeout() {
+        
+        return this.forceAssistedTimeout;
+    }
+
+    /**
+     * Sets the query timeout period (in seconds). 
+     * @param timeout The number of seconds to wait before timeout.
+     *   A value <= 0 indicates to wait indefinitely.
+     */
+    public void setQueryTimeout(int timeout) {
+    
+        this.timeout = timeout;
+    }
+    
+    /**
+     * Must be implemented to indicate whether or not a connection type is
+     * capable of implementing the query timeout facility.  If the answer is
+     * no ("false") then a thread will be automatically started to attempt to
+     * {@link #cancel()} the query at the requested timeout period.
+     * 
+     * @return true if it is supported, false otherwise.
+     */
+    public abstract boolean supportsQueryTimeout();
+    
+    /**
+     * This method can be called during {@link #evalImpl(String, Session, SQLRenderer)}
+     * of connections that declare that they support query timeout (i.e.
+     * {@link #supportsQueryTimeout()} returns true), but they discover that
+     * they cannot support it after all. This will cause a {@link #cancel()}
+     * to be scheduled at the current query timeout period. The query timeout
+     * will automatically be aborted when <code>evalImpl</code> returns.
+     */
+    protected final void startQueryTimeout() {
+        
+        if (timeoutThread == null) {
+            
+            timeoutThread = new TimeoutThread();
+            timeoutThread.start();
+        }
+    }
+    
+    /**
      * Evaluates a batch of SQL (or something else) on the connection.
      * 
      * @param batch The batch of text to be evaluated.
@@ -40,7 +124,79 @@ public abstract class ConnectionContext {
      * @param renderer How the results should be rendered (if applicable to
      *   this type of connection).
      */
-    public abstract void eval (String batch, Session session, SQLRenderer renderer)
+    public final void eval (String batch, Session session, SQLRenderer renderer)
+        throws Exception {
+        
+        if (timeout > 0 
+            && (!supportsQueryTimeout() || this.forceAssistedTimeout)) {
+            
+            timeoutThread = new TimeoutThread();
+            timeoutThread.start();
+        }
+        
+        try {
+            
+            evalImpl(batch, session, renderer);
+        }
+        finally {
+        
+            /*
+             * Timeout thread was started...
+             */
+	        if (timeoutThread != null) {
+	            
+	            /*
+	             * If it is still running, our query finished before it did
+	             * which is good!
+	             */
+	            if (timeoutThread.isAlive()) {
+	                
+	                /*
+	                 * Ask it to shut down
+	                 */
+	                timeoutThread.interrupt();
+	                try {
+	                    
+	                    /*
+	                     * Wait for it to finish
+	                     */
+	                    timeoutThread.join();
+	                }
+	                catch (InterruptedException e) {
+	                    
+	                    /* IGNORED */
+	                }
+	            }
+	            
+	            if (timeoutThread.isTimedOut()) {
+	                
+	                session.err.println("Query canceled due to timeout (" 
+	                + timeout + " ms.)");
+	            }
+	            
+	            timeoutThread = null;
+	        }
+	    }
+    }
+
+    /**
+     * Evaluates a batch of SQL (or something else) on the connection.
+     * 
+     * @param batch The batch of text to be evaluated.
+     * @param session A handle to the executing session.
+     * @param renderer How the results should be rendered (if applicable to
+     *   this type of connection).
+     */
+    public abstract void evalImpl (String batch, Session session, SQLRenderer renderer)
+        throws Exception;
+    
+    /**
+     * Cancels the currently executing statement. This is the only method that
+     * can be called by another thread.
+     * 
+     * @throws Exception Thrown if the cancel cannot be performed.
+     */
+    public abstract void cancel()
         throws Exception;
     
     /**
@@ -136,5 +292,49 @@ public abstract class ConnectionContext {
     public void close() {
         
         /* EMPTY */
+    }
+    
+    /**
+     * Simple internal class to schedule a timeout (cancel) of a query
+     */
+    private class TimeoutThread
+        extends Thread
+    {
+        private boolean didTimeout = false;
+        
+        public TimeoutThread() {
+            
+            super();
+            setDaemon(true);
+            setName("JSqsh Query Timeout");
+        }
+        
+        @Override
+        public void run() {
+            
+            try {
+                
+                Thread.sleep(timeout * 1000L);
+                didTimeout = true;
+                
+                try {
+                    
+                    cancel();
+                }
+                catch (Exception e) {
+                    
+                    /* IGNORED */
+                }
+            }
+            catch (InterruptedException e) {
+                
+                /* We were asked to abort */
+            }
+        }
+        
+        public boolean isTimedOut() {
+            
+            return didTimeout;
+        }
     }
 }

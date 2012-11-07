@@ -422,7 +422,8 @@ OPTIONS
    -i, --insert=table Causes the results to be generated as INSERT statements
                       for the specified table name. This flag causes the
                       value provided by "-m" to be ignored.
-   -m, --display-style=style  Specifies a custom display style for showing
+   -m, --display-style=style  
+                      Specifies a custom display style for showing
                       the results of the execution. The available styles
                       may be found by running '\help style'. Note that the
                       set of valid display styles depends upon the type
@@ -441,6 +442,12 @@ OPTIONS
                       (row count and timing information). This flag
                       effectively flips the  value of ${footer} for the
                       duration of the query execution.
+   -t, --timeout=sec  Places a time restriction (in terms of seconds) on the
+                      query.  If the underlying driver supports setting query
+                      timeouts, then the driver will be asked to do the timeout
+                      processing. If the driver does not support such a feature
+                      then jsqsh will automatically cancel the query when the
+                      timeout period has been reached.
 SEE ALSO
    style, header, footer
         ]]></Help>

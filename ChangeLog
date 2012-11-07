@@ -61,6 +61,9 @@ New Features
 
   * The \connect command now provides a --update option to update the settings
     on an existing connection.
+
+  * Added --timeout (-t) flag to the \go command to specify a timeout period
+    (in seconds). 
   
 Changed Behavior
   * The "$expand" variable now defaults to false, meaning that by default
@@ -109,6 +112,8 @@ Changed Behavior
   
   * The \help command will automatically try to launch a pager to page
     through the help output.
+
+  * Output performance for most output formats is dramatically improved (approx 2x)
 
 Other
   * Switched to Apache 2.0 License. This has the following side effects

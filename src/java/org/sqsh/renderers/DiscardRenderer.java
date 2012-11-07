@@ -15,14 +15,9 @@
  */
 package org.sqsh.renderers;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-
 import org.sqsh.ColumnDescription;
 import org.sqsh.Renderer;
 import org.sqsh.RendererManager;
-import org.sqsh.SQLTools;
 import org.sqsh.Session;
 
 /**
@@ -38,6 +33,12 @@ public class DiscardRenderer
         super(session, manager);
     }
     
+    @Override
+    public boolean isDiscard() {
+
+        return true;
+    }
+
     @Override
     public void header (ColumnDescription[] columns) {
 

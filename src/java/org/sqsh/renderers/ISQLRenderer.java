@@ -88,10 +88,7 @@ public class ISQLRenderer
                 ++totalWidth;
             }
             
-            for (int j = 0; j < columns[i].getWidth(); j++) {
-                
-                session.out.print('-');
-            }
+            dashes(columns[i].getWidth());
             
             totalWidth += columns[i].getWidth();
         }

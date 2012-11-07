@@ -473,19 +473,19 @@ public class SQLRenderer {
             throw new SQLException("No database connection has been established");
         }
         
+        /*
+         * Since we grabbed the connection, above we know we have a 
+         * SQLConnectionContext.
+         */
+        SQLConnectionContext ctx = 
+            (SQLConnectionContext) session.getConnectionContext();
+        
         try {
-            /*
-             * Since we grabbed the connection, above we know we have a 
-             * SQLConnectionContext.
-             */
-            SQLConnectionContext ctx = 
-                (SQLConnectionContext) session.getConnectionContext();
-            
             if (ctx.getExecutionMode() == SQLConnectionContext.EXEC_PREPARE) {
 
                 statement = conn.prepareStatement(sql);
                 
-                initStatement(session, statement);
+                initStatement(ctx, session, statement);
                 
                 sigHandler = new CancelingSignalHandler(statement);
                 sigMan.push(sigHandler);
@@ -498,7 +498,7 @@ public class SQLRenderer {
 
                 statement = conn.createStatement();
                 
-                initStatement(session, statement);
+                initStatement(ctx, session, statement);
                 
                 sigHandler = new CancelingSignalHandler(statement);
                 sigMan.push(sigHandler);
@@ -508,6 +508,11 @@ public class SQLRenderer {
             }
         }
         finally {
+            
+            /*
+             * Take the statement away from the SQLConnectionContext.
+             */
+            ctx.clearStatement();
             
             if (sigHandler != null) {
                 
@@ -523,10 +528,17 @@ public class SQLRenderer {
     /**
      * Called for each newly created statement to initialize it based upon session
      * settings.
+     * @param ctx The connection
      * @param session The session
      * @param statement The statement
      */
-    private void initStatement(Session session, Statement statement) {
+    private void initStatement(SQLConnectionContext ctx, Session session, Statement statement) {
+        
+        /*
+         * Registers the statement handle back with the context, which
+         * allows the ctx.cancel() to do its work to cancel the statement
+         */
+        ctx.setStatement(statement);
         
         int fetchSize = session.getFetchSize();
         if (fetchSize > 0) {
@@ -725,7 +737,14 @@ public class SQLRenderer {
                         displayMetadata(session, resultSet.getMetaData());
                     }
                     
-                    nRows = displayResults(renderer, session, resultSet, null);
+                    if (renderer.isDiscard()) {
+                        
+                        nRows = discardResults(session, resultSet);
+                    }
+                    else {
+                        
+                        nRows = displayResults(renderer, session, resultSet, null);
+                    }
                     
                     /*
                      * A negative value here indicates that the results
@@ -865,6 +884,51 @@ public class SQLRenderer {
         }
         
         return ok;
+    }
+    
+    /**
+     * Used when collecting timing information to fetch all rows, but never
+     * look at them (discard)
+     * 
+     * @param session The session discarding
+     * @param resultSet The result to discard
+     * @return the number of rows discarded
+     * @throws SQLException You know...
+     */
+    private int discardResults(Session session, ResultSet resultSet)
+        throws SQLException {
+        
+        SQLTools.printWarnings(session, resultSet);
+        
+        int rowCount = 0;
+        while (resultSet.next()) {
+            
+            SQLTools.printWarnings(session, resultSet);
+            ++rowCount;
+            if (firstRowTime == 0L && rowCount == 1) {
+                
+                firstRowTime = System.currentTimeMillis();
+            }
+            
+            /*
+             * Check to see if we have hit the limit on the number of
+             * rows we are to process.
+             */
+            if (maxRows > 0 && rowCount > maxRows) {
+                
+                if (rowLimitMethod == LIMIT_CANCEL) {
+                    
+                    resultSet.getStatement().cancel();
+                    break;
+                }
+                else if (rowLimitMethod == LIMIT_DISCARD) {
+                    
+                    continue;
+                }
+            }
+        }
+        
+        return rowCount;
     }
     
     /**

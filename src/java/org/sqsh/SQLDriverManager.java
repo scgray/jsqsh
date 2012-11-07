@@ -15,11 +15,9 @@
  */
 package org.sqsh;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -91,34 +89,59 @@ public class SQLDriverManager {
             this.driver = driver;
         }
 
-        public boolean acceptsURL(String arg0)
+        @Override
+        public boolean acceptsURL(String url)
             throws SQLException {
 
-            return driver.acceptsURL(arg0);
+            boolean ret = driver.acceptsURL(url);
+            return ret;
         }
 
-        public Connection connect(String arg0, Properties arg1)
+        @Override
+        public Connection connect(String url, Properties arg1)
                         throws SQLException {
 
-            return driver.connect(arg0, arg1);
+            try {
+                
+                return driver.connect(url, arg1);
+            }
+            catch (SQLException e) {
+                
+                /*
+                 * Some drivers (HIVE!!) have connect() methods that are broken
+                 * and throw an exception rather than returning null when they
+                 * receive the wrong URL. This checks for that and gives them 
+                 * the correct behavior.
+                 */
+                if (!driver.acceptsURL(url)) {
+                    
+                    return null;
+                }
+                
+                throw e;
+            }
         }
 
+        @Override
         public int getMajorVersion() {
 
             return driver.getMajorVersion();
         }
 
+        @Override
         public int getMinorVersion() {
 
             return driver.getMinorVersion();
         }
 
+        @Override
         public DriverPropertyInfo[] getPropertyInfo(String arg0, Properties arg1)
                         throws SQLException {
 
             return driver.getPropertyInfo(arg0, arg1);
         }
 
+        @Override
         public boolean jdbcCompliant() {
 
             return driver.jdbcCompliant();
@@ -503,7 +526,7 @@ public class SQLDriverManager {
             throw new SQLException(
                 "Unable to connect via JDBC url '"
                 + url + "': " + e.getMessage(), e.getSQLState(), 
-                e.getErrorCode());
+                e.getErrorCode(), e);
         }
         
         String database = getProperty(properties,
