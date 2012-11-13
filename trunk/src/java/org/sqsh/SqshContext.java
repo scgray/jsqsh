@@ -162,6 +162,11 @@ public class SqshContext {
     private Session currentSession = null;
     
     /**
+     * Responsible for visually displaying a query timer.
+     */
+    private VisualTimer visualTimer = new VisualTimer();
+    
+    /**
      * This keeps track of the previous session id used by the
      * user.
      */
@@ -351,6 +356,43 @@ public class SqshContext {
     public int getQueryTimeout() {
         
         return queryTimeout;
+    }
+    
+    /**
+     * Enables or disables the displaying of a visual timer that is shown
+     * in interactive mode for long running queries. This feature is off
+     * by default
+     * @param onoff true to enable, false to disable
+     */
+    public void setVisualTimerEnabled(boolean onoff) {
+        
+        visualTimer.setEnabled(onoff);
+    }
+    
+    /**
+     * @return whether or not the visual timer is enabled
+     */
+    public boolean isVisualTimerEnabled() {
+        
+        return visualTimer.isEnabled();
+    }
+    
+    /**
+     * Starts the visual timer going. This is a no-op if the timer is not
+     * enabled.
+     */
+    public void startVisualTimer() {
+        
+        visualTimer.start();
+    }
+    
+    /**
+     * Stops the visual timer. This is a no-op if the timer wasn't running
+     * or the service is not enabled.
+     */
+    public void stopVisualTimer() {
+        
+        visualTimer.stop();
     }
     
     /**

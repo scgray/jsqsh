@@ -249,20 +249,20 @@ public class JSqsh {
                  */
                 if (!options.nonInteractive) {
                     
-	                /*
-	                 * It is possible that we will implicitly switch between 
-	                 * non-interactive and active mode when there is more than 
-	                 * one input.  The use of stdin is our trigger for 
-	                 * interactive mode.
-	                 */
-	                if (in == System.in) {
-	                    
+                    /*
+                     * It is possible that we will implicitly switch between 
+                     * non-interactive and active mode when there is more than 
+                     * one input.  The use of stdin is our trigger for 
+                     * interactive mode.
+                     */
+                    if (in == System.in) {
+                        
                         sqsh.setReader(options.readline, true);
-	                }
-	                else {
-	                    
-	                    sqsh.setReader(ConsoleLineReader.NONE, false);
-	                }
+                    }
+                    else {
+                        
+                        sqsh.setReader(ConsoleLineReader.NONE, false);
+                    }
                 }
                 
                 int curRc = sqsh.run(session);
@@ -271,12 +271,12 @@ public class JSqsh {
                     rc = curRc;
                 }
                 
-	            if (in != System.in) {
-	                
-	                in.close();
-	                in = null;
-	            }
-	        }
+                if (in != System.in) {
+                    
+                    in.close();
+                    in = null;
+                }
+            }
         }
         catch (Throwable e) {
             
