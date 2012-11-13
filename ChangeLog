@@ -65,7 +65,15 @@ New Features
   * Added --timeout (-t) flag to the \go command to specify a timeout period
     (in seconds). 
 
-  * Added $timeout variable to control query timeout interval
+  * Added $timeout variable to control query timeout interval (how long to 
+    let a query run before automatically stopping it)
+
+  * Added $timer variable. When set to true, an on-screen duration timer will
+    appear while you wait for your query to complete, helping you to keep
+    track of how long the query has been running.
+
+  * Added \stack command to display the full stack trace from the most 
+    recently displayed error or exception.
   
 Changed Behavior
   * The "$expand" variable now defaults to false, meaning that by default

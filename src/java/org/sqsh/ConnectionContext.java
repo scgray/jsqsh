@@ -170,40 +170,40 @@ public abstract class ConnectionContext {
             /*
              * Timeout thread was started...
              */
-	        if (timeoutThread != null) {
-	            
-	            /*
-	             * If it is still running, our query finished before it did
-	             * which is good!
-	             */
-	            if (timeoutThread.isAlive()) {
-	                
-	                /*
-	                 * Ask it to shut down
-	                 */
-	                timeoutThread.interrupt();
-	                try {
-	                    
-	                    /*
-	                     * Wait for it to finish
-	                     */
-	                    timeoutThread.join();
-	                }
-	                catch (InterruptedException e) {
-	                    
-	                    /* IGNORED */
-	                }
-	            }
-	            
-	            if (timeoutThread.isTimedOut()) {
-	                
-	                session.err.println("Query canceled due to timeout (" 
-	                + timeout + " ms.)");
-	            }
-	            
-	            timeoutThread = null;
-	        }
-	    }
+            if (timeoutThread != null) {
+                
+                /*
+                 * If it is still running, our query finished before it did
+                 * which is good!
+                 */
+                if (timeoutThread.isAlive()) {
+                    
+                    /*
+                     * Ask it to shut down
+                     */
+                    timeoutThread.interrupt();
+                    try {
+                        
+                        /*
+                         * Wait for it to finish
+                         */
+                        timeoutThread.join();
+                    }
+                    catch (InterruptedException e) {
+                        
+                        /* IGNORED */
+                    }
+                }
+                
+                if (timeoutThread.isTimedOut()) {
+                    
+                    session.err.println("Query canceled due to timeout (" 
+                    + timeout + " ms.)");
+                }
+                
+                timeoutThread = null;
+            }
+        }
     }
 
     /**

@@ -136,16 +136,16 @@ public class Show
             description="Restricts the search to specific table types")
         public String tableType = null;
         
-	    @Argv(program="\\show", min=1, max=5,
-	        usage="[-t table-pat] [-s schema-pat] [tables [<type>]]")
-	    public List<String> arguments = new ArrayList<String>();
-	    
-	    /*
-	     * This isn't an argument. It is used by each of the sub commands to
-	     * set a set of columns that they wish to have displayed.
-	     */
-	    public Set<Integer> columns = null;
-	}
+        @Argv(program="\\show", min=1, max=5,
+            usage="[-t table-pat] [-s schema-pat] [tables [<type>]]")
+        public List<String> arguments = new ArrayList<String>();
+        
+        /*
+         * This isn't an argument. It is used by each of the sub commands to
+         * set a set of columns that they wish to have displayed.
+         */
+        public Set<Integer> columns = null;
+    }
     
     @Override
     public SqshOptions getOptions() {
@@ -703,21 +703,21 @@ public class Show
                 return null;
             }
             
-	        String table = options.tablePattern;
-	        if (options.arguments.size() == 3) {
-	            if (table != null) {
-	                
-	                session.err.println("Cannot provide both a table pattern and -t");
-	                return null;
-	            }
-	            table = options.arguments.get(2);
-	        }
-	        
-	        DatabaseMetaData meta = con.getMetaData();
-	        return meta.getTablePrivileges(
-	            (options.catalog == null ? con.getCatalog() : options.catalog),
-	            options.schemaPattern,
-	            table);
+            String table = options.tablePattern;
+            if (options.arguments.size() == 3) {
+                if (table != null) {
+                    
+                    session.err.println("Cannot provide both a table pattern and -t");
+                    return null;
+                }
+                table = options.arguments.get(2);
+            }
+            
+            DatabaseMetaData meta = con.getMetaData();
+            return meta.getTablePrivileges(
+                (options.catalog == null ? con.getCatalog() : options.catalog),
+                options.schemaPattern,
+                table);
         }
         else if (obj.equalsIgnoreCase("types")) {
             
@@ -726,8 +726,8 @@ public class Show
                 return null;
             }
             
-	        DatabaseMetaData meta = con.getMetaData();
-	        return meta.getTableTypes();
+            DatabaseMetaData meta = con.getMetaData();
+            return meta.getTableTypes();
         }
         else {
             

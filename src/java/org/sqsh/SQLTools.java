@@ -124,6 +124,8 @@ public class SQLTools {
         SQLException origException = e;
         ExceptionDetail detail = session.getContext().getExceptionDetail();
         
+        session.setException(e);
+        
         session.err.println("SQL Exception(s) Encountered: ");
         while (e != null) {
             

@@ -884,4 +884,19 @@ SEE ALSO
    go
         ]]></Help>	
 	</Property>
+	
+  	<Property bean="global" name="timer" property="visualTimerEnabled">
+        <Description>Controls display of a visual query time</Description>
+        <Help><![CDATA[
+VARIABLE
+   timer - Controls if a visual query timer is enabled
+
+DESCRIPTION
+   The ${timer} variable is used to control whether or not jsqsh display a 
+   query timer clock while waiting for a query to complete.
+   
+SEE ALSO
+   go
+        ]]></Help>	
+	</Property>
 </Variables>

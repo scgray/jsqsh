@@ -333,6 +333,7 @@ public class JaqlConnection
         }
         catch (Exception e) {
             
+            session.setException(e);
             session.err.println(e.getMessage());
         }
         

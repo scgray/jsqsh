@@ -129,6 +129,12 @@ public class Session
     private ConnectionContext connection;
     
     /**
+     * The last exception that was displayed. This is retained for the 
+     * \stack command to use.
+     */
+    private Throwable lastException = null;    
+    
+    /**
      * Creates a new session.
      * 
      * @param sqshContext Handle back to the instance of sqsh that
@@ -467,9 +473,31 @@ public class Session
      */
     public void printException (Throwable e) {
         
+        setException(e);
         sqshContext.printException(err, e);
     }
 
+    /**
+     * Sets the last exception that was encountered. This is used by the 
+     * "\stack" command to show the stack trace from the last exception.
+     * 
+     * @param e The exception
+     */
+    public void setException (Throwable e) {
+        
+        lastException = e;
+    }
+    
+    /**
+     * Retrieves the last exception that was displayed.
+     * @return The last exception that was displayed or null if there was
+     *  no exception.
+     */
+    public Throwable getLastException () {
+        
+        return lastException;
+    }
+    
     /**
      * Returns whether or not this session has a connection.
      * 
@@ -682,6 +710,22 @@ public class Session
     public int getLastCommandResult() {
         
         return commandReturn;
+    }
+    
+    /**
+     * Convenience function to start the visual timer facility
+     */
+    public void startVisualTimer() {
+        
+        sqshContext.startVisualTimer();
+    }
+    
+    /**
+     * Convenience function to stop the visual timer facility.
+     */
+    public void stopVisualTimer() {
+        
+        sqshContext.stopVisualTimer();
     }
     
     /**

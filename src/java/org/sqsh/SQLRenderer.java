@@ -335,6 +335,16 @@ public class SQLRenderer {
         
         try {
             
+            /*
+             * Start the visual timer. This will do nothing if the facility has
+             * not been enabled.  Note that the facility is stopped on error
+             * or when the first row has been received.
+             */
+            if (session.isInteractive()) {
+                
+                session.startVisualTimer();
+            }
+            
             statement = conn.prepareCall(sql);
             bindParameters(statement, params);
             
@@ -371,6 +381,11 @@ public class SQLRenderer {
             }
         }
         finally {
+            
+            if (session.isInteractive()) {
+                
+                session.stopVisualTimer();
+            }
             
             if (sigHandler != null) {
                 
@@ -416,6 +431,11 @@ public class SQLRenderer {
         
         try {
             
+            if (session.isInteractive()) {
+                
+                session.startVisualTimer();
+            }
+            
             statement = conn.prepareStatement(sql);
             bindParameters(statement, params);
             
@@ -426,6 +446,11 @@ public class SQLRenderer {
             ok = execute(renderer, session, statement, statement.execute());
         }
         finally {
+            
+            if (session.isInteractive()) {
+                
+                session.stopVisualTimer();
+            }
             
             if (sigHandler != null) {
                 
@@ -481,6 +506,12 @@ public class SQLRenderer {
             (SQLConnectionContext) session.getConnectionContext();
         
         try {
+            
+            if (session.isInteractive()) {
+                
+                session.startVisualTimer();
+            }
+            
             if (ctx.getExecutionMode() == SQLConnectionContext.EXEC_PREPARE) {
 
                 statement = conn.prepareStatement(sql);
@@ -508,6 +539,11 @@ public class SQLRenderer {
             }
         }
         finally {
+            
+            if (session.isInteractive()) {
+                
+                session.stopVisualTimer();
+            }
             
             /*
              * Take the statement away from the SQLConnectionContext.
@@ -697,6 +733,7 @@ public class SQLRenderer {
         
         try {
             
+            
             SQLTools.printWarnings(session, conn);
             
             /*
@@ -880,6 +917,15 @@ public class SQLRenderer {
         }
         finally {
             
+            /*
+             * Ensure the timer service has been stopped even if we get an 
+             * exception.
+             */
+            if (session.isInteractive()) {
+                
+                session.stopVisualTimer();
+            }
+            
             SQLTools.close(resultSet);
         }
         
@@ -903,9 +949,18 @@ public class SQLRenderer {
         int rowCount = 0;
         while (resultSet.next()) {
             
+            /*
+             * First result set back stops the visual timer.
+             */
+            if (session.isInteractive()) {
+                    
+                session.stopVisualTimer();
+            }
+            
             SQLTools.printWarnings(session, resultSet);
             ++rowCount;
             if (firstRowTime == 0L && rowCount == 1) {
+                
                 
                 firstRowTime = System.currentTimeMillis();
             }
@@ -957,6 +1012,14 @@ public class SQLRenderer {
         renderer.header(columns);
         
         while (resultSet.next()) {
+            
+            /*
+             * The first result set back stops the timer.
+             */
+            if (session.isInteractive()) {
+                
+                session.stopVisualTimer();
+            }
             
             SQLTools.printWarnings(session, resultSet);
             

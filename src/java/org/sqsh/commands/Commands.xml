@@ -1613,4 +1613,26 @@ SEE
       ]]></Help>
     </Command>
     
+    <Command name="\stack" class="org.sqsh.commands.Stack">
+
+        <Description><![CDATA[
+           Display the stack trace of the most recently displayed error message
+        ]]></Description>
+            <Help><![CDATA[
+SYNOPSIS
+   \stack
+
+DESCRIPTION
+   The \stack command is used to display the full stack trace of the most
+   recently displayed error message. If no error has occured within your
+   current session a message indicating as such is displayed.
+
+OPTIONS
+   None
+
+SEE
+   ex_detail
+      ]]></Help>
+    </Command>
+    
 </Commands>
