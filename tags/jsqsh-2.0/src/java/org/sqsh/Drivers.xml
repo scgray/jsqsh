@@ -1,0 +1,278 @@
+<Drivers>
+   <Driver name="sybase" 
+           target="Sybase ASE"
+           class="com.sybase.jdbc3.jdbc.SybDriver"
+           analyzer="org.sqsh.analyzers.TSQLAnalyzer"
+           url="jdbc:sybase:Tds:${server}:${port}#if($db)/${db}#end">
+           
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">4100</Variable>
+   </Driver>
+   
+   <Driver name="sybase-jtds" 
+           target="Sybase ASE jTDS"
+           class="net.sourceforge.jtds.jdbc.Driver"
+           analyzer="org.sqsh.analyzers.TSQLAnalyzer"
+           url="jdbc:jtds:sybase://${server}:${port}">
+           
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">4100</Variable>
+   </Driver>
+
+   <Driver name="sybase-asa" 
+           target="Sybase ASA"
+           class="com.sybase.jdbc2.jdbc.SybDriver"
+           analyzer="org.sqsh.analyzers.TSQLAnalyzer"
+           url="jdbc:sybase:Tds:${server}:${port}#if($db)?ServiceName=${db}#end">
+           
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">2638</Variable>
+   </Driver>
+   
+   <Driver name="mssql" 
+           target="MS SQL Server"
+           class="com.microsoft.jdbc.sqlserver.SQLServerDriver"
+           analyzer="org.sqsh.analyzers.TSQLAnalyzer"
+           url="jdbc:microsoft:sqlserver://${server}:${port}">
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">1433</Variable>
+   </Driver>
+
+   <Driver name="mssql2k5" 
+           target="MS SQL Server 2005+"
+           class="com.microsoft.sqlserver.jdbc.SQLServerDriver"
+           analyzer="org.sqsh.analyzers.TSQLAnalyzer"
+           url="jdbc:sqlserver://${server}:${port}#if($sid)\${sid}#end">
+           
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">1433</Variable>
+   </Driver>
+
+   <Driver name="jturbo" 
+           target="MS JTurbo"
+           class="com.ashna.jturbo.driver.Driver"
+           analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+           url="jdbc:JTurbo://${server}#if($port):${port}#end#if($bd)/${db}#end">
+       <Variable name="server">localhost</Variable>
+   </Driver>
+   
+   <Driver name="mssql-jtds" 
+           target="MS SQL Server jTDS"
+           class="net.sourceforge.jtds.jdbc.Driver"
+           analyzer="org.sqsh.analyzers.TSQLAnalyzer"
+           url="jdbc:jtds:sqlserver://${server}:${port}#if($domain);domain=${domain}#end">
+           
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">1433</Variable>
+   </Driver>
+   
+   <Driver name="oracle" 
+           target="Oracle"
+           class="oracle.jdbc.OracleDriver"
+           analyzer="org.sqsh.analyzers.PLSQLAnalyzer"
+           url="jdbc:oracle:thin:@${server}:${port}:${SID}">
+           
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">1521</Variable>
+       <Variable name="SID">ORCL</Variable>
+   </Driver>
+
+   <Driver name="oracleoci" 
+           target="Oracle OCI"
+           class="oracle.jdbc.driver.OracleDriver"
+           analyzer="org.sqsh.analyzers.PLSQLAnalyzer"
+           url="jdbc:oracle:oci8:@${SID}">
+       <Variable name="SID">ORCL</Variable>
+   </Driver>
+   
+   <Driver name="db2" 
+           target="IBM DB2"
+           class="com.ibm.db2.jcc.DB2Driver"
+           analyzer="org.sqsh.analyzers.PLSQLAnalyzer"
+           url="jdbc:db2://${server}:${port}/${db}">
+           
+       <Variable name="db">changeme</Variable>
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">50000</Variable>
+       <Property name="retrieveMessagesFromServerOnGetMessage">true</Property>
+   </Driver>
+
+   <Driver name="db2zos" 
+           target="IBM DB2 z/OS"
+           class="com.ibm.db2.jcc.DB2Driver"
+           analyzer="org.sqsh.analyzers.PLSQLAnalyzer"
+           url="jdbc:db2://${server}:${port}/${db}">
+           
+       <Variable name="db">changeme</Variable>
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">50000</Variable>
+       <SessionVariable name="exec_mode">prepare</SessionVariable>
+       <Property name="retrieveMessagesFromServerOnGetMessage">true</Property>
+       <Property name="emulateParameterMetaDataForZCalls">1</Property>
+   </Driver>
+
+   <Driver name="mysql" 
+           target="MySQL"
+           class="com.mysql.jdbc.Driver"
+           analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+           url="jdbc:mysql://${server}:${port}#if($db)/${db}#end">
+           
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">3306</Variable>
+   </Driver>
+   
+   <Driver name="pgsql" 
+           target="PostgreSQL"
+           class="org.postgresql.Driver"
+           analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+           url="jdbc:postgresql://${server}:${port}#if($db)/${db}#end">
+           
+       <Variable name="server">localhost</Variable>
+       <Variable name="port">5432</Variable>
+   </Driver>
+
+    <Driver name="H2 In-Memory" 
+            target="h2mem"
+            class="org.h2.Driver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:h2:${server}">
+        <Variable name="server">mem:</Variable>
+    </Driver>
+
+    <Driver name="H2 Emebedded" 
+            target="h2embed"
+            class="org.h2.Driver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:h2://${server}">
+        <Variable name="server">h2</Variable>
+    </Driver>
+
+    <Driver name="H2 Server" 
+            target="h2"
+            class="org.h2.Driver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:h2://${server}:${port}#if($db)/${db}#end">
+        <Variable name="server">localhost</Variable>
+        <Variable name="port">9092</Variable>
+    </Driver>
+    
+    <Driver name="hive" 
+            target="Apache Hive"
+            class="org.apache.hadoop.hive.jdbc.HiveDriver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:hive://${server}:${port}#if($db)/${db}#end">
+        <Variable name="server">localhost</Variable>
+        <Variable name="port">7052</Variable>
+    </Driver>
+
+    <Driver name="bigsql" 
+            target="IBM Big SQL"
+            class="com.ibm.biginsights.bigsql.jdbc.BigSQLDriver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:bigsql://${server}:${port}#if($db)/${db}#end">
+        <Variable name="server">localhost</Variable>
+        <Variable name="port">7052</Variable>
+    </Driver>
+
+    <Driver name="derby" 
+            target="Apache Derby Server"
+            class="org.apache.derby.jdbc.ClientDriver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:derby://${server}:${port}#if($db)/${db}#end">
+        <Variable name="server">localhost</Variable>
+        <Variable name="port">1527</Variable>
+    </Driver>
+
+    <Driver name="derbyembed" 
+            target="Apache Derby Embedded"
+            class="org.apache.derby.jdbc.EmbeddedDriver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:derby:${db};create=${create}">
+        <Variable name="db">derby_db</Variable>
+        <Variable name="create">false</Variable>
+    </Driver>
+
+    <Driver name="firebird" 
+            target="Firebird JayBird"
+            class="org.firebirdsql.jdbc.FBDriver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:firebirdsql://${server}:${port}#if($db)/${db}#end">
+        <Variable name="server">localhost</Variable>
+        <Variable name="port">3050</Variable>
+    </Driver>
+
+    <Driver name="unity" 
+            target="UnityJDBC MultiSource"
+            class="unity.jdbc.UnityDriver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:unity://virtual">
+    </Driver>
+
+    <Driver name="jdbcodbc" 
+            target="JDBC ODBC Bridge"
+            class="sun.jdbc.odbc.JdbcOdbcDriver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:odbc:${server}">
+        <Variable name="server">DSN</Variable>
+    </Driver>
+
+    <Driver name="interbase" 
+            target="InterBase"
+            class="interbase.interclient.Driver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:interbase://${server}${port}#if($db)/${db}#end">
+        <Variable name="server">localhost</Variable>
+        <Variable name="port">3060</Variable>
+    </Driver>
+
+    <Driver name="bigquery" 
+            target="Starschema BigQuery"
+            class="net.starschema.clouddb.jdbc.BQDriver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:BQDriver:projectid(${server})?withServiceAccount=false">
+        <Variable name="server">projecturl</Variable>
+    </Driver>
+
+    <Driver name="informix" 
+            target="IBM Informix"
+            class="com.informix.jdbc.IfxDriver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:informix-sqli://${server}:${port}#if($db)/${db}#end:INFORMIXSERVER=${SID}">
+        <Variable name="server">localhost</Variable>
+        <Variable name="port">1526</Variable>
+        <Variable name="SID">IFX</Variable>
+    </Driver>
+
+    <Driver name="hsqlmem" 
+            target="HSQLDB In-Memory"
+            class="org.hsqldb.jdbcDriver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:hsqldb:.">
+    </Driver>
+
+    <Driver name="hsqllocal" 
+            target="HSQLDB Standalone"
+            class="org.hsqldb.jdbcDriver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:hsqldb:${db}">
+        <Variable name="db">hsqldb</Variable>
+    </Driver>
+
+    <Driver name="hsql" 
+            target="HSQLDB Server"
+            class="org.hsqldb.jdbcDriver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:hsqldb:hsql://${server}:${port}">
+        <Variable name="server">localhost</Variable>
+        <Variable name="port">1476</Variable>
+    </Driver>
+
+    <Driver name="hsqlweb" 
+            target="HSQLDB Web"
+            class="org.hsqldb.jdbcDriver"
+            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+            url="jdbc:hsqldb:http://${server}:${port}">
+        <Variable name="server">localhost</Variable>
+        <Variable name="port">1476</Variable>
+    </Driver>
+</Drivers>

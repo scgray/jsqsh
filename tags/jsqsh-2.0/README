@@ -1,0 +1,54 @@
+                           Welcome to JSqsh
+                      -=-=-=-=-=-=-=-=-=-=-=-=-
+
+What is JSqsh?
+==============
+
+JSqsh (pronounced jay-skwish) is a Java re-implementation of a tool that
+I originally authored called sqsh (http://sourceforge.net/projects/sqsh/).
+The original sqsh was a Sybase-specific console based tool (i.e.
+non-graphical) that combined the ability to query the database with 
+much of the functionality of a shell, such as piping the results of
+queries out to external programs (grep, more, etc.), expanding variables,
+redirecting output to files, command line editing, etc.
+
+Jsqsh attempts to re-create the most frequently used features found in sqsh
+but, with the use of JDBC (Java's database driver architecture), allow
+it to be used against any database that provides a good JDBC driver.
+
+It is important to note that jsqsh is _not_ a perfect recreation of sqsh,
+so please do not blindly run scripts explicitly build for sqsh against
+jsqsh without some thorough testing!
+
+Availability
+============
+
+The latest release of JSqsh may be found at:
+
+   http://sourceforge.net/projects/jsqsh
+
+99.9% Pure
+==========
+
+The core of jsqsh is 100% Java, meaning that it should compile on virtually
+any platform that Java runs on.  However, there are two features of jsqsh
+that are provided via an additional (optional) layer that is written in C.
+These features are:
+
+  - Command line editing (a.k.a "readline")
+  - Execution of external programs that require terminal control
+
+The second bullet means that without the C layer, programs that jsqsh spawns
+that need to control the terminal (such as a text editor) or query the 
+teriminal's size (such as 'more') will not function properly.
+
+Licensing
+=========
+
+JSqsh is held under the Apache License Version 2.0. The details
+of the license are available in the LICENSE file included herein.
+
+Building and Installing
+=======================
+
+Refer to the INSTALL file for directions on building it yourself.

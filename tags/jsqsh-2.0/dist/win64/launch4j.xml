@@ -1,0 +1,26 @@
+<launch4jConfig>
+  <dontWrapJar>true</dontWrapJar>
+  <headerType>console</headerType>
+  <jar>..\lib\jsqsh.jar</jar>
+  <errTitle></errTitle>
+  <cmdLine></cmdLine>
+  <chdir></chdir>
+  <priority>normal</priority>
+  <downloadUrl>http://java.com/download</downloadUrl>
+  <supportUrl></supportUrl>
+  <customProcName>false</customProcName>
+  <stayAlive>false</stayAlive>
+  <icon></icon>
+  <classPath>
+    <mainClass>org.sqsh.JSqsh</mainClass>
+    <cp>../lib/*.jar</cp>
+  </classPath>
+  <jre>
+    <path></path>
+    <minVersion>1.5.0</minVersion>
+    <maxVersion></maxVersion>
+    <dontUsePrivateJres>false</dontUsePrivateJres>
+    <initialHeapSize>0</initialHeapSize>
+    <maxHeapSize>0</maxHeapSize>
+  </jre>
+</launch4jConfig>
