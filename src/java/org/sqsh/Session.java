@@ -713,11 +713,16 @@ public class Session
     }
     
     /**
-     * Convenience function to start the visual timer facility
+     * Convenience function to start the visual timer facility. The timer
+     * will only actually start if the timer service is enabled and if the
+     * session is interactive, otherwise this method is a no-op.
      */
     public void startVisualTimer() {
         
-        sqshContext.startVisualTimer();
+        if (isInteractive()) {
+            
+            sqshContext.startVisualTimer();
+        }
     }
     
     /**
@@ -725,7 +730,10 @@ public class Session
      */
     public void stopVisualTimer() {
         
-        sqshContext.stopVisualTimer();
+        if (isInteractive()) {
+            
+            sqshContext.stopVisualTimer();
+        }
     }
     
     /**

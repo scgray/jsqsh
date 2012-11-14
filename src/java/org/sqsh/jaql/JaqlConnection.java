@@ -457,6 +457,11 @@ public class JaqlConnection
         int nResults = 0;
         try {
             
+            /*
+             * Start the visual timer.
+             */
+            session.startVisualTimer();
+            
             while (!sigHandler.isTriggered() && engine.moveNextQuery()) {
                 
                 LOG.fine("==== JAQL RESULT =====");
@@ -498,7 +503,12 @@ public class JaqlConnection
                 }
                 */
                 
-                int nrows = formatter.write(out, engine.currentQuery());
+                JsonIterator iter = engine.currentQuery();
+                
+                // Stop the timer now that we are going to display output
+                session.stopVisualTimer();
+                
+                int nrows = formatter.write(out, iter);
                 
                 long currentStop = System.currentTimeMillis();
                 
@@ -519,6 +529,11 @@ public class JaqlConnection
                 currentStart = System.currentTimeMillis();
                 totalRows += nrows;
                 ++nResults;
+                
+                /*
+                 * There may be another query, so crank the timer back up.
+                 */
+                session.startVisualTimer();
             }
         }
         catch (Throwable e) {
@@ -527,6 +542,10 @@ public class JaqlConnection
                 
                 session.printException(e);
             }
+        }
+        finally {
+            
+            session.stopVisualTimer();
         }
         
         /*
