@@ -203,7 +203,7 @@
         <mkdir dir="${dist.dir}/DEBIAN"/>
         <mkdir dir="${dist.dir}/usr"/>
         <mkdir dir="${dist.dir}/usr/bin"/>
-        <mkdir dir="${dist.dir}/usr/share"/>
+        <mkdir dir="${dist.dir}/usr/share/jsqsh"/>
         <mkdir dir="${dist.dir}/usr/lib/jni"/>
 
         <!--
@@ -225,7 +225,7 @@
           == requires that the appropriate Debian package that includes
           == it (and its .so) already be in place.
           -->
-        <copy todir="build/${dist.dir}/usr/share/jsqsh">
+        <copy todir="${dist.dir}/usr/share/jsqsh">
             <fileset dir="lib">
                 <include name="**/*.jar"/>
                 <exclude name="**/*readline*.jar"/>
