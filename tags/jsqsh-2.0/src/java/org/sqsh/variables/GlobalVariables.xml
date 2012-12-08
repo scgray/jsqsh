@@ -1,0 +1,902 @@
+<Variables>
+	<Dynamic class="org.sqsh.variables.DimensionVariable"  
+	         name="window_size" value="600x400">
+        <Description>Size of the window opened in graphical mode</Description>
+        <Help><![CDATA[
+VARIABLE
+   window_size - Size of window opened in graphical mode.
+
+DESCRIPTION
+   The ${window_size} variable defines the width and height of the window
+   opened when jsqsh is asked to display in graphical mode. The default
+   value is 600x400.
+   
+SEE ALSO
+   style
+        ]]></Help>
+    </Dynamic> 
+    
+	<Dynamic class="org.sqsh.variables.FontVariable"  
+	         name="font" value="Monospaced-10">
+        <Description>Font used for gui displays</Description>
+        <Help><![CDATA[
+VARIABLE
+   font - Font to be used for GUI displays.
+
+DESCRIPTION
+   The ${font} variable specifies the name of the font that will be
+   used when jsqsh opens a graphical output window. This occurs either
+   when the "-g" parameter is passed to a command (e.g. "\go -g") or 
+   when the display mode is set to "graphical".
+   
+   The font specification is of the form:
+   
+       Fontname-size
+       
+   With the default being:
+   
+       Monospaced-10
+       
+SEE ALSO
+   style, options
+        ]]></Help>
+    </Dynamic> 
+	         
+	<String name="prompt" value="#if($connected==true)[$server][$user] #end$lineno>">
+        <Description>Defines the query prompt</Description>
+        <Help><![CDATA[
+VARIABLE
+   prompt - Defines the query prompt.
+
+DESCRIPTION
+   The ${prompt} variable defines the prompt that will be displayed before
+   each line of input. Unlike other variables, this variable may, itself,
+   contain variables that will be expanded prior to display.
+   
+   For example, the default value:
+   
+      #if($connected==true)[$server][$user] #end$lineno>
+      
+   will show:
+   
+      1>
+      
+   when not connected to a server and:
+   
+      [prod-db][sa] 1> 
+      
+   when connected (the #if/#end syntax is part of Velocity, the tool
+   that is used to expand variables. Documentation is available from
+   http://velocity.apache.org/engine/releases/velocity-1.5/user-guide.html).
+   
+   Care must be taken when setting this variable to ensure that the
+   varables are not expanded when it is being set. For example:
+   
+      1> \set prompt="$lineno>"
+      
+   will have the $lineno expanded at the time the prompt is set and
+   is exactly identical to:
+   
+      1> \set prompt="1>"
+      
+   which clearly isn't what you inteded. Instead use single quotes:
+   
+      1> \set prompt='$lineno>'
+   
+SEE ALSO
+   \set
+        ]]></Help>
+	</String>
+	
+	<Property bean="global" name="terminator" property="terminatorString">
+        <Description>Defines the SQL statement terminator</Description>
+        <Help><![CDATA[
+VARIABLE
+   terminator - Defines the SQL statement terminator.
+
+DESCRIPTION
+   The ${terminator} variable defines a single character that can be used
+   to terminate a SQL statement or block and cause it to be executed without
+   having to issue a '\go', for example:
+   
+       1> select * from sysobjects;
+       
+   will directly execute the query because ';' is the current terminator.
+   
+   \unset'ing this variable disables the in-line query terminator feature
+   and requires that you explicitly issue a '\go' to execute your queries.
+   
+   Be very careful choosing an alternative terminator, since you don't
+   want to be inadvertantly executing queries.
+
+COMMAND TERMINATOR
+   As of jsqsh 1.5, the terminator may also be used to terminate a line
+   with a jsqsh command. For example, if ";" is the current terminator
+   then you can type:
+   
+      1> \echo hello how are you;
+      hello how are you
+   
+   and the terminator will be silently ignored. If any input follows 
+   the terminator, an error will be issued:
+   
+      1> \echo hello; there
+      Input is not allowed after the command terminator ";"
+   
+SEE ALSO
+   \go, \unset
+        ]]></Help>
+	</Property>
+    
+	<Property bean="global" name="editing_mode" property="console.editingMode">
+        <Description>Controls the editing mode for the line editor</Description>
+        <Help><![CDATA[
+VARIABLE
+   editing_mode - Controls the editing mode for the line editor.
+
+DESCRIPTION
+   The ${editing_mode} variable can be used to set or display the editing
+   mode of the underlying line editing implementing, for example to switch
+   to "emacs" or "vi" key sets.  Currently only the JLine editor supports
+   this feature, all others will display this variable as null and will
+   error when attempting to set this variable.
+   
+   JLine supports the following modes:
+   
+   vi        - The vi key set, starting out in insertion mode
+   vi-insert - The vi key set, starting out in insertion mode
+   vi-move   - The vi key set, starting out in move/command mode
+        ]]></Help>
+	</Property>
+    
+	<Property bean="version" name="version" property="version" settable="false">
+        <Description>The jsqsh version number</Description>
+        <Help><![CDATA[
+VARIABLE
+   version - Contains the jsqsh version number
+
+DESCRIPTION
+   The ${version} variable contains the jsqsh version number. This variable
+   is not settable.
+   
+SEE ALSO
+   build_date
+        ]]></Help>
+	</Property>
+    
+	<Property bean="version" name="build_date" property="buildDate" settable="false">
+        <Description>The jsqsh build date</Description>
+        <Help><![CDATA[
+VARIABLE
+   build_date - Contains the jsqsh build date
+
+DESCRIPTION
+   The ${build_date} variable contains the date at which the version of jsqsh
+   was compiled.
+   
+SEE ALSO
+   build_date
+        ]]></Help>
+	</Property>
+	
+	
+	
+	<!-- Property values are referring to properties of the session -->
+	<Property bean="global" name="lineno" property="bufferManager.current.lineNumber">
+        <Description>Contains the current line number being entered</Description>
+        <Help><![CDATA[
+VARIABLE
+   lineno - Contains the current line number being entered
+
+DESCRIPTION
+   The ${lineno} variable contains the current line number being entered
+   into the current SQL buffer. This variable cannot be set directly. To
+   clear the current buffer (and thus revert to line 1) utilize the '\reset'
+   command.
+   
+SEE ALSO
+   \reset
+        ]]></Help>
+	</Property>
+	
+	<Property bean="global" name="width" property="screenWidth">
+        <Description>The screen display width</Description>
+        <Help><![CDATA[
+VARIABLE
+   width - The screen display width
+
+DESCRIPTION
+   The ${width} variable controls the width of the screen that jsqsh uses
+   when formatting output. By default, this variable is derived by directly
+   polling your terminal and, thus, the value can change if your terminal
+   is resized, however setting the variable to an explicit value fixes the
+   display width to the size requested.  Setting the variable to a value
+   less than zero, causes the width of the terminal to be utilized again.
+   
+SEE ALSO
+   \style
+        ]]></Help>
+	</Property>
+	
+	
+	<Property bean="global" name="histsize" property="bufferManager.maxBuffers">
+		<Description>Controls the number of SQL statements retained in history</Description>
+        <Help><![CDATA[
+VARIABLE
+   histsize - Controls the number of SQL statements retained in history
+
+DESCRIPTION
+   The ${histsize} variable determines the number of SQL statements
+   that is retained historically (the default is 50). Each time a 
+   SQL statement is executed with the '\go' command, that statement
+   is saved away and be re-edited and re-executed later if desired.
+   
+   The '\history' command shows the last ${histsize} SQL statements
+   executed and '\buf-edit' can be used to edit and re-run a 
+   previously executed statement. Also, see '\help buffers' for
+   details on how to refer to specific buffers.
+   
+SEE ALSO
+   buffers, \history
+        ]]></Help>
+	</Property>
+    
+	<Property bean="global" name="histid" property="bufferManager.current.id">
+		<Description>The history id of the current buffer</Description>
+        <Help><![CDATA[
+VARIABLE
+   histid - The history id of the current buffer
+
+DESCRIPTION
+   The read-only ${histid} variable can be used to retrieve the history
+   id of the current buffer.  That is, the number under which the current
+   buffer will appear from "\history" after it is executed. This is particularly
+   useful within the ${prompt} variable. 
+   
+SEE ALSO
+   buffers, prompt, \history
+        ]]></Help>
+	</Property>
+	
+	<Property bean="global" name="readline" property="console.name">
+		<Description>Displays the readline implementation in use</Description>
+        <Help><![CDATA[
+VARIABLE
+   readline - Displays the readline implementation in use.
+
+DESCRIPTION
+   The read-only ${readline} variable displays the mechanism that is
+   being used to read input. 
+   
+   JSqsh is written in Java and java provides no easy mechanism to 
+   work with the console for activities such as editing the current 
+   line, or scrolling forward and backward through history or performing
+   command-line completion.  As a result, JSqsh relies upon some 3rd
+   party libraries to assist in these activities, some of which are
+   actual native code rather than Java code. 
+   
+   Upon start up, JSqsh goes through some logic to determine which
+   libraries are available on your platform and it chooses the first
+   available that it can successfully utilize in the following order:
+   
+   readline - This is an interface to the GNU readline API. This
+              library provides full command line editing and completion
+              plus has configurable key-bindings and modes for those 
+              that prefer different configurations. Documentation
+              for configuring is available from:
+                 http://tiswww.case.edu/php/chet/readline/rltop.html
+   editline - This is an interface to the NetBSD editline library.
+              This library is very similar in functionality to GNU
+              Readline. Documentation for configuring is available
+              from: 
+              	 http://linux.die.net/man/5/editrc
+   jline    - On UNIX JLine is a pure java library, on windows it
+              requires a small DLL to function.  It provides command
+              line editing and completion, but is not as flexible in
+              the key bindings (e.g. it provides no 'vi' bindings).
+              Documentation for JLine is available from:
+                 http://jline.sourceforge.net/
+   getline  - Getline is used primarily on Windows and provides 
+              basic command line editing, but no completion functionality. 
+   purejava - This is the most basic interface and provides no editing
+              or completion functionality.
+   
+   Although it is not possible to change the readline library at run-time,
+   you may force the library to be used with with the "--readline" command
+   line option to jsqsh or by setting the JSQSH_READLINE environment variable.
+   Both methods may be provided one of the names above.
+              
+SEE ALSO
+   options
+        ]]></Help>
+	</Property>
+	
+	
+	<Property bean="global" name="scale" property="dataFormatter.scale">
+		<Description>Controls the decimal place precision of values</Description>
+        <Help><![CDATA[
+VARIABLE
+   scale - Controls digits displayed after decimal for floating point values
+
+DESCRIPTION
+   When display floating point values, ${scale} determines how many of the
+   total ${precision} digits are used to represent values following the
+   decimal place.  For example:
+   
+        Actual Value  Precision Scale      Displayed Value
+        ------------  --------- ---------- ---------------
+           1.2345678          5          2            1.23
+           1.2345678          5          3           1.234
+           1.2345678          5          4          1.2345
+           
+    This property only applies to types of real, float, double and
+    Oracle NUMERIC (with no precision or scale specified).
+
+SEE ALSO
+    precision
+        ]]></Help>
+	</Property>
+	
+	<Property bean="global" name="precision" property="dataFormatter.precision">
+		<Description>Controls the decimal place precision of values</Description>
+        <Help><![CDATA[
+VARIABLE
+   precision - Controls number of digits displayed in floating point values
+
+DESCRIPTION
+   When display floating point values, ${precision} determines how many
+   total digits of the value are displayed. ${scale} is used in conjunction
+   with this value to indicate how many of those digits are used to show
+   the values after the decimal.
+   
+   This property only applies to types of real, float, double and
+   Oracle NUMERIC (with no precision or scale specified).
+
+SEE ALSO
+   scale 
+        ]]></Help>
+	</Property>
+
+	<Property bean="global" name="binstr_fmt" 
+                  property="dataFormatter.byteStringFormat">
+		<Description>Changes the manner in which binary values are displayed</Description>
+        <Help><![CDATA[
+VARIABLE
+   binstr_fmt - Controls the manner in which binary values are displayed
+
+DESCRIPTION
+   This is a boolean (true/false) value that controls the manner in which 
+   jsqsh displays binary values.  The default (false) causes jsqsh to
+   display binary values as pure hex values, such as:
+
+       0xabcd
+
+   changing this value to true, causes jsqsh to display the values in hex
+   string format, such as:
+
+       X'abcd'
+     
+SEE ALSO
+   fmt_date, precision, scale
+        ]]></Help>
+	</Property>
+	
+	<Property bean="global" name="fmt_date" property="dataFormatter.dateFormat">
+		<Description>Controls the representation of date</Description>
+        <Help><![CDATA[
+VARIABLE
+   fmt_date - Controls the representation of date values.
+
+DESCRIPTION
+   The ${fmt_date} variable contains a format string that is utilized
+   when display columns of type DATE. The format string follows java
+   SimpleDateFormat conventions, which are documented here:
+   
+      http://java.sun.com/j2se/1.5.0/docs/api/java/text/SimpleDateFormat.html
+      
+   The default is 'MMM dd yyyy'.
+   
+SEE ALSO
+   fmt_datetime, fmt_time
+        ]]></Help>
+	</Property>
+	
+	
+	
+	
+	<Property bean="global" name="fmt_time" property="dataFormatter.timeFormat">
+		<Description>Controls the representation of time</Description>
+        <Help><![CDATA[
+VARIABLE
+   fmt_time - Controls the representation of time values.
+
+DESCRIPTION
+   The ${fmt_time} variable contains a format string that is utilized
+   when display columns of type TIME. The format string follows java
+   SimpleDateFormat conventions, which are documented here:
+   
+      http://java.sun.com/j2se/1.5.0/docs/api/java/text/SimpleDateFormat.html
+      
+   The default is 'HH:mm'.
+   
+SEE ALSO
+   fmt_datetime, fmt_time
+        ]]></Help>
+	</Property>
+	
+	
+	<Property bean="global" name="fmt_datetime" property="dataFormatter.datetimeFormat">
+		<Description>Controls the representation of datatimes</Description>
+        <Help><![CDATA[
+VARIABLE
+   fmt_datetime - Controls the representation of datatime values.
+
+DESCRIPTION
+   The ${fmt_datetime} variable contains a format string that is utilized
+   when display columns of type DATETIME. The format string follows java
+   SimpleDateFormat conventions, which are documented here:
+   
+      http://java.sun.com/j2se/1.5.0/docs/api/java/text/SimpleDateFormat.html
+      
+   The default is 'MMM dd yyyy HH:mm:ss'.
+   
+SEE ALSO
+   fmt_date, fmt_time
+        ]]></Help>
+	</Property>
+	
+	
+	
+	<Property bean="global" name="null" property="dataFormatter.null">
+		<Description>Controls the representation of nulls</Description>
+        <Help><![CDATA[
+VARIABLE
+   null - Controls the visual representation of nulls
+
+DESCRIPTION
+   The ${null} variable is used when displaying null values. The default
+   value is "[NULL]", which will be shown whenever a null value is 
+   encountered.
+        ]]></Help>
+	</Property>
+	
+	
+	
+	<Property bean="global" name="maxlen" property="rendererManager.maxColumnWidth">
+		<Description>The maximum display width of a column</Description>
+        <Help><![CDATA[
+VARIABLE
+   maxlen - The maximum display width of a column
+
+DESCRIPTION
+   The ${maxlen} variable determines the maximum width that any individual
+   column may consume (the default is 35). Columns exceeding that width 
+   will have their contents word-wrapped, if necessary, during display. This
+   variable may not be utilized in all display styles (e.g. it is ignored
+   by the 'perfect' style).
+   
+SEE ALSO
+   style
+        ]]></Help>
+	</Property>
+	
+	<Property bean="global" name="nocount" property="SQLRenderer.noCount">
+		<Description>Controls display of "rows affected" from update/deletes</Description>
+        <Help><![CDATA[
+VARIABLE
+   nocount - Controls the display of "rows affected" due to updates and deletes
+
+DESCRIPTION
+   The ${nocount} variable can be used to suppress the output of:
+   
+      (XXX rows affected)
+      
+   that are generated by INSERT, UPDATE, and DELETE statements (that is,
+   statements that do not generate row results). 
+   
+   Note that some platforms allow these sorts of counts to be disabled at
+   the server (e.g. Sybase's and Microsoft's "set nocount on" option). 
+   This variable does NOT turn the setting off at the server, but simply
+   hides the messages from display.
+   
+   The default value is "false", indicating that these results should be
+   displayed.
+   
+SEE ALSO
+   \go
+        ]]></Help>
+	</Property>
+	
+	<Property bean="global" name="querytime" property="SQLRenderer.showTimings">
+		<Description>Controls display of query timing information</Description>
+        <Help><![CDATA[
+VARIABLE
+   querytime - Controls the display of query execution time information
+
+DESCRIPTION
+   The ${querytime} variable can be used to display or suppress the
+   output of query execution time information. The timing information
+   displayed is the execution as seen by jsqsh (which includes network
+   time), not necessarily the time spent in the server.
+   
+SEE ALSO
+   nocount
+        ]]></Help>
+	</Property>
+	
+	<Property bean="global" name="maxrows" property="SQLRenderer.maxRows">
+		<Description>Limits the size of query results</Description>
+        <Help><![CDATA[
+VARIABLE
+   maxrows - Limits the size of query results.
+
+DESCRIPTION
+   The ${maxrows} variable can be used to limit the number of rows returned
+   by any individual query in a batch of SQL (the default is 500). A value
+   of zero or less indicates that query result sizes should be unlimited.
+   
+   For certain display styles (see '\help style'), query results are retained
+   entirely in memory so it is important the results not be unbounded.
+   
+SEE ALSO
+   style
+        ]]></Help>
+	</Property>
+	
+	<Property bean="global" name="maxrows_method" 
+	          property="SQLRenderer.rowLimitMethodName">
+		<Description>Controls method used to limit rows</Description>
+        <Help><![CDATA[
+VARIABLE
+   maxrows_method - Controls the mechanism used to limit result set rows
+
+DESCRIPTION
+   The ${maxrows_method} variable is used to control the mechanism that is
+   used to limit result rows as specified by the ${maxrows} variable. This
+   variable may be one of the following:
+   
+     discard   (Default) This causes jsqsh to silently discard all rows
+               beyond ${maxrows}. This is the safest and recommended 
+               mechanism to utilize but can cause delays as additional
+               network traffic as the rows are processed.
+     
+     cancel    This causes jsqsh to issue a cancel to stop the processing
+               of the query when ${maxrows} is reached. This can cause 
+               side effects because it cancels the entire query, not just
+               the current result set. For example, if you were calling
+               a stored procedure or a SQL batch that contained multiple
+               statements or queries, the cancel would stop the processing
+               at the first query that returned more than ${maxrows}.
+    
+     driver    This causes jsqsh to ask the JDBC driver to limit row
+               results to ${maxrows} (via the drivers Statement.setMaxRows() 
+               method). This method has been shown to have side effects in
+               some drivers of not just limiting the result rows but also
+               limiting UPDATEs and DELETEs to ${maxrows}.
+               
+SEE ALSO
+   maxrows
+        ]]></Help>
+	</Property>
+	
+	
+	
+	<Property bean="global" name="expand" property="SQLRenderer.expand">
+		<Description>Determines if SQL will have variable expansion performed</Description>
+        <Help><![CDATA[
+VARIABLE
+   expand - Determines if SQL will have variable expansion performed
+
+DESCRIPTION
+   The ${expand} variable is a boolean, accepting either "true" (the default)
+   or "false". The value of this variable will be used to determine if sqsh
+   will attempt to expand SQL statements being executed of any sqsh variables
+   they may contain before execution.
+   
+SEE ALSO
+   \go
+        ]]></Help>
+	</Property>
+	
+	<Property bean="global" name="show_meta" property="SQLRenderer.showMetadata">
+		<Description>Controls display of result set descriptions</Description>
+        <Help><![CDATA[
+VARIABLE
+   show_meta - Controls the display of result set metadata.
+
+DESCRIPTION
+   The ${show_meta} variable causes result set metadata (column names, 
+   data types, etc.) to be displayed as a separate result set just before
+   the actual row results. This feature is primarily intended as a debugging
+   tool for jsqsh development and/or developers that want to diagnose 
+   issues with result handling in their applications.
+   
+SEE ALSO
+   \go
+        ]]></Help>
+	</Property>
+	
+	
+	<Property bean="global" name="shell" property="shellManager.shellCommand">
+		<Description>Defines the O/S shell used to execute commands</Description>
+        <Help><![CDATA[
+VARIABLE
+   shell - Defines the O/S shell that is used to execute commands
+
+DESCRIPTION
+   The ${shell} variable defines the external operating system program (shell)
+   that will be used when executing external commands. This variable is
+   used when:
+   
+   - Executing a pipe (e.g. go | more)
+   - Utilizing a back-tick (e.g. '\echo `echo hi`)
+   - Running external editors (e.g. by \buf-edit).
+   
+   The variable must contain the name of the shell, plus a comma-delimited
+   list of arguments to pass to the shell. A special argument of "?" must
+   be provided to indicate where the command being executed should be 
+   placed.
+   
+   On UNIX platforms, ${shell} will be defaulted to:
+   
+       /bin/sh,-c,?
+       
+   which means, for example, when running "go | more", the "more" command
+   will be launched via:
+   
+      /bin/sh -c "more"
+      
+   On Windows platforms ${shell} will be defaulted to:
+   
+      cmd.exe,/c,?
+      
+SEE ALSO
+   \buf-edit
+        ]]></Help>
+	
+	</Property>
+	
+	
+	
+	<Property bean="global" name="dflt_database" property="driverManager.defaultDatabase">
+		<Description>Controls the default database for new connections</Description>
+        <Help><![CDATA[
+VARIABLE
+   dflt_database - Controls the default database for new connections
+
+DESCRIPTION
+   The "dflt_database" variable can be used to place new connections in 
+   a specific database (or catalog, in JDBC terminology).
+   
+SEE ALSO
+   database
+        ]]></Help>
+    </Property>
+    
+    
+	
+	<Property bean="global" name="dflt_autocommit" property="driverManager.defaultAutoCommit">
+		<Description>Controls the autocommit setting for new connections</Description>
+        <Help><![CDATA[
+VARIABLE
+   dflt_autocommit - Controls the autocommit setting for new connections
+
+DESCRIPTION
+   The "dflt_autocommit" variables controls the SQL auto-commit setting 
+   that will be set for all new connections that are created.  Auto-commit
+   refers to the transaction mode that a connection uses; when auto-commit
+   is true, then each statement issued is executed as if it was in its
+   own transaction (that is, as if the user typed 'commit' after executing
+   the statement.  When auto-commit is false, then the connection stays
+   in an open transaction until you explicitly issue a commit to the database.
+   
+SEE ALSO
+   autocommit
+        ]]></Help>
+    </Property>
+	
+    <Property bean="global" name="classpath"
+              property="driverManager.classpath">
+        <Description>Defines JDBC driver locations</Description>
+        <Help><![CDATA[
+VARIABLE
+   classpath - Defines additional JDBC driver search locations
+   
+DESCRIPTION
+   The ${classpath} variable can be used to specify places in which 
+   JDBC drivers can be found on your system. The path is specified
+   as a delimited list of ".jar" files or directories containing ".jar"
+   files.  The delimiter is ";" on Windows or ":" on UNIX.  The following
+   is an example of a valid UNIX classpath:
+   
+      /home/gray/jars/sybase.jar:/home/gray/drivers/
+      
+   where the first entry is an explicitly specified jar file ("sybase.jar")
+   and the second entry is the path to a directory that contains multiple
+   jars, each of which will become part of the classpath.
+   
+SEE ALSO
+   \drivers
+        ]]></Help>
+    </Property>
+    
+    <Property bean="global" name="headers"
+              property="rendererManager.showHeaders">
+        <Description>Controls column header display</Description>
+        <Help><![CDATA[
+VARIABLE
+   headers - Controls the display of column headers
+   
+DESCRIPTION
+   The ${headers} variable can be used to turn on or off the display of
+   column header information in query results.  The default value is "true".
+   
+SEE ALSO
+   footers
+        ]]></Help>
+    </Property>
+    
+    <Property bean="global" name="footers"
+              property="rendererManager.showFooters">
+        <Description>Controls query footer information</Description>
+        <Help><![CDATA[
+VARIABLE
+   footers - Controls the display of query footer information
+   
+DESCRIPTION
+   The ${footers} variable can be used to turn on or off the display of
+   query footer information in query results. Footer information includes
+   the row count, update count, and query timing that is normally displayed
+   after each result set is displayed. The default value is "true".
+   
+SEE ALSO
+   headers
+        ]]></Help>
+    </Property>
+    
+    <Property bean="global" name="echo" property="inputEchoed">
+        <Description>Echo all input</Description>
+        <Help><![CDATA[
+VARIABLE
+   echo - Controls echoing of input to stdout 
+   
+DESCRIPTION
+   If set to "true" the ${echo} variable causes every line that is read
+   as input to be echoed back out to output. The typical use of this is
+   when running jsqsh non-interactively with a script. With this option on,
+   you will see all of the SQL and commands as well as the output of all of
+   the commands.
+        ]]></Help>
+    </Property>
+    
+    <Property bean="global" name="perfect_sample_rows"
+              property="rendererManager.perfectSampleSize">
+        <Description>Determines number of rows sampled by "perfect" renderers</Description>
+        <Help><![CDATA[
+VARIABLE
+   perfect_sample_rows - Controls the display of query footer information
+   
+DESCRIPTION
+   The ${perfect_sample_rows} determines the number of rows that are 
+   sampled (held in memory) by perfect result renderers (such as used 
+   by the "perfect" display style) before results are displayed.  The
+   larger this number, the better the results will be rendered, however
+   the more memory will be consumed as all the rows must be held in memory
+   before display.
+   
+   A value less than 1 indicates that all rows will be sampled prior to
+   display.  The default value is 500.
+   
+SEE ALSO
+   style
+        ]]></Help>
+    </Property>
+    
+  	<Property bean="global" name="show_stack" property="printStackTrace">
+        <Description>Enables/disables display of stack trace from exceptions</Description>
+        <Help><![CDATA[
+VARIABLE
+   show_stack - Controls whether or not stack traces are display from exceptions
+
+DESCRIPTION
+   Note: this variable has been depricated. You should use ${ex_detail} now
+   to control the level of detail in exceptions.
+   
+   The ${show_stack} boolean variable controls whether or not exceptions
+   thrown during the execution of a command (such as "\go") will display
+   just the text of the exception or the full stack trace.  The default 
+   is "false", limiting the output to just the text of the exception.
+   This is typically only set to true if you need to debug a problem within
+   a driver or possibly a specific command.
+   
+   Currently not all places that deal with exceptions in jsqsh honor this
+   setting.
+   
+SEE ALSO
+   show_exclass
+        ]]></Help>	
+	</Property>
+    
+	<Property bean="global" name="show_exclass" property="printExceptionClass">
+        <Description>Enables/disables display of exceptions class name</Description>
+        <Help><![CDATA[
+VARIABLE
+   show_exclass - Controls whether or not the exception class name is displayed
+
+DESCRIPTION
+   The ${show_exclass} boolean variable controls whether or not exceptions
+   thrown during the execution of a command (such as "\go") will display
+   the class name of the exception, along with the text of the exception. The
+   default is "false". This is typically only set to true if you need to 
+   debug a problem within a driver or possibly a specific command.
+   
+   Currently not all places that deal with exceptions in jsqsh honor this
+   setting.
+   
+SEE ALSO
+   show_stack
+        ]]></Help>	
+	</Property>
+	
+  	<Property bean="global" name="ex_detail" property="exceptionDetailString">
+        <Description>Sets the level of detail when displaying exceptions</Description>
+        <Help><![CDATA[
+VARIABLE
+   ex_detail - Controls the level of detail when displaying exceptions
+
+DESCRIPTION
+   The ${ex_detail} variable can be used to control the amount of information
+   produced by exceptions.  The available levels are:
+   
+   * low    - Displays just the exception class name and, for SQL exceptions,
+              the SQL code and state.
+   * medium - (default) Displays the SQL code and state (for SQL exceptions)
+              the text of the exception, and the same information for any
+              nested exceptions.
+   * high   - Displays everything from medium, plus the stack trace for each.
+   
+SEE ALSO
+   show_exclass
+        ]]></Help>	
+	</Property>
+	
+  	<Property bean="global" name="timeout" property="queryTimeout">
+        <Description>Sets the number of seconds before queries time out</Description>
+        <Help><![CDATA[
+VARIABLE
+   timeout - Controls the number of seconds before a query is timed out
+
+DESCRIPTION
+   The ${timeout} variable is used to control the number of seconds before a
+   query is timed out.  When the variable is set from the sqshrc file or from
+   a session that has not yet established a connection, it defines the default
+   timeout for all connections. When set from the context of an already
+   established connection, it controls only the timeout for queries on that
+   connection.
+   
+   If a JDBC connection is established, and the driver supports query timeouts,
+   then the JDBC driver is asked to time the queries out (the behavior of which
+   is dependant upon the driver vendor).  If the connection does not support
+   query timeouts, then jsqsh will automatically cancel the current query when
+   the timeout interval has been exceeded.
+   
+SEE ALSO
+   go
+        ]]></Help>	
+	</Property>
+	
+  	<Property bean="global" name="timer" property="visualTimerEnabled">
+        <Description>Controls display of a visual query time</Description>
+        <Help><![CDATA[
+VARIABLE
+   timer - Controls if a visual query timer is enabled
+
+DESCRIPTION
+   The ${timer} variable is used to control whether or not jsqsh display a 
+   query timer clock while waiting for a query to complete.
+   
+SEE ALSO
+   go
+        ]]></Help>	
+	</Property>
+</Variables>

@@ -1,0 +1,500 @@
+<Variables>
+
+	<Property bean="session" name="id" property="id">
+        <Description>Contains the session id of the current session</Description>
+        <Help><![CDATA[
+VARIABLE
+   id - The session id of the current session.
+
+DESCRIPTION
+   The read-only ${id} variable contains the session id of the current
+   session and primarily useful for including in the prompt.
+   
+SEE ALSO
+   prompt, \sessions
+        ]]></Help>	
+	</Property>
+	
+	
+	<Property bean="session" name="connected" property="connected">
+        <Description>Indicates whether or not the current session is connected</Description>
+        <Help><![CDATA[
+VARIABLE
+   connected - Indicates whether or not the current session is connected
+
+DESCRIPTION
+   The read-only ${connected} variable will contain the value "true" if
+   the current session is connected to a server, otherwise "false". This
+   is primarily useful for including in the prompt.
+   
+SEE ALSO
+   prompt, \connect
+        ]]></Help>	
+	</Property>
+	
+  <Property bean="session" name="style" property="style">
+        <Description>Controls the output display style</Description>
+        <Help><![CDATA[
+VARIABLE
+   style - Controls the output display style.
+   
+DESCRIPTION
+   The '$style' variable can be set to switch how jsqsh displays its results
+   to the user.  This variable is a little different from most jsqsh variables,
+   please read the NOTES section, below carefully.
+
+SQL STYLES
+   The following styles may be set for a SQL (JDBC) session established
+   using \connect, or may be set when no session has been started.
+   
+   csv     - Displays the output as a set of comma separated values suitable
+        for loading into, say, Excel. The results displayed attempts to 
+        conform to: http://www.creativyst.com/Doc/Articles/CSV/CSV01.htm.
+        Here are some things you should be aware of, though:
+        
+        - Unless headers are suppressed with the ${headers} variable or
+          via the --no-headers (-H) option to \go, the first row in the
+          file will contain the column headers.
+        - A NULL value is represented by a completely empty field.
+        - A zero-length string is represented by "" in order to differentiate
+          it from NULL.
+        - A field will be quoted with double-quotes if the value contains:
+             - A double quote (which will be escaped with as "").
+             - Leading or trailing white space
+             - A comma
+             - A newline
+
+   discard  - This causes all rows to be retrieved from the query but to
+        be discarded (i.e. not displayed). This is primarily useful only
+        for timing queries that return rows where you want to discount 
+        (most of) the overhead of actually displaying the rows.  It is 
+        important to note that jsqsh will still fetch the row and format
+        the columns into strings for display so there is still that overhead
+        involved in the process.
+        
+   graphical - Displays the results in a graphical window (GUI). This will
+        only work on environments where the graphical interface is 
+        available to the JVM. 
+        
+        Note: the variable ${window_size} can be used to control the size
+        of the window that is opened to display results.
+   
+   graph    - A synonym for "graphical".     
+   
+   isql     - This formats its output in a fashion similar to that of Sybase's
+        (or Microsoft SQL Server's) 'isql' program.
+        
+   json     - Displays results as an array of JSON records (http://json.org).
+   
+   perfect  - This is the default display style and is very similar to how
+        tools like the mySQL client display their output. The output is 
+        contained in a text-based grid, like so:
+              
+           +----------+----------+
+           | COLUMN 1 | COLUMN 2 |
+           +----------+----------+
+           |     1234 | hello    |
+           +----------+----------+
+              
+        The 'perfect' display style is so-called because it holds rows 
+        in memory prior to display, then analyzes the maximum amount of
+        data to be displayed in each column and attempts to adjust the
+        display accordingly so that as much data as possible fits cleanly
+        on the display. To avoid consuming too much memory, the variable 
+        ${perfect_sample_rows} is used to determine how many rows are 
+        sampled before the display  process begins--after which point 
+        no more rows are held in memory and results are streamed to the
+        display as they arrive. For example:
+        
+            \set perfect_sample_rows=20
+            
+        indicates that the first 20 rows of the results will be held in
+        memory for analysis before display begins. Setting this variable
+        to a value less than one will cause all rows to be sampled.
+   
+   pretty   - This is visually identical to 'perfect' except that it does not
+        attempt to perform a perfect fit on the data before display and,
+        thus, does not need to hold the results in memory during display.
+        Use this style when you need to work with very large result sets.
+   
+   vertical - The vert (or vertical) style rotates the output, so that every 
+        line is represented by a column name followed by a column value. This 
+        is nice for looking at particularly wide output.
+   
+   vert     - A synonym for "vertical".
+   
+   tree     - Displays the results in a graphical window (GUI).  Just like 
+        graphical except it  displays the resuts in a tree syle format. 
+
+        Note: the variable ${window_size} can be used to control the size
+        of the window that is opened to display results.
+        
+JAQL STYLES
+   The following display styles may be set when a Jaql session is established.
+   
+   csv      - Values are displayed in comma delimited file format. If the
+        first value received is a record, then the field names in the record
+        are assumed to be the column headers and displayed (if $headers is 
+        true). Nested JSON records and arrays a retained as JSON objects
+        and treated as a single quoted string on output.
+   json     - Output is displayed as nicely formatted Json records, (this 
+         closely mimics the default display style of jaqlshell).
+   lines    - Outputs one entire JSON record per line. This is typically
+         not as readable, but useful for reading the file in later.
+   discard  - This causes all values to be retrieved from the query but to
+        be discarded (i.e. not displayed). This is primarily useful only
+        for timing queries that return rows where you want to discount 
+        (most of) the overhead of actually displaying the values.
+    
+        
+NOTES
+   This variable is a little odd in that it has slightly different
+   behavior in different contexts:
+   
+      * If no session/connection is established, then the style name provided
+        must be a valid SQL display style.
+      * If a session is established, then the style name must be a valid
+        display style for that type of session. For example, a Jaql session
+        will only support styles valid for Jaql output.
+   
+   This means that you cannot use ${style} to set the display style of a non-
+   SQL session type before the session is started, and when the session ends
+   the value of ${style} will revert to the current SQL display style.
+
+SEE ALSO
+   maxrows, maxlen, perfect_sample_rows
+        ]]></Help>
+    </Property>
+	
+	<Property bean="session" name="rc" property="lastCommandResult"
+		setable="false">
+        <Description>Return value of the last executed command</Description>
+        <Help><![CDATA[
+VARIABLE
+   rc - The return value of the last executed command
+
+DESCRIPTION
+   Each jsqsh command that is executed, such as "go" (\go) returns a 
+   success (0) or failure (not-zero) indicator. This return value can be
+   accessed via the ${rc} variable.
+   
+   Each time a command fails, the ${fail_count} session variable is 
+   automatically incremented. When jsqsh exits, the exit code is determined 
+   by adding together the value of ${fail_count} across all sessions
+   that were executed within jsqsh. That is, if the total is 0, then jsqsh
+   exits with 0, otherwise the exit code indicates the number of failures
+   encountered during its execution.
+   
+SEE ALSO
+   fail_count
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="fail_count" property="commandFailCount"
+		settable="true">
+        <Description>Contains the connection's current database</Description>
+        <Help><![CDATA[
+VARIABLE
+   fail_count - The total number of failed commands during the session
+
+DESCRIPTION
+   Each jsqsh command that is executed, such as "go" (\go) returns a 
+   success or failure indicator that can be accessed via the ${rc} variable.
+   This value is a number that indicates success (0) or failure (not-zero).
+   Each time a command fails, the ${fail_count} session variable is 
+   automatically incremented. When jsqsh exits, the exit code is determined 
+   by adding together the value of ${fail_count} across all sessions
+   that were executed within jsqsh. That is, if the total is 0, then jsqsh
+   exits with 0, otherwise the exit code indicates the number of failures
+   encountered during its execution.
+   
+SEE ALSO
+   rc
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="IFS" property="stringExpander.IFS"/>
+	
+	<Property bean="session" name="database" property="connection.catalog" 
+	          settable="true" quiet="true">
+        <Description>Contains the connection's current database</Description>
+        <Help><![CDATA[
+VARIABLE
+   database - Contains the connection's current database
+
+DESCRIPTION
+   The ${database} variable will contain the name of the database
+   (or 'catalog' in JDBC terminology) of the current session if it connected
+   to a server. In addition, the database context of the current connection
+   can be changed by setting the ${database} variable to the desired 
+   database name.
+   
+SEE ALSO
+   \connect, dflt_database
+        ]]></Help>	
+	</Property>
+	
+	
+	<Property bean="session" name="autocommit" property="connection.autoCommit" 
+	          settable="true" quiet="false">
+        <Description>Contains the connection's current auto-commit status</Description>
+        <Help><![CDATA[
+VARIABLE
+   autocommit - Contains the connection's current auto-commit status
+
+DESCRIPTION
+   The ${autocommit} variable indicates whether or not the current connection
+   is in auto-commit mode. In addition, the connections autocommit mode can be 
+   altered by setting this variable.  To change the autocommit mode for
+   all future connections, use the ${dflt_autocommit} variable.
+   
+SEE ALSO
+   \connect, dflt_autocommit
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="fetchsize" property="fetchSize" 
+	          settable="true" quiet="false">
+        <Description>The number of rows per fetch to be retrieved</Description>
+        <Help><![CDATA[
+VARIABLE
+   fetchsize - The number of rows per fetch to request from the server
+
+DESCRIPTION
+   The ${fetchsize} controls the JDBC "fetch size" setting, which requests that
+   the driver return the specified number of rows per network request to the
+   server.  This variable may not be honor by all drivers, but for those that
+   do, it can increase performance at the expense of memory.
+        ]]></Help>	
+	</Property>
+	          
+	<Property bean="session" name="interactive" property="interactive">
+        <Description>Whether or not the current session is interactive</Description>
+        <Help><![CDATA[
+VARIABLE
+   interactive - Indicates whether or not the current session is interactive
+
+DESCRIPTION
+   The read-only ${interactive} variable will contain "true" if the current
+   session is interactive, or "false" otherwise.
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="domain" property="connectionContext.domain"
+	          quiet="true">
+        <Description>Windows domain used to establish connection</Description>
+        <Help><![CDATA[
+VARIABLE
+   domain - Windows domain used to establish the database connection
+
+DESCRIPTION
+   The read-only ${domain} variable will contain the name of the Windows
+   domain used to authenticate the database connection. This property is
+   defined locally to the session and is only available if domain 
+   authentication was used then creating the connection.
+   
+SEE ALSO
+   user, driver, server, port
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="user" property="connectionContext.username"
+	          quiet="true">
+        <Description>Username used to establish database connection</Description>
+        <Help><![CDATA[
+VARIABLE
+   user - The username used when connection was established.
+
+DESCRIPTION
+   The read-only ${user} variable will contain the username used
+   to authenticate the database connection. This property is
+   defined locally to the session and is only available when a connection
+   has been established.
+   
+SEE ALSO
+   domain, driver, server, port
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="server" property="connectionContext.server"
+	          quiet="true">
+        <Description>Database server name connected to</Description>
+        <Help><![CDATA[
+VARIABLE
+   server - The server that the connection is currently established.
+
+DESCRIPTION
+   The read-only ${server} variable will contain the name of the server
+   to which the current session has a connection established. If no
+   connection is established then this variable will not be set.
+   
+SEE ALSO
+   domain, driver, user, port
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="port" property="connectionContext.port"
+	          quiet="true">
+        <Description>TCP port used to establish database connection</Description>
+        <Help><![CDATA[
+VARIABLE
+   port - The TCP port to which the database connection is established.
+
+DESCRIPTION
+   The read-only ${port} variable will contain the TCP port used
+   to establish the database connection. This property is
+   defined locally to the session and is only available when a connection
+   has been established.
+   
+SEE ALSO
+   domain, driver, server, user
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="server" property="connectionContext.server"
+	          quiet="true">
+        <Description>Database server name connected to</Description>
+        <Help><![CDATA[
+VARIABLE
+   server - The server that the connection is currently established.
+
+DESCRIPTION
+   The read-only ${server} variable will contain the name of the server
+   to which the current session has a connection established. If no
+   connection is established then this variable will not be set.
+   
+SEE ALSO
+   domain, driver, user, port
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="SID" property="connectionContext.sid"
+	          quiet="true">
+        <Description>Oracle instance to which connection is established</Description>
+        <Help><![CDATA[
+VARIABLE
+   SID - Oracle instance name to which a connection is established.
+
+DESCRIPTION
+   The read-only ${SID} variable will contain the name of the Oracle
+   instance to which the current session has a connection established. If no
+   connection is established (or the connection isn't to Oracle) then this
+   variable will not be set.
+   
+SEE ALSO
+   domain, driver, user, server, port
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="jdbc_url" property="connectionContext.url"
+	          quiet="true">
+        <Description>The JDBC URL that was used for connection</Description>
+        <Help><![CDATA[
+VARIABLE
+   jdbc_url - The JDBC URL that was used to establish the current connection
+
+DESCRIPTION
+   The read-only ${jdbc_url} variable will contain the name of the JDBC
+   URL that was used to establish the current database connection. If no
+   connection is established then this variable will not be set.
+   
+SEE ALSO
+   domain, driver, user, server, port, SID
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="driver" property="connectionContext.driver"
+	          quiet="true">
+        <Description>The JSqsh driver used to establish connection</Description>
+        <Help><![CDATA[
+VARIABLE
+   driver - The JSqsh driver name that was used when establishing a connection
+
+DESCRIPTION
+   The read-only ${driver} variable will contain the name of the JSqsh
+   driver that was used to establish the current database connection. If no
+   connection is established then this variable will not be set.
+   
+SEE ALSO
+   domain, driver, user, server, port, SID
+        ]]></Help>	
+	</Property>
+	
+	<Property bean="session" name="name" property="connectionContext.logicalName"
+	          quiet="true">
+        <Description>The logical name used for the current connection</Description>
+        <Help><![CDATA[
+VARIABLE
+   name - The logical name used for the current connection.
+
+DESCRIPTION
+   The read-only ${name} variable reflects the logical name that was 
+   associated with the current database connection of the connection
+   was established with the --name argument. If there is no logical 
+   connection name or no database connection is currently established,
+   then this will have a null value.
+   
+SEE ALSO
+   domain, driver, user, server, port, SID
+        ]]></Help>	
+	</Property>
+
+	<Property bean="session" name="exec_mode" 
+                  property="connectionContext.executionModeName"
+	          quiet="true">
+        <Description>The SQL execution style for the current connection</Description>
+        <Help><![CDATA[
+VARIABLE
+   exec_mode - Controls the manner in which SQL execution is performed.
+
+DESCRIPTION
+   By default JSqsh sends SQL to the remote database server in "immediate"
+   mode (for those of you savvy with Java, it is Connection.execute(...)),
+   which means that the server just takes the SQL, parses, and runs it. 
+   For certain database platforms, however, certain types of statements cannot
+   be run in immediate mode.  For example DB2 z/OS cannot execute a procedure
+   call ("CALL procname") in immediate mode--the SQL must first be prepared
+   (It's silly, and I don't know why).
+
+   This variable switches the mode in which JSqsh sends SQL to the remote
+   server.  It may be set to either 'immediate' or 'prepare'. 
+
+   It is rare that you should ever need to change this variable. Most
+   driver definitions in jsqsh will automatically set this to the correct
+   value when you connect to the server.
+   
+SEE ALSO
+   None.
+        ]]></Help>	
+	</Property>
+    
+	<Property bean="session" name="exec_mode" 
+                  property="connectionContext.executionModeName"
+	          quiet="true">
+        <Description>The SQL execution style for the current connection</Description>
+        <Help><![CDATA[
+VARIABLE
+   exec_mode - Controls the manner in which SQL execution is performed.
+
+DESCRIPTION
+   By default JSqsh sends SQL to the remote database server in "immediate"
+   mode (for those of you savvy with Java, it is Connection.execute(...)),
+   which means that the server just takes the SQL, parses, and runs it. 
+   For certain database platforms, however, certain types of statements cannot
+   be run in immediate mode.  For example DB2 z/OS cannot execute a procedure
+   call ("CALL procname") in immediate mode--the SQL must first be prepared
+   (It's silly, and I don't know why).
+
+   This variable switches the mode in which JSqsh sends SQL to the remote
+   server.  It may be set to either 'immediate' or 'prepare'. 
+
+   It is rare that you should ever need to change this variable. Most
+   driver definitions in jsqsh will automatically set this to the correct
+   value when you connect to the server.
+   
+SEE ALSO
+   None.
+        ]]></Help>	
+	</Property>
+	
+</Variables>
