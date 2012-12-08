@@ -5,7 +5,11 @@ Release: 1
 Group: Applications/Databases
 License: Apache 2.0
 Source0: jsqsh-@VERSION@-src.tar.gz
-Requires: libreadline-java >= 0.8.0
+# libreadline-java is now an optional installation
+# Requires: libreadline-java >= 0.8.0
+BuildRoot: /tmp/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+%define debug_package %{nil}
 
 %description
 JSqsh (pronounced J-skwish) is short for Java SQshelL
