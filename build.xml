@@ -1,5 +1,7 @@
 <project name="jsqsh" default="build" basedir=".">
 
+     <property environment="env"/>
+
      <path id="build.classpath">
         <fileset dir="lib">
            <include name="*.jar"/>
@@ -203,7 +205,7 @@
         <mkdir dir="${dist.dir}/DEBIAN"/>
         <mkdir dir="${dist.dir}/usr"/>
         <mkdir dir="${dist.dir}/usr/bin"/>
-        <mkdir dir="${dist.dir}/usr/share"/>
+        <mkdir dir="${dist.dir}/usr/share/jsqsh"/>
         <mkdir dir="${dist.dir}/usr/lib/jni"/>
 
         <!--
@@ -225,7 +227,7 @@
           == requires that the appropriate Debian package that includes
           == it (and its .so) already be in place.
           -->
-        <copy todir="build/${dist.dir}/usr/share/jsqsh">
+        <copy todir="${dist.dir}/usr/share/jsqsh">
             <fileset dir="lib">
                 <include name="**/*.jar"/>
                 <exclude name="**/*readline*.jar"/>
@@ -334,7 +336,6 @@
        == ************************************************************
        -->
      <target name="dist-rpm" depends="dist-rpm-setup,_init">
-
         <exec dir="${basedir}/build/rpm" 
               executable="rpmbuild">
             <arg value="-ba"/>
@@ -389,7 +390,11 @@
           == Create directory structure required for packaging
           -->
         <mkdir dir="${basedir}/build/rpm"/>
-        <exec dir="${basedir}/build/rpm" executable="rpmdev-setuptree"/>
+        <mkdir dir="${basedir}/build/rpm/RPMS"/>
+        <mkdir dir="${basedir}/build/rpm/SOURCES"/>
+        <mkdir dir="${basedir}/build/rpm/SPECS"/>
+        <mkdir dir="${basedir}/build/rpm/SRPMS"/>
+        <mkdir dir="${basedir}/build/rpm/BUILD"/>
 
         <tar compression="gzip" 
              destfile="build/rpm/SOURCES/jsqsh-${version}-src.tar.gz">
@@ -430,7 +435,6 @@
        == ************************************************************
        -->
      <target name="dist-rpm-install" depends="jar">
-	<property environment="env"/>
         <echo>BEGIN dist-rpm-install</echo>
 
         <mkdir dir="${env.RPM_BUILD_ROOT}/usr/bin"/>
@@ -576,6 +580,7 @@
        == ************************************************************
        -->
      <target name="make-configure" depends="_init">
+        <echo>make-configure: Configuring for install to ${prefix}</echo>
         <exec dir="${basedir}/src/jni" 
               executable="${basedir}/src/jni/configure">
             <arg value="--prefix=${prefix}"/>
@@ -601,6 +606,12 @@
      </target>
 
      <target name="make-clean" depends="_init">
+        <available file="${basedir}/src/jni/Makefile" 
+                   property="make.present"/>
+        <antcall target="_make-clean"/>
+     </target>
+
+     <target name="_make-clean" if="make.present">
         <exec dir="${basedir}/src/jni" 
               executable="make">
             <arg value="-f"/>
