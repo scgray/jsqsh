@@ -1,4 +1,4 @@
-Release 1.5
+Release 2.0
 
 New Features
   * The command terminator may now end a jsqsh command. For example, the
