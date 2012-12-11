@@ -21,6 +21,8 @@ import java.util.List;
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
+import org.sqsh.Variable;
+import org.sqsh.VariableManager;
 import org.sqsh.options.Argv;
 
 
@@ -37,7 +39,7 @@ public class Unset
     private static class Options
         extends SqshOptions {
         
-        @Argv(program="\\unset", min=1, max=1, usage="variable")
+        @Argv(program="\\unset", min=1, max=99, usage="variable")
         public List<String> arguments = new ArrayList<String>();
     }
     
@@ -56,19 +58,36 @@ public class Unset
         
         Options options = (Options)opts;
         
-        if (options.arguments.size() != 1) {
+        if (options.arguments.size() == 0) {
             
-            session.err.println("Use: \\unset var_name");
+            session.err.println("Use: \\unset var_name [var_name ...]");
             return 1;
         }
         
-        String varName = options.arguments.get(0);
-        if (session.getVariableManager().remove(varName) == null) {
+        int ok = 0;
+        
+        VariableManager varMan = session.getVariableManager();
+        for (int i = 0; i < options.arguments.size(); i++) {
+            
+            String varName = options.arguments.get(i);
+            Variable var = varMan.getVariable(varName);
+            if (var == null) {
                 
-            session.getContext().getVariableManager().remove(varName);
+                continue;
+            }
+            
+            if (!var.isRemoveable()) {
+                
+                session.err.println("Variable \"" + varName + "\" is a "
+                        + "configuration variable and cannot be unset");
+                ok = 1;
+            }
+            else {
+                
+                varMan.remove(varName);
+            }
         }
         
-        return 0;
+        return ok;
     }
-
 }

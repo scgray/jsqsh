@@ -39,6 +39,12 @@ public abstract class Variable
     private boolean isExported;
     
     /**
+     * Is this variable removable from the manager. Configuration variables
+     * are not removable.
+     */
+    private boolean isRemoveable = true;
+    
+    /**
      * This should only be called the VariableManager
      */
     public Variable() {
@@ -66,7 +72,7 @@ public abstract class Variable
         this.isExported = isExported;
     }
     
-    /**
+	/**
      * Used by the VariableManager to record the fact that it owns this
      * variable.
      * 
@@ -109,6 +115,23 @@ public abstract class Variable
     }
     
     /**
+     * @return true if the variable can be removed from the manager
+     */
+    public boolean isRemoveable() {
+    	
+		return isRemoveable;
+	}
+
+    /**
+     * @param isRemoveable true if the variable can be removed from the 
+     *   manager
+     */
+	public void setRemoveable(boolean isRemoveable) {
+		
+		this.isRemoveable = isRemoveable;
+	}
+
+	/**
      * Returns whether or not this variable is to be exported to 
      * the processes spawned by sqsh.
      * 
