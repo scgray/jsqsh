@@ -503,19 +503,17 @@ OPTIONS:
            
         <Help><![CDATA[
 SYNOPSIS
-  \unset var_name
+  \unset var_name [var_name ...]
               
 DESCRIPTION
-  Unsets a jsqsh variable. It is important to note that
-  it will not prevent you from removing "special" variables
-  (such as $lineno). If you do inadvertantly remove a special
-  variable, you'll need to quit and re-start jsqsh to get it
-  back.
+  Unsets one or more jsqsh variables. Note that any variable that appears in
+  "\help vars" is a special configuration variable and may not be unset with
+  this command.
               
-  Removing a session-local variable (created with \set -x),
-  will re-expose any global variable of the same name. Two
-  calls to \set would need to be invoked to completely remove
-  the variable in this case.
+  Removing a session-local variable (created with \set -x), will re-expose 
+  any global variable of the same name. Two calls to \set would need to be 
+  invoked to completely remove the variable in this case.
+  
 OPTIONS:
   None.
          ]]></Help>

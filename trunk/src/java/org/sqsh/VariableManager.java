@@ -242,6 +242,17 @@ public class VariableManager
     }
     
     /**
+     * Adds a variable that can never be removed.
+     * @param var
+     */
+    public void putUnremoveable(Variable var) {
+        
+    	var.setRemoveable(false);
+        var.setManager(this);
+        variables.put(var.getName(), var);
+    }
+    
+    /**
      * Returns true of the manager contains the provided key.
      * 
      * @param key The name of a variable.
@@ -400,15 +411,23 @@ public class VariableManager
      * @return The variable that was removed or null if the variable
      *   was not defined in the first place.
      */
+    @Override
     public String remove(Object name) {
         
-        Variable var = variables.remove(name);
-        if (var != null) {
+        Variable var = variables.get(name);
+        if (var == null && parent != null) {
             
-            return var.toString();
+            return parent.remove(name);
         }
         
-        return null;
+        if (!var.isRemoveable()) {
+       
+            throw new IllegalAccessError("Variable \"" + name + "\" is a "
+                + "configuration variable and cannot be unset");
+        }
+        
+        variables.remove(name);
+        return var.toString();
     }
     
     /**
@@ -456,7 +475,7 @@ public class VariableManager
         
         path = "Variables/String";
         digester.addObjectCreate(path, "org.sqsh.variables.StringVariable");
-        digester.addSetNext(path, "put", "org.sqsh.Variable");
+        digester.addSetNext(path, "putUnremoveable", "org.sqsh.Variable");
         digester.addCallMethod(path, 
             "setName", 1, new Class[] { java.lang.String.class });
             digester.addCallParam(path, 0, "name");
@@ -466,7 +485,7 @@ public class VariableManager
             
         path = "Variables/Integer";
         digester.addObjectCreate(path, "org.sqsh.variables.IntegerVariable");
-        digester.addSetNext(path, "put", "org.sqsh.Variable");
+        digester.addSetNext(path, "putUnremoveable", "org.sqsh.Variable");
         digester.addCallMethod(path, 
             "setName", 1, new Class[] { java.lang.String.class });
             digester.addCallParam(path, 0, "name");
@@ -482,7 +501,7 @@ public class VariableManager
             
         path = "Variables/Dynamic";
         digester.addObjectCreate(path, "org.sqsh.Variable", "class");
-        digester.addSetNext(path, "put", "org.sqsh.Variable");
+        digester.addSetNext(path, "putUnremoveable", "org.sqsh.Variable");
         digester.addCallMethod(path, 
             "setName", 1, new Class[] { java.lang.String.class });
             digester.addCallParam(path, 0, "name");
@@ -492,7 +511,7 @@ public class VariableManager
             
         path = "Variables/Property";
         digester.addObjectCreate(path,  "org.sqsh.variables.PropertyVariable");
-        digester.addSetNext(path, "put", "org.sqsh.Variable");
+        digester.addSetNext(path, "putUnremoveable", "org.sqsh.Variable");
         digester.addCallMethod(path, 
             "setName", 1, new Class[] { java.lang.String.class });
             digester.addCallParam(path, 0, "name");
