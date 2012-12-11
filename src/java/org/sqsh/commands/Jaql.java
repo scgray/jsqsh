@@ -201,7 +201,7 @@ public class Jaql
         
         if (options.jars != null) {
             
-            com.ibm.jaql.lang.Jaql.addExtensionJars(options.jars.split(","));
+            engine.addJars(options.jars.split(","));
         }
         
         JaqlConnection conn = new JaqlConnection(session, engine, formatter);
