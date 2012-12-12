@@ -146,6 +146,10 @@ public class SQLDriverManager {
 
             return driver.jdbcCompliant();
         }
+
+        public Logger getParentLogger() {
+            return LOG;
+        }
     }
     
     
