@@ -371,7 +371,7 @@ public class VisualTimer {
                 sb.setLength(0);
                 
                 // 15 == "Elapsed time: ".length()
-                ansi.cursorLeft(15 + nback);
+                ansi.cursorLeft(15 + nback).eraseLine(Ansi.Erase.FORWARD);
                 out.print(sb);
                 out.flush();
                 

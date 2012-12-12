@@ -1097,7 +1097,7 @@ public class SQLRenderer {
         
         Renderer renderer = session.getRendererManager().getCommandRenderer(
             session);
-        ColumnDescription []cols = new ColumnDescription[9];
+        ColumnDescription []cols = new ColumnDescription[10];
         
         cols[0] = new ColumnDescription("NAME", -1);
         cols[1] = new ColumnDescription("LABEL", -1);
@@ -1111,9 +1111,12 @@ public class SQLRenderer {
         cols[5] = new ColumnDescription("SCALE", -1,
             ColumnDescription.Alignment.RIGHT,
             ColumnDescription.OverflowBehavior.TRUNCATE);
-        cols[6] = new ColumnDescription("CATALOG", -1);
-        cols[7] = new ColumnDescription("SCHEMA", -1);
-        cols[8] = new ColumnDescription("TABLE", -1);
+        cols[6] = new ColumnDescription("NULLABLE", -1,
+            ColumnDescription.Alignment.RIGHT,
+            ColumnDescription.OverflowBehavior.TRUNCATE);
+        cols[7] = new ColumnDescription("CATALOG", -1);
+        cols[8] = new ColumnDescription("SCHEMA", -1);
+        cols[9] = new ColumnDescription("TABLE", -1);
         
         renderer.header(cols);
         
@@ -1131,16 +1134,17 @@ public class SQLRenderer {
                 try { table = meta.getTableName(i); }
                     catch (SQLException e) { /* IGNORED */ }
                 
-                String row[] = new String[9];
+                String row[] = new String[10];
                 row[0] = meta.getColumnName(i);
                 row[1] = meta.getColumnLabel(i);
                 row[2] = meta.getColumnTypeName(i);
                 row[3] = Integer.toString(meta.getColumnDisplaySize(i));
                 row[4] = Integer.toString(meta.getPrecision(i));
                 row[5] = Integer.toString(meta.getScale(i));
-                row[6] = catalog;
-                row[7] = schema;
-                row[8] = table;
+                row[6] = Integer.toString(meta.isNullable(i));
+                row[7] = catalog;
+                row[8] = schema;
+                row[9] = table;
                 
                 renderer.row(row);
             }
