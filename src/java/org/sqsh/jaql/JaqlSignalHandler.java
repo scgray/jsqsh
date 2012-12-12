@@ -47,5 +47,6 @@ public class JaqlSignalHandler
 
         triggered = true;
         context.interrupt();
+        System.out.println("^C");
     }
 }

@@ -503,10 +503,7 @@ public class JaqlConnection
                 }
                 */
                 
-                JsonIterator iter = engine.currentQuery();
-                
-                // Stop the timer now that we are going to display output
-                session.stopVisualTimer();
+                JsonIterator iter = new JsonIteratorWrapper(session, engine.currentQuery());
                 
                 int nrows = formatter.write(out, iter);
                 
@@ -621,6 +618,43 @@ public class JaqlConnection
         catch (IOException e)
         {
             /* IGNORED */
+        }
+    }
+    
+    /**
+     * Simple wrapper around the data iterator that will automatically shut
+     * off the visual timer as soon as the first item has been fetched from
+     * the actual iterator.
+     */
+    private static class JsonIteratorWrapper
+        extends JsonIterator
+    {
+        JsonIterator iter;
+        Session session;
+        boolean stoppedTimer = false;
+        
+        public JsonIteratorWrapper(Session session, JsonIterator iter) {
+            
+            this.session = session;
+            this.iter = iter;
+        }
+
+        @Override
+        public boolean moveNext() throws Exception {
+            
+            boolean hasNext = iter.moveNext();
+            
+            if (!stoppedTimer) {
+                
+                session.stopVisualTimer();
+                stoppedTimer = true;
+            }
+            
+            if (!hasNext)
+                return false;
+            
+            currentValue = iter.current();
+            return true;
         }
     }
 }
