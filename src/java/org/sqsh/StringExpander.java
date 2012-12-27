@@ -633,7 +633,7 @@ public class StringExpander
 
         if (level >= LogChute.WARN_ID) {
             
-            session.err.println(logPrefix(level)
+            System.err.println(logPrefix(level)
                 + ": Failed while performing variable expansion processing: "
                 + message);
         }

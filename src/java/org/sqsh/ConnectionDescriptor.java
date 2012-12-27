@@ -495,5 +495,30 @@ public class ConnectionDescriptor
         
         return false;
     }
-    
+
+    @Override
+    public String toString() {
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("server=").append(server);
+        sb.append(", port=").append(port);
+        sb.append(", database=").append(database);
+        sb.append(", username=").append(username);
+        sb.append(", password=").append(password);
+        sb.append(", domain=").append(domain);
+        sb.append(", SID=").append(SID);
+        sb.append(", driverClass=").append(driverClass);
+        sb.append(", driverName=").append(driverName);
+        sb.append(", url=").append(url);
+        sb.append(", name=").append(name);
+        sb.append(", properties=[");
+        for (int i = 0; i < properties.size(); i++)
+        {
+            if (i > 0)
+                sb.append(',');
+            sb.append(properties.get(i));
+        }
+        sb.append(']');
+        return sb.toString();
+    }
 }

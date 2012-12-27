@@ -1,3 +1,13 @@
+Release 2.1 (SNAPSHOT)
+
+Bug Fixes
+  * The visual timer is better about clearing itself before results are
+    displayed
+  * Connection variables, such as $server, will expand correctly now. 
+    Previously these would only contain a value if the value was provided 
+    explicitly, but when the value was provided explicitly by the driver
+    definition, the value would be null.
+
 Release 2.0
 
 New Features

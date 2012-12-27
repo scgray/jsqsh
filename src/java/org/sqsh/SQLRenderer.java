@@ -349,7 +349,12 @@ public class SQLRenderer {
             sigMan.push(sigHandler);
             
             startTime = System.currentTimeMillis();
-            ok = execute(renderer, session, statement, statement.execute());
+            
+            boolean hasResults = statement.execute();
+            
+            session.stopVisualTimer();
+            
+            ok = execute(renderer, session, statement, hasResults);
             
             /*
              * If there were any output parameters, then try to display 
@@ -434,7 +439,12 @@ public class SQLRenderer {
             sigMan.push(sigHandler);
             
             startTime = System.currentTimeMillis();
-            ok = execute(renderer, session, statement, statement.execute());
+            
+            boolean hasResults = statement.execute();
+            
+            session.stopVisualTimer();
+            
+            ok = execute(renderer, session, statement, hasResults);
         }
         finally {
             
@@ -507,8 +517,12 @@ public class SQLRenderer {
                 sigMan.push(sigHandler);
                 
                 startTime = System.currentTimeMillis();
-                ok = execute(renderer, session, statement, 
-                    ((PreparedStatement) statement).execute());
+                
+                boolean hasResults = ((PreparedStatement) statement).execute();
+                
+                session.stopVisualTimer();
+                
+                ok = execute(renderer, session, statement, hasResults);
             }
             else  {
 
@@ -520,7 +534,12 @@ public class SQLRenderer {
                 sigMan.push(sigHandler);
                 
                 startTime = System.currentTimeMillis();
-                ok = execute(renderer, session, statement, statement.execute(sql));
+                
+                boolean hasResults = statement.execute(sql);
+                
+                session.stopVisualTimer();
+                
+                ok = execute(renderer, session, statement, hasResults);
             }
         }
         finally {
@@ -928,11 +947,6 @@ public class SQLRenderer {
         int rowCount = 0;
         while (resultSet.next()) {
             
-            /*
-             * First result set back stops the visual timer.
-             */
-            session.stopVisualTimer();
-            
             SQLTools.printWarnings(session, resultSet);
             ++rowCount;
             if (firstRowTime == 0L && rowCount == 1) {
@@ -988,11 +1002,6 @@ public class SQLRenderer {
         renderer.header(columns);
         
         while (resultSet.next()) {
-            
-            /*
-             * The first result set back stops the timer.
-             */
-            session.stopVisualTimer();
             
             SQLTools.printWarnings(session, resultSet);
             
