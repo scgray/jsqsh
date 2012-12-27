@@ -16,9 +16,13 @@
 package org.sqsh;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.sqsh.ConnectionDescriptor;
+import org.sqsh.SQLDriver;
+import org.sqsh.SQLDriverManager;
 import org.sqsh.analyzers.SQLAnalyzer;
 import org.sqsh.input.completion.Completer;
 import org.sqsh.input.completion.DatabaseObjectCompleter;
@@ -287,13 +291,14 @@ public class SQLConnectionContext
         return connDesc.getName();
     }
     
+    
     /**
      * @return
      * @see org.sqsh.ConnectionDescriptor#getCatalog()
      */
     public String getCatalog () {
 
-        return connDesc.getCatalog();
+        return getProperty(connDesc.getCatalog(), SQLDriver.DATABASE_PROPERTY);
     }
 
     /**
@@ -302,7 +307,7 @@ public class SQLConnectionContext
      */
     public String getDomain () {
 
-        return connDesc.getDomain();
+        return getProperty(connDesc.getDomain(), SQLDriver.DOMAIN_PROPERTY);
     }
 
     /**
@@ -338,7 +343,7 @@ public class SQLConnectionContext
      */
     public String getPassword () {
 
-        return connDesc.getPassword();
+        return getProperty(connDesc.getPassword(), SQLDriver.PASSWORD_PROPERTY);
     }
 
     /**
@@ -347,7 +352,19 @@ public class SQLConnectionContext
      */
     public int getPort () {
 
-        return connDesc.getPort();
+        int port = connDesc.getPort();
+        if (port > 0) {
+            
+            return port;
+        }
+        
+        String prop = getProperty(null, SQLDriver.PORT_PROPERTY);
+        if (prop == null) {
+            
+            prop = "-1";
+        }
+        
+        return Integer.parseInt(prop);
     }
 
     /**
@@ -356,7 +373,7 @@ public class SQLConnectionContext
      */
     public String getServer () {
 
-        return connDesc.getServer();
+        return getProperty(connDesc.getServer(), SQLDriver.SERVER_PROPERTY);
     }
 
     /**
@@ -365,7 +382,7 @@ public class SQLConnectionContext
      */
     public String getSid () {
 
-        return connDesc.getSid();
+        return getProperty(connDesc.getSid(), SQLDriver.SID_PROPERTY);
     }
 
     /**
@@ -374,7 +391,7 @@ public class SQLConnectionContext
      */
     public String getUsername () {
 
-        return connDesc.getUsername();
+        return getProperty(connDesc.getUsername(), SQLDriver.USER_PROPERTY);
     }
 
     /**
@@ -425,5 +442,37 @@ public class SQLConnectionContext
             
             /* IGNORED */
         }
+    }
+    
+    /**
+     * Used to retrieve connection values that were provided by the driver
+     * definition and not necessarily explicitly provided by connection 
+     * descriptor itself
+     * 
+     * @param descValue The value contained in the connection descriptor. If
+     *   not null, this is returned.
+     * @param driverVariable The driver variable that will provide the value
+     *   if the connection descriptor value is null
+     * @return The value that was used to connect or null if not provided
+     */
+    private String getProperty(String descValue, String driverVariable) {
+        
+        if (descValue != null) {
+            
+            return descValue;
+        }
+        
+        if (connDesc.getDriver() != null) {
+            
+            SQLDriverManager manager = session.getDriverManager();
+            SQLDriver driver = manager.getDriver(connDesc.getDriver());
+            
+            if (driver != null) {
+                
+                return driver.getVariable(driverVariable);
+            }
+        }
+        
+        return null;
     }
 }

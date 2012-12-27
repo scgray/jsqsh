@@ -40,6 +40,7 @@ import com.ibm.jaql.json.util.JsonIterator;
 import com.ibm.jaql.lang.ExceptionHandler;
 import com.ibm.jaql.lang.JaqlQuery;
 import com.ibm.jaql.lang.core.Context;
+import com.ibm.jaql.lang.expr.stats.CallStatsManager;
 // import com.ibm.jaql.predict.ProgressEstimation;
 import com.ibm.jaql.util.FastPrintStream;
 
@@ -571,6 +572,8 @@ public class JaqlConnection
                + TimeUtils.millisToDurationString(stop - start)
                + ")");
         }
+        
+        CallStatsManager.instance().report(session.err);
     }
     
     /**
