@@ -137,7 +137,32 @@ public class Show
         public String tableType = null;
         
         @Argv(program="\\show", min=1, max=5,
-            usage="[-t table-pat] [-s schema-pat] [tables [<type>]]")
+            usage="[options] [\n" 
+               + "           attributes [<pattern>]\n"
+               + "         | catalogs\n"
+               + "         | client info\n"
+               + "         | column privs [<col-pattern>]\n"
+               + "         | columns [-e] [<tab-pattern>]\n"
+               + "         | driver version\n"
+               + "         | exported keys [<tab-pattern>]\n"
+               + "         | function params [-e] [<func-pattern>]\n"
+               + "         | functions [-e] [<func-pattern>]\n"
+               + "         | imported keys [<tab-pattern>]\n"
+               + "         | primary keys [<tab-pattern>]\n"
+               + "         | procedure params [-e] [<proc-pattern>]\n"
+               + "         | procedures [<proc-pattern>]\n"
+               + "         | server version\n"
+               + "         | schemas [<schema-pattern>]\n"
+               + "         | super tables [<tab-pattern>]\n"
+               + "         | super types [<type-pattern>]\n"
+               + "         | table privs [<tab-pattern>]\n"
+               + "         | tables [-e] [<tab-pattern>]\n"
+               + "         | table types\n"
+               + "         | types [-e]\n"
+               + "         | user types [<type-pattern]\n"
+               + "         | version columns <table>\n"
+               + "       ]"
+               )
         public List<String> arguments = new ArrayList<String>();
         
         /*
