@@ -152,7 +152,8 @@ public class BufferManager
      *        in history. That is, !. means the current buffer, !.. the
      *        previous, !..., the one before that, etc.
      *   <li> <b>!N</b> Indicates a specific position in history with 0
-     *        being the current buffer.
+     *        being the current buffer. A negative value may also be provided
+     *        to retrieve the N'th previous buffer.
      * </ol>
      * 
      * @param  The name  of the buffer to fetch.
@@ -184,6 +185,25 @@ public class BufferManager
                 }
                 
                 return null;
+            }
+            else if (bufferName.length() > 2 && bufferName.charAt(1) == '-'
+                    && Character.isDigit(bufferName.charAt(2))) {
+                
+                int start = 2;
+                int end = 3;
+                while (end < bufferName.length() 
+                    && Character.isDigit(bufferName.charAt(end))) {
+                    
+                    ++end;
+                }
+                
+                int nback = Integer.valueOf(bufferName.substring(start, end)) + 1;
+                int idx = buffers.size() - nback;
+                if (idx < 0) {
+                    
+                    return null;
+                }
+                return buffers.get(idx);
             }
             else if (Character.isDigit(bufferName.charAt(1))){
                 
