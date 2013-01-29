@@ -3,6 +3,11 @@ Release 2.1 (SNAPSHOT)
 New Features
   * The !N history recall now allows negative values, so "!-2" means
     you want to edit query you executed two queries prior.
+  * New variables $dflt_driver, $dflt_username, $dflt_database available
+    to provide defaults for connection arguments that are not supplied.
+  * New $autoconnect variable may be used to autoconnect when jsqsh starts
+    up.  It can be "true" (use the $dflt_* variables to establish the 
+    connection, or a named connection, or "false" to disable autoconnect.
 
 Bug Fixes
   * The visual timer is better about clearing itself before results are

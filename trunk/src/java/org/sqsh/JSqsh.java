@@ -27,6 +27,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.LogManager;
 
+import org.sqsh.commands.Help;
 import org.sqsh.commands.Jaql;
 import org.sqsh.input.ConsoleLineReader;
 import org.sqsh.options.Argv;
@@ -115,6 +116,11 @@ public class JSqsh {
            description="Sets the display width of output")
        public int width = -1;
        
+       @OptionProperty(
+           option='t', longOption="topic", arg=REQUIRED, argName="topic",
+           description="Displays detailed help on specific topics")
+       public String topic = null;
+       
        @Argv(program="jsqsh", min=0, max=1, usage="[options] [connection-name]")
        public List<String> arguments = new ArrayList<String>();
     }
@@ -148,6 +154,7 @@ public class JSqsh {
                 + "additional information");
             System.exit(0);
         }
+        
         
         configureLogging(options.debug);
         
@@ -207,6 +214,11 @@ public class JSqsh {
         try {
             
             Session session = sqsh.newSession();
+            
+            if (options.topic != null) {
+            
+                System.exit(Help.displayHelpText(session, options.topic));
+            }
             
             if (options.jaqlMode 
                     || options.jaqlJars != null
@@ -505,11 +517,15 @@ public class JSqsh {
         
         ConnectionDescriptor connDesc = (ConnectionDescriptor)options;
         
+        String autoConnect = session.getVariable("autoconnect");
+        boolean ok = true;
+        
         /*
          * If any one of our options having to do with establish a connection
          * have been provided, then connect!
          */
-        if (options.getServer() != null
+        if ((autoConnect != null && ! "false".equals(autoConnect))
+                || options.getServer() != null
                 || options.getPort() != -1
                 || options.getCatalog() != null
                 || options.getUsername() != null
@@ -520,37 +536,68 @@ public class JSqsh {
                 || options.getDomain() != null
                 || options.arguments.size() > 0) {
             
+            String connName = null;
             if (options.arguments.size() > 0) {
                 
-                String name = options.arguments.get(0);
+                connName = options.arguments.get(0);
+            }
+            else if (autoConnect != null 
+                && !"true".equals(autoConnect)
+                && !"false".equals(autoConnect)) {
+                
+                connName = autoConnect;
+            }
+            
+            if (connName != null) {
+                
                 ConnectionDescriptorManager connDescMan = 
                     session.getConnectionDescriptorManager();
                 
-                ConnectionDescriptor savedOptions = connDescMan.get(name);
+                ConnectionDescriptor savedOptions = connDescMan.get(connName);
                 if (savedOptions == null) {
                     
                     session.err.println("There is no saved connection "
-                        + "information named '" + name + "'.");
+                        + "information named '" + connName + "'.");
                     
-                    return false;
+                    ok = false;
                 }
+                else {
                 
-                connDesc = connDescMan.merge(savedOptions, connDesc);
+                    connDesc = connDescMan.merge(savedOptions, connDesc);
+                }
             }
             
-            try {
+            if (ok) {
                 
-                ConnectionContext ctx = 
-                    session.getDriverManager().connect(session, connDesc);
-                session.setConnectionContext(ctx);
-            }
-            catch (SQLException e) {
-                
-                SQLTools.printException(session, e);
-                return false;
-            }
+	            try {
+	                
+	                ConnectionContext ctx = 
+	                    session.getDriverManager().connect(session, connDesc);
+	                session.setConnectionContext(ctx);
+	            }
+	            catch (SQLException e) {
+	                
+	                SQLTools.printException(session, e);
+	                ok = false;
+	            }
+	        }
         }
         
-        return true;
+        if (!ok)
+        {
+	        session.err.println("Unable to establish connection.");
+	        session.err.println("  For general command line option help use: jsqsh --help");
+	        session.err.println("  For detailed command line option help use: jsqsh --topic=jsqsh");
+	        
+	        if (autoConnect != null && ! "false".equals(autoConnect)) {
+	            
+	            session.err.println();
+	            session.err.println("  Autoconnect is enabled. Use -vautoconnect=false to disable. This");
+	            session.err.println("  will present you with the jsqsh prompt where the \"\\help\" command");
+	            session.err.println("  can be used to view more jsqsh help topics");
+	        }
+        }
+	        
+        return ok;
     }
 }
