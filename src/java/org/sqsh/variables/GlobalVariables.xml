@@ -88,6 +88,28 @@ SEE ALSO
         ]]></Help>
 	</String>
 	
+	<String name="autoconnect" value="false">
+        <Description>Causes a connect attempt when jsqsh starts</Description>
+        <Help><![CDATA[
+VARIABLE
+   autoconnect - Causes jsqsh to attempt to connect automatically on startup
+
+DESCRIPTION
+   The ${autoconnect} variable should be set in your $HOME/.jsqsh/sqshrc file
+   and is used to control whether or not jsqsh will attempt to establish a 
+   connection automatically when jsqsh starts. This may have one of the 
+   following values:
+   
+   false   Autoconnect is disabled
+   true    Autoconnect is enabled, and will use the default JDBC driver
+           as set with $dflt_driver and its default settings to connect with.
+   other   Indicates the name of a saved connection to use on startup.        
+   
+SEE ALSO
+   dflt_driver
+        ]]></Help>
+	</String>
+	
 	<Property bean="global" name="terminator" property="terminatorString">
         <Description>Defines the SQL statement terminator</Description>
         <Help><![CDATA[
@@ -673,7 +695,35 @@ SEE ALSO
         ]]></Help>
     </Property>
     
+	<Property bean="global" name="dflt_username" property="driverManager.defaultUsername">
+		<Description>Controls the default username for new connections</Description>
+        <Help><![CDATA[
+VARIABLE
+   dflt_username - Controls the default username for new connections
+
+DESCRIPTION
+   The $dflt_username variable specifies the username to use for all connections if the
+   username is not explicitly provided.
+   
+SEE ALSO
+   dflt_driver, dflt_database
+        ]]></Help>
+    </Property>
     
+	<Property bean="global" name="dflt_driver" property="driverManager.defaultDriver">
+		<Description>Controls the default JDBC driver name for new connections</Description>
+        <Help><![CDATA[
+VARIABLE
+   dflt_driver - Controls the default JDBC driver name for new connections
+
+DESCRIPTION
+   The $dflt_driver specifies the logical JDBC driver name to be used for connections
+   when no driver name is explicitly provided
+   
+SEE ALSO
+   dflt_driver, dflt_username, dflt_database, \drivers
+        ]]></Help>
+    </Property>
 	
 	<Property bean="global" name="dflt_autocommit" property="driverManager.defaultAutoCommit">
 		<Description>Controls the autocommit setting for new connections</Description>
@@ -682,7 +732,7 @@ VARIABLE
    dflt_autocommit - Controls the autocommit setting for new connections
 
 DESCRIPTION
-   The "dflt_autocommit" variables controls the SQL auto-commit setting 
+   The $dflt_autocommit variables controls the SQL auto-commit setting 
    that will be set for all new connections that are created.  Auto-commit
    refers to the transaction mode that a connection uses; when auto-commit
    is true, then each statement issued is executed as if it was in its

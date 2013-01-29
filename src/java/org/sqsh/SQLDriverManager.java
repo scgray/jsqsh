@@ -54,6 +54,11 @@ public class SQLDriverManager {
         new HashMap<String, SQLDriver>();
     
     /**
+     * The default username to connect with ($dflt_username)
+     */
+    private String defaultUsername = null;
+    
+    /**
      * If not null, this controls the default database that connections 
      * will be placed in.
      */
@@ -64,6 +69,11 @@ public class SQLDriverManager {
      * created by the drivers.
      */
     private boolean defaultAutoCommit = true;
+    
+    /**
+     * The default JDBC driver name to use.
+     */
+    private String defaultDriver = "generic";
     
     /**
      * This is the class loader that is used to attempt to load our JDBC
@@ -222,6 +232,56 @@ public class SQLDriverManager {
     }
     
     /**
+     * @return The default username
+     */
+    public String getDefaultUsername() {
+    
+        return defaultUsername;
+    }
+    
+    /**
+     * Sets the default username to connect with
+     * @param user The username to connect with
+     */
+    public void setDefaultUsername(String user) {
+    
+        if (user == null || "".equals(user) || "null".equals(user)) {
+            
+            this.defaultUsername = null;
+        }
+        else {
+            
+            this.defaultUsername = user;
+        }
+    }
+    
+    /**
+     * @return The default JDBC driver name that will be used for new connections
+     */
+    public String getDefaultDriver() {
+    
+        return defaultDriver;
+    }
+    
+    /**
+     * Sets the default JDBC driver name to be used for new connections
+     * @param defaultDriver The default driver name
+     */
+    public void setDefaultDriver(String driver) {
+        
+        if (driver == null || "".equals(driver) || "null".equals(driver)) {
+            
+            this.defaultDriver = null;
+        }
+        else {
+            
+            this.defaultDriver = driver;
+        }
+    
+        this.defaultDriver = driver;
+    }
+
+    /**
      * Sets a new classpath that will be used to search for JDBC drivers.
      * 
      * @param classpath A delimited list of jars or directories containing
@@ -362,7 +422,7 @@ public class SQLDriverManager {
          */
         if (connDesc.getDriver() == null) {
             
-            connDesc.setDriver(session.getVariable("dflt_driver"));
+            connDesc.setDriver(defaultDriver);
         }
         
         /*
@@ -509,7 +569,15 @@ public class SQLDriverManager {
                 sqlDriver.getVariables(), SQLDriver.USER_PROPERTY);
             if (s == null) {
                 
-                s = promptInput(session, "Username", false);
+                if (defaultUsername == null) {
+                    
+                    s = System.getProperty("user.name");
+                }
+                
+                if (s == null) {
+                    
+                    s = promptInput(session, "Username", false);
+                }
                 connDesc.setUsername(s);
             }
             props.put(SQLDriver.USER_PROPERTY, s);

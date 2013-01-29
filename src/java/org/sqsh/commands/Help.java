@@ -107,7 +107,7 @@ public class Help
      * @param word The topic to look for.
      * @return 0 if the topic was found and displayed, 1 otherwise.
      */
-    private int displayHelpText(Session session, String word) {
+    public static int displayHelpText(Session session, String word) {
         
         int rc = 0;
         
