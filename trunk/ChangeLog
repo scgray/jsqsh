@@ -12,6 +12,8 @@ New Features
 Bug Fixes
   * The visual timer is better about clearing itself before results are
     displayed
+  * JSqsh will try to recognize tabs that come from a cut and paste 
+    operation and avoid doing tab completion under those circumstances.
   * Connection variables, such as $server, will expand correctly now. 
     Previously these would only contain a value if the value was provided 
     explicitly, but when the value was provided explicitly by the driver
