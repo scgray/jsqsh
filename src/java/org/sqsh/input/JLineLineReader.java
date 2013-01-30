@@ -48,6 +48,7 @@ public class JLineLineReader
             reader.setExpandEvents(false);
             
             reader.setHistoryEnabled(true);
+            reader.setCopyPasteDetection(true);
             reader.addCompleter(new JLineTabCompleter(ctx));
         }
         catch (IOException e) {
