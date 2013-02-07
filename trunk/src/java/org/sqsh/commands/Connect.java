@@ -146,6 +146,7 @@ public class Connect
                 return 0;
             }
             
+            
             /*
              * If we had previously saved away some options, then we take
              * those options and merge in any additional options that the
@@ -154,6 +155,11 @@ public class Connect
             if (savedOptions != null) {
                 
                 connDesc = connDescMan.merge(savedOptions, connDesc);
+            }
+            
+            if (options.toggleAutoconnect) {
+                
+                connDesc.setAutoconnect(! connDesc.isAutoconnect());
             }
         }
         else {
@@ -235,6 +241,8 @@ public class Connect
     private void doList(Session session, boolean showPassword) {
         
         ColumnDescription []columns = new ColumnDescription[11];
+        boolean hasStar = false;
+        
         columns[0]  = new ColumnDescription("Name", -1);
         columns[1]  = new ColumnDescription("Driver", -1);
         columns[2]  = new ColumnDescription("Server", -1);
@@ -268,7 +276,14 @@ public class Connect
         for (ConnectionDescriptor connDesc : connDescs) {
             
             String row[] = new String[11];
-            row[0] = connDesc.getName();
+            String name = connDesc.getName();
+            if (connDesc.isAutoconnect()) {
+                
+                name = "*" + name;
+                hasStar = true;
+            }
+            
+            row[0] = name;
             row[1] = (connDesc.getDriver() == null ?
                         formatter.getNull() : connDesc.getDriver());
             row[2] = (connDesc.getServer() == null ?
@@ -318,5 +333,12 @@ public class Connect
         }
         
         renderer.flush();
+        
+        if (hasStar) {
+            
+            session.out.println();
+            session.out.println("* = Connection is set for autoconnect");
+            session.out.println();
+        }
     }
 }

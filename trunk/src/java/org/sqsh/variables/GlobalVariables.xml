@@ -88,28 +88,6 @@ SEE ALSO
         ]]></Help>
 	</String>
 	
-	<String name="autoconnect" value="false">
-        <Description>Causes a connect attempt when jsqsh starts</Description>
-        <Help><![CDATA[
-VARIABLE
-   autoconnect - Causes jsqsh to attempt to connect automatically on startup
-
-DESCRIPTION
-   The ${autoconnect} variable should be set in your $HOME/.jsqsh/sqshrc file
-   and is used to control whether or not jsqsh will attempt to establish a 
-   connection automatically when jsqsh starts. This may have one of the 
-   following values:
-   
-   false   Autoconnect is disabled
-   true    Autoconnect is enabled, and will use the default JDBC driver
-           as set with $dflt_driver and its default settings to connect with.
-   other   Indicates the name of a saved connection to use on startup.        
-   
-SEE ALSO
-   dflt_driver
-        ]]></Help>
-	</String>
-	
 	<Property bean="global" name="terminator" property="terminatorString">
         <Description>Defines the SQL statement terminator</Description>
         <Help><![CDATA[
