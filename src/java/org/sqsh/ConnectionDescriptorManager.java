@@ -138,6 +138,10 @@ public class ConnectionDescriptorManager {
         
             n.addProperties(c2.getProperties());
         }
+        if (c2.isAutoconnect() != false) {
+            
+            n.setAutoconnect(true);
+        }
         
         return n;
     }
@@ -154,8 +158,41 @@ public class ConnectionDescriptorManager {
             LOG.fine("Adding " + connDesc.getName());
         }
         
+        /*
+         * There can be only one autoconnecting descriptor!
+         */
+        if (connDesc.isAutoconnect()) {
+            
+            for (ConnectionDescriptor desc : descriptors.values()) {
+                
+                if (desc != connDesc) {
+                    
+                    desc.setAutoconnect(false);
+                }
+            }
+        }
+        
         descriptors.put(connDesc.getName(), connDesc);
     }
+    
+    
+    /**
+     * @return The descriptor that is current set for autoconnect or null
+     *   if no descriptors have the attribute set.
+     */
+    public ConnectionDescriptor getAutoconnectDescriptor() {
+        
+        for (ConnectionDescriptor desc : descriptors.values()) {
+                
+            if (desc.isAutoconnect()) {
+                
+                return desc;
+            }
+        }
+        
+        return null;
+    }
+    
     
     /**
      * Removes a connection descriptor.
@@ -233,6 +270,11 @@ public class ConnectionDescriptorManager {
                     out.print("               sid=\"");
                     out.print(connDesc.getSid());
                     out.println("\"");
+                }
+                
+                if (connDesc.isAutoconnect()) {
+                    
+                    out.println("               autoconnect=\"true\"");
                 }
                 
                 if (connDesc.getDomain() != null) {

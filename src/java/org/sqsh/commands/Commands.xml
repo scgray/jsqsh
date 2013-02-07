@@ -1633,4 +1633,30 @@ SEE
       ]]></Help>
     </Command>
     
+    <Command name="\setup" class="org.sqsh.commands.Setup">
+
+        <Description><![CDATA[
+           Simple guided setup for managing named connections
+        ]]></Description>
+            <Help><![CDATA[
+SYNOPSIS
+   \setup
+
+DESCRIPTION
+   The \setup command provides a simple step-by-step setup for managing
+   named connections.  This connection management wizard provides most
+   (but not all!) functionality that can be performed using the \connect
+   command with the --list, --add, or --update options.  Notably absent
+   is the ability to define a named connection using just a JDBC class 
+   name and JDBC URL, and also there is no way to manage JDBC connection 
+   properties.
+
+OPTIONS
+   None
+
+SEE
+   connect
+      ]]></Help>
+    </Command>
+    
 </Commands>

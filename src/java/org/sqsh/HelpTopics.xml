@@ -12,36 +12,33 @@ DESCRIPTION
    in a variety of formats, as well as a number of advanced features, such
    as command line editing, history recall, piping of output to other commands,
    I/O redirection and much more. 
-   
-START UP
-   Upon startup, jsqsh performs the following activities:
-   
-   1. If $HOME/.jsqsh doesn't exist, it is created and populated with two
-      files, driver.xml and sqshrc. These files are described below.
-   2. If $HOME/.jsqsh/drivers.xml file is present, it is loaded. This file 
-      can be used to define JDBC drivers to jsqsh that it does not 
-      understand natively. The default drivers.xml file is empty, but has 
-      lots of comments and examples describing the format.
-   3. If $HOME/.jsqsh/sqshrc is read if present. This file main contain any
-      jsqsh command or directive, and is typically used to set default
-      configuration variables, classpath settings, aliases, etc.
-   4. If $HOME/.jsqsh/history.xml is present it is loaded. This file contains
-      your previous query execution history (see "\help history").
-   5. Any additional configuration directories specified with --config-dir (-C)
-      (see below) are processed in the same fashion as steps #2-#4.
-   6. Any additional driver definition files specified with --drivers (-R)
-      (see below) are loaded.
-   7. If any connection options were provided (see CONNECTION OPTIONS, below)
-      an attempt is made to connect with the driver. If this fails, jsqsh
-      exits.
-   8. The jsqsh prompt is presented (in interactive mode) or input is processed
-      if --input-file (-i) was provided.  
 
+NAMED CONNECTION SETUP
+   In the following sections, you will find a lot of options you may specify
+   to connect to a server (username, password, host, port, driver, etc.). To
+   avoid having to provide all of these options, jsqsh allow you to define a
+   named connection (or alias) for a set of connection properties and provides
+   a wizard for creating named connections.
+   
+  -S, --setup
+       Starts jsqsh's connection setup wizard. This will take you through a 
+       series of steps to manage your named connections. One the connection
+       wizard is complete you can use a named connection either by providing
+       the connection name to jsqsh on startup:
+       
+          shell$ jsqsh mydb
+          
+       or you can provide the name to the jsqsh \connect command at the jsqsh
+       prompt:
+       
+          1> \connect mydb
+   
 CONNECTION OPTIONS
-   The following options are all options available to the jsqsh "\connect"
-   command (see "\help connect").  The presence of any of these options will
-   cause jsqsh to automatically attempt to connect using the information
-   provided, as if you had executed the "\connect" command.
+   The following options are all options available on the jsqsh command line
+   as well as to its "\connect" command, which may issue from the jsqsh prompt.
+   The presence of any of these options on the command line will cause jsqsh 
+   to automatically attempt to connect using the information provided, as 
+   if you had executed the "\connect" command.
    
    In the help description below, you will see references to variables like
    "${db}" or "${server}". When an option says that it sets a given variable,
@@ -227,6 +224,31 @@ JAQL OPTIONS
        Provided a comma separated list of jars that will be made available to
        the jaql interpreter and pushed to Hadoop during job execution. This 
        flag automatically implies the --jaql flag as well.
+       
+START UP
+   Upon startup, jsqsh performs the following activities:
+   
+   1. If $HOME/.jsqsh doesn't exist, it is created and populated with two
+      files, driver.xml and sqshrc. These files are described below.
+   2. If $HOME/.jsqsh/drivers.xml file is present, it is loaded. This file 
+      can be used to define JDBC drivers to jsqsh that it does not 
+      understand natively. The default drivers.xml file is empty, but has 
+      lots of comments and examples describing the format.
+   3. If $HOME/.jsqsh/sqshrc is read if present. This file main contain any
+      jsqsh command or directive, and is typically used to set default
+      configuration variables, classpath settings, aliases, etc.
+   4. If $HOME/.jsqsh/history.xml is present it is loaded. This file contains
+      your previous query execution history (see "\help history").
+   5. Any additional configuration directories specified with --config-dir (-C)
+      (see below) are processed in the same fashion as steps #2-#4.
+   6. Any additional driver definition files specified with --drivers (-R)
+      (see below) are loaded.
+   7. If any connection options were provided (see CONNECTION OPTIONS, below)
+      an attempt is made to connect with the driver. If this fails, jsqsh
+      exits.
+   8. The jsqsh prompt is presented (in interactive mode) or input is processed
+      if --input-file (-i) was provided.  
+
 SEE ALSO
    connect, drivers    
           ]]></HelpText>

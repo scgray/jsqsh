@@ -16,6 +16,7 @@
 package org.sqsh;
 
 import static org.sqsh.options.ArgumentRequired.REQUIRED;
+import static org.sqsh.options.ArgumentRequired.NONE;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,7 +33,7 @@ import org.sqsh.options.OptionProperty;
  */
 public class ConnectionDescriptor
     extends SqshOptions
-    implements Cloneable {
+    implements Cloneable, Comparable<ConnectionDescriptor> {
     
     
     @OptionProperty(
@@ -90,6 +91,13 @@ public class ConnectionDescriptor
         description="JDBC url to use for connection")
     public String url = null;
     
+    @OptionProperty(
+        option='A', longOption="autoconnect", arg=NONE, argName="bool",
+        description="Allows jsqsh to automatically attempt to connect")
+    public boolean toggleAutoconnect = false;
+    
+    public boolean autoconnect;
+    
     /**
      * The name cannot be set with a flag.
      */
@@ -129,6 +137,100 @@ public class ConnectionDescriptor
         }
         
         return null;
+    }
+    
+    /**
+     * Given a {@link SQLDriver} property name, returns the value of that
+     * given property for this connection descriptor
+     * 
+     * @param name The name of the property (e.g. "user"))
+     * @return The value of the property, if set, or null if not set
+     */
+    public String getValueOf(String name) {
+        
+        if (name.equals(SQLDriver.DATABASE_PROPERTY)) {
+            
+            return getCatalog();
+        }
+        if (name.equals(SQLDriver.DOMAIN_PROPERTY)) {
+            
+            return getDomain();
+        }
+        if (name.equals(SQLDriver.PASSWORD_PROPERTY)) {
+            
+            return getPassword();
+        }
+        if (name.equals(SQLDriver.PORT_PROPERTY)) {
+            
+            if (getPort() < 0) {
+                
+                return null;
+            }
+            return Integer.toString(getPort());
+        }
+        if (name.equals(SQLDriver.SERVER_PROPERTY)) {
+            
+            return getServer();
+        }
+        if (name.equals(SQLDriver.SID_PROPERTY)) {
+            
+            return getSid();
+        }
+        if (name.equals(SQLDriver.USER_PROPERTY)) {
+            
+            return getUsername();
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Sets the value of an attribute of the descriptor by name
+     * @param name The name of the property (e.g. "user")
+     * @param value THe value to set
+     */
+    public void setValueOf(String name, String value) {
+        
+        if (value != null && value.length() == 0) {
+            
+            value = null;
+        }
+        
+        if (name.equals(SQLDriver.DATABASE_PROPERTY)) {
+            
+            setCatalog(value);
+        }
+        else if (name.equals(SQLDriver.DOMAIN_PROPERTY)) {
+            
+            setDomain(value);
+        }
+        if (name.equals(SQLDriver.PASSWORD_PROPERTY)) {
+            
+            setPassword(value);
+        }
+        if (name.equals(SQLDriver.PORT_PROPERTY)) {
+            
+            try {
+                
+                setPort(Integer.parseInt(value));
+            }
+            catch (NumberFormatException e) {
+                
+                /* What to do? */
+            }
+        }
+        if (name.equals(SQLDriver.SERVER_PROPERTY)) {
+            
+            setServer(value);
+        }
+        if (name.equals(SQLDriver.SID_PROPERTY)) {
+            
+            setSid(value);
+        }
+        if (name.equals(SQLDriver.USER_PROPERTY)) {
+            
+            setUsername(value);
+        }
     }
     
     /**
@@ -254,6 +356,28 @@ public class ConnectionDescriptor
             Crypto.encrypt(password.getBytes()));
     }
     
+    /**
+     * @return True if this connection is set to be used by jsqsh to 
+     *    automatically connect with upon startup.
+     */
+    public boolean isAutoconnect() {
+    
+        return autoconnect;
+    }
+
+    /**
+     * Sets whether or not this connection will automatically be used
+     * to establish a connection when jsqsh starts. Enabling autoconnect
+     * for one connection, turns it off for any other connection definition
+     * that had it set.
+     * 
+     * @param autoconnect True if autoconnect is enabled.
+     */
+    public void setAutoconnect(boolean autoconnect) {
+    
+        this.autoconnect = autoconnect;
+    }
+
     /**
      * Sets the password.
      * 
@@ -494,6 +618,12 @@ public class ConnectionDescriptor
         }
         
         return false;
+    }
+    
+    @Override
+    public int compareTo(ConnectionDescriptor o) {
+
+        return this.getName().compareTo(o.getName());
     }
 
     @Override

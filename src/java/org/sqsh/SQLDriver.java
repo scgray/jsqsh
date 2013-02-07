@@ -16,8 +16,11 @@
 package org.sqsh;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -26,7 +29,7 @@ import org.sqsh.analyzers.SQLAnalyzer;
 import org.sqsh.analyzers.NullAnalyzer;
 
 public class SQLDriver 
-    implements Comparable {
+    implements Comparable<SQLDriver> {
     
     private static final Logger LOG = 
         Logger.getLogger(SQLDriver.class.getName());
@@ -38,6 +41,45 @@ public class SQLDriver
     public static String DATABASE_PROPERTY = "db";
     public static String SID_PROPERTY = "SID";
     public static String DOMAIN_PROPERTY = "domain";
+    
+    /**
+     * Simple class to describe the set of variables used to configure the
+     * driver.
+     */
+    public static class DriverVariable implements Comparable<DriverVariable>{
+        
+        private String name;
+        private String displayName;
+        private String defaultValue;
+        
+        public DriverVariable (String name, String displayName, String defaultValue) {
+            
+            this.name = name;
+            this.displayName = displayName;
+            this.defaultValue = defaultValue;
+        }
+
+        public String getName() {
+        
+            return name;
+        }
+
+        public String getDisplayName() {
+        
+            return displayName;
+        }
+
+        public String getDefaultValue() {
+        
+            return defaultValue;
+        }
+
+        @Override
+        public int compareTo(DriverVariable o) {
+
+            return this.displayName.compareTo(o.displayName);
+        }
+    }
     
     private SQLDriverManager driverMan = null;
     private String name = null;
@@ -339,20 +381,90 @@ public class SQLDriver
     }
     
     /**
+     * @return A list of variables the driver actually uses and the default
+     *     value (if any) for each variable
+     */
+    public List<DriverVariable> getVariableDescriptions() {
+        
+        List<DriverVariable> vars = new ArrayList<SQLDriver.DriverVariable>();
+        
+        /*
+         * This is gross, I need to make real metadata somewhere.
+         */
+        String url = getUrl();
+        final int sz = url.length();
+        
+        int idx = 0;
+        while (idx < sz) {
+            
+            char ch = url.charAt(idx++);
+            if (ch == '$') {
+                
+                if (idx < sz && url.charAt(idx) == '{') {
+                    
+                    int start = ++idx;
+                    while (idx < sz && url.charAt(idx) != '}') {
+                        
+                        ++idx;
+                    }
+                    
+                    String name = url.substring(start, idx);
+                    ++idx;
+                    
+                    String displayName = null;
+                    if (name.equals(SERVER_PROPERTY)) {
+                        
+                        displayName = "Server";
+                    }
+                    else if (name.equals(PORT_PROPERTY)) {
+                        
+                        displayName = "Port";
+                    }
+                    else if (name.equals(DATABASE_PROPERTY)) {
+                        
+                        displayName = "Database/Schema";
+                    }
+                    else if (name.equals(SID_PROPERTY)) {
+                        
+                        displayName = "SID";
+                    }
+                    else if (name.equals(DOMAIN_PROPERTY)) {
+                        
+                        displayName = "Domain";
+                    }
+                    else {
+                        
+                        displayName = Character.toUpperCase(name.charAt(0)) + name.substring(1);
+                    }
+                    
+                    DriverVariable var = new DriverVariable(name, displayName, getVariable(name));
+                    
+                    if (! vars.contains(var)) {
+                        
+                        vars.add(new DriverVariable(name, displayName, getVariable(name)));
+                    }
+                }
+            }
+        }
+        
+        Collections.sort(vars);
+        
+        vars.add(new DriverVariable(USER_PROPERTY, "Username", System.getProperty("user.name")));
+        vars.add(new DriverVariable(PASSWORD_PROPERTY, "Password", null));
+        
+        return vars;
+    }
+    
+    /**
      * Compares the names of two drivers. This method is provided primarily
      * to allow for easy sorting of drivers on display.
      * 
      * @param o The object to compare to.
      * @return The results of the comparison.
      */
-    public int compareTo(Object o) {
+    public int compareTo(SQLDriver o) {
         
-        if (o instanceof SQLDriver) {
-            
-            return name.compareTo(((SQLDriver) o).getName());
-        }
-        
-        return -1;
+        return name.compareTo(((SQLDriver) o).getName());
     }
     
     /**

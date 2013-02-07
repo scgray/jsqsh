@@ -121,6 +121,11 @@ public class JSqsh {
            description="Displays detailed help on specific topics")
        public String topic = null;
        
+       @OptionProperty(
+           option='S', longOption="setup", arg=NONE, 
+           description="Enters jsqsh connection setup mode")
+       public boolean doSetup = false;
+       
        @Argv(program="jsqsh", min=0, max=1, usage="[options] [connection-name]")
        public List<String> arguments = new ArrayList<String>();
     }
@@ -214,6 +219,34 @@ public class JSqsh {
         try {
             
             Session session = sqsh.newSession();
+            
+            /*
+             * First time users, get some extra help
+             */
+            if (sqsh.isFirstTime() || options.doSetup) {
+                
+                sqsh.setReader(null, true);
+                session.out.println();
+                session.out.println("You will now be taken through a series of screen that allow you");
+                session.out.println("to define one or more connections.");
+                session.out.println();
+               
+                sqsh.getConsole().readline("Press enter to continue: ", false);
+                
+                Command command = session.getCommandManager().getCommand("\\setup");
+                command.execute(session, new String [] { });
+                
+                session.out.println();
+                session.out.println("You may now connect to a connection you defined using \\connect");
+                session.out.println();
+                session.out.println("   1> \\connect <name>");
+                session.out.println();
+                session.out.println("Where <name> is the name of a connection you defined, or you may");
+                session.out.println("provide this name to jsqsh when it starts to connect during startup.");
+                session.out.println("You may repeat this process by runing the \\setup command");
+                session.out.println();
+                session.out.println();
+            }
             
             if (options.topic != null) {
             
@@ -517,15 +550,13 @@ public class JSqsh {
         
         ConnectionDescriptor connDesc = (ConnectionDescriptor)options;
         
-        String autoConnect = session.getVariable("autoconnect");
         boolean ok = true;
         
         /*
          * If any one of our options having to do with establish a connection
          * have been provided, then connect!
          */
-        if ((autoConnect != null && ! "false".equals(autoConnect))
-                || options.getServer() != null
+        if (options.getServer() != null
                 || options.getPort() != -1
                 || options.getCatalog() != null
                 || options.getUsername() != null
@@ -540,12 +571,6 @@ public class JSqsh {
             if (options.arguments.size() > 0) {
                 
                 connName = options.arguments.get(0);
-            }
-            else if (autoConnect != null 
-                && !"true".equals(autoConnect)
-                && !"false".equals(autoConnect)) {
-                
-                connName = autoConnect;
             }
             
             if (connName != null) {
@@ -569,35 +594,42 @@ public class JSqsh {
             
             if (ok) {
                 
-	            try {
-	                
-	                ConnectionContext ctx = 
-	                    session.getDriverManager().connect(session, connDesc);
-	                session.setConnectionContext(ctx);
-	            }
-	            catch (SQLException e) {
-	                
-	                SQLTools.printException(session, e);
-	                ok = false;
-	            }
-	        }
+                try {
+                    
+                    ConnectionContext ctx = 
+                        session.getDriverManager().connect(session, connDesc);
+                    session.setConnectionContext(ctx);
+                }
+                catch (SQLException e) {
+                    
+                    SQLTools.printException(session, e);
+                    ok = false;
+                }
+            }
+        }
+        else {
+            
+            connDesc = 
+                session.getConnectionDescriptorManager().getAutoconnectDescriptor();
+            if (connDesc != null) {
+                
+                session.out.println("Automatically connecting with connection \"" 
+                    + connDesc.getName() + "\". Run with --setup to disable autoconnect if necessary.");
+                
+                try {
+                    
+                    ConnectionContext ctx = 
+                        session.getDriverManager().connect(session, connDesc);
+                    session.setConnectionContext(ctx);
+                }
+                catch (SQLException e) {
+                    
+                    SQLTools.printException(session, e);
+                    ok = false;
+                }
+            }
         }
         
-        if (!ok)
-        {
-	        session.err.println("Unable to establish connection.");
-	        session.err.println("  For general command line option help use: jsqsh --help");
-	        session.err.println("  For detailed command line option help use: jsqsh --topic=jsqsh");
-	        
-	        if (autoConnect != null && ! "false".equals(autoConnect)) {
-	            
-	            session.err.println();
-	            session.err.println("  Autoconnect is enabled. Use -vautoconnect=false to disable. This");
-	            session.err.println("  will present you with the jsqsh prompt where the \"\\help\" command");
-	            session.err.println("  can be used to view more jsqsh help topics");
-	        }
-        }
-	        
         return ok;
     }
 }

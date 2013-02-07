@@ -241,6 +241,11 @@ public class SqshContext {
     private boolean printExceptionClass = false;
     
     /**
+     * Set to true only if this is the first time jsqsh has been run.
+     */
+    private boolean isFirstTime = false;
+    
+    /**
      * Creates a new SqshContext. 
      * 
      * @param readerType The type of readline implementation to utilize. This
@@ -917,6 +922,15 @@ public class SqshContext {
     }
     
     /**
+     * @return true if this was the first time jsqsh was run by this user.
+     *   This is recognized 
+     */
+    public boolean isFirstTime() {
+        
+        return isFirstTime;
+    }
+    
+    /**
      * Returns the current session.
      * 
      * @return The current session or null if no session is active.
@@ -1290,6 +1304,7 @@ public class SqshContext {
         
         HelpTopic welcome = helpManager.getTopic("welcome");
         System.out.println(welcome.getHelp());
+        isFirstTime = true;
     }
     
     /**
