@@ -4,7 +4,7 @@ Section: utils
 Priority: optional
 Essential: no
 Architecture: @ARCH@
-Depends: sun-java5-bin|sun-java6-bin|openjdk-6-jre|openjdk-6-jdk,libreadline-java
+Depends: sun-java5-bin|sun-java6-bin|openjdk-6-jre|openjdk-6-jdk
 Installed-Size: 1024
 Maintainer: Scott Gray <scottgray1@gmail.com>
 Description: Command line shell for working with SQL databases 
