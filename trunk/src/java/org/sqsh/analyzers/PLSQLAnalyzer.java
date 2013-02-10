@@ -23,6 +23,12 @@ import org.sqsh.SimpleKeywordTokenizer;
  */
 public class PLSQLAnalyzer 
     implements SQLAnalyzer {
+    
+    @Override
+    public String getName() {
+
+        return "PL/SQL";
+    }
 
     /* (non-Javadoc)
      * @see org.sqsh.LanguageAnalyzer#isTerminated(java.lang.String, char)

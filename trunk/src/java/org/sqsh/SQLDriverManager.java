@@ -16,8 +16,10 @@
 package org.sqsh;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -82,6 +84,18 @@ public class SQLDriverManager {
      */
     private URLClassLoader classLoader = new URLClassLoader(
         new URL[0], getClass().getClassLoader());
+    
+    /**
+     * Turned on while loading the configuration files to make sure that 
+     * we don't go checking driver availablility every time a classpath
+     * entry is added.
+     */
+    private boolean disabledDriverVerification = false;
+    
+    /**
+     * Set to true while internal drivers are being loaded
+     */
+    private boolean isLoadingInternal = false;
     
     /**
      * Wrapper class around drivers that are to be loaded with my custom
@@ -293,44 +307,57 @@ public class SQLDriverManager {
     public void setClasspath(String classpath)
         throws IOException {
         
+        String []locations = classpath.split(System.getProperty("path.separator"));
+        
         List<URL> urls = new ArrayList<URL>();
-        
-        /*
-         * Split up our classpath based upon the system's path separator.
-         */
-        String []locations = classpath.split(System.getProperty(
-            "path.separator"));
-        
-        for (String location : locations) {
+        for (String loc : locations) {
             
-            File file = new File(location);
-            
-            /*
-             * If the provided location was a directory, then look inside
-             * of it can suck up every .jar file.
-             */
-            if (file.isDirectory()) {
-                
-                File []dirContents = file.listFiles();
-                for (File subFile : dirContents) {
-                    
-                    if (subFile.isFile()
-                            && subFile.getName().endsWith(".jar")) {
-                        
-                        urls.add(subFile.toURI().toURL());
-                    }
-                }
-            }
-            else if (file.exists()) {
-                
-                urls.add(file.toURI().toURL());
-            }
+            addClasspath(urls, loc);
         }
         
-        classLoader = new URLClassLoader(urls.toArray(new URL[0]),
-            this.getClass().getClassLoader());
-        
+        classLoader = new URLClassLoader(urls.toArray(new URL[0]), this.getClass().getClassLoader());
         checkDriverAvailability();
+    }
+    
+    /**
+     * @return The classloader used by the manager
+     */
+    public ClassLoader getClassLoader() {
+        
+        return classLoader;
+    }
+    
+    /**
+     * Given a classpath, parse it and return the individual entries
+     * @param classpath The classpath
+     * @return The parsed classpath
+     * @throws IOException 
+     */
+    public void addClasspath (List<URL> classpath, String element) 
+        throws IOException {
+        
+        File file = new File(element);
+            
+        /*
+         * If the provided location was a directory, then look inside
+         * of it can suck up every .jar file.
+         */
+        if (file.isDirectory()) {
+                
+            File []dirContents = file.listFiles();
+            for (File subFile : dirContents) {
+                
+                if (subFile.isFile()
+                        && subFile.getName().endsWith(".jar")) {
+                    
+                    classpath.add(subFile.toURI().toURL());
+                }
+            }
+        }
+        else if (file.exists()) {
+                
+            classpath.add(file.toURI().toURL());
+        }
     }
     
     /**
@@ -352,22 +379,42 @@ public class SQLDriverManager {
      */
     private void checkDriverAvailability() {
         
+        checkDriverAvailability(null);
+    }
+    
+    /**
+     * Check the availability of a specific driver
+     * @param name The name of the driver or null if all drivers should be 
+     *   checked.
+     */
+    protected void checkDriverAvailability(String name) {
+        
+        if (disabledDriverVerification) {
+            
+            return;
+        }
+        
         for (SQLDriver driver : drivers.values()) {
             
-            try {
+            if (name == null || driver.getName().equals(name)) {
                 
-                Class<? extends Driver> driverClass = Class.forName(
-                    driver.getDriverClass(), true, classLoader).asSubclass(Driver.class);
-                Driver d = driverClass.newInstance();
-                DriverManager.registerDriver(new DriverShim(d));
-                
-                driver.setAvailable(true);
-            }
-            catch (Exception e) {
-                
-                LOG.fine("Unable to load " + driver.getDriverClass() + ": "
-                    + e.getMessage());
-                driver.setAvailable(false);
+                ClassLoader driverLoader = driver.getClassLoader(classLoader);
+            
+                try {
+                    
+                    Class<? extends Driver> driverClass = Class.forName(
+                        driver.getDriverClass(), true, driverLoader).asSubclass(Driver.class);
+                    Driver d = driverClass.newInstance();
+                    DriverManager.registerDriver(new DriverShim(d));
+                    
+                    driver.setAvailable(true);
+                }
+                catch (Exception e) {
+                    
+                    LOG.fine("Unable to load " + driver.getDriverClass() + ": "
+                        + e.getMessage());
+                    driver.setAvailable(false);
+                }
             }
         }
     }
@@ -381,7 +428,16 @@ public class SQLDriverManager {
      */
     public String getClasspath() {
         
-        URL []urls = classLoader.getURLs();
+        return getClasspath(classLoader.getURLs());
+    }
+    
+    /**
+     * Helper function to turn a list of URL's into a classpath
+     * @param urls The urls
+     * @return A classpath
+     */
+    protected String getClasspath(URL []urls) {
+        
         StringBuilder sb = new StringBuilder();
         String sep = System.getProperty("path.separator");
         
@@ -862,8 +918,22 @@ public class SQLDriverManager {
      */
     public void addDriver(SQLDriver driver) {
         
+        driver.setInternal(isLoadingInternal);
         drivers.put(driver.getName(), driver);
         driver.setDriverManager(this);
+    }
+    
+    /**
+     * Removes a driver definition from the manager
+     * @param name The name of the definition to remove
+     */
+    public void removeDriver(String name) {
+        
+        SQLDriver driver = drivers.remove(name);
+        if (driver != null) {
+            
+            driver.setDriverManager(null);
+        }
     }
     
     /**
@@ -903,6 +973,8 @@ public class SQLDriverManager {
     
     private void loadDrivers(URL url, boolean isInternal) {
         
+        isLoadingInternal = isInternal;
+        
         String path;
         Digester digester = new Digester();
         digester.setValidating(false);
@@ -925,6 +997,11 @@ public class SQLDriverManager {
         digester.addCallMethod(path, 
             "setAnalyzer", 1, new Class[] { java.lang.String.class });
             digester.addCallParam(path, 0, "analyzer");
+            
+        path = "Drivers/Driver/Classpath";
+        digester.addCallMethod(path, 
+            "addClasspath", 1, new Class[] { java.lang.String.class });
+            digester.addCallParam(path, 0);
             
         path = "Drivers/Driver/Variable";
         digester.addCallMethod(path, 
@@ -949,6 +1026,7 @@ public class SQLDriverManager {
             
         digester.push(this); 
         InputStream in = null;
+        disabledDriverVerification = true;
         try {
             
             in = url.openStream();
@@ -962,6 +1040,10 @@ public class SQLDriverManager {
         }
         finally {
             
+            isLoadingInternal = false;
+            disabledDriverVerification = false;
+            checkDriverAvailability();
+            
             try {
                 
                 in.close();
@@ -973,4 +1055,85 @@ public class SQLDriverManager {
         }
     }
     
+    /**
+     * Writes out information about the driver classpaths to an XML file
+     * that is readable with loadDriverClasspath()
+     * @param filename The file to write to
+     */
+    public void save(File file) {
+        
+       PrintStream out = null;
+        
+        try {
+            
+            out = new PrintStream(new FileOutputStream(file));
+            out.println("<Drivers>");
+            
+            for (SQLDriver driver : drivers.values()) {
+                
+                if (! driver.isInternal()) {
+                    
+                    out.println("   <Driver name=\""     + driver.getName() + "\"");
+                    out.println("           url=\""      + driver.getUrl() + "\"");
+                    out.println("           class=\""    + driver.getDriverClass() + "\"");
+                    out.println("           target=\""   + driver.getTarget() + "\"");
+                    out.println("           analyzer=\"" + driver.getAnalyzer().getClass().getName() + "\">");
+                    String classpath[] = driver.getClasspathArray();
+                    if (classpath != null && classpath.length > 0) {
+                        
+                        for (int i = 0; i < classpath.length; i++) {
+                            
+                            out.println("      <Classpath><![CDATA[" + classpath[i] + "]]></Classpath>");
+                        }
+                    }
+                    
+                    Map<String, String> vars = driver.getVariables();
+                    for (Entry<String, String> e : vars.entrySet()) {
+                        
+                        out.print("      <Variable name=\"");
+                        out.print(e.getKey());
+                        out.print("\"><![CDATA[");
+                        out.print(e.getValue());
+                        out.println("]]></Variable>");
+                    }
+                    
+                    vars = driver.getSessionVariables();
+                    for (Entry<String, String> e : vars.entrySet()) {
+                        
+                        out.print("      <SessionVariable name=\"");
+                        out.print(e.getKey());
+                        out.print("\"><![CDATA[");
+                        out.print(e.getValue());
+                        out.println("]]></SessionVariable>");
+                    }
+                    
+                    vars = driver.getDriverProperties();
+                    for (Entry<String, String> e : vars.entrySet()) {
+                        
+                        out.print("      <Property name=\"");
+                        out.print(e.getKey());
+                        out.print("\"><![CDATA[");
+                        out.print(e.getValue());
+                        out.println("]]></Property>");
+                    }
+                    
+                    out.println("   </Driver>");
+                }
+            }
+            
+            out.println("</Drivers>");
+        }
+        catch (IOException e) {
+            
+            System.err.println("WARNING: Unable to write driver classpath information to "
+                + file + ": " + e.getMessage());
+        }
+        finally {
+            
+            if (out != null) {
+                
+                out.close();
+            }
+        }
+    }
 }

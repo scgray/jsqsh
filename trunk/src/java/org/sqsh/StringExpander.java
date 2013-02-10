@@ -42,6 +42,8 @@ public class StringExpander
     private static final Logger LOG = 
         Logger.getLogger(StringExpander.class.getName()); 
     
+    private static StringExpander envExpander = null;
+    
     private VelocityEngine velocity;
     private VelocityContext context;
     
@@ -80,6 +82,19 @@ public class StringExpander
         }
         
         context = new VelocityContext(System.getenv());
+    }
+    
+    /**
+     * @return A string expander only capable of expanding environment variables.
+     */
+    public static StringExpander getEnvironmentExpander() {
+        
+        if (envExpander == null) {
+            
+            envExpander = new StringExpander();
+        }
+        
+        return envExpander;
     }
     
     /**
@@ -148,6 +163,28 @@ public class StringExpander
     public String getIFS() {
         
         return IFS;
+    }
+    
+    /**
+     * Expands a string. This form of expand will only expand environment
+     * variables.
+     * @param str The string to expand
+     * @return The expanded string
+     */
+    public String expand (String str) {
+        
+        Writer writer = new StringWriter(str.length());
+        try {
+            
+            velocity.evaluate(context, writer, "<string>", str);
+        }
+        catch (Exception e) {
+            
+            session.err.println("Error during variable expansion: "
+                + e.getMessage());
+        }
+        
+        return writer.toString();
     }
     
     /**

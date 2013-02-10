@@ -483,6 +483,44 @@ public class ConnectionDescriptor
     }
     
     /**
+     * Sets a property on the descriptor
+     * @param name The name of the property
+     * @param value The value of the property
+     */
+    public void setProperty(String name, String value) {
+        
+        this.propMap = null;
+        String lead = name + "=";
+        for (int i = 0; i < properties.size(); i++) {
+            
+            if (properties.get(i).startsWith(lead)) {
+                
+                properties.remove(i);
+                break;
+            }
+        }
+        properties.add(name + "=" + value);
+    }
+    
+    /**
+     * Removes a property from the connection descriptor
+     * @param name The property to remove
+     */
+    public void removeProperty(String name) {
+        
+        this.propMap = null;
+        String lead = name + "=";
+        for (int i = 0; i < properties.size(); i++) {
+            
+            if (properties.get(i).startsWith(lead)) {
+                
+                properties.remove(i);
+                break;
+            }
+        }
+    }
+    
+    /**
      * @param properties New connection properties to use
      */
     public void addProperties(List<String> properties) {

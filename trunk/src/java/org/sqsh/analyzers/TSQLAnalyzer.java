@@ -22,6 +22,12 @@ import org.sqsh.SimpleKeywordTokenizer;
  */
 public class TSQLAnalyzer
     implements SQLAnalyzer {
+    
+    @Override
+    public String getName() {
+
+        return "T-SQL";
+    }
 
     /**
      * Analyzes a chunk of T-SQL to determine if the provided terminator

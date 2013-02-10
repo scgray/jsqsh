@@ -25,6 +25,12 @@ import org.sqsh.SimpleKeywordTokenizer;
  */
 public class ANSIAnalyzer
     implements SQLAnalyzer {
+    
+    @Override
+    public String getName() {
+
+        return "ANSI SQL";
+    }
 
     /**
      * Analyzes a chunk of ANSI SQL to determine if the provided terminator
