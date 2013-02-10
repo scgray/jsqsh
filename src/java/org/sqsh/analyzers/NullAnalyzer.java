@@ -23,6 +23,12 @@ package org.sqsh.analyzers;
 public class NullAnalyzer
     implements SQLAnalyzer {
 
+    @Override
+    public String getName() {
+
+        return "None";
+    }
+
     public boolean isTerminated (String sql, char terminator) {
 
         return false;

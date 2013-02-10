@@ -24,6 +24,11 @@ package org.sqsh.analyzers;
 public interface SQLAnalyzer {
     
     /**
+     * @return The name of this analyzer
+     */
+    public String getName();
+    
+    /**
      * Analyzes a SQL of text to see if it is terminated with the provided
      * terminator character (presumably the character is a semicolon most of
      * the time). 

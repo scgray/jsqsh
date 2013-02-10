@@ -330,7 +330,7 @@ public class SqshContext {
      * @return The directory in which the jsqsh configuration can be found
      *   (this is $HOME/.jsqsh).
      */
-    private File getConfigDirectory() {
+    public File getConfigDirectory() {
         
         /*
          * Load configuration files that may be located in the users 

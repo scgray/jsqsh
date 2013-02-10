@@ -77,6 +77,11 @@ public class Connect
             description="Displays connect password in clear-text")
         public boolean showPassword = false;
         
+        @OptionProperty(
+            option='e', longOption="setup", arg=NONE,
+            description="Enters the connection setup wizard")
+        public boolean doSetup = false;
+        
         @Argv(program="\\connect", min=0, max=1,
               usage="[options] [named-connection]")
         public List<String> arguments = new ArrayList<String>();
@@ -110,6 +115,12 @@ public class Connect
             session.err.println("The --update (-x) and --add (-a) options are "
                 + "mutually exclusive");
             return 1;
+        }
+        
+        if (options.doSetup) {
+            
+            Command setup = session.getCommandManager().getCommand("\\setup");
+            return setup.execute(session, new String[] { "connections" } );
         }
         
         /*

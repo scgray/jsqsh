@@ -21,7 +21,7 @@
           == This is the one and only place that the jsqsh version number is 
           == defined. 
           -->
-        <property name="version" value="2.0"/>
+        <property name="version" value="2.1-SNAPSHOT"/>
 
         <!--
           == This is used during the creation of the debian package

@@ -1,10 +1,15 @@
 Release 2.1 (SNAPSHOT)
 
 New Features
-  * New interactive connection setup screens! Upon first time use 
-    jsqsh will walk users through creating connection names, or
-    the \setup command (or --setup option) can be run to manage 
-    connections.
+  * New interactive connection setup wizards! This consists of the following:
+     - First time startup of jsqsh will enter the setup wizard
+     - The --setup startup option can enter the setup wizard
+     - "\setup" command can enter the setup wizard
+     - "\connect --setup" enters the connection setup wizard
+     - "\drivers --setup" enters the driver setup wizard
+  * Each JDBC driver may provide its own class path. This class path can be
+    set via the driver setup wizard, and may include environment variables,
+    such as "${ORACLE_HOME}/jdbc".
   * The !N history recall now allows negative values, so "!-2" means
     you want to edit query you executed two queries prior.
   * New variables $dflt_driver, $dflt_username, $dflt_database available
@@ -19,6 +24,9 @@ Bug Fixes
     Previously these would only contain a value if the value was provided 
     explicitly, but when the value was provided explicitly by the driver
     definition, the value would be null.
+
+Misc
+  * Debian package is no longer dependent upon readline-java.
 
 Release 2.0
 

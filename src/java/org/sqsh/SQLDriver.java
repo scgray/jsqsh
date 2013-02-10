@@ -15,7 +15,10 @@
  */
 package org.sqsh;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -92,6 +95,7 @@ public class SQLDriver
     private Map<String, String> properties = new HashMap<String, String>();
     private Map<String, String> sessionVariables = new HashMap<String, String>();
     private SQLAnalyzer analyzer = new NullAnalyzer();
+    private List<String> classpath = null;
     
     public SQLDriver() {
         
@@ -103,6 +107,32 @@ public class SQLDriver
         this.url = url;
         
         setDriverClass(clazz);
+    }
+    
+    /**
+     * @return A copy of this driver.
+     */
+    public SQLDriver copy() {
+        
+        SQLDriver n = new SQLDriver(this.name, clazz, url);
+        n.driverMan = driverMan;
+        n.isInternal = false;
+        n.isAvailable = isAvailable;
+        n.target = target;
+        n.variables = new HashMap<String, String>();
+        n.variables.putAll(variables);
+        n.properties = new HashMap<String, String>();
+        n.properties.putAll(properties);
+        n.sessionVariables = new HashMap<String, String>();
+        n.sessionVariables.putAll(sessionVariables);
+        n.analyzer = analyzer;
+        if (classpath != null) {
+            
+            n.classpath = new ArrayList<String>();
+            n.classpath.addAll(classpath);
+        }
+        
+        return n;
     }
     
     /**
@@ -128,6 +158,15 @@ public class SQLDriver
     }
     
     /**
+     * Return the set of driver properties that will be 
+     * @return
+     */
+    public Map<String, String> getDriverProperties() {
+        
+        return properties;
+    }
+    
+    /**
      * Sets the name of the class that will be utilized for analyzing the
      * SQL statements to be executed.
      * 
@@ -135,6 +174,7 @@ public class SQLDriver
      */
     public void setAnalyzer(String sqlAnalyzer) {
         
+        isInternal = false;
         try {
             
             Class clazz = Class.forName(sqlAnalyzer);
@@ -161,6 +201,145 @@ public class SQLDriver
         }
         
         return analyzer;
+    }
+    
+    /**
+     * Sets the SQL analyzer for this driver
+     * @param analyzer The SQL analyzer for this driver
+     */
+    public void setAnalyzer(SQLAnalyzer analyzer) {
+        
+        if (analyzer == null) {
+            
+            this.analyzer = new ANSIAnalyzer();
+        }
+        else {
+            
+            this.analyzer = analyzer;
+        }
+    }
+    
+    /**
+     * Adds a file or classpath onto the end of the existing classpath
+     * @param classpath The new classpath to add. This classpath may contain
+     *   environment variables, which will be expanded.
+     * @throws IOException
+     */
+    public void addClasspath(String classpath) throws IOException {
+        
+        isInternal = false;
+        
+        /*
+         * Split up our classpath based upon the system's path separator.
+         */
+        String []locations = classpath.split(System.getProperty(
+            "path.separator"));
+        
+        if (this.classpath == null) {
+            
+            this.classpath = new ArrayList<String>();
+        }
+        
+        for (String loc : locations) {
+            
+            this.classpath.add(loc);
+        }
+        
+        /*
+         * The manager isn't available if this method is called by the digester
+         * while loading the configuration file.
+         */
+        if (driverMan != null) {
+            
+            driverMan.checkDriverAvailability(getName());
+        }
+    }
+    
+    /**
+     * Sets a new classpath that will be used when loading this JDBC driver
+     * 
+     * @param classpath A delimited list of jars or directories containing
+     *   jars. The delimiter that is used should be your system's path
+     *   delimiter.
+     * 
+     * @throws IOException if there is a problem
+     */
+    public void setClasspath(String classpath) throws IOException {
+        
+        this.classpath = null;
+        if (classpath != null) {
+            
+            addClasspath(classpath);
+        }
+    }
+    
+    /**
+     * @return An array of classpath elements that are used by this driver 
+     *   when it is loaded, or null if the driver has no special classpath
+     */
+    public String[] getClasspathArray() {
+        
+        if (classpath == null) {
+            
+            return null;
+        }
+        
+        return classpath.toArray(new String[0]);
+    }
+    
+    /**
+     * @return The classpath that will be used for this driver
+     */
+    public String getClasspath() {
+        
+        if (this.classpath == null) {
+            
+            return "";
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        String sep = System.getProperty("path.separator"); 
+        for (int i = 0; i < classpath.size(); i++) {
+            
+            if (i > 0) {
+                
+                sb.append(sep);
+            }
+            
+            sb.append(classpath.get(i));
+        }
+        
+        return sb.toString();
+    }
+    
+    /**
+     * Creates a classloader capable of loading this driver.
+     * @param parent The parent classloader to delegate to
+     * @return The new classloader
+     */
+    public ClassLoader getClassLoader(ClassLoader parent) {
+        
+        if (classpath == null) {
+            
+            return parent;
+        }
+        
+        List<URL> urls = new ArrayList<URL>();
+        StringExpander expander = StringExpander.getEnvironmentExpander();
+        for (String path : classpath) {
+            
+            try {
+                
+                driverMan.addClasspath(urls, expander.expand(path));
+            }
+            catch (IOException e) {
+                
+                System.err.println("WARNING: Driver " + name + " failed to load \""
+                    + path + "\" in classpath: " + e.getMessage());
+            }
+        }
+        
+        return new URLClassLoader(urls.toArray(new URL[0]), parent);
     }
     
     /**
@@ -199,6 +378,7 @@ public class SQLDriver
      */
     public void setTarget(String target) {
         
+        isInternal = false;
         this.target = target;
     }
     
@@ -218,6 +398,7 @@ public class SQLDriver
      */
     public void setDriverClass(String clazz) {
         
+        isInternal = false;
         this.clazz = clazz;
         
         if (clazz != null) {
@@ -251,7 +432,18 @@ public class SQLDriver
      */
     public void setVariable(String name, String value) {
         
+        isInternal = false;
         variables.put(name, value);
+    }
+    
+    /**
+     * Removes a variable default value
+     * @param name The name of the variable to remove.
+     */
+    public void removeVariable(String name) {
+        
+        isInternal = false;
+        variables.remove(name);
     }
     
     /**
@@ -263,7 +455,7 @@ public class SQLDriver
         
         return variables.get(name);
     }
-
+    
     /**
      * The the value of a variable that is to be set in the user's session
      * upon successfully establishing a connection to a server.
@@ -273,6 +465,7 @@ public class SQLDriver
      */
     public void setSessionVariable(String name, String value) {
         
+        isInternal = false;
         sessionVariables.put(name, value);
     }
     
@@ -287,6 +480,15 @@ public class SQLDriver
     }
     
     /**
+     * Removes the definition of a session variable
+     * @param name The session variable to remove
+     */
+    public void removeSessionVariable(String name) {
+        
+        sessionVariables.remove(name);
+    }
+    
+    /**
      * Adds a property to the driver. These properties are passed
      * in during the connection process.
      * 
@@ -295,6 +497,7 @@ public class SQLDriver
      */
     public void setProperty(String name, String value) {
         
+        isInternal = false;
         properties.put(name, value);
     }
     
@@ -308,6 +511,15 @@ public class SQLDriver
     public String getProperty(String name) {
         
         return properties.get(name);
+    }
+    
+    /**
+     * Removes a driver property
+     * @param name The name of the property to remove
+     */
+    public void removeProperty(String name) {
+        
+        properties.remove(name);
     }
     
     /**
@@ -337,6 +549,7 @@ public class SQLDriver
      */
     public void setUrl (String url) {
     
+        isInternal = false;
         this.url = url;
     }
 
@@ -367,6 +580,7 @@ public class SQLDriver
      */
     public void setName(String name) {
         
+        isInternal = false;
         this.name = name;
     }
     
@@ -386,12 +600,26 @@ public class SQLDriver
      */
     public List<DriverVariable> getVariableDescriptions() {
         
+        return getVariableDescriptions(true);
+    }
+    
+    /**
+     * @return A list of variables the driver actually uses and the default
+     *     value (if any) for each variable
+     */
+    public List<DriverVariable> getVariableDescriptions(boolean userAndPassword) {
+        
         List<DriverVariable> vars = new ArrayList<SQLDriver.DriverVariable>();
         
         /*
          * This is gross, I need to make real metadata somewhere.
          */
         String url = getUrl();
+        if (url == null) {
+            
+            return vars;
+        }
+        
         final int sz = url.length();
         
         int idx = 0;
@@ -449,8 +677,11 @@ public class SQLDriver
         
         Collections.sort(vars);
         
-        vars.add(new DriverVariable(USER_PROPERTY, "Username", System.getProperty("user.name")));
-        vars.add(new DriverVariable(PASSWORD_PROPERTY, "Password", null));
+        if (userAndPassword) {
+            
+            vars.add(new DriverVariable(USER_PROPERTY, "Username", System.getProperty("user.name")));
+            vars.add(new DriverVariable(PASSWORD_PROPERTY, "Password", null));
+        }
         
         return vars;
     }

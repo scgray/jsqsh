@@ -27,6 +27,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.LogManager;
 
+import org.sqsh.Session;
+import org.sqsh.SqshContext;
 import org.sqsh.commands.Help;
 import org.sqsh.commands.Jaql;
 import org.sqsh.input.ConsoleLineReader;
@@ -225,27 +227,18 @@ public class JSqsh {
              */
             if (sqsh.isFirstTime() || options.doSetup) {
                 
+                
                 sqsh.setReader(null, true);
-                session.out.println();
-                session.out.println("You will now be taken through a series of screen that allow you");
-                session.out.println("to define one or more connections.");
-                session.out.println();
-               
-                sqsh.getConsole().readline("Press enter to continue: ", false);
+                
+                if (sqsh.isFirstTime()) {
+                    
+                    session.out.println();
+                    session.out.println("You will now enter the jsqsh setup wizard.");
+                    sqsh.getConsole().readline("Hit enter to continue: ", false);
+                }
                 
                 Command command = session.getCommandManager().getCommand("\\setup");
                 command.execute(session, new String [] { });
-                
-                session.out.println();
-                session.out.println("You may now connect to a connection you defined using \\connect");
-                session.out.println();
-                session.out.println("   1> \\connect <name>");
-                session.out.println();
-                session.out.println("Where <name> is the name of a connection you defined, or you may");
-                session.out.println("provide this name to jsqsh when it starts to connect during startup.");
-                session.out.println("You may repeat this process by runing the \\setup command");
-                session.out.println();
-                session.out.println();
             }
             
             if (options.topic != null) {

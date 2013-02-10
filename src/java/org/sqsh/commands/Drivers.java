@@ -31,6 +31,7 @@ import org.sqsh.options.Argv;
 import org.sqsh.options.OptionProperty;
 
 import static org.sqsh.options.ArgumentRequired.REQUIRED;
+import static org.sqsh.options.ArgumentRequired.NONE;
 
 /**
  * Implements the \drivers command.
@@ -40,13 +41,18 @@ public class Drivers
     
     private static class Options
         extends SqshOptions {
+        
+        @OptionProperty(
+            option='s', longOption="setup", arg=NONE,
+            description="Enters the driver setup wizard")
+        public boolean doSetup = false;
 
         @OptionProperty(
             option='l', longOption="load", arg=REQUIRED, argName="file",
             description="Specifies a drivers.xml format file to load")
         public String file = null;
 
-        @Argv(program="\\drivers", min=0, max=0)
+        @Argv(program="\\drivers", min=0, max=0, usage="[--load driver.xml | --setup]")
         public List<String> arguments = new ArrayList<String>();
     }
     
@@ -65,6 +71,12 @@ public class Drivers
         
         Options options = (Options)opts;
         SQLDriverManager driverMan = session.getDriverManager();
+        
+        if (options.doSetup) {
+            
+            Command setup = session.getCommandManager().getCommand("\\setup");
+            return setup.execute(session, new String[] { "drivers" } ); 
+        }
 
         if (options.file != null) {
 
