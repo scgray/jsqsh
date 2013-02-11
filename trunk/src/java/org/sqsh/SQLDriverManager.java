@@ -921,6 +921,7 @@ public class SQLDriverManager {
         driver.setInternal(isLoadingInternal);
         drivers.put(driver.getName(), driver);
         driver.setDriverManager(this);
+        checkDriverAvailability(driver.getName());
     }
     
     /**
