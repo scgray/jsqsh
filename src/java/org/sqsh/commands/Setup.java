@@ -610,13 +610,15 @@ public class Setup extends Command {
         boolean doQuit = false;
         
         SQLDriverManager driverMan = session.getDriverManager();
-        SQLDriver []drivers = driverMan.getDrivers();
-        Arrays.sort(drivers);
         
         while (!done) {
+            
+            SQLDriver []drivers = driverMan.getDrivers();
+            Arrays.sort(drivers);
     
             out.print(cls);
             out.println("JSQSH DRIVER WIZARD - (edits $HOME/.jsqsh/drivers.xml)");
+            
             out.println();
             out.println("The following drivers are currently defined:");
             out.println();
