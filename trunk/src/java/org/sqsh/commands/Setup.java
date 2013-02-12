@@ -380,9 +380,9 @@ public class Setup extends Command {
                 longestName = name.length();
             }
         }
-        if (longestName < 10) {
+        if (longestName < 15) {
             
-            longestName = 10;
+            longestName = 15;
         }
         
         String format = "%-3d %" + longestName + "s : %s\n";
@@ -395,6 +395,7 @@ public class Setup extends Command {
             out.println("The following configuration properties are supported by this driver.");
             out.println();
             
+            out.printf("    %" + longestName + "s : %s\n", "Connection name", conDesc.getName());
             out.printf("    %" + longestName + "s : %s\n", "Driver", driver.getTarget());
             out.printf("    %" + longestName + "s : %s\n", "JDBC URL", driver.getUrl());
             out.println();
@@ -430,7 +431,7 @@ public class Setup extends Command {
             }
             
             out.printf(format, idx+1, "Autoconnect", (conDesc.isAutoconnect() ? "true" : "false"));
-            ++idx;
+            int autoConnectAt = idx++;
             
             out.println();
             out.println("JDBC Driver Properties");
@@ -547,7 +548,7 @@ public class Setup extends Command {
                     str = str.trim();
                     conDesc.setValueOf(var.getName(), str);
                 }
-                else if (val == propsStartAt-1) {
+                else if (val == autoConnectAt+1) {
                         
                     conDesc.setAutoconnect(! conDesc.isAutoconnect());
                 }
