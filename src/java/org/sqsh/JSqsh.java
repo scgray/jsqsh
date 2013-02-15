@@ -124,8 +124,8 @@ public class JSqsh {
        public String topic = null;
        
        @OptionProperty(
-           option='S', longOption="setup", arg=NONE, 
-           description="Enters jsqsh connection setup mode")
+           option='z', longOption="setup", arg=NONE, 
+           description="Enters jsqsh connection setup wizard")
        public boolean doSetup = false;
        
        @Argv(program="jsqsh", min=0, max=1, usage="[options] [connection-name]")
