@@ -19,6 +19,7 @@ import static org.sqsh.options.ArgumentRequired.NONE;
 import static org.sqsh.options.ArgumentRequired.REQUIRED;
 
 import java.io.PrintStream;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,6 +81,11 @@ public class Jaql
              option='n', longOption="new-session", arg=NONE,
              description="Create a new session for the connection")
          public boolean newSession = false;
+         
+         @OptionProperty(
+             option='r', longOption="no-rewrites", arg=NONE,
+             description="Disables jaql rewrites")
+         public boolean disableRewrites = false;
          
          /*
           * DISBALED FOR NOW -- THIS DOESN'T WORK PROPERTY (OR AT LEAST
@@ -166,6 +172,10 @@ public class Jaql
         JaqlQuery engine  = new JaqlQuery();
         JaqlFormatter formatter = null;
         
+        if (options.disableRewrites) {
+            
+            disableRewrites(session, engine);
+        }
         
         if (options.indent == -1)
             options.indent = 3;
@@ -229,5 +239,22 @@ public class Jaql
         }
         
         return 0;
+    }
+    
+    private void disableRewrites(Session session, JaqlQuery query) {
+        
+        try {
+            
+            Method m = JaqlQuery.class.getMethod("enableRewrite", Boolean.TYPE);
+            if (m != null) {
+                
+                m.invoke(query, false);
+                session.out.println("Re-writes are disabled");
+            }
+        }
+        catch (Throwable e) {
+            
+            session.err.println("Cannot disable rewrites: " + e.getMessage());
+        }
     }
 }
