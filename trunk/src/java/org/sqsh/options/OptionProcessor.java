@@ -18,7 +18,9 @@ package org.sqsh.options;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The option processor is responsible for analyzing objects that were
@@ -446,6 +448,8 @@ public class OptionProcessor {
     @SuppressWarnings("unchecked")
     private void doAnnotations() {
         
+        Set<String> optStrings = new HashSet<String>();
+        
         /*
          * First, look for @Options.
          */
@@ -454,7 +458,26 @@ public class OptionProcessor {
         for (int i = 0;i < fields.length; i++) {
             
             OptionProperty option = (OptionProperty) fields[i].getAnnotation(OptionProperty.class);
+            
             if (option != null) {
+                
+                /*
+                 * Sanity check! There are times where I have screwed up and re-used
+                 * the same option multiple times.
+                 */
+                if (optStrings.contains(option.longOption())) {
+                    
+                    throw new RuntimeException("ERROR: Option --" 
+                        + option.longOption() + " is defined multiple times!");
+                }
+                else if (optStrings.contains(Character.toString(option.option()))) {
+                    
+                    throw new RuntimeException("ERROR: Option -" 
+                        + option.option() + " is defined multiple times!");
+                }
+            
+                optStrings.add(option.longOption());
+                optStrings.add(Character.toString(option.option()));
                 
                 optionsList.add(new Option(option, fields[i].getName()));
             }
