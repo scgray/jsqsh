@@ -243,7 +243,7 @@ NAMED CONNECTION OPTIONS
    -a, --add=name     This option is used to define (or replace) a logical
                       connection name. See NAMED CONNECTIONS below for details.
  
-   -x, --update       This option is used to merge together the settings in
+   -R, --update       This option is used to merge together the settings in
                       an existing name connection with any additional options
                       you provide. For example, if your password was changed
                       on a given server you can do:
