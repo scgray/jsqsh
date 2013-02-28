@@ -58,7 +58,7 @@ public class Connect
         public String add = null;
         
         @OptionProperty(
-            option='x', longOption="update", arg=NONE,
+            option='R', longOption="update", arg=NONE,
             description="Update a named connection with the current settings")
         public boolean update = false;
         
