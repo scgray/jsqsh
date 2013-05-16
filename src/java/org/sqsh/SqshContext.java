@@ -81,6 +81,15 @@ public class SqshContext {
     }
     
     /**
+     * When a context exists, this indicates how any failures in the context
+     * should be reported.
+     */
+    public static enum ExitStatus {
+        TOTAL_FAILURES, /// The total number of commands that returned a non-zero exit code
+        LAST_FAILURE    /// A 1 if the last command executed failed
+    }
+    
+    /**
      * Path to the built-in file full of variable definitions.
      */
     private static final String CONTEXT_VARS
@@ -246,6 +255,11 @@ public class SqshContext {
     private boolean isFirstTime = false;
     
     /**
+     * How the exit status of the context is determined
+     */
+    private ExitStatus exitStatus = ExitStatus.TOTAL_FAILURES;
+    
+    /**
      * Creates a new SqshContext. 
      * 
      * @param readerType The type of readline implementation to utilize. This
@@ -398,6 +412,25 @@ public class SqshContext {
     public void stopVisualTimer() {
         
         visualTimer.stop();
+    }
+    
+    /**
+     * Determines how the final exit status from the context is computed 
+     * see {@link ExitStatus} for details
+     * @param exitStatus How the exit status should be determined
+     */
+    public void setExitStatus (ExitStatus exitStatus) {
+        
+        this.exitStatus = exitStatus;
+    }
+    
+    /**
+     * @return an indication of the how the exit status will be computed when
+     *   the context is exited.
+     */
+    public ExitStatus getExitStatus() {
+        
+        return this.exitStatus;
     }
     
     /**
@@ -1165,7 +1198,15 @@ public class SqshContext {
                 }
                 catch (SqshContextExitMessage e) {
                     
-                    failCount += currentSession.getCommandFailCount();
+                    if (exitStatus == ExitStatus.LAST_FAILURE) {
+                        
+                        failCount = currentSession.getLastCommandResult();
+                    }
+                    else {
+                        
+                        failCount += currentSession.getCommandFailCount();
+                    }
+                    
                     removeSession(currentSession.getId());
                     done = true;
                 }

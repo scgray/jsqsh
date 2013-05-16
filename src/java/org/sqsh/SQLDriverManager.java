@@ -409,7 +409,7 @@ public class SQLDriverManager {
                     
                     driver.setAvailable(true);
                 }
-                catch (Exception e) {
+                catch (Throwable e) {
                     
                     LOG.fine("Unable to load " + driver.getDriverClass() + ": "
                         + e.getMessage());

@@ -128,6 +128,11 @@ public class JSqsh {
            description="Enters jsqsh connection setup wizard")
        public boolean doSetup = false;
        
+       @OptionProperty(
+           option='X', longOption="exit", arg=REQUIRED, argName="exit-type",
+           description="Determines how exit status is computed (\"total\" failures or \"last\" failure")
+       public String exitType = null;
+       
        @Argv(program="jsqsh", min=0, max=1, usage="[options] [connection-name]")
        public List<String> arguments = new ArrayList<String>();
     }
@@ -201,6 +206,26 @@ public class JSqsh {
         if (options.width > 0) {
             
             sqsh.setScreenWidth(options.width);
+        }
+        
+        /*
+         * Configure how errors are reported.
+         */
+        if (options.exitType != null) {
+            
+            if (options.exitType.equalsIgnoreCase("total")) {
+                
+                sqsh.setExitStatus(SqshContext.ExitStatus.TOTAL_FAILURES);
+            }
+            else if (options.exitType.equalsIgnoreCase("last")) {
+                
+                sqsh.setExitStatus(SqshContext.ExitStatus.LAST_FAILURE);
+            }
+            else {
+                
+                System.err.println("--exit (-X): Legal values are \"total\" or \"last\"");
+                System.exit(1);
+            }
         }
         
         for (String dir : options.configDirectories) {

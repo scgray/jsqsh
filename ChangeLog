@@ -14,6 +14,11 @@ New Features
     you want to edit query you executed two queries prior.
   * New variables $dflt_driver, $dflt_username, $dflt_database available
     to provide defaults for connection arguments that are not supplied.
+  * Added new -X,--exit-value startup flag to indicate to jsqsh what to use
+    for its exit status. The default value is "total" (--exit-value="total")
+    in which the exist status it the total number of failed jsqsh commands.
+    The value "last" indicates that the last executed statement determines
+    the exit status
 
 Bug Fixes
   * The visual timer is better about clearing itself before results are
@@ -24,6 +29,8 @@ Bug Fixes
     Previously these would only contain a value if the value was provided 
     explicitly, but when the value was provided explicitly by the driver
     definition, the value would be null.
+  * Fixed inability to start jsqsh if a driver throws an error (java.lang.Error)
+    while being loaded.
 
 Misc
   * Debian package is no longer dependent upon readline-java.
