@@ -198,6 +198,13 @@ GENERAL OPTIONS
            jsqsh -v expand=true
     
        This option may be provided more than once to set multiple variables.
+       
+   -X, --exit=exit-value
+       The --exit flag determines how jsqsh computes its final exit status. The
+       default is "total", in which the final exit code is the total number of
+       failures seen during the session.  A value of "last" indicates that the
+       the exit status should be that of the last executed command (an explicit
+       "\quit" command is excluded from consideration).
 
 JAQL OPTIONS
    As of jsqsh 1.5, support for using jsqsh as a shell for the Jaql programming
