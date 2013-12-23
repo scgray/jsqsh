@@ -42,11 +42,6 @@ for dir in $RL_JNI; do
           is_added=1
        fi
     fi
-
-    JSQSH_FILES=$(ls $dir/libjsqsh*.so 2>/dev/null)
-    if [ $is_added -eq 0 -a "$JSQSH_FILES" != "" ]; then
-       LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$dir"
-    fi
 done
 export LD_LIBRARY_PATH
 
@@ -58,7 +53,7 @@ export LD_LIBRARY_PATH
 for jardir in "${ROOT_DIR}/share" /usr/share/jsqsh "${PROG_DIR}/../share/jsqsh"; do
    if [ -d "${jardir}" -a -f "${jardir}/jsqsh.jar" ]; then
       for jar in "${jardir}"/*.jar; do
-          CLASSPATH="$CLASSPATH:$jar"
+          CLASSPATH="${jar}:${CLASSPATH}"
       done
       break
    fi
@@ -71,7 +66,7 @@ done
 RL_IMPLS="/usr/lib/java /usr/share/java /usr/lib/libreadline-java"
 for dir in $RL_IMPLS; do
     if [ -f "$dir/libreadline-java.jar" ]; then
-        CLASSPATH="$CLASSPATH:$dir/libreadline-java.jar"
+        CLASSPATH="${dir}/libreadline-java.jar:${CLASSPATH}"
     fi
 done
 export CLASSPATH

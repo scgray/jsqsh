@@ -1,11 +1,10 @@
-Package: jsqsh
-Version: @VERSION@
+Package: [[name]]
+Version: [[version]]
 Section: utils 
 Priority: optional
 Essential: no
-Architecture: @ARCH@
-Depends: sun-java5-bin|sun-java6-bin|openjdk-6-jre|openjdk-6-jdk
-Installed-Size: 1024
+Architecture: [[deb.arch]]
+Depends: default-jre (>= 1.6)
 Maintainer: Scott Gray <scottgray1@gmail.com>
 Description: Command line shell for working with SQL databases 
              JSqsh (pronounced J-skwish) is short for Java SQshelL
