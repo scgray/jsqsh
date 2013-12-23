@@ -141,7 +141,7 @@
                     <resource>
                       <directory>${jni.install.dir}/lib</directory>
                       <includes>
-                        <include>*.so.0.0.0</include>
+                        <include>*.so</include>
                       </includes>
                       <filtering>false</filtering>
                     </resource>

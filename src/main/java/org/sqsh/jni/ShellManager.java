@@ -71,7 +71,7 @@ public class ShellManager {
         
         try {
             
-            System.loadLibrary("jsqsh");
+            NativeTools.loadLibraryFromJar("/org/sqsh/jni/libjsqsh.so");
             init();
             haveJNI = true;
         }
