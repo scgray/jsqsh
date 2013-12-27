@@ -1,2 +1,2 @@
 @echo off
-java -cp "..\share\*" org.sqsh.JSqsh %*
+java -cp "..\share\jsqsh*" org.sqsh.JSqsh %*
