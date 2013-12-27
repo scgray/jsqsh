@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -69,9 +70,33 @@ public class ShellManager {
         
         setDefaultShell();
         
+        String os = System.getProperty("os.name");
+        String arch = System.getProperty("os.arch");
+        String lib = null;
+        if (os.startsWith("Windows")) {
+            
+            os = "Windows";
+            lib = "jsqsh.dll";
+            if ("x86".equals(arch)) {
+                
+                String str = System.getProperty("sun.arch.data.model");
+                if ((str != null && str.contains("64"))
+                    || System.getenv("ProgramFiles(x86)") != null) {
+                    
+                    arch = "amd64";
+                }
+            }
+        }
+        else {
+            
+            lib = "libjsqsh.so";
+        }
+        
         try {
             
-            NativeTools.loadLibraryFromJar("/org/sqsh/jni/libjsqsh.so");
+            String libPath = "/org/sqsh/jni/" + os + "-" + arch + "/" + lib;
+            LOG.fine("Attempting to load " + libPath);
+            NativeTools.loadLibraryFromJar(libPath);
             init();
             haveJNI = true;
         }
@@ -79,6 +104,7 @@ public class ShellManager {
             
             haveJNI = false;
             jniFailureReason = e.getMessage();
+            LOG.log(Level.FINE, e.getMessage(), e);
         }
     }
     

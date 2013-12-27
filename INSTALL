@@ -32,7 +32,6 @@ Windows
    1. cmake
    2. Visual Studio 2005 or later
 
-
 Build Targets and Configurations
 --------------------------------
 
@@ -42,7 +41,18 @@ The jsqsh build uses maven, so follows the basic maven development lifecycle:
   mvn package    # produces a package. By default this a .jar file in target/
   mvn clean      # cleans up after a build
 
-You can enable jsqsh to also compile its JNI layer using -Djni=true, like so
+The build comes with the shared libraries already built for the following
+platforms:
+
+    * Windows x86 32bit
+    * Windows x86 64bit
+    * Linux x86 32bit
+    * Linux x86 64bit
+
+These libraries are located in src/main/resources/org/sqsh/jni/<platform>-<arch>.
+
+If you want to compile your own, or your platform is not one of the ones listed
+above, you can include your platform by compiling jsqsh with:
 
   mvn -Djni=true compile
     or
