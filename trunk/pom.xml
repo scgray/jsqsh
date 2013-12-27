@@ -10,15 +10,17 @@
   <name>JSqsh</name>
 
   <properties>
+    <!-- Used by the RPM build to indicate the install location -->
     <install.dir>/usr</install.dir>
-    <test.output.directory>${project.build.directory}/test-output</test.output.directory>
     <jni.src.dir>${basedir}/src/main/jni</jni.src.dir>
     <jni.install.dir>${project.build.directory}/staging/jni</jni.install.dir>
     <build.arch>noarch</build.arch>
     <deb.arch>all</deb.arch>
     <build.timestamp>${maven.build.timestamp}</build.timestamp>
     <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
-    <dist.tmp>${basedir}/target/${project.artifactId}-${project.version}-bin/${project.artifactId}-${project.version}</dist.tmp>
+    <!-- This is the root directory contained inside of assemblies when unpacked -->
+    <dist.dir>${project.artifactId}-${project.version}</dist.dir>
+    <dist.tmp>${basedir}/target/${project.artifactId}-${project.version}-bin/${dist.dir}</dist.tmp>
   </properties>
 
   <build>
@@ -28,7 +30,6 @@
         <version>2.7.2</version>
         <configuration>
           <skipTests>true</skipTests>
-          <workingDirectory>${test.output.directory}</workingDirectory>
         </configuration>
       </plugin>
 

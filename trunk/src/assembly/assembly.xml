@@ -8,7 +8,7 @@
     <format>tar.gz</format>
     <format>zip</format>
   </formats>
-  <baseDirectory>${artifact.artifactId}-${artifact.version}</baseDirectory>
+  <baseDirectory>${dist.dir}</baseDirectory>
   <fileSets>
     <fileSet>
       <outputDirectory>bin</outputDirectory>
@@ -16,6 +16,14 @@
       <fileMode>755</fileMode>
       <includes>
         <include>jsqsh</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <outputDirectory>bin</outputDirectory>
+      <directory>dist/generic</directory>
+      <fileMode>755</fileMode>
+      <includes>
+        <include>jsqsh.bat</include>
       </includes>
     </fileSet>
   </fileSets>
