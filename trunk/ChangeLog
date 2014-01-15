@@ -2,6 +2,8 @@ Release 2.1 (SNAPSHOT)
 
 New Features
   * New build system! Jsqsh now builds with maven
+  * Jsqsh JNI libraries are now built into the jar, plus added support for Power 
+    Linux 64bit
   * New interactive connection setup wizards! This consists of the following:
      - First time startup of jsqsh will enter the setup wizard
      - The --setup startup option can enter the setup wizard
