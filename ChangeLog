@@ -22,6 +22,8 @@ New Features
     in which the exist status it the total number of failed jsqsh commands.
     The value "last" indicates that the last executed statement determines
     the exit status
+  * Added ${max_rowsaffected} to deal with buggy drivers (Hive) that don't
+    properly indicate when they are done sending results to the client.
 
 Bug Fixes
   * The visual timer is better about clearing itself before results are

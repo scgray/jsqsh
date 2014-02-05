@@ -153,8 +153,23 @@
             class="org.apache.hadoop.hive.jdbc.HiveDriver"
             analyzer="org.sqsh.analyzers.ANSIAnalyzer"
             url="jdbc:hive://${server}:${port}#if($db)/${db}#end">
+        <Classpath><![CDATA[${HIVE_HOME}/lib]]></Classpath>
+        <Classpath><![CDATA[${HADOOP_HOME}]]></Classpath>
         <Variable name="server">localhost</Variable>
         <Variable name="port">7052</Variable>
+    </Driver>
+    
+    <Driver name="hive2"
+           url="jdbc:hive2://${server}:${port}#if($db)/${db}#end"
+           class="org.apache.hive.jdbc.HiveDriver"
+           target="Apache Hive"
+           analyzer="org.sqsh.analyzers.ANSIAnalyzer">
+      <Classpath><![CDATA[${HIVE_HOME}/lib]]></Classpath>
+      <Classpath><![CDATA[${HADOOP_HOME}]]></Classpath>
+      <Variable name="port"><![CDATA[10000]]></Variable>
+      <Variable name="server"><![CDATA[localhost]]></Variable>
+      <Variable name="db"><![CDATA[default]]></Variable>
+      <SessionVariable name="max_rowsaffected"><![CDATA[1]]></SessionVariable>
     </Driver>
 
     <Driver name="bigsql" 

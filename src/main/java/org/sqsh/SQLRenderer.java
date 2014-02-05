@@ -98,6 +98,15 @@ public class SQLRenderer {
      */
     private boolean showTimings = true;
     
+    /**
+     * This is to support buggy drivers (umm, the Apache Hive driver. Wow
+     * does it have a lot of boogs) that do not return a proper -1 updateCount()
+     * when they are really finished with results. Setting this to a value above
+     * zero indicates that jsqsh should stop processing after this many updateCounts
+     * have been received.
+     */
+    private int maxUpdateCount = 0;
+    
     private long startTime;
     private long firstRowTime;
     private long endTime;
@@ -128,6 +137,27 @@ public class SQLRenderer {
         this.expand = expand;
     }
     
+    /**
+     * This is to support buggy drivers (umm, the Apache Hive driver. Wow
+     * does it have a lot of boogs) that do not return a proper -1 updateCount()
+     * when they are really finished with results. Setting this to a value above
+     * zero indicates that jsqsh should stop processing after this many updateCounts
+     * have been received.
+     */
+    public void setMaxUpdateCount(int maxUpdateCount) {
+    
+        this.maxUpdateCount = maxUpdateCount;
+    }
+    
+    /**
+     * @return The current maximum update count.  A value <= 0 indicates that
+     *  there is no limit
+     */
+    public int getMaxUpdateCount() {
+    
+        return maxUpdateCount;
+    }
+
     /**
      * @return whether or not result set metadata is displayed.
      */
@@ -721,6 +751,7 @@ public class SQLRenderer {
         Connection conn = session.getConnection();
         ResultSet resultSet = null;
         boolean done = false;
+        int updateCountCount = 0; /* # of updateCounts we have seen */
         int updateCount = -1;
         boolean ok = true;
         
@@ -734,15 +765,13 @@ public class SQLRenderer {
         
         try {
             
-            
             SQLTools.printWarnings(session, conn);
             
             /*
              * If we have a row limit and it is to be driver enforced, then
              * set it on the statement.
              */
-            if (rowLimitMethod == LIMIT_DRIVER 
-                    && maxRows > 0) {
+            if (rowLimitMethod == LIMIT_DRIVER && maxRows > 0) {
                 
                 statement.setMaxRows(maxRows);
             }
@@ -754,6 +783,11 @@ public class SQLRenderer {
                 
                 updateCount = statement.getUpdateCount();
                 SQLTools.printWarnings(session, statement);
+                
+                if (updateCount >= 0) {
+                    
+                    ++updateCountCount;
+                }
             }
             
             StringBuilder footer = new StringBuilder();
@@ -854,6 +888,11 @@ public class SQLRenderer {
                     
                     hasResults = statement.getMoreResults();
                     SQLTools.printWarnings(session, statement);
+                    
+                    if (hasResults) {
+                        
+                        updateCountCount = 0;
+                    }
                 }
                 catch (SQLException e) {
                     
@@ -879,6 +918,11 @@ public class SQLRenderer {
                     
                     updateCount = statement.getUpdateCount();
                     SQLTools.printWarnings(session, statement);
+                    
+                    if (updateCount >= 0) {
+                        
+                        ++updateCountCount;
+                    }
                 }
                 
                 /*
@@ -886,7 +930,8 @@ public class SQLRenderer {
                  * done (i.e. a cancel) or if there are neither row results
                  * nor update counts left.
                  */
-                done = (done || (hasResults == false && updateCount < 0));
+                done = (done || (hasResults == false && updateCount < 0) 
+                    || (maxUpdateCount > 0 && updateCountCount >= maxUpdateCount));
                 
                 /*
                  * If we are finished and we are being asked to show query
