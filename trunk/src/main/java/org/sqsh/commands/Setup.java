@@ -19,6 +19,7 @@ import static org.sqsh.options.ArgumentRequired.NONE;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.net.URL;
 import java.sql.Driver;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
@@ -772,8 +773,8 @@ public class Setup extends Command {
             out.flush();
             
             String prompt = (isNewDriver 
-                ? "(B)ack, (Q)uit, A)dvanced options, or (S)ave: "
-                : "(B)ack, (Q)uit, (D)elete, (A)dvanced options, or (S)ave: ");
+                ? "(B)ack, (Q)uit, Show (C)lasspath, (A)dvanced options, or (S)ave: "
+                : "(B)ack, (Q)uit, (D)elete, Show (C)lasspath, (A)dvanced options, or (S)ave: ");
             String str = in.readline(prompt, false);
             str = str.trim();
             if ("q".equalsIgnoreCase(str)) {
@@ -784,6 +785,18 @@ public class Setup extends Command {
             else if ("b".equalsIgnoreCase(str)) {
                 
                 done = true;
+            }
+            else if ("c".equalsIgnoreCase(str)) {
+                
+                out.println("Driver computed classpath: ");
+                List<URL> urls = driver.getExpandedClasspath();
+                for (URL url : urls) {
+                    
+                    out.println("  " + url);
+                }
+                
+                out.println();
+                in.readline("Hit enter to continue: ", false);
             }
             else if ("a".equalsIgnoreCase(str)) {
                 

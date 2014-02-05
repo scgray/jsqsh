@@ -313,18 +313,20 @@ public class SQLDriver
     }
     
     /**
-     * Creates a classloader capable of loading this driver.
-     * @param parent The parent classloader to delegate to
-     * @return The new classloader
+     * Returns the list of classpath elements for this driver, with all of the
+     * individual jars in the classpath expanded.
+     * 
+     * @return The list of classpath elements;
      */
-    public ClassLoader getClassLoader(ClassLoader parent) {
+    public List<URL> getExpandedClasspath() {
+        
+        List<URL> urls = new ArrayList<URL>();
         
         if (classpath == null) {
             
-            return parent;
+            return urls;
         }
         
-        List<URL> urls = new ArrayList<URL>();
         StringExpander expander = StringExpander.getEnvironmentExpander();
         for (String path : classpath) {
             
@@ -339,6 +341,22 @@ public class SQLDriver
             }
         }
         
+        return urls;
+    }
+    
+    /**
+     * Creates a classloader capable of loading this driver.
+     * @param parent The parent classloader to delegate to
+     * @return The new classloader
+     */
+    public ClassLoader getClassLoader(ClassLoader parent) {
+        
+        if (classpath == null) {
+            
+            return parent;
+        }
+        
+        List<URL> urls = getExpandedClasspath();
         return new URLClassLoader(urls.toArray(new URL[0]), parent);
     }
     
