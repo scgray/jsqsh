@@ -925,6 +925,7 @@ public class SQLRenderer {
                     }
                 }
                 
+                
                 /*
                  * We are done if we have either explicitly chosen to be
                  * done (i.e. a cancel) or if there are neither row results
