@@ -203,13 +203,6 @@ public class SqshContext {
     private List<String> driverFiles = new ArrayList<String>();
 
     /**
-     * This is set once at startup by asking readline if it has ahold
-     * of the terminal. If a) readline was properly initialized and 
-     * b) readline says "yes", then this will remain true.
-     */
-    private boolean isInteractive = false;
-    
-    /**
      * If true, then user input will be echoed back to stdout. This is
      * useful when you want to watch the SQL behind a script fly by along
      * with the results.
@@ -248,11 +241,6 @@ public class SqshContext {
      * the name of the exception class in the output.
      */
     private boolean printExceptionClass = false;
-    
-    /**
-     * Set to true only if this is the first time jsqsh has been run.
-     */
-    private boolean isFirstTime = false;
     
     /**
      * How the exit status of the context is determined
@@ -313,7 +301,7 @@ public class SqshContext {
         /*
          * The init script should always be run with no editline support
          */
-        setReader(ConsoleLineReader.NONE, false);
+        setReader(ConsoleLineReader.NONE);
         
         /*
          * Run the internal initializations cript.
@@ -350,9 +338,8 @@ public class SqshContext {
          * Load configuration files that may be located in the users 
          * configuration directory.
          */
-        String filesep = System.getProperty("file.separator");
         File homedir = new File(
-            System.getProperty("user.home") + filesep + ".jsqsh");
+            System.getProperty("user.home") + File.separatorChar + ".jsqsh");
         
         return homedir;
     }
@@ -437,36 +424,28 @@ public class SqshContext {
      * Changes which input handler is being used for this context.
      * @param readerType The name of the reader
      */
-    public void setReader(String readerType, boolean isInteractive) {
+    public void setReader(String readerType) {
         
         /*
          * If we were already interactive, and switch to (possibly) 
          * non-interactive mode then save the current state away.
          */
-        if (this.isInteractive) {
-            
-            try {
+        try {
                 
-                console.writeHistory();
-            }
-            catch (Exception e) {
+            console.writeHistory();
+        }
+        catch (Exception e) {
                 
-                /* IGNORED */
-            }
+            /* IGNORED */
         }
         
         /*
          * Create the new reader and mark if we are interactive.
          */
         console = ConsoleLineReader.getReader(this, readerType);
-        this.isInteractive = isInteractive;
         
-        if (isInteractive) {
-            
-            loadReadlineHistory(getConfigDirectory());
-        }
+        loadReadlineHistory(getConfigDirectory());
     }
-    
     
     /**
      * @return true if the user's input is to be echoed back.
@@ -891,7 +870,7 @@ public class SqshContext {
      * 
      * @return A newly created session.
      */
-    public Session newSession() {
+    public Session newSession(boolean isInteractive) {
         
         Session session = new Session(this, nextSessionId);
         session.setInteractive(isInteractive);
@@ -912,7 +891,7 @@ public class SqshContext {
      * @return The newly created session.
      */
     public Session newSession(InputStream in, 
-            PrintStream out, PrintStream err) {
+            PrintStream out, PrintStream err, boolean isInteractive) {
         
         Session session =
             new Session(this, nextSessionId, in, out, err);
@@ -952,15 +931,6 @@ public class SqshContext {
         }
         
         return null;
-    }
-    
-    /**
-     * @return true if this was the first time jsqsh was run by this user.
-     *   This is recognized 
-     */
-    public boolean isFirstTime() {
-        
-        return isFirstTime;
     }
     
     /**
@@ -1153,6 +1123,8 @@ public class SqshContext {
                 + "topics. Using " + console.getName() + ".");
             
             doneBanner = true;
+            
+            doWelcome(session);
         }
         
         /*
@@ -1342,10 +1314,78 @@ public class SqshContext {
         
         copyResource(homedir, "org/sqsh/template/sqshrc");
         copyResource(homedir, "org/sqsh/template/drivers.xml");
+    }
+    
+    /**
+     * Do all of the "Welcome to the wonderful world of jsqsh activities"
+     */
+    private void doWelcome(Session session) {
         
+        if (! session.isInteractive()) {
+            
+            return;
+        }
+        
+        File confDir = getConfigDirectory();
+        File welcomeFile = new File(confDir, ".welcome");
+        
+        if (welcomeFile.exists()) {
+            
+            return;
+        }
+        
+        /*
+         * Create the welcome file since we are going to welcome them!
+         */
+        try {
+                
+            welcomeFile.createNewFile();
+        }
+        catch (IOException e) {
+                
+            System.err.println("WARNING: Failed to create " + welcomeFile 
+                + ": " + e.getMessage());
+            return;
+        }
+        
+        /*
+         * Here's a hack.  The ".welcome" file is a recent change to jsqsh, and
+         * we don't want to do the whole welcome thing if an existing jsqsh user
+         * already has a ~/.jsqsh but doesn't have a .welcome file in it. To avoid
+         * this, check to see if drivers.xml is older than the date at which this
+         * comment was written and don't do the setup activities.
+         */
+        File driversFile = new File(confDir, "drivers.xml");
+        if (driversFile.exists())
+        {
+            long lastModified = driversFile.lastModified();
+        
+            /*
+             * Directory was created prior to "now" (when I am typing this comment),
+             * so pretend the welcome was done
+             */
+            if (lastModified < 1392411017075L) {
+                
+                return;
+            }
+        }
+            
         HelpTopic welcome = helpManager.getTopic("welcome");
         System.out.println(welcome.getHelp());
-        isFirstTime = true;
+        
+        session.out.println();
+        session.out.println("You will now enter the jsqsh setup wizard.");
+        try {
+            
+            getConsole().readline("Hit enter to continue: ", false);
+            Command command = session.getCommandManager().getCommand("\\setup");
+            command.execute(session, new String [] { });
+        }
+        catch (Exception e) {
+            
+            /* NOT SURE WHAT TO DO HERE */
+            e.printStackTrace();
+        }
     }
     
     /**
@@ -1425,10 +1465,7 @@ public class SqshContext {
         /*
          * Load our readline history.
          */
-        if (isInteractive) {
-            
-            loadReadlineHistory(configDir);
-        }
+        loadReadlineHistory(configDir);
         
         /*
          * Then load any additional drivers that the user
@@ -1540,8 +1577,7 @@ public class SqshContext {
         
         Session session = null;
         
-        session = newSession(input, System.out, System.err);
-        session.setInteractive(false);
+        session = newSession(input, System.out, System.err, false);
         session.readEvalPrint();
         removeSession(session.getId());
     }
