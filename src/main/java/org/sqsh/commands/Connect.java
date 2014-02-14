@@ -225,8 +225,7 @@ public class Connect
             if (options.newSession) {
                 
                 Session newSession = session.getContext().newSession(
-                    session.in, session.out, session.err);
-                newSession.setInteractive(session.isInteractive());
+                    session.in, session.out, session.err, session.isInteractive());
                 newSession.setConnectionContext(sqlContext);
                 
                 /*

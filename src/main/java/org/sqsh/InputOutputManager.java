@@ -77,7 +77,8 @@ public class InputOutputManager {
             LOG.fine("Setting interactive to " + isInteractive);
         }
         
-        ioStack.peek().isInteractive = isInteractive;
+        InputOutputState state = ioStack.peek();
+        state.isInteractive = isInteractive;
     }
     
     /**
@@ -87,7 +88,8 @@ public class InputOutputManager {
      */
     public boolean isInteractive() {
         
-        return ioStack.peek().isInteractive;
+        InputOutputState state = ioStack.peek();
+        return state.isInteractive;
     }
     
     /**
@@ -195,7 +197,7 @@ public class InputOutputManager {
         
         if (LOG.isLoggable(Level.FINE)) {
 
-            LOG.fine("Replacing (autoClose=" + autoClose + ")");
+            LOG.fine("Replacing (autoClose=" + autoClose + ", isInteractive=" + isInteractive + ")");
         }
         
         InputOutputState curState = ioStack.peek();

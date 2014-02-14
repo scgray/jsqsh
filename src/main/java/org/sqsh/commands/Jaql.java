@@ -18,7 +18,6 @@ package org.sqsh.commands;
 import static org.sqsh.options.ArgumentRequired.NONE;
 import static org.sqsh.options.ArgumentRequired.REQUIRED;
 
-import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,17 +28,10 @@ import org.sqsh.SqshContextSwitchMessage;
 import org.sqsh.SqshOptions;
 import org.sqsh.jaql.JaqlConnection;
 import org.sqsh.jaql.JaqlFormatter;
-import org.sqsh.jaql.JsonFormatter;
 import org.sqsh.jaql.JsonFormatterFactory;
-import org.sqsh.jaql.JsonLinesFormatter;
 import org.sqsh.options.Argv;
 import org.sqsh.options.OptionProperty;
 
-import com.ibm.jaql.io.converter.JsonToStream;
-import com.ibm.jaql.io.stream.converter.DelTextOutputStream;
-import com.ibm.jaql.io.stream.converter.JsonTextOutputStream;
-import com.ibm.jaql.io.stream.converter.XmlTextOutputStream;
-import com.ibm.jaql.json.type.JsonValue;
 import com.ibm.jaql.lang.JaqlQuery;
 
 /**
@@ -222,8 +214,7 @@ public class Jaql
         if (options.newSession) {
             
             Session newSession = session.getContext().newSession(
-                session.in, session.out, session.err);
-            newSession.setInteractive(session.isInteractive());
+                session.in, session.out, session.err, session.isInteractive());
             newSession.setConnectionContext(conn);
             
             /*

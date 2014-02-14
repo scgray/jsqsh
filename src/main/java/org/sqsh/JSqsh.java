@@ -70,7 +70,7 @@ public class JSqsh {
        @OptionProperty(
            option='n', longOption="non-interactive", arg=NONE,
            description="Disables recording of input history, and line editing functionality")
-       public boolean nonInteractive = false;
+       public boolean isInteractive = true;
        
        @OptionProperty(
            option='j', longOption="jaql", arg=NONE,
@@ -191,7 +191,8 @@ public class JSqsh {
          * all sorts of conflicts when using jline against input that doesn't
          * come from the console.
          */
-        if (options.nonInteractive) {
+        boolean isInteractive = options.isInteractive;
+        if (! isInteractive) {
             
             options.readline = ConsoleLineReader.NONE;
         }
@@ -245,23 +246,11 @@ public class JSqsh {
         InputStream in = null;
         try {
             
-            Session session = sqsh.newSession();
+            Session session = sqsh.newSession(isInteractive);
             
-            /*
-             * First time users, get some extra help
-             */
-            if (sqsh.isFirstTime() || options.doSetup) {
+            if (options.doSetup) {
                 
-                
-                sqsh.setReader(null, true);
-                
-                if (sqsh.isFirstTime()) {
-                    
-                    session.out.println();
-                    session.out.println("You will now enter the jsqsh setup wizard.");
-                    sqsh.getConsole().readline("Hit enter to continue: ", false);
-                }
-                
+                sqsh.setReader(null);
                 Command command = session.getCommandManager().getCommand("\\setup");
                 command.execute(session, new String [] { });
             }
@@ -303,14 +292,15 @@ public class JSqsh {
                     break;
                 }
                 
-                session.setIn(in, (options.inputFiles != null), (in == System.in));
+                session.setIn(in, (options.inputFiles != null), 
+                    isInteractive && (in == System.in));
                 session.setOut(out, options.outputFile != null);
                 
                 /*
                  * If we are forcibly non-interactive then just leave the context
                  * untouched--it is that way by default.
                  */
-                if (!options.nonInteractive) {
+                if (isInteractive) {
                     
                     /*
                      * It is possible that we will implicitly switch between 
@@ -320,11 +310,13 @@ public class JSqsh {
                      */
                     if (in == System.in) {
                         
-                        sqsh.setReader(options.readline, true);
+                        session.setInteractive(true);
+                        sqsh.setReader(options.readline);
                     }
                     else {
                         
-                        sqsh.setReader(ConsoleLineReader.NONE, false);
+                        session.setInteractive(false);
+                        sqsh.setReader(ConsoleLineReader.NONE);
                     }
                 }
                 
