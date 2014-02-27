@@ -95,7 +95,25 @@ public class SimpleKeywordTokenizer {
      */
     public void unget(String token) {
         
-        tokens.push(token);
+        if (token != null) {
+            
+            tokens.push(token);
+        }
+    }
+    
+    /**
+     * Peek ahead one token
+     * @return The next token or null if there is no next token
+     */
+    public String peek() {
+        
+        String t = next();
+        if (t != null) {
+            
+            tokens.push(t);
+        }
+        
+        return t;
     }
     
     /**

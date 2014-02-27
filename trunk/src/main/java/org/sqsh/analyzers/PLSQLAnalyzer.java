@@ -44,115 +44,189 @@ public class PLSQLAnalyzer
             return isLastToken(sql, terminator);
         }
         
-        /*
-         * If the terminator is a semicolon then we have to look for
-         * specific keywords in the SQL to try to determine if the
-         * SQL is PL/SQL or just a plain SQL statement.
-         */
-        boolean isPLSQL = false;
-        int semicolonCount = 0;
         SimpleKeywordTokenizer tokenizer =
             new SimpleKeywordTokenizer(sql, terminator);
         String token = tokenizer.next();
-        while (token != null) {
-            
-            /*
-             * We count semicolons until we hit a non-semicolon token.
-             */
-            if (token.length() == 1 && token.charAt(0) == terminator) {
-                
-                ++semicolonCount;
-            }
-            else {
-                
-                semicolonCount = 0;
-            }
-            
-            /*
-             * If we haven't yet determined if we are in a PL/SQL block
-             * then start looking at the keywords.
-             */
-            if (isPLSQL == false) {
-                
-                if ("BEGIN".equals(token)) {
-            
-                    isPLSQL = isBeginBlock(tokenizer);
-                }
-                else if ("END".equals(token)
-                        || "DECLARE".equals(token)
-                        || "EXCEPTION".equals(token)) {
-                    
-                    isPLSQL = true;
-                }
-                else if ("CREATE".equals(token)) {
-                    
-                    isPLSQL = isCreateObject(tokenizer);
-                }
-            }
-            
-            token =  tokenizer.next();
-        }
         
-        /*
-         * If we haven't seen a semicolon, then we can bail.
-         */
-        if (semicolonCount == 0) {
+        if (token == null) {
             
             return false;
         }
         
-        /*
-         * If we determined that this is not a PL/SQL block, then 
-         * if we end in a semicolon we are a-ok. If this is a PL/SQL
-         * block and we have multiple semicolons, then we are done as well.
-         */
-        if (isPLSQL == false || semicolonCount > 1) {
-            
-            return true;
-        }
+        int blockNestCount = 0;
         
         /*
-         * Last check. if this is a PL/SQL block and we have only one
-         * semicolon, then check to see if it is on a line all by itself.
+         * First, attempt to classify the statement as whether or not it is
+         * a PL/SQL statement that could contain semicolons. If it is, then
+         * we enter the hard core parsing efforts.
          */
-        int idx = sql.length() - 1;
-        char ch = sql.charAt(idx);
-        
-        /*
-         * Find the semicolon.
-         */
-        while (ch != ';') {
-            
-            --idx;
-            ch = sql.charAt(idx);
-        }
-        
-        /*
-         * Look back from the semicolon for a newline. If we hit
-         * anything other than whitespace or the newline, then we aren't
-         * terminated.
-         */
-        --idx;
-        while (idx >= 0) {
-            
-            ch = sql.charAt(idx);
-            if (Character.isWhitespace(ch)) {
-                
-                if (ch == '\n') {
+        if ("DECLARE".equals(token)) {
                     
-                    return true;
+            if (! seekBegin(tokenizer)) {
+                            
+                return false;
+            }
+            
+            ++blockNestCount;
+            token = tokenizer.next();
+        }
+        else if ("BEGIN".equals(token)) {
+                    
+            if (isBeginBlock(tokenizer)) {
+                        
+                ++blockNestCount;
+            }
+            token = tokenizer.next();
+        }
+        
+        while (token != null) {
+            
+            /*
+             * I don't check for CREATE PROCEDURE (or FUNCTION) as a top level
+             * element because we could run across a construct like:
+             *    CREATE SCHEMA FOO
+             *       CREATE PROCEDURE ...
+             *       CREATE PROCEDURE ...
+             * However, we know we can't have a CREATE inside of a CREATE so
+             * this check is only done if we aren't already in a block
+             */
+            if (blockNestCount == 0) {
+                
+                /*
+                 * Did we hit the terminator? Note we can get tripped up PL/SQL's
+                 * use of "END;" at the end of a DDL statement because they may
+                 * have done:
+                 * 
+                 *    CREATE SCHEMA FOO
+                 *       CREATE PROCEDURE ...BEGIN ... END;
+                 *       CREATE PROCEDURE ...BEGIN ... END;
+                 *       
+                 * and we'll trigger on the first CREATE
+                 */
+                if (token.length() == 1 && token.charAt(0) == terminator) {
+                    
+                    if (tokenizer.peek() == null) {
+                        
+                        return true;
+                    }
+                }
+                else if ("CREATE".equals(token)) {
+                    
+                    if (skipToRoutineBegin(tokenizer)) {
+                        
+                        ++blockNestCount;
+                    }
+                }
+                else if ("ALTER".equals(token)) {
+                    
+                    /*
+                     * Look for ALTER MODULE ... ADD/PUBLISH [PROC|FUNC]
+                     */
+                    token = tokenizer.next();
+                    if ("MODULE".equals(token)) {
+                        
+                        token = tokenizer.next();
+                        while (token != null 
+                            && ! "ADD".equals(token)
+                            && ! "DROP".equals(token)
+                            && ! "PUBLISH".equals(token)) {
+                            
+                            token = tokenizer.next();
+                        }
+                        
+                        if (skipToRoutineBegin(tokenizer)) {
+                            
+                            ++blockNestCount;
+                        }
+                    }
                 }
             }
-            else {
+            else { // We are in a nested block
                 
-                break;
+                /*
+                 * CASE has an END and we don't want to interpret it incorrectly
+                 */
+                if ("CASE".equals(token)) {
+                    
+                    skipCase(tokenizer);
+                }
+                else if ("BEGIN".equals(token)) {
+                    
+                    if (isBeginBlock(tokenizer)) {
+                        
+                        ++blockNestCount;
+                    }
+                }
+                else if ("END".equals(token)) {
+                    
+                    if (isEndBlock(tokenizer)) {
+                        
+                        --blockNestCount;
+                    }
+                }
             }
             
-            --idx;
+            token = tokenizer.next();
         }
         
         return false;
     }
+    
+    /**
+     * Called after a CASE keyword has been hit. Skips to the END portion
+     * of the CASE
+     * 
+     * @param tokenizer tokenizer
+     */
+    private void skipCase (SimpleKeywordTokenizer tokenizer) {
+        
+        int nestCount = 1;
+        String token = tokenizer.next();
+        while (token != null && nestCount > 0) {
+            
+            if ("CASE".equals(token)) {
+                
+                ++nestCount;
+            }
+            else if ("END".equals(token)) {
+                
+                token = tokenizer.next();
+                if (! "CASE".equals(token)) {
+                    
+                    tokenizer.unget(token);
+                }
+                
+                --nestCount;
+            }
+            else {
+                
+                token = tokenizer.next();
+            }
+        }
+    }
+    
+    /**
+     * Seek the tokenzer to the start of a BEGIN block
+     * @param tokenizer The tokenizer
+     * @return True if it was seeked to the BEGIN keyword
+     */
+    private boolean seekBegin(SimpleKeywordTokenizer tokenizer) {
+        
+        String tok = tokenizer.next();
+        while (tok != null) {
+            
+            if ("BEGIN".equals(tok)) {
+                
+                if (isBeginBlock(tokenizer)) {
+                    
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+    
     
     /**
      * Called after a BEGIN is hit. Checks to see if it is a 
@@ -163,60 +237,94 @@ public class PLSQLAnalyzer
      */
     private boolean isBeginBlock(SimpleKeywordTokenizer tokenizer) {
         
-        String n = tokenizer.next();
-        if (n != null) {
-            
-            if ("TRANSACTION".equals(n)
-                    || "TRAN".equals(n)) {
+        String n = tokenizer.peek();
+        
+        if ("TRANSACTION".equals(n) || "TRAN".equals(n)
+            || "DECLARE".equals(n)) {
                 
-                return false;
-            }
-            
-            tokenizer.unget(n);
-            return true;
+            return false;
         }
         
         return true;
     }
     
     /**
-     * Called after a CREATE is hit. Checks to see if it is 
-     * creating an object that would be a PL/SQL block.
+     * Called after a END is hit. Checks to ensure it isn't END IF
      * 
      * @param tokenizer The tokenizer.
-     * @return true if it is a PL/SQL object.
+     * @return true if it is a standalone BEGIN.
      */
-    private boolean isCreateObject(SimpleKeywordTokenizer tokenizer) {
+    private boolean isEndBlock(SimpleKeywordTokenizer tokenizer) {
         
-        String n = tokenizer.next();
-        if (n != null && "OR".equals(n)) {
+        String n = tokenizer.peek();
+        
+        /*
+         * END IF, END DECLARE
+         */
+        if ("IF".equals(n) || "DECLARE".equals(n)) {
+                
+            return false;
+        }
             
-            n = tokenizer.next();
-            if (n != null && "REPLACE".equals(n)) {
+        return true;
+    }
+    
+    /**
+     * Called when some kind of CREATE has been hit to seek forward to 
+     * try to find the beginning of the routine body.
+     * 
+     * @param tokenizer The tokenizer.
+     * @return true if we hit the BEGIN token
+     */
+    private boolean skipToRoutineBegin (SimpleKeywordTokenizer tokenizer) {
+        
+        String tok = tokenizer.next();
+        
+        /*
+         * Note: my funny style of doing "STRING".equals() is because
+         * token could be null and this won't produce an NPE
+         */
+        if ("OR".equals(tok)) {
+            
+            tok = tokenizer.next();
+            if ("REPLACE".equals(tok)) {
                 
-                n =  tokenizer.next();
-            }
-            else {
-                
-                if (n != null) {
-                    
-                    tokenizer.unget(n);
-                }
-                return false;
+                tok = tokenizer.next();
             }
         }
         
-        if (n != null) {
+        /*
+         * A function can be: CREATE FUNCTION ... RETURN <expression>
+         * or: CREATE FUNCTION .. BEGIN .. END. Try to figure out which
+         */
+        if ("FUNCTION".equals(tok)) {
             
-            if ("TYPE".equals(n)
-                    || "TRIGGER".equals(n)
-                    || "CONTEXT".equals(n)
-                    || "FUNCTION".equals(n)
-                    || "PACKAGE".equals(n)
-                    || "PROCEDURE".equals(n)) {
+            tok = tokenizer.next();
+            while (tok != null) {
+                
+                if ("RETURN".equals(tok)) {
+                    
+                    return false;
+                }
+                else if ("BEGIN".equals(tok)) {
+                    
+                    return true;
+                }
+                
+                tok = tokenizer.next();
+            }
+        }
+        else if ("PROCEDURE".equals(tok) || "TRIGGER".equals(tok)) {
+            
+            /*
+             * Procedures must have a BEGIN
+             */
+            if (seekBegin(tokenizer)) {
                 
                 return true;
             }
+            
+            return false;
         }
         
         return false;
