@@ -26,6 +26,8 @@ New Features
     properly indicate when they are done sending results to the client.
 
 Bug Fixes
+  * Improved the PL/SQL determination of whether or not ';' is a statement
+    terminator.
   * The visual timer is better about clearing itself before results are
     displayed
   * JSqsh will try to recognize tabs that come from a cut and paste 
