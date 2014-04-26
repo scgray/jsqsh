@@ -293,7 +293,7 @@ public class Show
             }
             else {
                 
-                session.err.println("Uncrecognized object type \""
+                session.err.println("Unrecognized object type \""
                     + subCommand + "\". See \"\\help show\" for details");
                 return 1;
             }
@@ -304,6 +304,10 @@ public class Show
                 sqlRenderer.displayResults(renderer, session, result, 
                     options.columns);
             }
+        }
+        catch (AbstractMethodError e) {
+            
+            session.err.println("Command not supported by JDBC driver");
         }
         catch (SQLException e) {
             
@@ -620,10 +624,20 @@ public class Show
         }
         
         DatabaseMetaData meta = con.getMetaData();
-        return meta.getSchemas(
-            (options.catalog == null ? con.getCatalog() : options.catalog),
-            schema
-            );
+        try {
+            
+            return meta.getSchemas(
+                (options.catalog == null ? con.getCatalog() : options.catalog),
+                schema
+                );
+        }
+        catch (AbstractMethodError e) {
+            
+            return new PatternFilteredResultSet(meta.getSchemas(),
+                1, schema,
+                2, (options.catalog == null ? con.getCatalog() : options.catalog)
+                );
+        }
     }
     
     private ResultSet doSuper(Session session, Connection con, Options options)

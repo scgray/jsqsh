@@ -1625,8 +1625,21 @@ public class SqshContext {
     private void saveConfigDirectory() {
        
         File homedir = getConfigDirectory();
+        
+        /*
+         * Sometimes we get conflicts if more than one jsqsh process is exiting
+         * and stomps over the history of another, so we do an atomic rename here
+         * to avoid such stompage.
+         */
+        File historyTmp = new File(homedir, "history.xml.tmp");
         File history = new File(homedir, "history.xml");
-        bufferManager.save(history);
+        bufferManager.save(historyTmp);
+        
+        if (! historyTmp.renameTo(history)) {
+            
+            System.out.println("WARNING: Failed to rename \"" + historyTmp 
+                + "\" to \"" + history + "\"");
+        }
         
         saveReadlineHistory(homedir);
     }
