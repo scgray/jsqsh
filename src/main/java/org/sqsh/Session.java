@@ -1323,7 +1323,7 @@ public class Session
             
             err.println(e.getMessage());
         }
-        catch (Exception e) {
+        catch (Throwable e) {
                     
             e.printStackTrace(err);
         }
