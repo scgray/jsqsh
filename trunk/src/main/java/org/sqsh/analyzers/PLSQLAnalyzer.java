@@ -222,6 +222,8 @@ public class PLSQLAnalyzer
                     return true;
                 }
             }
+            
+            tok = tokenizer.next();
         }
         
         return false;
@@ -239,8 +241,7 @@ public class PLSQLAnalyzer
         
         String n = tokenizer.peek();
         
-        if ("TRANSACTION".equals(n) || "TRAN".equals(n)
-            || "DECLARE".equals(n)) {
+        if ("TRANSACTION".equals(n) || "TRAN".equals(n)) {
                 
             return false;
         }
