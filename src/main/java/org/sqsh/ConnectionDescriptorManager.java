@@ -15,9 +15,13 @@
  */
 package org.sqsh;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -346,8 +350,80 @@ public class ConnectionDescriptorManager {
         }
         catch (IOException e) {
             
-            LOG.warning("WARNING: Unable to write to "
+            LOG.severe("WARNING: Unable to write to "
                 + filename + ": " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Execute a program that generates a valid connection XML file.
+     * @param prog the program to execute
+     */
+    public void loadFromProgram (String prog) {
+        
+        Process process;
+        try {
+        
+            process = Runtime.getRuntime().exec(prog);
+        }
+        catch (IOException e) {
+            
+            LOG.warning("Failed to execute \"" + prog + "\": " + e.getMessage());
+            return;
+        }
+        
+        final BufferedReader err = new BufferedReader(
+            new InputStreamReader(process.getErrorStream()));
+        final StringBuilder errBuffer = new StringBuilder();
+        
+        Thread errorConsumer = new Thread() {
+            
+            public void run() {
+                
+                try {
+                    
+                    LOG.fine("Error stream reader running");
+                    String line;
+                    while ((line = err.readLine()) != null) {
+                        
+                        errBuffer.append(line).append("\n");
+                    }
+                }
+                catch (IOException e) {
+                    
+                    // Ignored
+                }
+                LOG.fine("Error stream reader shut down");
+            }
+        };
+        
+        errorConsumer.start();
+        InputStream in = process.getInputStream();
+        boolean ok = true;
+        if (! load(in, prog)) {
+            
+            ok = false;
+            
+            // Consume left over input so the program can finish
+            try {
+                
+                byte buffer[] = new byte[1024];
+                while ((in.read(buffer)) >= 0) {
+                
+                    // Nothing to see here. Move along.
+                }
+            }
+            catch (IOException e) {
+                
+                // Ignored
+            }
+        }
+        
+        process.destroy();
+        if (!ok && errBuffer.length() > 0) {
+            
+            LOG.warning(prog + " error output:");
+            LOG.warning(errBuffer.toString());
         }
     }
     
@@ -374,6 +450,28 @@ public class ConnectionDescriptorManager {
             LOG.fine("   Loading connections file '" + filename + "'");
         }
         
+        InputStream in = null;
+        try {
+            
+            in = new FileInputStream(filename);
+            load(in, filename);
+        }
+        catch (IOException e) {
+            
+            LOG.severe("Failed to load connection descriptor file '"
+                + filename + ": " + e.getMessage());
+        }
+        finally {
+            
+            if (in != null) {
+                
+                try { in.close(); } catch (IOException e2) { /* IGNORED */ }
+            }
+        }
+    }
+    
+    private boolean load(InputStream in, String filename) {
+
         String path;
         Digester digester = new Digester();
         digester.setValidating(false);
@@ -419,12 +517,15 @@ public class ConnectionDescriptorManager {
         digester.push(this); 
         try {
                 
-            digester.parse(file);
+            digester.parse(in);
         }
         catch (Exception e) {
                 
-            LOG.severe("Failed to load connection descriptor file '"
+            LOG.severe("Failed to load connection descriptor from '"
                 + filename + ": " + e.getMessage());
+            return false;
         }
+        
+        return true;
     }
 }
