@@ -30,7 +30,20 @@ public class NumberFormatter
         this.precision = precision;
         this.scale = scale;
         
-        if (scale <= 0) {
+        /*
+         * Hive-ism.  An unqualified Hive DECIMAL has a precision and scale
+         * of MAX_INT.  I'm not going to look for MAX_INT specifically since I
+         * have learned my lesson about just assuming that values I receive are
+         * "reasonable".  Sybase has the highest precision I know amongst the 
+         * commercial vendors (77) so I'll cap at that value. 
+         */
+        if (precision > 77) {
+            
+            this.precision = 0;
+            this.scale = 0;
+        }
+        
+        if (this.scale <= 0) {
             
             format = new DecimalFormat("#");
         }
@@ -38,7 +51,7 @@ public class NumberFormatter
                 
             StringBuilder sb = new StringBuilder();
             sb.append("#.");
-            for (int i = 0; i < scale; i++) {
+            for (int i = 0; i < this.scale; i++) {
                     
                 sb.append('0');
             }
@@ -69,7 +82,7 @@ public class NumberFormatter
          */
         if (precision == 0) {
             
-            return 21;
+            return 40;
         }
         
         /*
