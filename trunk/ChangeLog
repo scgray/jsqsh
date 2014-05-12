@@ -37,7 +37,9 @@ Bug Fixes
     explicitly, but when the value was provided explicitly by the driver
     definition, the value would be null.
   * Fixed inability to start jsqsh if a driver throws an error (java.lang.Error)
-    while being loaded.
+    while being loaded. 
+  * Fixed handling of Hive DECIMAL type
+
 
 Misc
   * Debian package is no longer dependent upon readline-java.
