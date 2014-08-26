@@ -15,10 +15,13 @@
  */
 package org.sqsh;
 
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Logger;
 
 import org.sqsh.ConnectionDescriptor;
 import org.sqsh.SQLDriver;
@@ -26,9 +29,12 @@ import org.sqsh.SQLDriverManager;
 import org.sqsh.analyzers.SQLAnalyzer;
 import org.sqsh.input.completion.Completer;
 import org.sqsh.input.completion.DatabaseObjectCompleter;
+import org.sqsh.normalizer.SQLNormalizer;
 
 public class SQLConnectionContext
     extends ConnectionContext {
+    
+    private static final Logger LOG = Logger.getLogger(SQLConnectionContext.class.getName());
     
     /**
      * Value to be passed to setExecutionMode() to indicate that SQL should
@@ -58,6 +64,11 @@ public class SQLConnectionContext
     private SQLAnalyzer analyzer;
     
     /**
+     * SQL normalizer for normalizing identifiers
+     */
+    private SQLNormalizer normalizer;
+    
+    /**
      * The JDBC url that was used to create the connection.
      */
     private String url;
@@ -76,6 +87,11 @@ public class SQLConnectionContext
     private ConnectionDescriptor connDesc;
     
     /**
+     * Query to run to determine the current schema
+     */
+    private String currentSchemaQuery;
+    
+    /**
      * Creates a ConnectionContext
      * 
      * @param connDesc The properties that were used when establishing
@@ -84,11 +100,16 @@ public class SQLConnectionContext
      * @param url The JDBC URL that was used to create the connection
      * @param analyzer An analyzer for analyzing the SQL (null if no
      * analyzer is available).
+     * @param normalizer An normalizer for identifiers.
      */
     public SQLConnectionContext (
             Session session,
             ConnectionDescriptor connDesc,
-            Connection conn, String url, SQLAnalyzer analyzer) {
+            Connection conn, 
+            String url, 
+            SQLAnalyzer analyzer,
+            SQLNormalizer normalizer,
+            String currentSchemaQuery) {
         
         super(session);
         
@@ -97,6 +118,8 @@ public class SQLConnectionContext
         this.connDesc = connDesc;
         this.connection = conn;
         this.url = url;
+        this.normalizer = normalizer;
+        this.currentSchemaQuery = currentSchemaQuery;
     }
     
     
@@ -410,6 +433,19 @@ public class SQLConnectionContext
         this.url = url;
     }
     
+    /**
+     * Normalizes an identifier according to database normalization rules for
+     * the chosen database platform.
+     * 
+     * @param identifier The identifier to normalizer
+     * @return The normalized identifier
+     * 
+     * @see SQLNormalizer
+     */
+    public String normalizeIdentifier(String identifier) {
+        
+        return normalizer.normalize(identifier);
+    }
     
     @Override
     public boolean isTerminated(String batch, char terminator) {
@@ -474,5 +510,54 @@ public class SQLConnectionContext
         }
         
         return null;
+    }
+    
+    public String getCurrentSchema() {
+        
+        /*
+         * Connection.getSchema() is only available in 1.7 drivers. We will
+         * try that first, then fall back to running a query if that doesn't work.
+         */
+        try {
+            
+            Class<? extends Connection> clazz = connection.getClass();
+            Method m = clazz.getMethod("getSchema", new Class<?> [0] );
+            String schema = (String) m.invoke(connection);
+            return schema;
+        }
+        catch (NoSuchMethodException e) {
+            
+            /* Pre 1.7 driver */
+        }
+        catch (Throwable e) {
+            
+            /* Perhaps an operation not supported error? */
+            LOG.fine("Failure while invoking connection.getSchema(): " + e.getMessage());
+        }
+        
+        if (currentSchemaQuery == null) {
+            
+            return null;
+        }
+        
+        Statement statment = null;
+        ResultSet results = null;
+        String schema = null;
+        
+        try {
+            
+            statement = connection.createStatement();
+            results = statement.executeQuery(currentSchemaQuery);
+            while (results.next()) {
+                
+                schema = results.getString(1);
+            }
+        }
+        catch (SQLException e) {
+            
+            LOG.fine("Failed executing '" + currentSchemaQuery + "': " + e.getMessage());
+        }
+        
+        return schema;
     }
 }

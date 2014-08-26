@@ -47,6 +47,10 @@ import org.sqsh.analyzers.PLSQLAnalyzer;
 import org.sqsh.analyzers.SQLAnalyzer;
 import org.sqsh.analyzers.TSQLAnalyzer;
 import org.sqsh.input.ConsoleLineReader;
+import org.sqsh.normalizer.LowerCaseNormalizer;
+import org.sqsh.normalizer.NullNormalizer;
+import org.sqsh.normalizer.SQLNormalizer;
+import org.sqsh.normalizer.UpperCaseNormalizer;
 import org.sqsh.options.Argv;
 import org.sqsh.options.OptionProperty;
 
@@ -753,6 +757,11 @@ public class Setup extends Command {
                 idx++, " ", "SQL Parser", driver.getAnalyzer().getName());
             out.format(format, 
                 idx++, " ", "Classpath", driver.getClasspath());
+            out.format(format, 
+                idx++, " ", "Name normalizer", driver.getNormalizer().getName());
+            out.format(format, 
+                idx++, " ", "Schema query", 
+                driver.getCurrentSchemaQuery() == null ? "(none)" : driver.getCurrentSchemaQuery());
             out.format("     %15s : %s\n", "Status",
                 driverStatus(session, driver));
             
@@ -863,7 +872,17 @@ public class Setup extends Command {
                         out.println();
                         driver.setClasspath(getEntry(out, in, "Enter new classpath: ", false));
                     }
-                    else if (opt > 6) {
+                    else if (opt == 7) {
+                        
+                        out.println();
+                        driver.setNormalizer(chooseNormalizer(out, in));
+                    }
+                    else if (opt == 8) {
+                        
+                        out.println();
+                        driver.setCurrentSchemaQuery(getEntry(out, in, "Enter query to fetch current schema: ", false));
+                    }
+                    else if (opt > 8) {
                         
                         DriverVariable var = vars.get(opt-7);
                         out.println();
@@ -1076,6 +1095,41 @@ public class Setup extends Command {
             }
         }
             
+    }
+    
+    private SQLNormalizer chooseNormalizer(PrintStream out, ConsoleLineReader in) 
+        throws Exception {
+        
+        out.println();
+        out.println("1.  NONE");
+        out.println("2.  UPPER CASE");
+        out.println("3.  LOWER CASE");
+        
+        while (true) {
+            
+            String str = in.readline("Select object name normalization for this database: ", false);
+            str = str.trim();
+            int id = toInt(str);
+            if (id < 1 || id > 3) {
+                
+                Ansi ansi = new Ansi();
+                ansi.cursorUp(1);
+                ansi.eraseLine();
+                ansi.cursorUp(1);
+                out.println(ansi);
+            }
+            else
+            {
+                switch (id) {
+                
+                case 1: return new NullNormalizer();
+                case 2: return new UpperCaseNormalizer();
+                case 3: return new LowerCaseNormalizer();
+                default:
+                    break;
+                }
+            }
+        }
     }
     
     private void newDriverProperty(Session session, PrintStream out, 

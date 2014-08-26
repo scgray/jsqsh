@@ -29,6 +29,8 @@ import java.util.List;
 import org.sqsh.Command;
 import org.sqsh.DatabaseCommand;
 import org.sqsh.Renderer;
+import org.sqsh.SQLConnectionContext;
+import org.sqsh.SQLObjectName;
 import org.sqsh.SQLRenderer;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
@@ -50,18 +52,24 @@ public class Tables
             description="Show all available information")
         public boolean showAll = false;
         
-        @OptionProperty(
+        @OptionProperty(deprecated=true,
             option='t', longOption="table-pattern", arg=REQUIRED, argName="pattern",
             description="Provides a pattern to match against table names")
-        public String tablePattern = "%";
+        public String tablePattern = null;
         
-        @OptionProperty(
+        // Not documented any more
+        @OptionProperty(deprecated=true,
             option='s', longOption="schema-pattern", arg=REQUIRED, argName="pattern",
             description="Provides a pattern to match against schema names")
-        public String schemaPattern = "%";
+        public String schemaPattern = null;
+        
+        @OptionProperty(
+            option='T', longOption="type", arg=REQUIRED, argName="type",
+            description="Type of tables to return")
+        public String type = null;
         
         @Argv(program="\\tables", min=0, max=1,
-            usage="[-t table-pattern] [-s schema-pattern] [type]")
+            usage="[[[catalog.]schema-pattern.]table-pattern]")
       public List<String> arguments = new ArrayList<String>();
     }
     
@@ -70,17 +78,31 @@ public class Tables
         
         return new Options();
     }
+    
+    @Override
+    public boolean keepDoubleQuotes() {
+        
+        return true;
+    }    
 
     @Override
     public int execute (Session session, SqshOptions opts)
         throws Exception {
         
         Options options = (Options) opts;
-        String type = null;
         
+        SQLObjectName name;
         if (options.arguments.size() > 0) {
             
-            type = options.arguments.get(0);
+            name = new SQLObjectName(
+                (SQLConnectionContext) session.getConnectionContext(), 
+                options.arguments.get(0));
+        }
+        else {
+            
+            name = new SQLObjectName(
+                (SQLConnectionContext) session.getConnectionContext(), 
+                "%");
         }
         
         Connection con = session.getConnection();
@@ -91,37 +113,33 @@ public class Tables
         try {
             
             String []types = null;
-            if (type != null) {
+            if (options.type != null) {
                 
                 types = new String[1];
-                if ("TABLE".equals(type.toUpperCase())
-                    || "USER".equals(type.toUpperCase())) {
+                if ("TABLE".equals(options.type.toUpperCase())
+                    || "USER".equals(options.type.toUpperCase())) {
                     
                     types[0] = "TABLE";
                 }
-                else if ("VIEW".equals(type.toUpperCase())) {
+                else if ("VIEW".equals(options.type.toUpperCase())) {
                     
                     types[0] = "VIEW";
                 }
-                else if ("SYSTEM".equals(type.toUpperCase())) {
+                else if ("SYSTEM".equals(options.type.toUpperCase())) {
                     
                     types[0] = "SYSTEM TABLE";
                 }
-                else if ("ALIAS".equals(type.toUpperCase())) {
+                else if ("ALIAS".equals(options.type.toUpperCase())) {
                     
                     types[0] = "ALIAS";
                 }
-                else if ("SYNONYM".equals(type.toUpperCase())) {
+                else if ("SYNONYM".equals(options.type.toUpperCase())) {
                     
                     types[0] = "SYNONYM";
                 }
                 else {
                     
-                    session.err.println("The object type '" 
-                        + type + "' is not recognized. "
-                        + "Valid types are: user, system, view, "
-                        + "alias, synonym");
-                    return 1;
+                    types[0] = options.type;
                 }
             }
             
@@ -141,8 +159,11 @@ public class Tables
                 cols.add(4); /* Table Type */
             }
             
-            result = meta.getTables(con.getCatalog(),
-                options.schemaPattern, options.tablePattern, types);
+            result = meta.getTables(
+                name.getCatalog(),
+                options.schemaPattern != null ? options.schemaPattern : name.getSchema(), 
+                options.tablePattern != null ? options.tablePattern : name.getName(),
+                types);
             
             SQLRenderer sqlRenderer = session.getSQLRenderer();
             sqlRenderer.displayResults(renderer, session, result, cols);

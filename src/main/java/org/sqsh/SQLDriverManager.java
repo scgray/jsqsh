@@ -50,7 +50,7 @@ public class SQLDriverManager {
         Logger.getLogger(SQLDriverManager.class.getName());
     
     /**
-     * This is the map of logical driver names to driver defitions.
+     * This is the map of logical driver names to driver definitions.
      */
     private Map<String, SQLDriver> drivers =
         new HashMap<String, SQLDriver>();
@@ -703,7 +703,9 @@ public class SQLDriverManager {
         ConnectionContext oldContext = session.getConnectionContext();
         SQLConnectionContext newContext = 
             new SQLConnectionContext(session, connDesc, conn, url, 
-                sqlDriver.getAnalyzer());
+                sqlDriver.getAnalyzer(),
+                sqlDriver.getNormalizer(),
+                sqlDriver.getCurrentSchemaQuery());
         session.setConnectionContext(newContext, false);
 
         try {
@@ -918,8 +920,28 @@ public class SQLDriverManager {
      */
     public void addDriver(SQLDriver driver) {
         
+        SQLDriver orig = drivers.put(driver.getName(), driver);
+        
+        /*
+         * This is a complete hack.  Because it is easy to get a copy of the 
+         * driver.xml file in your home directory, I want to be able to "install"
+         * new configuration parameters like the SQL normalizer into the copy of the
+         * driver definition that the user already has defined.  So, if I see I'm
+         * replacing an existing entry for the driver with a new one, then I check
+         * if the new one doesn't have a normalizer defined (it is using the default),
+         * so I tell the new one to use the one defined internally.
+         */
+        if (orig != null && driver.getNormalizer() == SQLDriver.DEFAULT_NORMALIZER) {
+            
+            driver.setNormalizer(orig.getNormalizer());
+        }
+        
+        if (orig != null && driver.getCurrentSchemaQuery() == null) {
+            
+            driver.setCurrentSchemaQuery(orig.getCurrentSchemaQuery());
+        }
+        
         driver.setInternal(isLoadingInternal);
-        drivers.put(driver.getName(), driver);
         driver.setDriverManager(this);
         checkDriverAvailability(driver.getName());
     }
@@ -998,6 +1020,9 @@ public class SQLDriverManager {
         digester.addCallMethod(path, 
             "setAnalyzer", 1, new Class[] { java.lang.String.class });
             digester.addCallParam(path, 0, "analyzer");
+        digester.addCallMethod(path, 
+            "setNormalizer", 1, new Class[] { java.lang.String.class });
+            digester.addCallParam(path, 0, "normalizer");
             
         path = "Drivers/Driver/Classpath";
         digester.addCallMethod(path, 
@@ -1024,6 +1049,11 @@ public class SQLDriverManager {
                 java.lang.String.class });
             digester.addCallParam(path, 0, "name");
             digester.addCallParam(path, 1);
+            
+        path = "Drivers/Driver/CurrentSchemaQuery";
+        digester.addCallMethod(path, 
+            "setCurrentSchemaQuery", 1, new Class[] { java.lang.String.class });
+            digester.addCallParam(path, 0);
             
         digester.push(this); 
         InputStream in = null;
@@ -1078,7 +1108,8 @@ public class SQLDriverManager {
                     out.println("           url=\""      + driver.getUrl() + "\"");
                     out.println("           class=\""    + driver.getDriverClass() + "\"");
                     out.println("           target=\""   + driver.getTarget() + "\"");
-                    out.println("           analyzer=\"" + driver.getAnalyzer().getClass().getName() + "\">");
+                    out.println("           analyzer=\"" + driver.getAnalyzer().getClass().getName() + "\"");
+                    out.println("           normalizer=\"" + driver.getNormalizer().getClass().getName() + "\">");
                     String classpath[] = driver.getClasspathArray();
                     if (classpath != null && classpath.length > 0) {
                         
@@ -1086,6 +1117,13 @@ public class SQLDriverManager {
                             
                             out.println("      <Classpath><![CDATA[" + classpath[i] + "]]></Classpath>");
                         }
+                    }
+                    
+                    if (driver.getCurrentSchemaQuery() != null) {
+                        
+                        out.print("      <CurrentSchemaQuery><![CDATA[");
+                        out.print(driver.getCurrentSchemaQuery());
+                        out.println("]]></CurrentSchemaQuery>");
                     }
                     
                     Map<String, String> vars = driver.getVariables();

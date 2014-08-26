@@ -29,21 +29,28 @@ public class SimpleKeywordTokenizer {
     private int len;
     private int idx;
     private char terminator;
+    private boolean toUpperCase = true;
     
     private Stack<String> tokens = new Stack<String>();
     
-    public SimpleKeywordTokenizer (String sql, char terminator) {
+    public SimpleKeywordTokenizer (String sql, char terminator, boolean toUpperCase) {
         
         this.sql = sql;
         this.len = sql.length();
         this.idx = 0;
         this.terminator = terminator;
+        this.toUpperCase = toUpperCase;
+    }
+    
+    public SimpleKeywordTokenizer (String sql, char terminator) {
+        
+        this(sql, terminator, true);
     }
     
     /**
      * Returns the next token. 
      * 
-     * @return The next availabe token or null if there is nothing else to
+     * @return The next available token or null if there is nothing else to
      *   process. All tokens are returned in upper case.
      */
     public String next() {
@@ -63,7 +70,7 @@ public class SimpleKeywordTokenizer {
         if (sql.charAt(idx) == terminator) {
             
             ++idx;
-            return "" + terminator;
+            return Character.toString(terminator);
         }
         
         StringBuilder sb = new StringBuilder();
@@ -76,7 +83,7 @@ public class SimpleKeywordTokenizer {
                     || Character.isDigit(ch)
                     || ch == '_') {
                 
-                sb.append(Character.toUpperCase(ch));
+                sb.append(toUpperCase ? Character.toUpperCase(ch) : ch);
                 ++idx;
             }
             else {

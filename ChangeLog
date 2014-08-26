@@ -13,6 +13,13 @@ New Features
   * Each JDBC driver may provide its own class path. This class path can be
     set via the driver setup wizard, and may include environment variables,
     such as "${ORACLE_HOME}/jdbc".
+  * Each JDBC driver may now specify identifier normalization rules. For example,
+    if an object name like MyTable is normalized to MYTABLE or mytable when 
+    stored in the catalogs. This allows the metadata commands like \show and
+    \describe to work smarter.
+  * Each JDBC driver can optionally specify a query to run to determine the
+    current schema for the session.  This allows metadata commands like \show
+    and \describe to work smarter.
   * The !N history recall now allows negative values, so "!-2" means
     you want to edit query you executed two queries prior.
   * New variables $dflt_driver, $dflt_username, $dflt_database available

@@ -41,6 +41,14 @@ public class Option implements Comparable<Option> {
     }
     
     /**
+     * @return true if the option is deprecated
+     */
+    public boolean isDeprecated() {
+        
+        return option.deprecated();
+    }
+    
+    /**
      * @return The name of the field of the option bean that should be set
      *   with this property
      */

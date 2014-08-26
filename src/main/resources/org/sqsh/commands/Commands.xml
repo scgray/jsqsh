@@ -801,34 +801,82 @@ SEE ALSO
            
         <Help><![CDATA[
 SYNOPSIS
-   \tables [-p table_pattern] [-s schema_pattern] [type]
+   \tables [--type type] [[[catalog.]schema-pattern.]object-pattern]
               
 DESCRIPTION
-   Displays information about tables (and table-related objects) that are
-   available within the current database (catalog). This function requires
-   that the JDBC driver support meta-data lookup functionality, which not
-   all drivers support (although most do).
+   Displays information about table objects (as the server defines a table).
+   This functionality relies upon support from the underlying JDBC driver
+   and thus may fail against some platforms. 
+   
+   The names provided (catalog, schema-pattern, and object-pattern) are 
+   all interpreted as follows
+   
+   If the name is not surrounded by double quotes, then the name is normalized
+   according to the database specific normalization rules (these rules are
+   defined in the internal jsqsh driver definition, and not all database
+   vendors are currently properly defined, see "\help drivers" for details).
+   So, for example, the following run while connected to DB2:
+       
+       \tables my%
+   
+   is the equivalent of doing:
+   
+       \tables MY%
+       
+   because DB2 name normalization always converts to upper case, and matching
+   is case sensitive in DB2, so the table must be named something like "MYTAB" 
+   to get results back.  If you wish to force a specific case, surround 
+   the name with double quotes, like:
+   
+       \tables "my%"
+   
+   which forces the name to be matched in exactly the case specified.
+   
+   Please note that, other than the above notes, the behavior of \tables in 
+   terms of wild card characters and name matching is entirely at the mercy
+   of how the JDBC driver is implemented.
    
 OPTIONS
-   -a           Display all metadata description columns instead of the
-                default reduced set.
-   -p, --table-pattern=pattern  A SQL pattern to be used to filter the 
-                set of object names that are displayed.
-   -s, --schema-pattern=pattern A SQL pattern to be used to filter the
-                set of object schema names that are displayed. For most
-                databases, the "schema name" refers to the name of the
-                owner of the object.
-   type         This can be used to restrict the types of objects that 
-                are displayed. If type is not provided, then all object
-                types are returned. Available types are:
+   --all,-a    Display all metadata description columns instead of the
+               default reduced set.
+   --type,-T type
+               This can be used to restrict the types of objects that 
+               are displayed. If type is not provided, then all object
+               types are returned. Available types are:
         
-                user     - Displays only user-created tables 
-                system   - Displays only system tables 
-                view     - Displays only views
-                alias    - Displays only aliases
-                synonym  - Displays only synonyms
+               user     - Displays only user-created tables 
+               system   - Displays only system tables 
+               view     - Displays only views
+               alias    - Displays only aliases
+               synonym  - Displays only synonyms
+   catalog     The catalog (or database for some vendors) in which the 
+               object resides. If not provided then the current catalog
+               is assumed.
+   schema-pattern
+               The name of the schema in which the object resides, which may
+               include SQL wildcard characters. If the catalog name is provided 
+               and the schema is not, like:
+                  
+                  \tables mydb..my%
+               
+               then all schemas within the catalog are matched.  If the catalog
+               name is not provided and the schema is not provided, like:
+               
+                  \tables my%
+               
+               Then:
+                  1. If the JDBC driver is 1.7 or later and supports the
+                     necessary API's, to retrieve the current schema, then the 
+                     current schema is assumed.  Otherwise...
+                  2. If the jsqsh driver definition has a query installed to
+                     fetch the current schema from the database, then the 
+                     current schema is assumed. Otherwise...
+                  3. All schemas are matched
+   object-pattern
+               The object name to be described, which may contain SQL wild cards
+               to match multiple objects.                
 SEE ALSO
-   \databases, \describe
+   \databases, \describe, \procs, \show, \drivers
         ]]></Help>
     </Command>
     
@@ -837,21 +885,68 @@ SEE ALSO
            
         <Help><![CDATA[
 SYNOPSIS
-   \procs [-p proc_pattern] [-s schema_pattern]
+   \procs [[[catalog.]schema-pattern.]proc-pattern]
               
 DESCRIPTION
-   Displays information about procedures that are available within the 
-   current database (catalog). This function requires that the JDBC 
-   driver  support meta-data lookup functionality, which not all 
-   drivers support (although most do).
+   Displays information about stored procedure objects in the database server
+   This functionality relies upon support from the underlying JDBC driver
+   and thus may fail against some platforms. 
+   
+   The names provided (catalog, schema-pattern, and proc-pattern) are 
+   all interpreted as follows
+   
+   If the name is not surrounded by double quotes, then the name is normalized
+   according to the database specific normalization rules (these rules are
+   defined in the internal jsqsh driver definition, and not all database
+   vendors are currently properly defined, see "\help drivers" for details).
+   So, for example, the following run while connected to DB2:
+       
+       \procs my%
+   
+   is the equivalent of doing:
+   
+       \procs MY%
+       
+   because DB2 name normalization always converts to upper case, and matching
+   is case sensitive in DB2, so the table must be named something like "MYPROC" 
+   to get results back.  If you wish to force a specific case, surround 
+   the name with double quotes, like:
+   
+       \procs "my%"
+   
+   which forces the name to be matched in exactly the case specified.
+   
+   Please note that, other than the above notes, the behavior of \procs in 
+   terms of wild card characters and name matching is entirely at the mercy
+   of how the JDBC driver is implemented.
    
 OPTIONS
-   -p, --proc-pattern=pattern  A SQL pattern to be used to filter the set
-                 of object names that are displayed.
-   -s, --schema-pattern=pattern  A SQL pattern to be used to filter the 
-                 set of object schema names that are displayed. 
-                 For most databases, the "schema name" refers to the name 
-                 of the owner of the object.
+   catalog     The catalog (or database for some vendors) in which the 
+               object resides. If not provided then the current catalog
+               is assumed.
+   schema-pattern
+               The name of the schema in which the object resides, which may
+               include SQL wildcard characters. If the catalog name is provided 
+               and the schema is not, like:
+                  
+                  \procs mydb..my%
+               
+               then all schemas within the catalog are matched.  If the catalog
+               name is not provided and the schema is not provided, like:
+               
+                  \procs my%
+               
+               Then:
+                  1. If the JDBC driver is 1.7 or later and supports the
+                     necessary API's, to retrieve the current schema, then the 
+                     current schema is assumed.  Otherwise...
+                  2. If the jsqsh driver definition has a query installed to
+                     fetch the current schema from the database, then the 
+                     current schema is assumed. Otherwise...
+                  3. All schemas are matched
+   proc-pattern
+               The procedure name to be described, which may contain SQL wild cards
+               to match multiple procedures.        
 SEE ALSO
    \databases, \describe, \tables
         ]]></Help>
@@ -885,22 +980,74 @@ SEE ALSO
            
         <Help><![CDATA[
 SYNOPSIS
-   \describe [-a] object_name
+   \describe [-a] [[catalog.]schema-pattern.]object-pattern
               
 DESCRIPTION
    Describes the database structure for a provided object name. This
    functionality relies upon support from the underlying JDBC driver
    and thus may fail against some platforms. 
    
+   The names provided (catalog, schema-pattern, and object-pattern) are 
+   all interpreted as follows
+   
+   If the name is not surrounded by double quotes, then the name is normalized
+   according to the database specific normalization rules (these rules are
+   defined in the internal jsqsh driver definition, and not all database
+   vendors are currently properly defined, see "\help drivers" for details).
+   So, for example, the following run while connected to DB2:
+       
+       \describe mytab
+   
+   is the equivalent of doing:
+   
+       \describe MYTAB
+       
+   because DB2 name normalization always converts to upper case, and matching
+   is case sensitive in DB2, so the table must be named "MYTAB" to get results
+   back.  If you wish to force a specific case, surround the name with double
+   quotes, like:
+   
+       \describe "mytab"
+   
+   which forces the name to be matched in exactly the case specified.
+   
+   Please note that, other than the above notes, the behavior of describe in 
+   terms of wild card characters and name matching is entirely at the mercy
+   of how the JDBC driver is implemented.
+   
 OPTIONS
    -a, --all   Shows all available information about the table that  
                the JDBC driver provides. Without this flag \desribe will
                attempt to keep the output to the more useful data.
-   object_name The object name to be described. This can be a fully
-               qualified object name if desired (e.g. "mydb.dbo.table").
+   catalog     The catalog (or database for some vendors) in which the 
+               object resides. If not provided then the current catalog
+               is assumed.
+   schema-pattern
+               The name of the schema in which the object resides, which may
+               include SQL wildcard characters. If the catalog name is provided 
+               and the schema is not, like:
+                  
+                  \describe mydb..mytable
+               
+               then all schemas within the catalog are matched.  If the catalog
+               name is not provided and the schema is not provided, like:
+               
+                  \describe mytable
+               
+               Then:
+                  1. If the JDBC driver is 1.7 or later and supports the
+                     necessary API's, to retrieve the current schema, then the 
+                     current schema is assumed.  Otherwise...
+                  2. If the jsqsh driver definition has a query installed to
+                     fetch the current schema from the database, then the 
+                     current schema is assumed. Otherwise...
+                  3. All schemas are matched
+   object-pattern
+               The object name to be described, which may contain SQL wild cards
+               to match multiple objects.
    
 SEE ALSO
-   \tables, \columns
+   \tables, \drivers
         ]]></Help>
     </Command>
     
@@ -1430,15 +1577,62 @@ DESCRIPTION
    The \show command can be used to query about various aspects of the
    remote server by polling the JDBC driver for information. This
    command is boken into several sub-commands
+   
+   Note that all object names provided to show are interpreted as follows:
+   
+   If the name is not surrounded by double quotes, then the name is normalized
+   according to the database specific normalization rules (these rules are
+   defined in the internal jsqsh driver definition, and not all database
+   vendors are currently properly defined, see "\help drivers" for details).
+   So, for example, the following run while connected to DB2:
+       
+       \show tables mytab
+   
+   is the equivalent of doing:
+   
+       \show tables MYTAB
+       
+   because DB2 name normalization always converts to upper case, and matching
+   is case sensitive in DB2, so the table must be named "MYTAB" to get results
+   back.  If you wish to force a specific case, surround the name with double
+   quotes, like:
+   
+       \show tables "mytab"
+   
+   which forces the name to be matched in exactly the case specified.
+   
+   Please note that, other than the above notes, the behavior of describe in 
+   terms of wild card characters and name matching is entirely at the mercy
+   of how the JDBC driver is implemented.
+
+SCOPE OF RESULTS
+   Many \show commands will attempt to automatically restrict the results to 
+   the current catalog and schema of the user's session.  To widen the scope, 
+   wildcards may be used. For example,
+   
+      \show tables
+   
+   will automatically attempt to restrict the list of tables returned to the
+   current catalog and schema that the session resides in. The following returns
+   all tables in the current catalog and schema that start with a "p":
+   
+      \show tables p%
+      
+   and the following shows all tables that start with a "p" in all schemas:
+   
+      \show tables %.p%
+      
+   and the following shows all tables that start with a "p" across all catalogs
+   (databases) and all schemas:
+   
+      \show tables %.%.p%
 
 SUB-COMMANDS   
-   \show attributes [-c catalog] [-s pattern] [-t pattern] <pattern>
+   \show attributes [-p pattern] [[[catalog.]schema-pattern.]type-pattern]
    
-       Displays the attributes of a user defined type (UDT) within a
-       particular schema.  The provided "pattern" may be used to limit
-       which attributes are displayed.  Although the "-t" flag is typically
-       used to denote a table name, in this context it is used to limit
-       which user defined types are displayed.
+       Displays the attributes of a user defined type (UDT).  The "-p" option
+       may be used to provide additional filtering for attributes matching the
+       provided pattern. 
        
    \show catalogs
    
@@ -1449,62 +1643,65 @@ SUB-COMMANDS
        
        Displays the client driver information properties (if any).
    
-   \show column privs [-c catalog] [-s pattern] [-t pattern] [<column-pattern>]
+   \show column privs [-p col-pattern] [[[catalog.]schema-pattern.]obj-pattern]
        
-       Displays permissions for coluns of a table. The last pattern may be
-       used to restrict which columns are returned.
+       Displays permissions for coluns of a table. The "-p" flag may be used to
+       further restrict the output to just columns matching the specified pattern.
        
-   \show columns [-e] [-c catalog] [-s pattern] [ -t pattern | <table-pattern> ]
+   \show columns [-e] [-p col-pattern] [[[catalog.]schema-pattern.]obj-pattern]
        
        Displays columns for a table or set of tables. The -e flag can be used
        to reduce the number of columns displayed to what is considered the
-       "essential" set of columns.
+       "essential" set of columns. The "-p" flag may be used to restrict the
+       output to just columns matching the specified pattern
        
    \show driver version
    
        Displays JDBC driver version information.
        
-   \show exported keys [-c catalog] [-s pattern] [-t pattern | <table-pattern>]
+   \show exported keys [[catalog.]schema.]obj-name
    
        Displays a description of the foriegn key columns that reference a 
        given table's primary key columns (the foreign key is exported by a
-       table). 
+       table).
    
    \show features
    
        Displays a list of supported server features.
     
-   \show function params [-e] [-c catalog] [-s pattern] [<function-pattern>]
+   \show function params [-e] [-p param-pattern] [[[catalog.]schema-pattern.]func-pattern]
        
        Displays parameter information for a function or set of functions.
        The function-pattern argument can be used to filter to specific
        functions. The -e flag limits the set of columns returned those that
-       are most likely to prove useful.
+       are most likely to prove useful. The -p flag allows for an additional
+       pattern to filter only specific parameters.
        
-   \show functions [-e] [-c catalog] [-s pattern] [<function-pattern>]
+   \show functions [-e] [[[catalog.]schema-pattern.]func-pattern]
        
        Displays a list of functions matching the provided search criteria. The
        -e flag limits the set of columns returned to those that are considered
        most likely to be useful.
    
-   \show imported keys [-c catalog] [-s pattern] [-t pattern | <table-pattern>]
+   \show imported keys [[catalog.]schema.]table
    
        Retrieves a description of the primary key columns that are referenced 
        by the given table's foreign key columns (the primary keys imported 
        by a table)
        
-   \show primary keys [-c catalog] [-s pattern] [-t pattern | <table-pattern>]
+   \show primary keys [[catalog.]schema.]table
    
        Displays the primary keys for a given table or set of tables.
        
-   \show procedure params [-e] [-c catalog] [-s pattern] [<proc-pattern>]
+   \show procedure params [-e] [-p param-pat] [[[catalog.]schema-pattern.]proc-pattern]
        
        Displays parameter information for a procedure or set of procedure.
        The procedure-pattern argument can be used to filter to specific
        procedures. The -e flag reduces the display output to columns that
-       are most likely to be considered useful.
+       are most likely to be considered useful. The -p flag can be used to
+       further filter the list of parameters.
        
-   \show procedures [-c catalog] [-s pattern] [<proc-pattern>]
+   \show procedures [[[catalog.]schema-pattern.]proc-pattern]
        
        Displays a list of procedures matching the provided search criteria.
        
@@ -1512,25 +1709,25 @@ SUB-COMMANDS
    
        Shows server version and product information.
        
-   \show schemas [-c catalog] [-s schema-pattern | <schema-pattern>]
+   \show schemas [[catalog.]schema-pattern]
        
        Lists the available schemas in a catalog
        
-   \show super tables [-c catalog] [-s pattern] [-t pattern | <table-pattern>]
+   \show super tables [[[catalog.]schema-pattern.]table-pattern]
        
        Retrieves a description of the table hierarchies defined in a particular 
        schema in this database.
        
-   \show super types [-c catalog] [-s pattern] [<type-pattern>]
+   \show super types [[[catalog.]schema-pattern.]type-pattern]
    
        Retrieves a description of the user-defined type (UDT) hierarchies 
        defined in a particular schema in this database.
        
-   \show table privs [-c catalog] [-s pattern] [ -t pattern | <table-pattern> ]
+   \show table privs [[[catalog.]schema-pattern.]table-pattern]
    
        Displays information able privileges on a given table.        
        
-   \show tables [-e] [-c catalog] [-s pattern] [-T type] [-t pattern | <table-pattern>]
+   \show tables [-e] [-T type] [[[catalog.]schema-pattern.]table-pattern] 
    
        Displays information about any tabular object that appears in the
        server, this includes tables, views, synonyms, etc.  The -T flag can
@@ -1549,13 +1746,13 @@ SUB-COMMANDS
        Lists the available data types in the server. The -e flag can be used
        to produce a more simplified set of information about the available types.
        
-   \show user types [-c catalog] [-s pattern] [<type-pattern>]
+   \show user types [[[catalog.]schema-pattern.]type-pattern] 
    
        Lists the available data user defined types in the server. The 
        type-pattern argument may be used to restrict the list of types
        to a specific set.
        
-   \show version columns [-c catalog] [-s pattern] <table>
+   \show version columns [[[catalog.]schema.]table
    
        Retrieves a description of a table's columns that are automatically 
        updated when any value in a row is updated. They are unordered
@@ -1564,17 +1761,9 @@ COMMON OPTIONS
    The following options are common to many of the object types that are
    displayed via the show commands:
    
-   -c,--catalog=catalog
-                The name of the catalog to search in. If not provided then the
-                current catalog that the driver is in is utilized (which can
-                be set via jsqsh via "\set catalog=foo").
-   -s,--scheman=pattern    
-                A SQL pattern to be used to filter the set of object schema 
-                names that are displayed. For most databases, the "schema name" 
-                refers to the name of the owner of the object.
-   -t,--table=pattern  
-                A SQL pattern to be used to filter the set of table names that 
-                are displayed.
+   -p,--pattern=pattern  
+                A SQL pattern to be used to filter the set of information returned
+                by the command.
    -T,--type=pattern
                 Used by \show tables to limit the tables returned to only 
                 specific types of tables.
@@ -1584,8 +1773,8 @@ COMMON OPTIONS
                 columns down to an "essential" set. That is, a set of columns
                 that are thought to be the most useful.
    
-SHOW CATALOGS
-   
+SEE ALSO
+   \describe, \tables, \procs
       ]]></Help>
     </Command>
     
