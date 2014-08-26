@@ -31,6 +31,8 @@ import org.sqsh.ColumnDescription;
 import org.sqsh.Command;
 import org.sqsh.DatabaseCommand;
 import org.sqsh.Renderer;
+import org.sqsh.SQLConnectionContext;
+import org.sqsh.SQLObjectName;
 import org.sqsh.SQLRenderer;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
@@ -116,20 +118,25 @@ public class Show
             description="Restricts columns to the most esstential columns")
         public boolean essential = false;
         
-        @OptionProperty(
+        @OptionProperty(deprecated=true,
             option='c', longOption="catalog", arg=REQUIRED, argName="catalog",
             description="Provides the catalog in which to search")
         public String catalog = null;
         
-        @OptionProperty(
+        @OptionProperty(deprecated=true,
             option='t', longOption="table", arg=REQUIRED, argName="pattern",
             description="Provides a pattern to match against table names")
         public String tablePattern = null;
         
-        @OptionProperty(
+        @OptionProperty(deprecated=true,
             option='s', longOption="schema", arg=REQUIRED, argName="pattern",
             description="Provides a pattern to match against schema names")
         public String schemaPattern = null;
+        
+        @OptionProperty(
+            option='p', longOption="pattern", arg=REQUIRED, argName="pattern",
+            description="Provides additional search pattern")
+        public String pattern = null;
         
         @OptionProperty(
             option='T', longOption="type", arg=REQUIRED, argName="name",
@@ -138,29 +145,29 @@ public class Show
         
         @Argv(program="\\show", min=1, max=5,
             usage="[options] [\n" 
-               + "           attributes [<pattern>]\n"
+               + "           attributes [-p pattern] [[[catalog.]schema-pattern.]type-pattern]\n"
                + "         | catalogs\n"
                + "         | client info\n"
-               + "         | column privs [<col-pattern>]\n"
-               + "         | columns [-e] [<tab-pattern>]\n"
+               + "         | column privs [-p col-pattern] [[[catalog.]schema-pattern.]obj-pattern]\n"
+               + "         | columns [-e] [-p col-pattern] [[[catalog.]schema-pattern.]obj-pattern]\n"
                + "         | driver version\n"
-               + "         | exported keys [<tab-pattern>]\n"
-               + "         | function params [-e] [<func-pattern>]\n"
-               + "         | functions [-e] [<func-pattern>]\n"
-               + "         | imported keys [<tab-pattern>]\n"
-               + "         | primary keys [<tab-pattern>]\n"
-               + "         | procedure params [-e] [<proc-pattern>]\n"
-               + "         | procedures [<proc-pattern>]\n"
+               + "         | exported keys [[catalog.]schema.]obj-name\n"
+               + "         | function params [-e] [-p param-pattern] [[[catalog.]schema-pattern.]func-pattern]\n"
+               + "         | functions [-e] [[[catalog.]schema-pattern.]func-pattern]\n"
+               + "         | imported keys [[catalog.]schema.]table\n"
+               + "         | primary keys [[catalog.]schema.]table\n"
+               + "         | procedure params [-e] [-p param-pat] [[[catalog.]schema-pattern.]proc-pattern]\n"
+               + "         | procedures [[[catalog.]schema-pattern.]proc-pattern]\n"
                + "         | server version\n"
-               + "         | schemas [<schema-pattern>]\n"
-               + "         | super tables [<tab-pattern>]\n"
-               + "         | super types [<type-pattern>]\n"
-               + "         | table privs [<tab-pattern>]\n"
-               + "         | tables [-e] [<tab-pattern>]\n"
+               + "         | schemas [[catalog.]schema-pattern]\n"
+               + "         | super tables [[[catalog.]schema-pattern.]table-pattern]\n"
+               + "         | super types [[[catalog.]schema-pattern.]type-pattern]]\n"
+               + "         | table privs [[[catalog.]schema-pattern.]table-pattern]\n"
+               + "         | tables [-e] [-T type] [[[catalog.]schema-pattern.]table-pattern]\n"
                + "         | table types\n"
                + "         | types [-e]\n"
-               + "         | user types [<type-pattern]\n"
-               + "         | version columns <table>\n"
+               + "         | user types [[[catalog.]schema-pattern.]type-pattern]\n"
+               + "         | version columns [[[catalog.]schema.]table\n"
                + "       ]"
                )
         public List<String> arguments = new ArrayList<String>();
@@ -177,6 +184,12 @@ public class Show
     
         return new Options();
     }
+    
+    @Override
+    public boolean keepDoubleQuotes() {
+        
+        return true;
+    }
 
     @Override
     public int execute(Session session, SqshOptions opts) throws Exception {
@@ -185,7 +198,12 @@ public class Show
         
         
         Connection con = session.getConnection();
+        SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
         String subCommand = options.arguments.get(0);
+        
+        options.catalog        = ctx.normalizeIdentifier(options.catalog);
+        options.schemaPattern  = ctx.normalizeIdentifier(options.schemaPattern);
+        options.tablePattern   = ctx.normalizeIdentifier(options.tablePattern);
         
         if ("features".equalsIgnoreCase(subCommand)) {
             
@@ -307,7 +325,7 @@ public class Show
         }
         catch (AbstractMethodError e) {
             
-            session.err.println("Command not supported by JDBC driver");
+            session.err.println("Operation not supported by JDBC driver");
         }
         catch (SQLException e) {
             
@@ -337,23 +355,30 @@ public class Show
     private ResultSet doAttributes(Session session, Connection con, Options options)
         throws SQLException {
         
-        String attributes = null;
-        if (options.arguments.size() == 2) {
+        SQLObjectName name = null;
+        SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
+        
+        if (options.arguments.size() == 1) {
             
-            attributes = options.arguments.get(1);
+            name = new SQLObjectName(ctx, "%");
+        }
+        else if (options.arguments.size() == 2) {
+            
+            name = new SQLObjectName(ctx, options.arguments.get(1));
         }
         else if (options.arguments.size() > 2) {
             
-            session.err.println("Use: \\show attributes [pattern]");
+            session.err.println(
+                "Use: \\show attributes [-p pattern] [[[catalog.]schema-pattern.]type-pattern]");
             return null;
         }
         
         DatabaseMetaData meta = con.getMetaData();
         return meta.getAttributes(
-            (options.catalog == null ? con.getCatalog() : options.catalog),
-            options.schemaPattern,
-            options.tablePattern,
-            attributes);
+            (options.catalog != null ? options.catalog : name.getCatalog()),
+            (options.schemaPattern != null ? options.schemaPattern : name.getSchema()),
+            (options.tablePattern != null ? options.tablePattern : name.getName()),
+            ctx.normalizeIdentifier(options.pattern));
     }
     
     private ResultSet doCatalogs(Session session, Connection con, Options options)
@@ -390,17 +415,21 @@ public class Show
             || options.arguments.size() > 3
             || !options.arguments.get(1).equalsIgnoreCase("privs")) {
             
-            session.err.println("Use: \\show column privs <pattern>");
+            session.err.println("Use: \\show column privs [-p col-pattern] [[[catalog.]schema-pattern.]table-pattern]");
             return null;
         }
         
-        
+        SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
+        SQLObjectName name =
+            (options.arguments.size() == 3) ? new SQLObjectName(ctx, options.arguments.get(2))
+                : new SQLObjectName(ctx, "%");
+            
         DatabaseMetaData meta = con.getMetaData();
         return meta.getColumnPrivileges(
-            (options.catalog == null ? con.getCatalog() : options.catalog),
-            options.schemaPattern,
-            options.tablePattern,
-            options.arguments.size() == 3 ? options.arguments.get(2) : null);
+            (options.catalog != null ? options.catalog : name.getCatalog()),
+            (options.schemaPattern != null ? options.schemaPattern : name.getSchema()),
+            (options.tablePattern != null ? options.tablePattern : name.getName()),
+            ctx.normalizeIdentifier(options.pattern));
     }
     
     private ResultSet doColumns(Session session, Connection con, Options options)
@@ -408,7 +437,7 @@ public class Show
         
         if (options.arguments.size() > 2) {
             
-            session.err.println("Use: \\show columns <table-pattern>");
+            session.err.println("Use: \\show columns [-p col-pattern] [[[catalog.]schema-pattern.]table-pattern]");
             return null;
         }
         
@@ -417,50 +446,37 @@ public class Show
             options.columns = essentialColumnCols;
         }
         
-        String table = options.tablePattern;
-        if (options.arguments.size() == 2) {
-            if (table != null) {
-                
-                session.err.println("Cannot provide both a table pattern and -t");
-                return null;
-            }
-            table = options.arguments.get(1);
-        }
+        SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
+        SQLObjectName name =
+            (options.arguments.size() == 2) ? new SQLObjectName(ctx, options.arguments.get(1))
+                : new SQLObjectName(ctx, "%");
         
         DatabaseMetaData meta = con.getMetaData();
         return meta.getColumns(
-            (options.catalog == null ? con.getCatalog() : options.catalog),
-            options.schemaPattern,
-            table, 
-            null);
+            (options.catalog != null ? options.catalog : name.getCatalog()),
+            (options.schemaPattern != null ? options.schemaPattern : name.getSchema()),
+            (options.tablePattern != null ? options.tablePattern : name.getName()),
+            ctx.normalizeIdentifier(options.pattern));
     }
     
     private ResultSet doExportedKeys(Session session, Connection con, Options options)
         throws SQLException {
         
-        if (options.arguments.size() < 2
-            || options.arguments.size() > 3
+        if (options.arguments.size() != 3
             || !options.arguments.get(1).equalsIgnoreCase("keys")) {
             
-            session.err.println("Use: \\show exported keys [<table-pattern>]");
+            session.err.println("Use: \\show exported keys [[catalog.]schema.]table-pattern");
             return null;
         }
         
-        String table = options.tablePattern;
-        if (options.arguments.size() == 3) {
-            if (table != null) {
-                
-                session.err.println("Cannot provide both a table name and -t");
-                return null;
-            }
-            table = options.arguments.get(2);
-        }
+        SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
+        SQLObjectName name = new SQLObjectName(ctx, options.arguments.get(2));
         
         DatabaseMetaData meta = con.getMetaData();
         return meta.getExportedKeys(
-            (options.catalog == null ? con.getCatalog() : options.catalog),
-            options.schemaPattern,
-            table);
+            (options.catalog != null ? options.catalog : name.getCatalog()),
+            (options.schemaPattern != null ? options.schemaPattern : name.getSchema()),
+            (options.tablePattern != null ? options.tablePattern : name.getName()));
     }
     
     private ResultSet doFunction(Session session, Connection con, Options options)
@@ -470,7 +486,7 @@ public class Show
             || options.arguments.size() > 3
             || !options.arguments.get(1).equalsIgnoreCase("params")) {
             
-            session.err.println("Use: \\show function params [<function-pattern>]");
+            session.err.println("Use: \\show function params [-p param-pattern] [[[catalog.]schema-pattern.]func-pattern]");
             return null;
         }
         
@@ -479,12 +495,17 @@ public class Show
             options.columns = essentialFunctionParamsCols;
         }
         
+        SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
+        SQLObjectName name =
+            (options.arguments.size() == 3) ? new SQLObjectName(ctx, options.arguments.get(2))
+                : new SQLObjectName(ctx, "%");
+        
         DatabaseMetaData meta = con.getMetaData();
         return meta.getFunctionColumns(
-            (options.catalog == null ? con.getCatalog() : options.catalog),
-            options.schemaPattern,
-            options.arguments.size() == 3 ? options.arguments.get(2) : null,
-            null);
+            (options.catalog != null ? options.catalog : name.getCatalog()),
+            (options.schemaPattern != null ? options.schemaPattern : name.getSchema()),
+            (options.tablePattern != null ? options.tablePattern : name.getName()),
+            ctx.normalizeIdentifier(options.pattern));
     }
     
     private ResultSet doFunctions(Session session, Connection con, Options options)
@@ -492,7 +513,7 @@ public class Show
         
         if (options.arguments.size() > 2) {
             
-            session.err.println("Use: \\show functions [<function-pattern>]");
+            session.err.println("Use: \\show functions [[[catalog.]schema-pattern.]func-pattern]");
             return null;
         }
         
@@ -501,67 +522,56 @@ public class Show
             options.columns = essentialFunctionCols;
         }
         
+        SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
+        SQLObjectName name =
+            (options.arguments.size() == 2) ? new SQLObjectName(ctx, options.arguments.get(1))
+                : new SQLObjectName(ctx, "%");
+        
         DatabaseMetaData meta = con.getMetaData();
         return meta.getFunctions(
-            (options.catalog == null ? con.getCatalog() : options.catalog),
-            options.schemaPattern,
-            options.arguments.size() == 2 ? options.arguments.get(1) : null);
+            (options.catalog != null ? options.catalog : name.getCatalog()),
+            (options.schemaPattern != null ? options.schemaPattern : name.getSchema()),
+            (options.tablePattern != null ? options.tablePattern : name.getName()));
     }
     
     private ResultSet doImportedKeys(Session session, Connection con, Options options)
         throws SQLException {
         
-        if (options.arguments.size() < 2
-            || options.arguments.size() > 3
+        if (options.arguments.size() != 3
             || !options.arguments.get(1).equalsIgnoreCase("keys")) {
             
-            session.err.println("Use: \\show imported keys [<table-pattern>]");
+            session.err.println("Use: \\show imported keys [[catalog.]schema.]table");
             return null;
         }
         
-        String table = options.tablePattern;
-        if (options.arguments.size() == 3) {
-            if (table != null) {
-                
-                session.err.println("Cannot provide both a table name and -t");
-                return null;
-            }
-            table = options.arguments.get(2);
-        }
+        SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
+        SQLObjectName name = new SQLObjectName(ctx, options.arguments.get(2));
         
         DatabaseMetaData meta = con.getMetaData();
         return meta.getImportedKeys(
-            (options.catalog == null ? con.getCatalog() : options.catalog),
-            options.schemaPattern,
-            table);
+            (options.catalog != null ? options.catalog : name.getCatalog()),
+            (options.schemaPattern != null ? options.schemaPattern : name.getSchema()),
+            (options.tablePattern != null ? options.tablePattern : name.getName()));
     }
     
     private ResultSet doPrimaryKeys(Session session, Connection con, Options options)
         throws SQLException {
         
-        if (options.arguments.size() < 2
-            || options.arguments.size() > 3
+        if (options.arguments.size() != 3
             || !options.arguments.get(1).equalsIgnoreCase("keys")) {
             
-            session.err.println("Use: \\show primary keys [<table-pattern>]");
+            session.err.println("Use: \\show primary keys [[catalog.]schema.]table");
             return null;
         }
         
-        String table = options.tablePattern;
-        if (options.arguments.size() == 3) {
-            if (table != null) {
-                
-                session.err.println("Cannot provide both a table name and -t");
-                return null;
-            }
-            table = options.arguments.get(2);
-        }
+        SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
+        SQLObjectName name = new SQLObjectName(ctx, options.arguments.get(2));
         
         DatabaseMetaData meta = con.getMetaData();
         return meta.getPrimaryKeys(
-            (options.catalog == null ? con.getCatalog() : options.catalog),
-            options.schemaPattern,
-            table);
+            (options.catalog != null ? options.catalog : name.getCatalog()),
+            (options.schemaPattern != null ? options.schemaPattern : name.getSchema()),
+            (options.tablePattern != null ? options.tablePattern : name.getName()));
     }
     
     private ResultSet doProcedure(Session session, Connection con, Options options)
@@ -571,7 +581,7 @@ public class Show
             || options.arguments.size() > 3
             || !options.arguments.get(1).equalsIgnoreCase("params")) {
             
-            session.err.println("Use: \\show procedure params [<proc-pattern>]");
+            session.err.println("Use: \\show procedure params [-e] [-p param-pat] [[[catalog.]schema-pattern.]proc-pattern]");
             return null;
         }
         
@@ -580,12 +590,17 @@ public class Show
             options.columns = essentialProcedureParamsCols;
         }
         
+        SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
+        SQLObjectName name =
+            (options.arguments.size() == 3) ? new SQLObjectName(ctx, options.arguments.get(2))
+                : new SQLObjectName(ctx, "%");
+        
         DatabaseMetaData meta = con.getMetaData();
         return meta.getProcedureColumns(
-            (options.catalog == null ? con.getCatalog() : options.catalog),
-            options.schemaPattern,
-            options.arguments.size() == 3 ? options.arguments.get(2) : null,
-            null);
+            (options.catalog != null ? options.catalog : name.getCatalog()),
+            (options.schemaPattern != null ? options.schemaPattern : name.getSchema()),
+            (options.tablePattern != null ? options.tablePattern : name.getName()),
+            ctx.normalizeIdentifier(options.pattern));
     }
     
     private ResultSet doProcedures(Session session, Connection con, Options options)
@@ -593,15 +608,20 @@ public class Show
         
         if (options.arguments.size() > 2) {
             
-            session.err.println("Use: \\show procedures [<proc-pattern>]");
+            session.err.println("Use: \\show procedures [[[catalog.]schema-pattern.]proc-pattern]");
             return null;
         }
         
+        SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
+        SQLObjectName name =
+            (options.arguments.size() == 2) ? new SQLObjectName(ctx, options.arguments.get(1))
+                : new SQLObjectName(ctx, "%");
+        
         DatabaseMetaData meta = con.getMetaData();
         return meta.getProcedures(
-            (options.catalog == null ? con.getCatalog() : options.catalog),
-            options.schemaPattern,
-            options.arguments.size() == 2 ? options.arguments.get(1) : null);
+            (options.catalog != null ? options.catalog : name.getCatalog()),
+            (options.schemaPattern != null ? options.schemaPattern : name.getSchema()),
+            (options.tablePattern != null ? options.tablePattern : name.getName()));
     }
     
     private ResultSet doSchemas(Session session, Connection con, Options options)
@@ -609,33 +629,30 @@ public class Show
         
         if (options.arguments.size() >  2) {
             
-            session.err.println("Use: \\show schemas [-c catalog] <schema-pattern>");
+            session.err.println("Use: \\show schemas [[catalog.]schema-pattern]");
             return null;
         }
         
-        String schema = options.schemaPattern;
+        SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
+        String arg = "%.%";
         if (options.arguments.size() == 2) {
-            if (schema != null) {
-                
-                session.err.println("Cannot provide both a schema pattern and -s");
-                return null;
-            }
-            schema = options.arguments.get(1);
+            
+            arg = options.arguments.get(1) + ".%";
         }
         
+        SQLObjectName name = new SQLObjectName(ctx, arg);
         DatabaseMetaData meta = con.getMetaData();
         try {
             
             return meta.getSchemas(
-                (options.catalog == null ? con.getCatalog() : options.catalog),
-                schema
-                );
+                (options.catalog != null ? options.catalog : name.getCatalog()),
+                (options.schemaPattern != null ? options.schemaPattern : name.getSchema()));
         }
         catch (AbstractMethodError e) {
             
             return new PatternFilteredResultSet(meta.getSchemas(),
-                1, schema,
-                2, (options.catalog == null ? con.getCatalog() : options.catalog)
+                1, (options.schemaPattern != null ? options.schemaPattern : name.getSchema()),
+                2, (options.catalog != null ? options.catalog : name.getCatalog())
                 );
         }
     }
@@ -653,39 +670,39 @@ public class Show
             
             if (options.arguments.size() > 3) {
                 
-                session.err.println("Use: \\show super tables [-t tab-pattern | <tab-pattern>]");
+                session.err.println("Use: \\show super tables [[[catalog.]schema-pattern.]table-pattern]");
                 return null;
             }
-        
-            String table = options.tablePattern;
-            if (options.arguments.size() == 3) {
-                if (table != null) {
-                
-                    session.err.println("Cannot provide both a table pattern and -t");
-                    return null;
-                }
-                table = options.arguments.get(2);
-            }
+            
+            SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
+            SQLObjectName name =
+                (options.arguments.size() == 3) ? new SQLObjectName(ctx, options.arguments.get(2))
+                    : new SQLObjectName(ctx, "%");
         
             DatabaseMetaData meta = con.getMetaData();
             return meta.getSuperTables(
-                (options.catalog == null ? con.getCatalog() : options.catalog),
-                options.schemaPattern,
-                table);
+                (options.catalog != null ? options.catalog : name.getCatalog()),
+                (options.schemaPattern != null ? options.schemaPattern : name.getSchema()),
+                (options.tablePattern != null ? options.tablePattern : name.getName()));
         }
         else if (obj.equalsIgnoreCase("types")) {
             
             if (options.arguments.size() > 3) {
                 
-                session.err.println("Use: \\show super types [<type-pattern>]");
+                session.err.println("Use: \\show super types [[[catalog.]schema-pattern.]type-pattern]");
                 return null;
             }
+            
+            SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
+            SQLObjectName name =
+                (options.arguments.size() == 3) ? new SQLObjectName(ctx, options.arguments.get(2))
+                    : new SQLObjectName(ctx, "%");
         
             DatabaseMetaData meta = con.getMetaData();
             return meta.getSuperTypes(
-                (options.catalog == null ? con.getCatalog() : options.catalog),
-                options.schemaPattern,
-                options.arguments.size() == 3 ? options.arguments.get(2) : null);
+                (options.catalog != null ? options.catalog : name.getCatalog()),
+                (options.schemaPattern != null ? options.schemaPattern : name.getSchema()),
+                (options.tablePattern != null ? options.tablePattern : name.getName()));
         }
         else {
             
@@ -699,7 +716,7 @@ public class Show
         
         if (options.arguments.size() > 3) {
             
-            session.err.println("Use: \\show tables [-t table-pattern | <table-pattern>]");
+            session.err.println("Use: \\show tables [-e] [-T type] [[[<catalog>.]schema-pattern.]<table-pattern>]");
             return null;
         }
         
@@ -708,21 +725,16 @@ public class Show
             options.columns = essentialTableCols;
         }
         
-        String table = options.tablePattern;
-        if (options.arguments.size() == 2) {
-            if (table != null) {
-                
-                session.err.println("Cannot provide both a table pattern and -t");
-                return null;
-            }
-            table = options.arguments.get(1);
-        }
+        SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
+        SQLObjectName name =
+            (options.arguments.size() == 2) ? new SQLObjectName(ctx, options.arguments.get(1))
+                : new SQLObjectName(ctx, "%");
         
         DatabaseMetaData meta = con.getMetaData();
         return meta.getTables(
-            (options.catalog == null ? con.getCatalog() : options.catalog),
-            options.schemaPattern,
-            table,
+            (options.catalog != null ? options.catalog : name.getCatalog()),
+            (options.schemaPattern != null ? options.schemaPattern : name.getSchema()),
+            (options.tablePattern != null ? options.tablePattern : name.getName()),
             options.tableType == null ? null : new String [] { options.tableType });
     }
     
@@ -735,28 +747,23 @@ public class Show
         
         String obj = options.arguments.get(1);
         
-        if (obj.equalsIgnoreCase("privs"))
-        {
+        if (obj.equalsIgnoreCase("privs")) {
+            
             if (options.arguments.size() > 3) {
-                session.err.println("Use: \\show table privs [<table-pattern>]");
+                session.err.println("Use: \\show table privs [[[catalog.]schema-pattern.]table-pattern]");
                 return null;
             }
             
-            String table = options.tablePattern;
-            if (options.arguments.size() == 3) {
-                if (table != null) {
-                    
-                    session.err.println("Cannot provide both a table pattern and -t");
-                    return null;
-                }
-                table = options.arguments.get(2);
-            }
+            SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
+            SQLObjectName name =
+                (options.arguments.size() == 3) ? new SQLObjectName(ctx, options.arguments.get(2))
+                    : new SQLObjectName(ctx, "%");
             
             DatabaseMetaData meta = con.getMetaData();
             return meta.getTablePrivileges(
-                (options.catalog == null ? con.getCatalog() : options.catalog),
-                options.schemaPattern,
-                table);
+                (options.catalog != null ? options.catalog : name.getCatalog()),
+                (options.schemaPattern != null ? options.schemaPattern : name.getSchema()),
+                (options.tablePattern != null ? options.tablePattern : name.getName()));
         }
         else if (obj.equalsIgnoreCase("types")) {
             
@@ -781,7 +788,7 @@ public class Show
         
         if (options.arguments.size() != 1) {
             
-            session.err.println("Use: \\show types");
+            session.err.println("Use: \\show [-e] types");
             return null;
         }
         
@@ -801,15 +808,20 @@ public class Show
             || options.arguments.size() > 3
             || !options.arguments.get(1).equalsIgnoreCase("types")) {
             
-            session.err.println("Use: \\show user types [<type-pattern>]");
+            session.err.println("Use: \\show user types [[[catalog.]schema-pattern.]type-pattern]");
             return null;
         }
         
+        SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
+        SQLObjectName name =
+            (options.arguments.size() == 3) ? new SQLObjectName(ctx, options.arguments.get(2))
+                : new SQLObjectName(ctx, "%");
+        
         DatabaseMetaData meta = con.getMetaData();
         return meta.getUDTs(
-            (options.catalog == null ? con.getCatalog() : options.catalog),
-            options.schemaPattern,
-            options.arguments.size() == 3 ? options.arguments.get(2) : null,
+            (options.catalog != null ? options.catalog : name.getCatalog()),
+            (options.schemaPattern != null ? options.schemaPattern : name.getSchema()),
+            (options.tablePattern != null ? options.tablePattern : name.getName()),
             null);
     }
     
@@ -818,15 +830,18 @@ public class Show
         
         if (options.arguments.size() != 3) {
             
-            session.err.println("Use: \\show version columns [-c catalog] [-s pattern] table");
+            session.err.println("Use: \\show version columns [[catalog.]schema-pattern.]table");
             return null;
         }
         
+        SQLConnectionContext ctx = (SQLConnectionContext) session.getConnectionContext();
+        SQLObjectName name = new SQLObjectName(ctx, options.arguments.get(2));
+        
         DatabaseMetaData meta = con.getMetaData();
         return meta.getVersionColumns(
-            (options.catalog == null ? con.getCatalog() : options.catalog),
-            options.schemaPattern,
-            options.arguments.get(2));
+            (options.catalog != null ? options.catalog : name.getCatalog()),
+            (options.schemaPattern != null ? options.schemaPattern : name.getSchema()),
+            (options.tablePattern != null ? options.tablePattern : name.getName()));
     }
     
     private void doServer (Session session, Renderer renderer, Connection con, Options options) 

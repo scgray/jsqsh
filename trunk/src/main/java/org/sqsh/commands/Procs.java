@@ -28,6 +28,8 @@ import java.util.List;
 import org.sqsh.Command;
 import org.sqsh.DatabaseCommand;
 import org.sqsh.Renderer;
+import org.sqsh.SQLConnectionContext;
+import org.sqsh.SQLObjectName;
 import org.sqsh.SQLRenderer;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
@@ -44,18 +46,27 @@ public class Procs
     private static class Options
         extends SqshOptions {
         
-        @OptionProperty(
-            option='p', longOption="proc-pattern", arg=REQUIRED, argName="pattern",
+        // No longer documented
+        @OptionProperty(deprecated=true,
+            option='p', longOption="proc-pattern", arg=REQUIRED, argName="pat",
             description="Provides a pattern to match against procedure names")
-        public String procPattern = "%";
+        public String procPattern = null;
         
-        @OptionProperty(
-            option='s', longOption="schema-pattern", arg=REQUIRED, argName="pattern",
+        // No longer documented
+        @OptionProperty(deprecated=true,
+            option='s', longOption="schema-pattern", arg=REQUIRED, argName="pat",
             description="Provides a pattern to match against schema names")
-        public String schemaPattern = "%";
+        public String schemaPattern = null;
         
-        @Argv(program="\\procs", min=0, max=0)
+        @Argv(program="\\procs", min=0, max=1,
+            usage="[[[catalog.]schema-pattern.]proc-pattern]")
         public List<String> arguments = new ArrayList<String>();
+    }
+    
+    @Override
+    public boolean keepDoubleQuotes() {
+        
+        return true;
     }
     
     @Override
@@ -69,6 +80,16 @@ public class Procs
         throws Exception {
         
         Options options = (Options) opts;
+        SQLObjectName name;
+        if (options.arguments.size() > 0) {
+            
+            name = new SQLObjectName((SQLConnectionContext)session.getConnectionContext(),
+                options.arguments.get(0));
+        }
+        else {
+            
+            name = new SQLObjectName((SQLConnectionContext)session.getConnectionContext(), "%");
+        }
         
         Connection con = session.getConnection();
         ResultSet result = null;
@@ -86,8 +107,10 @@ public class Procs
             cols.add(2); /* Owner */
             cols.add(3); /* Procedure name */
             
-            result = meta.getProcedures(con.getCatalog(), 
-                options.schemaPattern, options.procPattern);
+            result = meta.getProcedures(
+                name.getCatalog(),
+                options.schemaPattern != null ? options.schemaPattern : name.getSchema(),
+                options.procPattern != null ? options.procPattern : name.getName());
             
             SQLRenderer sqlRenderer = session.getSQLRenderer();
             sqlRenderer.displayResults(renderer, session, result, cols);

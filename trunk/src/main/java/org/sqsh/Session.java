@@ -344,6 +344,24 @@ public class Session
     }
     
     /**
+     * Given an identifier that may be surrounded with quotes (quoted identifier)
+     * normalize the identifier according to the databases identifier normalization
+     * rules.
+     * 
+     * @param identifier The identifier to normalizer
+     * @return The normalized identifier.
+     */
+    public String normalizeIdentifier(String identifier) {
+        
+        if (connection instanceof SQLConnectionContext) {
+            
+            return ((SQLConnectionContext)connection).normalizeIdentifier(identifier);
+        }
+        
+        return identifier;
+    }
+    
+    /**
      * Returns the current display style. If no connection is established,
      * then the display style is considered the default style that the
      * RenderManager is configured with, otherwise the connection is 
@@ -1108,7 +1126,7 @@ public class Session
         /*
          * Next we will attempt to parse the line.
          */
-        tokenizer.reset(str, sqshContext.getTerminator());
+        tokenizer.reset(str, sqshContext.getTerminator(), false);
         Token token = null;
             
         /*
@@ -1154,7 +1172,7 @@ public class Session
                  * And re-parse it because the expansion may have
                  * produced more than one token.
                  */
-                tokenizer.reset(cmd, sqshContext.getTerminator());
+                tokenizer.reset(cmd, sqshContext.getTerminator(), false);
                 try {
                         
                     token = tokenizer.next();
@@ -1209,7 +1227,8 @@ public class Session
             commandLine = 
                 getStringExpander().expandWithQuotes(this, commandLine);
         
-            tokenizer.reset(commandLine, sqshContext.getTerminator());
+            tokenizer.reset(commandLine, sqshContext.getTerminator(),
+                command.keepDoubleQuotes());
             
             /*
              * We can safely skip the first word in the command line because

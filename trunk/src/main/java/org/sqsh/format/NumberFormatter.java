@@ -45,7 +45,7 @@ public class NumberFormatter
         
         if (this.scale <= 0) {
             
-            format = new DecimalFormat("#");
+            format = null;
         }
         else {
                 
@@ -69,7 +69,12 @@ public class NumberFormatter
                + value.getClass().getName() + " as a number");
         }
         
-        return format.format(value);
+        if (format != null) {
+            
+            return format.format(value);
+        }
+        
+        return value.toString();
     }
 
     @Override

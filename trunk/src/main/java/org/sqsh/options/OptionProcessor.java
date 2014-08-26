@@ -210,7 +210,7 @@ public class OptionProcessor {
                 + "are required");
         }
                 
-        if (maxArgs > 0 && argList.size() > maxArgs) {
+        if (maxArgs >= 0 && argList.size() > maxArgs) {
                     
             throw new OptionException(program
                 + ": A maximum of " + maxArgs + " arguments "
@@ -238,6 +238,11 @@ public class OptionProcessor {
         }
         
         for (Option option : options) {
+            
+            if (option.isDeprecated()) {
+                
+                continue;
+            }
             
             int start = sb.length();
             sb.append("   ");

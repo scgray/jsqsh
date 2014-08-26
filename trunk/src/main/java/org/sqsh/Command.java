@@ -100,6 +100,22 @@ public abstract class Command
     }
     
     /**
+     * This method is called when parsing the command line for the command and
+     * is an indicator of whether or not double quoted strings should retain 
+     * the surrounding double quotes when passed to the argument.  The default
+     * value is false, indicating that the parsing should happen like a normal
+     * UNIX shell and the contents of the double quoted string should be passed
+     * without surrounding quotes.  Commands wishing to retain the double quotes
+     * should override this method.
+     * 
+     * @return false
+     */
+    public boolean keepDoubleQuotes() {
+        
+        return false;
+    }
+    
+    /**
      * This method must return the set of options that are accepted for this
      * command.  
      * 

@@ -30,6 +30,8 @@ import java.util.logging.Logger;
 import org.sqsh.analyzers.ANSIAnalyzer;
 import org.sqsh.analyzers.SQLAnalyzer;
 import org.sqsh.analyzers.NullAnalyzer;
+import org.sqsh.normalizer.SQLNormalizer;
+import org.sqsh.normalizer.NullNormalizer;
 
 public class SQLDriver 
     implements Comparable<SQLDriver> {
@@ -84,6 +86,8 @@ public class SQLDriver
         }
     }
     
+    protected static SQLNormalizer DEFAULT_NORMALIZER = new NullNormalizer();
+    
     private SQLDriverManager driverMan = null;
     private String name = null;
     private String target = null;
@@ -95,6 +99,8 @@ public class SQLDriver
     private Map<String, String> properties = new HashMap<String, String>();
     private Map<String, String> sessionVariables = new HashMap<String, String>();
     private SQLAnalyzer analyzer = new NullAnalyzer();
+    private SQLNormalizer normalizer = DEFAULT_NORMALIZER;
+    private String currentSchemaQuery = null;
     private List<String> classpath = null;
     
     public SQLDriver() {
@@ -126,6 +132,8 @@ public class SQLDriver
         n.sessionVariables = new HashMap<String, String>();
         n.sessionVariables.putAll(sessionVariables);
         n.analyzer = analyzer;
+        n.currentSchemaQuery = currentSchemaQuery;
+        n.normalizer = normalizer;
         if (classpath != null) {
             
             n.classpath = new ArrayList<String>();
@@ -177,8 +185,10 @@ public class SQLDriver
         isInternal = false;
         try {
             
-            Class clazz = Class.forName(sqlAnalyzer);
-            Constructor<SQLAnalyzer> constructor =  clazz.getConstructor();
+            Class<? extends SQLAnalyzer> clazz 
+                = Class.forName(sqlAnalyzer).asSubclass(SQLAnalyzer.class);
+            Constructor<? extends SQLAnalyzer> constructor 
+                = clazz.getConstructor();
             
             analyzer = constructor.newInstance();
         }
@@ -186,6 +196,22 @@ public class SQLDriver
             
             throw new CannotSetValueError("Unable to instantiate "
                 + sqlAnalyzer + ": " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Sets the SQL analyzer for this driver
+     * @param analyzer The SQL analyzer for this driver
+     */
+    public void setAnalyzer(SQLAnalyzer analyzer) {
+        
+        if (analyzer == null) {
+            
+            this.analyzer = new ANSIAnalyzer();
+        }
+        else {
+            
+            this.analyzer = analyzer;
         }
     }
     
@@ -204,19 +230,79 @@ public class SQLDriver
     }
     
     /**
-     * Sets the SQL analyzer for this driver
-     * @param analyzer The SQL analyzer for this driver
+     * Sets the name of the class that will be utilized for normalizing identifier names
+     * 
+     * @param clazz The name of the class.
      */
-    public void setAnalyzer(SQLAnalyzer analyzer) {
+    public void setNormalizer(String sqlNormalizer) {
         
-        if (analyzer == null) {
+        isInternal = false;
+        try {
             
-            this.analyzer = new ANSIAnalyzer();
+            Class<? extends SQLNormalizer> clazz = 
+                Class.forName(sqlNormalizer).asSubclass(SQLNormalizer.class);
+            Constructor<? extends SQLNormalizer> constructor 
+                = clazz.getConstructor();
+            
+            normalizer = constructor.newInstance();
+        }
+        catch (Exception e) {
+            
+            throw new CannotSetValueError("Unable to instantiate "
+                + sqlNormalizer + ": " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Sets the SQL normalizer for this driver
+     * @param normalizer The SQL normalizer for this driver
+     */
+    public void setNormalizer(SQLNormalizer normalizer) {
+        
+        if (normalizer == null) {
+            
+            this.normalizer = DEFAULT_NORMALIZER;
         }
         else {
             
-            this.analyzer = analyzer;
+            this.normalizer = normalizer;
         }
+    }
+    
+    /**
+     * Returns the SQL normalizer for this driver.
+     * @return The SQL normalizer for this driver or null if none is defined.
+     */
+    public SQLNormalizer getNormalizer() {
+        
+        if (normalizer == null) {
+            
+            return DEFAULT_NORMALIZER;
+        }
+        
+        return normalizer;
+    }
+    
+    /**
+     * Installs a query that can be run to determine the session's current
+     * schema. This is only necessary if the JDBC driver does not support the
+     * API call to fetch the current schema;
+     * 
+     * @param query The query to run to fetch the current schema. This must
+     *   return a single row with a single string column
+     */
+    public void setCurrentSchemaQuery(String query) {
+        
+        this.currentSchemaQuery = query;
+    }
+    
+    /**
+     * @return A query to use to fetch the current active schema for the session.
+     *   This may return null if there is no such query installed.
+     */
+    public String getCurrentSchemaQuery() {
+        
+        return this.currentSchemaQuery;
     }
     
     /**

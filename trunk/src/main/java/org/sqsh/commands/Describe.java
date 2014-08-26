@@ -28,9 +28,12 @@ import java.util.List;
 import org.sqsh.Command;
 import org.sqsh.DatabaseCommand;
 import org.sqsh.Renderer;
+import org.sqsh.SQLConnectionContext;
+import org.sqsh.SQLObjectName;
 import org.sqsh.SQLRenderer;
 import org.sqsh.SQLTools;
 import org.sqsh.Session;
+import org.sqsh.SimpleKeywordTokenizer;
 import org.sqsh.SqshOptions;
 import org.sqsh.options.Argv;
 import org.sqsh.options.OptionProperty;
@@ -55,6 +58,12 @@ public class Describe
     }
     
     @Override
+    public boolean keepDoubleQuotes() {
+        
+        return true;
+    }
+    
+    @Override
     public SqshOptions getOptions() {
         
         return new Options();
@@ -72,40 +81,22 @@ public class Describe
             return 1;
         }
         
+        SQLConnectionContext sqlContext = (SQLConnectionContext) session.getConnectionContext();
         Connection con = session.getConnection();
         ResultSet result = null;
         try {
             
-            String catalog = null;
-            String schema = null;
-            String name = null;
-            String []parts = options.arguments.get(0).split("\\.");
+            SQLObjectName objName = new SQLObjectName(sqlContext, options.arguments.get(0));
             
-            if (parts.length == 1) {
+            if (objName.isMalformed()) {
                 
-                name = parts[0];
-                schema = "%";
-                catalog = con.getCatalog();
+                session.err.println("Malformed object name: " + options.arguments.get(0));
+                return 1;
             }
-            else if (parts.length == 2) {
-                
-                schema = parts[0];
-                if (parts[1].equals("")) {
-                    
-                    name = "%";
-                }
-                else {
-                    
-                    name = parts[1];
-                }
-                catalog = con.getCatalog();
-            }
-            else {
-                
-                catalog = parts[0];
-                schema = parts[1];
-                name = parts[2];
-            }
+            
+            String catalog = (objName.getCatalog() == null ? "%" : objName.getCatalog());
+            String schema = (objName.getSchema() == null ? "%" : objName.getSchema());
+            String name = (objName.getName() == null ? "%" : objName.getName());
             
             DatabaseMetaData meta = con.getMetaData();
             HashSet<Integer> cols = null;

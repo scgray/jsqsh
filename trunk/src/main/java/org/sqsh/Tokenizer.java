@@ -20,9 +20,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.logging.Logger;
 
-
 /**
- * This clas is responsible for parsing a jsqsh command line. The parsing
+ * This class is responsible for parsing a jsqsh command line. The parsing
  * rules attempt to basically follow the same rules as UNIX sh, except that
  * jsqsh can be lazier as the expectations are that everything following a
  * pipe will be passed off, unmollested, to the operating system's shell.
@@ -55,12 +54,18 @@ public class Tokenizer {
     private int terminator;
     
     /**
+     * If true, then literals contained within double quotes will retain the
+     * surrounding double quotes.
+     */
+    private boolean retainDoubleQuotes = false;
+    
+    /**
      * Creates an empty tokenizer. The tokenizer must not be used until
      * reset() is called on it with valid input.
      */
-    public Tokenizer ()
-    {
-        reset(null, -1);
+    public Tokenizer () {
+        
+        reset(null, -1, retainDoubleQuotes);
     }
     
     /**
@@ -73,7 +78,7 @@ public class Tokenizer {
      */
     public Tokenizer (String str, int terminator) {
         
-        reset(str, terminator);
+        reset(str, terminator, retainDoubleQuotes);
     }
     
     /**
@@ -81,13 +86,16 @@ public class Tokenizer {
      * 
      * @param str The string to parse
      * @param terminator The current command terminator
+     * @param retainDoubleQuotes If true, then double quotes will be retained
+     *   as parsed.
      */
-    public void reset (String str, int terminator) {
+    public void reset (String str, int terminator, boolean retainDoubleQuotes) {
         
         this.line = str;
         this.terminator = terminator;
         this.tokenCount = 0;
         this.curIdx = 0;
+        this.retainDoubleQuotes = retainDoubleQuotes;
     }
     
     /**
@@ -348,6 +356,15 @@ public class Tokenizer {
                  * and we need to honor the content of the string.
                  */
                 StringBuilder fragment = new StringBuilder();
+                
+                /*
+                 * Keep the double quotes if so requested.
+                 */
+                if (retainDoubleQuotes) {
+                    
+                    str.append('"');
+                }
+                    
                 ++curIdx;
                 while (curIdx < line.length() && line.charAt(curIdx) != '"') {
                     
@@ -378,7 +395,13 @@ public class Tokenizer {
                         + "matching closing double quote", curIdx, line);
                 }
                 
-                str.append(fragment.toString());
+                str.append(fragment);
+                
+                if (retainDoubleQuotes) {
+                    
+                    str.append('"');
+                }
+                
                 ++curIdx;
             }
             else {

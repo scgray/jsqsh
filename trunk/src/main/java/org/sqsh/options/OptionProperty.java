@@ -52,6 +52,12 @@ public @interface OptionProperty {
     String description() default "";
     
     /**
+     * Deprecated options won't show up in help
+     * @return whether or not the option is deprecated
+     */
+    boolean deprecated() default false;
+    
+    /**
      * Specifies if an argument to the option is required, optional, or
      * not required.
      */
