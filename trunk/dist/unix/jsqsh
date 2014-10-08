@@ -50,7 +50,7 @@ export LD_LIBRARY_PATH
 # Encorporate all of the jars that typically come with 
 # jsqsh in its standard installation directory.
 #
-for jardir in "${ROOT_DIR}/share" /usr/share/jsqsh "${PROG_DIR}/../share/jsqsh"; do
+for jardir in "${ROOT_DIR}/share/jsqsh" /usr/share/jsqsh; do
    if [ -d "${jardir}" -a -f "${jardir}/jsqsh.jar" ]; then
       for jar in "${jardir}"/*.jar; do
           CLASSPATH="${jar}:${CLASSPATH}"
