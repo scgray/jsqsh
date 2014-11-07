@@ -144,23 +144,23 @@ public class SimpleKeywordTokenizer {
                 
                 if (ch == '-') {
                     
-                    doSkipDashComment();
+                    idx = SQLParseUtil.skipDashComment(sql, len, idx);
                 }
                 if (ch == '/') {
                     
-                    doSkipComment();
+                    idx = SQLParseUtil.skipComment(sql, len, idx);
                 }
                 if (ch == '\'' || ch == '"') {
                     
-                    doSkipQuotes(ch);
+                    idx = SQLParseUtil.skipQuotedString(sql, len, idx);
                 }
                 else if (ch == '[') {
                     
-                    doSkipBrackets();
+                    idx = SQLParseUtil.skipBrackets(sql, len, idx);
                 }
                 else if (ch == '@') {
                     
-                    doSkipVariable();
+                    idx = SQLParseUtil.skipVariable(sql, len, idx);
                 }
                 else {
                 
@@ -169,132 +169,4 @@ public class SimpleKeywordTokenizer {
             }
         }
     }
-    
-    /**
-     * Called by doSkip() when a dash (-) is encountered. This method checks
-     * to see if the next character is also a dash and, thus, is a single line
-     * SQL comment, e.g. -- this is a comment. If so, it skips to the end of 
-     * the line.
-     */
-    private void doSkipDashComment() {
-        
-        ++idx;
-        if (idx < len && sql.charAt(idx) == '-') {
-            
-            ++idx;
-            while (idx < len && sql.charAt(idx) != '\n') {
-                
-                ++idx;
-            }
-        }
-    }
-    
-    /**
-     * Called by doSkip() when a slash (/) is encountered. This method checks
-     * to see if it is part of a C-style comment. If so, it continues eating
-     * characters until the end of the comment is reached.
-     */
-    private void doSkipComment() {
-        
-        ++idx;
-        if (idx < len && sql.charAt(idx) == '*') {
-            
-            ++idx;
-            boolean done = false;
-            while (!done && idx < len) {
-                
-                if (sql.charAt(idx) == '*'
-                    && (idx+1) < len && sql.charAt(idx + 1) == '/') {
-                    
-                    ++idx;
-                    done = true;
-                }
-                else {
-                
-                    ++idx;
-                }
-            }
-        }
-    }
-    
-    /**
-     * Called by doSkip() when a single or double quote is encountered and
-     * consumes everything contained in the quotes.
-     * 
-     * @param quote The quote type that was hit (a ' or ").
-     */
-    private void doSkipQuotes(char quote) {
-        
-        boolean done = false;
-        
-        ++idx;
-        while (!done && idx < len) {
-            
-            char ch = sql.charAt(idx);
-            if (ch == quote) {
-                
-                ++idx;
-                
-                /*
-                 * If we hit a doubled quote (e.g. '' or "") then it
-                 * is escaped and we aren't done yet.
-                 */
-                if (idx < len && sql.charAt(idx) == quote) {
-                    
-                    ++idx;
-                }
-                else {
-                    
-                    done = true;
-                }
-            }
-            else {
-                
-                ++idx;
-            }
-        }
-    }
-    
-    /**
-     * Called by doSkip() when we hit a bracketed object name (e.g.
-     * [MY TABLE].[MY COLUMN], then we skip it over.
-     */
-    private void doSkipBrackets() {
-        
-        ++idx;
-        while (idx < len && sql.charAt(idx) != ']') {
-            
-            ++idx;
-        }
-        
-        if (idx < len) {
-            
-            ++idx;
-        }
-    }
-    
-    /**
-     * If we hit a variable name (starting with a @), then skip it.
-     */
-    private void doSkipVariable() {
-        
-        boolean done = false;
-        
-        ++idx;
-        while (!done && idx < len) {
-            
-            char ch = sql.charAt(idx);
-            if (Character.isLetter(ch)
-                    || Character.isDigit(ch)
-                    || ch == '_') {
-                
-                ++idx;
-            }
-            else {
-                
-                done = true;
-            }
-        }
-    }
-    
 }

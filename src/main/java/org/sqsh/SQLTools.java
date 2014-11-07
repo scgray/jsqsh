@@ -249,34 +249,38 @@ public class SQLTools {
         
         StringBuilder sb = new StringBuilder();
         String lineSep = System.getProperty("line.separator");
-        int indent;
-        int start;
         boolean isError = false;
         
         while (w != null) {
             
-            start = sb.length();
-            
             String state = w.getSQLState();
+            int code = w.getErrorCode();
             
             /*
-             * I don't know if this will be true of all JDBC drivers, 
-             * but for certain types of messages I don't like to
-             * show the WARN and error code components.
+             * DB2 has this annoying warning:
+             *   WARN [State:      ][Code: 0]: Statement processing was successful
              */
-            if (state != null 
+            if (!(isEmptyState(state) && code == 0)) {
+                
+                /*
+                 * I don't know if this will be true of all JDBC drivers, 
+                 * but for certain types of messages I don't like to
+                 * show the WARN and error code components.
+                 */
+                if (state != null 
                     && "01000".equals(state) == false) {
+                    
+                    isError = true;
                 
-                isError = true;
-                
-                sb.append("WARN [State: ");
-                sb.append(w.getSQLState());
-                sb.append("][Code: ");
-                sb.append(w.getErrorCode() + "]: ");
-            }
+                    sb.append("WARN [State: ");
+                    sb.append(w.getSQLState());
+                    sb.append("][Code: ");
+                    sb.append(w.getErrorCode() + "]: ");
+                }
             
-            sb.append(w.getMessage());
-            sb.append(lineSep);
+                sb.append(w.getMessage());
+                sb.append(lineSep);
+            }
             
             w = w.getNextWarning();
         }
@@ -292,6 +296,23 @@ public class SQLTools {
             session.out.flush();
         }
         
+    }
+    
+    /**
+     * Checks to see if a SQLSTATE is "empty".  That is, it either has zero
+     * length or is all spaces.
+     * 
+     * @param sqlState The SQLSTATE to check
+     * @return True if it is empty
+     */
+    private static boolean isEmptyState(String sqlState) {
+        
+        int len = sqlState.length();
+        int idx = 0;
+        
+        for (idx = 0; idx < len && sqlState.charAt(idx) == ' '; ++idx);
+        
+        return (idx == len);
     }
     
     /**

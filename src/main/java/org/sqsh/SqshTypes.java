@@ -30,4 +30,9 @@ public class SqshTypes {
      * Corresponds to oracle.jdbc.OracleTypes.CURSOR.
      */
     public static final int ORACLE_CURSOR = -10;
+   
+    /**
+     * Corresponds to com.ibm.db2.jcc.CURSOR
+     */
+    public static final int DB2_CURSOR = -100008;
 }

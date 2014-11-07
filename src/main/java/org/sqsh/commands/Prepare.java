@@ -66,15 +66,21 @@ public class Prepare
             ResultSetMetaData columns = stmt.getMetaData();
             
             // Display result columns
-            session.out.println("Result columns");
-            sqlRenderer.displayMetadata(session, columns);
+            if (columns != null) {
+                
+                session.out.println("Result columns");
+                sqlRenderer.displayMetadata(session, columns);
             
-            session.out.println();
+                session.out.println();
+            }
             
             ParameterMetaData params = stmt.getParameterMetaData();
             
-            session.out.println("Parameters");
-            sqlRenderer.displayParameterMetadata(session, params);
+            if (params != null) {
+                
+                session.out.println("Parameters");
+                sqlRenderer.displayParameterMetadata(session, params);
+            }
         }
         catch (SQLException e) {
             

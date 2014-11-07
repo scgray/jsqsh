@@ -24,6 +24,9 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -333,6 +336,388 @@ public class SQLRenderer {
     }
     
     /**
+     * Executes and displays the results from a prepared statement.
+     * 
+     * @param session The session that will be used for output.
+     * @param statement A prepared statement that has had all of its
+     *    SQL and parameters provided.
+     * 
+     * @return true if the SQL executed without error (warnings do not
+     *   count towards errors), false if there was at least one error
+     *   raised during the execution of the SQL.
+     *   
+     * @throws SQLException Thrown if there is an issue.
+     */
+    @SuppressWarnings("resource")
+    public boolean executeCall (Session session, String sql)
+        throws SQLException {
+        
+        boolean ok = true;
+        Renderer renderer = session.getContext().getRendererManager()
+            .getRenderer(session);
+        
+        CallableStatement statement = null;
+        
+        Connection conn = session.getConnection();
+        CancelingSignalHandler sigHandler = null;
+        SignalManager sigMan = SignalManager.getInstance();
+        
+        if (conn == null) {
+            
+            throw new SQLException("No database connection has been established");
+        }
+        
+        SQLConnectionContext sqlContext = 
+            (SQLConnectionContext) session.getConnectionContext();
+        
+        try {
+            
+            /*
+             * Start the visual timer. This will do nothing if the facility has
+             * not been enabled.  Note that the facility is stopped on error
+             * or when the first row has been received.
+             */
+            session.startVisualTimer();
+            
+            /*
+             * Cannot pass by reference, so fake it with an array
+             */
+            boolean []hasReturnMarker = new boolean[1];
+            hasReturnMarker[0] = false;
+            
+            /*
+             * Parse out a { call .. } statement, looking for inout parameters
+             * like "?=10" and returning the values for those parameters.
+             */
+            List<String> inoutParameterValues = new ArrayList<String>();
+            sql = getInoutParameterValues(sql, inoutParameterValues, hasReturnMarker);
+            int inoutParamIdx = 0;
+            
+            statement = conn.prepareCall(sql);
+            
+            /*
+             * Fetch information for the parameters.  Any out or inout parameter
+             * needs to be "registered" to let the server know we are interested
+             * in seeing the value of that parameter.
+             */
+            ParameterMetaData paramMeta = statement.getParameterMetaData();
+            int nParams = paramMeta.getParameterCount();
+            List<Integer> outputParams = new ArrayList<Integer>();
+            for (int i = 1; i <= nParams; i++) {
+                
+                int paramMode = paramMeta.getParameterMode(i);
+                
+                // System.out.println("parameter #" 
+                //   + i + " = " + paramMeta.getParameterTypeName(i));
+                
+                if (paramMode == ParameterMetaData.parameterModeOut
+                    || paramMode == ParameterMetaData.parameterModeInOut) {
+                    
+                    outputParams.add(i);
+                    
+                    /*
+                     * If the parameter type is "OTHER", then it may be a cursor. This
+                     * is the suck because there is no standard for CURSOR data type :(
+                     * So, I have hard coded logic to deal with how different drivers 
+                     * handle cursor.
+                     */
+                    int paramType = paramMeta.getParameterType(i);
+                    if (paramType == Types.OTHER) {
+                        
+                        /*
+                         * TODO: I really want to make handling of "other" data types
+                         * pluggable by driver. But, at the moment I'm lazy and have
+                         * some irritating time constraints, so hard coded for now.
+                         */
+                        
+                        String paramTypeName = paramMeta.getParameterTypeName(i);
+                        
+                        if (paramTypeName.equals("CURSOR")) {
+                            
+                            String driverName = sqlContext.getConnectionDescriptor().getDriver();
+                            if (driverName.startsWith("db2")) {
+                                
+                                statement.registerOutParameter(i, SqshTypes.DB2_CURSOR);
+                            }
+                            else if (driverName.startsWith("ora")) {
+                                
+                                statement.registerOutParameter(i, SqshTypes.ORACLE_CURSOR);
+                            }
+                            else {
+                                
+                                System.err.println("Output parameter #" + i + " appears to be"
+                                    + " a cursor of a type that jsqsh does not know how to"
+                                    + " deal with (unfortunately, cursor handling is not a"
+                                    + " JDBC standard, so every driver is different). If you would"
+                                    + " like this fixed, please send an e-mail to scottgray1-at-gmail.com"
+                                    + " with the details of which JDBC driver you are using");
+                                SQLTools.close(statement);
+                                return false;
+                            }
+                        }
+                        else {
+                            
+                            System.err.println("Output parameter #" + i + " appears to be of a"
+                                + "data type not supported by the JDBC standard (type \"" 
+                                + paramTypeName + "\"). If you would like jsqsh to support this"
+                                + " type, please send an e-mail to scottgray1-at-gmail.com with"
+                                + " information about your JDBC driver, target database platform"
+                                + " and this type name");
+                        }
+                    }
+                    else {
+                        
+                        statement.registerOutParameter(i, paramType);
+                    }
+                }
+                
+                if (paramMode == ParameterMetaData.parameterModeInOut) {
+                    
+                    if (inoutParamIdx >= inoutParameterValues.size()) {
+                        
+                        session.err.println("Parameter #" + i + "is an INOUT "
+                            + "parameters and must specify a value with the "
+                            + "syntax '?=<value>'");
+                        SQLTools.close(statement);
+                        return false;
+                    }
+                    
+                    statement.setString(i, inoutParameterValues.get(inoutParamIdx++));
+                }
+            }
+            
+            sigHandler = new CancelingSignalHandler(statement);
+            sigMan.push(sigHandler);
+            
+            startTime = System.currentTimeMillis();
+            
+            boolean hasResults = statement.execute();
+            
+            session.stopVisualTimer();
+            
+            ok = execute(renderer, session, statement, hasResults);
+            
+            /*
+             * Display any output parameters
+             */
+            if (outputParams.size() > 0) {
+                
+                /*
+                 * If any of the output parameters were result sets then display
+                 * then as a regular result set.
+                 */
+                Iterator<Integer> iter = outputParams.iterator();
+                
+                while (iter.hasNext()) {
+                    
+                    int idx = iter.next();
+                    
+                    Object o = statement.getObject(idx);
+                    if (o instanceof ResultSet) {
+                            
+                        session.out.println();
+                        session.out.println("Parameter #" + idx + " CURSOR:");
+                            
+                        displayResults(renderer, session, (ResultSet) o, null);
+                        
+                        iter.remove();
+                    }
+                }
+            }
+            
+            /*
+             * Are there any output parameters left after displaying the output
+             * of cursors?
+             */
+            if (outputParams.size() > 0) {
+            
+                int nOuts = outputParams.size();
+                
+                ColumnDescription []cols = new ColumnDescription[nOuts];
+                String []row = new String[nOuts];
+                for (int i = 0; i < nOuts; i++) {
+                    
+                    int idx = outputParams.get(i);
+                    
+                    String name = "Param #" + idx;
+                    if (idx == 1 && hasReturnMarker[0] == true) {
+                        
+                        name = "Return Code";
+                    }
+                    
+                    cols[i] = getDescription(name,
+                        paramMeta.getParameterType(idx),
+                        paramMeta.getPrecision(idx),
+                        paramMeta.getScale(idx));
+                    
+                    Object val = statement.getObject(idx);
+                    
+                    row[i] = cols[i].getFormatter().format(val);
+                }
+                
+                session.out.println();
+                renderer.header(cols);
+                renderer.row(row);
+                renderer.flush();
+            }
+        }
+        finally {
+            
+            session.stopVisualTimer();
+            
+            if (sigHandler != null) {
+                
+                sigMan.pop();
+            }
+            
+            SQLTools.close(statement);
+        }
+        
+        return ok;
+        
+    }
+    
+    /**
+     * Given a <code>{ [?=] call ... }</code> statement, atttempts to parse
+     * out "inout" values that are specified as ?=&lt;value&gt;. So the string
+     * <pre>
+     *    { ?= call myproc(10, 5, ?, ?=21) }
+     * </pre>
+     * has two input parameters (10 and 5) and one output parameter (?) and
+     * one in/out parameter (with an input value of 21). This method would return
+     * the value "21".
+     * 
+     * @param sql The call statement to parse out
+     * @return A list of values to provide as initial values for in/out parameters
+     */
+    private String getInoutParameterValues(String sql, List<String> inoutParams,
+        boolean []hasReturnMarker) {
+        
+        int idx = 0;
+        int len = sql.length();
+        
+        int chunkStart = 0;
+        
+        // Search for the open brace
+        idx = SQLParseUtil.skipWhitespace(sql, len, idx);
+        if (idx >= len || sql.charAt(idx) != '{') {
+            
+            return sql;
+        }
+        
+        // Search for either "call" or "?="
+        ++idx;
+        idx = SQLParseUtil.skipWhitespace(sql, len, idx);
+        
+        if (idx >= len) {
+            
+            return sql;
+        }
+        
+        // We have the initial ?= (or do we??)
+        if (sql.charAt(idx) == '?') {
+            
+            ++idx;
+            idx = SQLParseUtil.skipWhitespace(sql, len, idx);
+            
+            if (idx >= len || sql.charAt(idx) != '=') {
+                
+                return sql;
+            }
+            
+            hasReturnMarker[0] = true;
+            ++idx;
+            idx = SQLParseUtil.skipWhitespace(sql, len, idx);
+        }
+        
+        // Better have a "call" word here
+        if (idx >= len || ! (sql.regionMatches(true, idx, "call", 0, 4))) {
+            
+            return sql;
+        }
+        
+        // Skip "call"
+        idx += 4;
+        
+        /*
+         * While we find inout parameters, we have to convert "?=<value>" to
+         * just "?" while we go, so this buffer holds the new string.
+         */
+        StringBuilder sb = new StringBuilder(sql.length());
+        
+        /*
+         * From here, the logic gets a little more hokey. I'm not going to
+         * actually parse this thing out properly, but going to scan it for
+         * occurances of ? that do not appear inside of quoted strings.
+         */
+        while (idx < len) {
+            
+            char ch = sql.charAt(idx);
+            switch (ch) {
+            
+            case '\'': 
+            case '"': 
+                idx = SQLParseUtil.skipQuotedString(sql, len, idx);
+                break;
+            
+            case '?':
+                // Skip the question mark
+                ++idx; 
+                idx = SQLParseUtil.skipWhitespace(sql, len, idx);
+                
+                // Did we hit a '?='?
+                if (idx < len && sql.charAt(idx) == '=') {
+                    
+                    // Copy everything from the previous chunk into the statement
+                    sb.append(sql, chunkStart, idx);
+                    
+                    // Skip the '='
+                    ++idx;
+                    idx = SQLParseUtil.skipWhitespace(sql, len, idx);
+                    
+                    if (idx >= len) {
+                        
+                        inoutParams.add("");
+                    }
+                    else if (sql.charAt(idx) == '\'' || sql.charAt(idx) == '"') {
+                        
+                        // We have a quoted value like "?='hello world'"
+                        int startIdx = idx;
+                        idx = SQLParseUtil.skipQuotedString(sql, len, idx);
+                        inoutParams.add(sql.substring(startIdx+1, idx-1));
+                    }
+                    else {
+                        
+                        // We have a simple constant value like "?=10"
+                        int startIdx = idx++;
+                        while (idx < len) {
+                            
+                            char ch2 = sql.charAt(idx);
+                            if (Character.isWhitespace(ch2)
+                                || ch2 == ',' || ch2 == ')' || ch2 == '(' ) {
+                                
+                                break;
+                            }
+                            
+                            ++idx;
+                        }
+                        
+                        inoutParams.add(sql.substring(startIdx, idx));
+                    }
+                    
+                    chunkStart = idx;
+                }
+                break;
+            default:
+                ++idx;
+            }
+        }
+        
+        sb.append(sql, chunkStart, len);
+        return sb.toString();
+    }
+    
+    /**
      * Executes and displays the results from a callable statement.
      * 
      * @param session The session that will be used for output.
@@ -396,6 +781,7 @@ public class SQLRenderer {
                         || param.getDirection() == CallParameter.INOUT) {
                     
                     if (param.getType() == SqshTypes.ORACLE_CURSOR) {
+                        
                         
                         ResultSet rs = 
                             (ResultSet) statement.getObject(param.getIdx());
@@ -490,6 +876,7 @@ public class SQLRenderer {
         
         return ok;
     }
+    
     
     
     /**
@@ -1300,14 +1687,61 @@ public class SQLRenderer {
     }
     
     /**
-     * Returns a description of a column.
-     * @param meta Metadata about the column.
-     * @param idx Index of the column.
-     * @return The description
-     * @throws SQLException Thrown if the type cannot be displayed.
+     * Return a description of how to format a column.
+     * 
+     * @param meta The metadata for a result set
+     * @param idx The index of the of column to fetch in the result set
+     * @return A description of how to format that column
+     * @throws SQLException
      */
     public ColumnDescription getDescription(ResultSetMetaData meta, int idx)
         throws SQLException {
+        
+        int type = meta.getColumnType(idx);
+        int precision = 0;
+        int scale = 0;
+        
+        switch (type) {
+        
+            case Types.BINARY:
+            case Types.VARBINARY:
+            case Types.LONGVARBINARY:
+            case Types.CHAR:
+            case Types.VARCHAR:
+            case Types.NVARCHAR:
+            case Types.LONGNVARCHAR:
+            case Types.LONGVARCHAR:
+            case Types.NCHAR:
+                precision = meta.getColumnDisplaySize(idx);
+                break;
+                
+            case Types.DECIMAL:
+            case Types.NUMERIC:
+                precision = meta.getPrecision(idx);
+                scale = meta.getScale(idx);
+                break;
+                
+            default:
+                break;
+        }
+        
+        return getDescription(
+            meta.getColumnLabel(idx),
+            type,
+            precision,
+            scale);
+    }
+    
+    /**
+     * Returns a description of how to format a column
+     * 
+     * @param name The name of the column
+     * @param type The data type (java.sql.Type) of the column
+     * @param precision Precision of the column (if applicable)
+     * @param scale The scale of the column (if applicable)
+     * @return The description of how to format the column
+     */
+    public ColumnDescription getDescription(String name, int type, int precision, int scale) {
         
         DataFormatter formatter = sqshContext.getDataFormatter();
         ColumnDescription.Type colType =
@@ -1316,7 +1750,6 @@ public class SQLRenderer {
             ColumnDescription.Alignment.LEFT;
         Formatter format = null;
         
-        int type = meta.getColumnType(idx);
         switch (type) {
             
             case Types.BIGINT:
@@ -1328,8 +1761,7 @@ public class SQLRenderer {
             case Types.BINARY:
             case Types.VARBINARY:
             case Types.LONGVARBINARY:
-                format = formatter.getByteFormatter(
-                    meta.getColumnDisplaySize(idx));
+                format = formatter.getByteFormatter(precision);
                 colType = ColumnDescription.Type.NUMBER;
                 alignment = ColumnDescription.Alignment.RIGHT;
                 break;
@@ -1354,8 +1786,7 @@ public class SQLRenderer {
             case Types.LONGNVARCHAR:
             case Types.LONGVARCHAR:
             case Types.NCHAR:
-                format = formatter.getStringFormatter(
-                    meta.getColumnDisplaySize(idx));
+                format = formatter.getStringFormatter(precision);
                 break;
                 
             case Types.CLOB:
@@ -1369,9 +1800,6 @@ public class SQLRenderer {
                 
             case Types.DECIMAL:
             case Types.NUMERIC:
-                int precision = meta.getPrecision(idx);
-                int scale = meta.getScale(idx);
-                
                 format = formatter.getBigDecimalFormatter(precision, scale);
                 colType = ColumnDescription.Type.NUMBER;
                 alignment = ColumnDescription.Alignment.RIGHT;
@@ -1430,7 +1858,7 @@ public class SQLRenderer {
         }
         
         ColumnDescription c = new ColumnDescription(
-            meta.getColumnLabel(idx),  format.getMaxWidth(), alignment,
+            name,  format.getMaxWidth(), alignment,
             ColumnDescription.OverflowBehavior.WRAP);
         c.setType(colType);
         c.setNativeType(type);

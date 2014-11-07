@@ -882,9 +882,9 @@ public class Setup extends Command {
                         out.println();
                         driver.setCurrentSchemaQuery(getEntry(out, in, "Enter query to fetch current schema: ", false));
                     }
-                    else if (opt > 8) {
+                    else if (opt > 8 && (opt-8) == vars.size()) {
                         
-                        DriverVariable var = vars.get(opt-7);
+                        DriverVariable var = vars.get(opt-9);
                         out.println();
                         str = in.readline("Enter new value for \"" 
                             + var.getName() + "\": ", false);

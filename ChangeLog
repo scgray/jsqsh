@@ -13,6 +13,8 @@ New Features
   * Each JDBC driver may provide its own class path. This class path can be
     set via the driver setup wizard, and may include environment variables,
     such as "${ORACLE_HOME}/jdbc".
+  * Special support for executing stored procedure with output parameters. 
+    See "\help storedprocs" for details.
   * Each JDBC driver may now specify identifier normalization rules. For example,
     if an object name like MyTable is normalized to MYTABLE or mytable when 
     stored in the catalogs. This allows the metadata commands like \show and

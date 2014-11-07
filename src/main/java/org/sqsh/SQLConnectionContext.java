@@ -151,12 +151,67 @@ public class SQLConnectionContext
      * Executes SQL on the connection.
      */
     @Override
-    public void evalImpl(String batch, Session session, SQLRenderer renderer)
+    public void evalImpl(String sql, Session session, SQLRenderer renderer)
         throws Exception {
         
-        renderer.execute(session, batch);
+        boolean isCall = false;
+        int len = sql.length();
+        int idx = 0;
+        
+        /*
+         * Do a "quick" check to see if this is a CALL statement with parameter markers
+         */
+        idx = SQLParseUtil.skipWhitespace(sql, len, idx);
+        if (sql.regionMatches(true, idx, "CALL", 0, 4)) {
+            
+            idx += 4;
+            if (idx < len && Character.isWhitespace(sql.charAt(idx)) 
+                && SQLParseUtil.skipToParameterMarker(sql, len, idx) < len) {
+                
+                /*
+                 * Turn the call into a proper JDBC call
+                 */
+                sql = "{ ?= " + sql + " }";
+                isCall = true;
+            }
+        }
+        else {
+            
+            /*
+             * Look for JDBC escape syntax { [?=] call .. }
+             */
+            if (idx < len && sql.charAt(idx) == '{') {
+                
+                ++idx;
+                idx = SQLParseUtil.skipWhitespace(sql, len, idx);
+                if (idx < len && sql.charAt(idx) == '?') {
+                    
+                    ++idx;
+                    idx = SQLParseUtil.skipWhitespace(sql, len, idx);
+                    if (idx < len && sql.charAt(idx) == '=') {
+                        
+                        ++idx;
+                        idx = SQLParseUtil.skipWhitespace(sql, len, idx);
+                    }
+                }
+                
+                if (idx < len && sql.regionMatches(true, idx, "call", 0, 4)) {
+                    
+                    isCall = true;
+                }
+            }
+        }
+        
+        if (isCall) {
+            
+            renderer.executeCall(session, sql);
+        }
+        else {
+            
+            renderer.execute(session, sql);
+        }
     }
-
+    
     @Override
     public synchronized void cancel() throws Exception {
         
