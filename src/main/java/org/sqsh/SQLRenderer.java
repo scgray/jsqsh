@@ -361,6 +361,7 @@ public class SQLRenderer {
         Connection conn = session.getConnection();
         CancelingSignalHandler sigHandler = null;
         SignalManager sigMan = SignalManager.getInstance();
+        DataFormatter formatter = session.getDataFormatter();
         
         if (conn == null) {
             
@@ -551,8 +552,14 @@ public class SQLRenderer {
                         paramMeta.getScale(idx));
                     
                     Object val = statement.getObject(idx);
+                    if (statement.wasNull() || val == null) {
+                        
+                        row[i] = formatter.getNull();
+                    }
+                    else {
                     
-                    row[i] = cols[i].getFormatter().format(val);
+                        row[i] = cols[i].getFormatter().format(val);
+                    }
                 }
                 
                 session.out.println();
