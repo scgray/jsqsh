@@ -5,7 +5,10 @@ New Features
 
 Bug Fixes
   * Fixed NullPointerException when stored proc output parameters return a 
-    NULL value.
+    NULL value. 
+  * Handles failure of the driver to return the value for a column more 
+    gracefully (instead of stopping the whole result set, just prints 
+    "*ERROR*" in the column.
 
 Release 2.1.0
 

@@ -1474,45 +1474,62 @@ public class SQLRenderer {
                 
                 if (displayCols == null || displayCols.contains(i)) {
                     
-                    Object value;
+                    Object value = null;
+                    boolean wasNull = false;
+                    boolean wasError = false;
                     
                     /*
-                     * This is silly (I'd use stronger language, but I
-                     * think I'm mellowing in my old age). For an oracle
-                     * TIMESTAMP column, when I ask the driver for the
-                     * datatype it reports java.sql.Timestamp. However, 
-                     * when I call the driver's ResultSet.getObject() it
-                     * returns some sort of native internal representation
-                     * of a TIMESTAMP column that is  *not* a 
-                     * java.sql.Timestamp and thus jsqsh blows up when it
-                     * trys to format it as one.  So, instead I do a special
-                     * case to force the driver to return it to me as a 
-                     * timestamp.
+                     * With certain drivers I've had problems with resultSet.getObject()
+                     * so for those data types that I run into this issue I am
+                     * calling the "correct" getter method.
                      */
-                    if (columns[idx].getNativeType() == Types.TIMESTAMP) {
+                    try {
                         
-                        value = resultSet.getTimestamp(i);
+                        switch (columns[idx].getNativeType()) {
+                    
+                        case Types.TIMESTAMP:
+                            value = resultSet.getTimestamp(i);
+                            break;
+                        case Types.VARCHAR:
+                        case Types.CHAR:
+                        case Types.LONGVARCHAR:
+                            value = resultSet.getString(i);
+                            break;
+                        default:
+                            value = resultSet.getObject(i);
+                        }
+                        
+                        wasNull = resultSet.wasNull();
                     }
-                    else {
+                    catch (SQLException e) {
                         
-                        value = resultSet.getObject(i);
+                        LOG.fine("Row #" + rowCount + ", column " + i 
+                                + ", driver error decoding value: " + e.getMessage());
+                        
+                        session.setException(e);
+                        wasError = true;
+                        wasNull = false;
                     }
                     
-                    if (resultSet.wasNull()) {
+                    if (wasNull) {
                         
                         row[idx] = formatter.getNull();
                     }
                     else {
                         
-                        if (value == null)
-                        {
+                        if (wasError) {
+                            
+                            row[idx] = "*ERROR*";
+                        }
+                        else if (value == null) {
+                            
                             session.err.println("WARNING: Row #" 
                                 + rowCount + ", column " + i + ", driver indicated "
                                 + "a value present, but returned NULL");
                             row[idx] = formatter.getNull();
                         }
-                        else
-                        {
+                        else {
+                            
                             row[idx] = columns[idx].getFormatter().format(value);
                         }
                     }
