@@ -35,7 +35,7 @@ public class WordWrapLineIterator
     /**
      * Creates a word wrapper.
      * @param str The string to be wrapped.
-     * @param width The width at which it should be wrapper.
+     * @param width The width at which it should be wrapped.
      */
     public WordWrapLineIterator (String str, int width) {
         
@@ -107,7 +107,7 @@ public class WordWrapLineIterator
         }
         
         /*
-         * Move foward until we hit maximum width or hit a new-line
+         * Move forward until we hit maximum width or hit a new-line
          * or end-of-line.
          */
         while (ch != '\n' && ch != -1 && pos.getLen() < width) {
@@ -149,12 +149,13 @@ public class WordWrapLineIterator
                 str = pos.getSegment();
                 pos.next();
             }
-            else if (!Character.isWhitespace(ch)) {
+            else if (! Character.isWhitespace(ch)) {
                 
                 /*
-                 * If we are currently sitting on a white-space, then we don't
-                 * need to back up either. But, if we are sitting in this
-                 * block, then it is time to back up (if possible).
+                 * The last character we used was not a white-space, and the
+                 * next character was not a white space...we are in the middle
+                 * of a word!  Time to back up and leave this word for the next
+                 * line then.
                  */
                 Position end = (Position) pos.clone();
                 ch = end.prev();
@@ -183,6 +184,15 @@ public class WordWrapLineIterator
                     }
                 }
                 
+                str = pos.getSegment();
+            }
+            else {
+                
+                /*
+                 * This block means that the last character we read was a 
+                 * white space and the next character up is not a white space.
+                 * That is good, nothing to be done.
+                 */
                 str = pos.getSegment();
             }
         }
@@ -232,7 +242,15 @@ public class WordWrapLineIterator
         public String getSegment() {
             
             StringBuilder sb = new StringBuilder();
-            for (int i = startIdx; i < endIdx; i++) {
+            
+            /*
+             * Ignore trailing white space
+             */
+            int actualEndIdx = endIdx;
+            for (; actualEndIdx > startIdx && Character.isWhitespace(str.charAt(actualEndIdx-1)); 
+                    --actualEndIdx); 
+            
+            for (int i = startIdx; i < actualEndIdx; i++) {
                 
                 char ch = str.charAt(i);
                 if (ch == '\t') {

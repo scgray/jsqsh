@@ -24,18 +24,18 @@ public class ColumnDescription {
     /**
      * Represents how the contents of the column will be aligned.
      */
-    public enum Alignment { LEFT, RIGHT };
+    public static enum Alignment { LEFT, RIGHT };
     
     /**
      * Used to indicate how the column should handle values that are
      * wider than the display width.
      */
-    public enum OverflowBehavior { TRUNCATE, WRAP };
+    public static enum OverflowBehavior { TRUNCATE, WRAP };
     
     /**
      * Represents a basic datatype for the column.
      */
-    public enum Type { NUMBER, STRING };
+    public static enum Type { NUMBER, STRING };
     
     /**
      * Name of the column
@@ -65,10 +65,18 @@ public class ColumnDescription {
     private int width;
     
     /**
+     * Indicates whether or not the column "resists" being resized (used for
+     * "perfect" display style). If false, then attempts will be made to keep
+     * from resizing a column so small that it wraps.  There are no guarentees
+     * that this will behonored, but it will try to be.
+     */
+    private boolean resizeable;
+    
+    /**
      * Indicates how the column should handle values that are wider than
      * its display width.
      */
-    private OverflowBehavior overflowBehavior = OverflowBehavior.WRAP;
+    private OverflowBehavior overflowBehavior;
     
     /**
      * This may or may not actually be used, but is here for a convenience
@@ -76,6 +84,29 @@ public class ColumnDescription {
      * a Double) to a formatted value.
      */
     private Formatter formatter = null;
+    
+    /**
+     * Creates a column with no pre-defined with. The column will be left
+     * aligned, will be allowed to resized.
+     * 
+     * @param name The name of the column
+     */
+    public ColumnDescription (String name) {
+        
+        this(name, -1, Alignment.LEFT, OverflowBehavior.WRAP, true);
+    }
+    
+    /**
+     * Creates a column with no pre-defined with. The column will be left
+     * aligned and set to word wrap if it is resized.
+     * 
+     * @param name The name of the column
+     * @param resizeable Whether or not it resists being resized
+     */
+    public ColumnDescription (String name, boolean resizeable) {
+        
+        this(name, -1, Alignment.LEFT, OverflowBehavior.WRAP, true);
+    }
     
     /**
      * Creates a column descriptor that will be left-aligned and will
@@ -86,8 +117,7 @@ public class ColumnDescription {
      */
     public ColumnDescription (String name, int width) {
         
-        this.name = name;
-        this.width = width;
+        this(name, width, Alignment.LEFT, OverflowBehavior.WRAP, true);
     }
     
     /**
@@ -102,10 +132,27 @@ public class ColumnDescription {
     public ColumnDescription (String name, int width, 
             Alignment alignment, OverflowBehavior overflowBehavior) {
         
+        this(name, width, alignment, overflowBehavior, true);
+    }
+    
+    /**
+     * Creates a column.
+     * 
+     * @param name The name of the column
+     * @param width The display width of the column 
+     * @param alignment The alignment of the column
+     * @param overflowBehavior How the column should deal with 
+     *   data that overflows the width.
+     */
+    public ColumnDescription (String name, int width, 
+            Alignment alignment, OverflowBehavior overflowBehavior,
+            boolean resizeable) {
+        
         this.name = name;
         this.width = width;
         this.alignment = alignment;
         this.overflowBehavior = overflowBehavior;
+        this.resizeable = resizeable;
     }
     
     /**
@@ -140,6 +187,26 @@ public class ColumnDescription {
         this.alignment = alignment;
     }
     
+    /**
+     * @return true if this column should "resist" being resized so that its
+     *     contents wrap, false if it is OK to resize this column
+     */
+    public boolean isResizeable() {
+        
+        return resizeable;
+    }
+
+    /**
+     * Sets whether or not this column "resists" being resized. 
+     * 
+     * @param resizeable true if the column should resist being resized, false
+     *   if it is ok to resize the column and wrap.
+     */
+    public void setResizeable(boolean resizeable) {
+        
+        this.resizeable = resizeable;
+    }
+
     /**
      * @return the name
      */
@@ -180,6 +247,14 @@ public class ColumnDescription {
     public void setType (Type type) {
         
         this.type = type;
+        
+        /*
+         * Numbers will automatically resist resizing.
+         */
+        if (type == Type.NUMBER) {
+            
+            this.resizeable = false;
+        }
     }
     
     /**

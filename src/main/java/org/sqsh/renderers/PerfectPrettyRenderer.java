@@ -30,6 +30,19 @@ import org.sqsh.Session;
 public class PerfectPrettyRenderer
     extends AbstractPrettyRenderer {
     
+    /**
+     * For columns that allow resizing, this is the minimum size we will allow
+     */
+    private static final int MIN_RESIZE_SIZE = 10;
+    
+    /**
+     * Minimum size we will shrink a column that resists resizing. For the most
+     * part we expect numbers to be the ones that resist resizing, so we will
+     * allow them to shrink a bit smaller because 10 would still be a big-ish 
+     * number.
+     */
+    private static final int MIN_NORESIZE_SIZE = 4;
+    
     /*
      * The data that has been collected thus far.
      */
@@ -168,10 +181,11 @@ public class PerfectPrettyRenderer
         }
         
         /*
-         * This isn't the most efficient way to do things, but we will
-         * sit in a loop, shrinking columns until we get the fit that we
-         * want. We start by shrinking string columns, but we don't let them
-         * fall below a certain size.
+         * Pass #1: (this is not as efficient as it could be...)
+         * 
+         * Attempt to shrink all columns that are marked as resizeable, one
+         * character at a time, but try not to shrink it smaller than the column
+         * header or 10 characters. 
          */
         int nShrinks = 1;
         while (nShrinks > 0 && totalWidth > screenWidth) {
@@ -182,8 +196,13 @@ public class PerfectPrettyRenderer
                 
                 ColumnDescription col = columns[i];
                 
-                if (col.getType() == ColumnDescription.Type.STRING
-                        && col.getWidth() > 10) {
+                // Can be resized
+                if (col.isResizeable() 
+                        // But not shorter than the column header
+                        && (col.getName() == null 
+                            || col.getWidth() > col.getName().length())
+                        // And don't shrink below 10
+                        && col.getWidth() > MIN_RESIZE_SIZE) {
                     
                     col.setWidth(col.getWidth() - 1);
                     --totalWidth;
@@ -193,7 +212,10 @@ public class PerfectPrettyRenderer
         }
         
         /*
-         * Move on to number columns.
+         * Pass #2: 
+         * 
+         * Try again, but allow shrinking smaller than the column header length
+         * if we have to.
          */
         nShrinks = 1;
         while (nShrinks > 0 && totalWidth > screenWidth) {
@@ -204,8 +226,7 @@ public class PerfectPrettyRenderer
                 
                 ColumnDescription col = columns[i];
                 
-                if (col.getType() != ColumnDescription.Type.STRING
-                        && col.getWidth() > 4) {
+                if (col.isResizeable() && col.getWidth() > MIN_RESIZE_SIZE) {
                     
                     col.setWidth(col.getWidth() - 1);
                     --totalWidth;
@@ -214,6 +235,34 @@ public class PerfectPrettyRenderer
             }
         }
         
+        /*
+         * Pass #3: 
+         * 
+         * Ok, we have shrunk all of the resizeable columns, now we have to
+         * stop honoring the ones that requested no resizing.
+         */
+        nShrinks = 1;
+        while (nShrinks > 0 && totalWidth > screenWidth) {
+            
+            nShrinks = 0;
+            for (int i = 0; totalWidth > screenWidth
+                && i < columns.length; i++) {
+                
+                ColumnDescription col = columns[i];
+                
+                if (!col.isResizeable() && col.getWidth() > MIN_NORESIZE_SIZE) {
+                    
+                    col.setWidth(col.getWidth() - 1);
+                    --totalWidth;
+                    ++nShrinks;
+                }
+            }
+        }
+        
+        /*
+         * There are no more passes now. If we didn't shrink enough...well,
+         * we're just S.O.L.
+         */
     }
     
     @Override

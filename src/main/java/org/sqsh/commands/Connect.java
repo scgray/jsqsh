@@ -250,20 +250,21 @@ public class Connect
     
     private void doList(Session session, boolean showPassword) {
         
-        ColumnDescription []columns = new ColumnDescription[11];
+        ColumnDescription []columns = new ColumnDescription[12];
         boolean hasStar = false;
         
-        columns[0]  = new ColumnDescription("Name", -1);
-        columns[1]  = new ColumnDescription("Driver", -1);
-        columns[2]  = new ColumnDescription("Server", -1);
-        columns[3]  = new ColumnDescription("Port", -1);
-        columns[4]  = new ColumnDescription("SID", -1);
-        columns[5]  = new ColumnDescription("Username", -1);
-        columns[6]  = new ColumnDescription("Password", -1);
-        columns[7]  = new ColumnDescription("Domain", -1);
-        columns[8]  = new ColumnDescription("Class", -1);
-        columns[9]  = new ColumnDescription("URL", -1);
-        columns[10] = new ColumnDescription("Properties", -1);
+        columns[0]  = new ColumnDescription("Name", false);
+        columns[1]  = new ColumnDescription("Driver", false);
+        columns[2]  = new ColumnDescription("Server");
+        columns[3]  = new ColumnDescription("Port");
+        columns[4]  = new ColumnDescription("Database");
+        columns[5]  = new ColumnDescription("SID");
+        columns[6]  = new ColumnDescription("Username");
+        columns[7]  = new ColumnDescription("Password");
+        columns[8]  = new ColumnDescription("Domain");
+        columns[9]  = new ColumnDescription("Class");
+        columns[10]  = new ColumnDescription("URL");
+        columns[11] = new ColumnDescription("Properties");
         
         DataFormatter formatter =
             session.getDataFormatter();
@@ -285,7 +286,7 @@ public class Connect
         
         for (ConnectionDescriptor connDesc : connDescs) {
             
-            String row[] = new String[11];
+            String row[] = new String[12];
             String name = connDesc.getName();
             if (connDesc.isAutoconnect()) {
                 
@@ -293,36 +294,39 @@ public class Connect
                 hasStar = true;
             }
             
-            row[0] = name;
-            row[1] = (connDesc.getDriver() == null ?
+            int idx=0;
+            row[idx++] = name;
+            row[idx++] = (connDesc.getDriver() == null ?
                         formatter.getNull() : connDesc.getDriver());
-            row[2] = (connDesc.getServer() == null ?
+            row[idx++] = (connDesc.getServer() == null ?
                         formatter.getNull() : connDesc.getServer());
-            row[3] = (connDesc.getPort() < 0 ?
+            row[idx++] = (connDesc.getPort() < 0 ?
                         formatter.getNull() : Integer.toString(connDesc.getPort()));
-            row[4] = (connDesc.getSid() == null ?
+            row[idx++] = (connDesc.getCatalog() == null ?
+                        formatter.getNull() : connDesc.getCatalog());
+            row[idx++] = (connDesc.getSid() == null ?
                         formatter.getNull() : connDesc.getSid());
-            row[5] = (connDesc.getUsername() == null ?
+            row[idx++] = (connDesc.getUsername() == null ?
                         formatter.getNull() : connDesc.getUsername());
 
             if (showPassword) {
 
-                row[6] = (connDesc.getPassword() == null ?
+                row[idx++] = (connDesc.getPassword() == null ?
                             formatter.getNull() : connDesc.getPassword());
             }
             else {
 
-                row[6] = (connDesc.getPassword() == null ?
+                row[idx++] = (connDesc.getPassword() == null ?
                             formatter.getNull() : "*******");
             }
 
-            row[7] = (connDesc.getDomain() == null ?
+            row[idx++] = (connDesc.getDomain() == null ?
                         formatter.getNull() : connDesc.getDomain());
-            row[8] = (connDesc.getJdbcClass() == null ?
+            row[idx++] = (connDesc.getJdbcClass() == null ?
                         formatter.getNull() : connDesc.getJdbcClass());
-            row[9] = (connDesc.getUrl() == null ? 
+            row[idx++] = (connDesc.getUrl() == null ? 
                         formatter.getNull() : connDesc.getUrl());
-            row[10] = null;
+            row[idx] = null;
             List<String> props = connDesc.getProperties();
             if (props.size() > 0) {
                 
@@ -336,7 +340,7 @@ public class Connect
                     sb.append(props.get(i));
                 }
                 
-                row[10] = sb.toString();
+                row[idx] = sb.toString();
             }
             
             renderer.row(row);

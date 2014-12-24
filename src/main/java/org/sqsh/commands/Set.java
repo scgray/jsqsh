@@ -23,6 +23,8 @@ import java.util.List;
 
 import org.sqsh.CannotSetValueError;
 import org.sqsh.ColumnDescription;
+import org.sqsh.ColumnDescription.Alignment;
+import org.sqsh.ColumnDescription.OverflowBehavior;
 import org.sqsh.Command;
 import org.sqsh.Renderer;
 import org.sqsh.Session;
@@ -82,7 +84,8 @@ public class Set
             Arrays.sort(vars);
             
             ColumnDescription []columns = new ColumnDescription[2];
-            columns[0] = new ColumnDescription("Variable", -1);
+            columns[0] = new ColumnDescription("Variable", -1, 
+                    Alignment.LEFT, OverflowBehavior.WRAP, false);
             columns[1] = new ColumnDescription("Value", -1);
             
             Renderer renderer = 

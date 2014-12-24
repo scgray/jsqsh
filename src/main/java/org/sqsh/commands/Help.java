@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.sqsh.ColumnDescription;
+import org.sqsh.ColumnDescription.Alignment;
+import org.sqsh.ColumnDescription.OverflowBehavior;
 import org.sqsh.Command;
 import org.sqsh.HelpTopic;
 import org.sqsh.PagedCommand;
@@ -178,7 +180,8 @@ public class Help
             + "\"\\help <category>\" to display topics within that category");
         
         ColumnDescription []columns = new ColumnDescription[2];
-        columns[0] = new ColumnDescription("Category", -1);
+        columns[0] = new ColumnDescription("Category", -1, 
+                Alignment.LEFT, OverflowBehavior.WRAP, false);
         columns[1] = new ColumnDescription("Description", -1);
             
         Renderer renderer = 
@@ -213,7 +216,8 @@ public class Help
         Arrays.sort(commands);
             
         ColumnDescription []columns = new ColumnDescription[2];
-        columns[0] = new ColumnDescription("Command", -1);
+        columns[0] = new ColumnDescription("Command", -1, 
+                Alignment.LEFT, OverflowBehavior.WRAP, false);
         columns[1] = new ColumnDescription("Description", -1);
         renderer.header(columns);
         
@@ -248,7 +252,8 @@ public class Help
         Arrays.sort(variables);
         
         ColumnDescription []columns = new ColumnDescription[2];
-        columns[0] = new ColumnDescription("Variable", -1);
+        columns[0] = new ColumnDescription("Variable", -1, 
+                Alignment.LEFT, OverflowBehavior.WRAP, false);
         columns[1] = new ColumnDescription("Description", -1);
         renderer.header(columns);
             

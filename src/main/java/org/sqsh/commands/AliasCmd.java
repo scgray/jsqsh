@@ -72,9 +72,9 @@ public class AliasCmd
             Arrays.sort(aliases);
             
             ColumnDescription []columns = new ColumnDescription[3];
-            columns[0] = new ColumnDescription("Alias", -1);
-            columns[1] = new ColumnDescription("Global?", -1);
-            columns[2] = new ColumnDescription("Text", -1);
+            columns[0] = new ColumnDescription("Alias", false);
+            columns[1] = new ColumnDescription("Global?", false);
+            columns[2] = new ColumnDescription("Text", true);
             
             Renderer renderer = 
                 session.getRendererManager().getCommandRenderer(session);
