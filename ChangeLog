@@ -11,6 +11,7 @@ Bug Fixes
   * Handles failure of the driver to return the value for a column more 
     gracefully (instead of stopping the whole result set, just prints 
     "*ERROR*" in the column.
+  * NullPointerException when calling a stored procedure in Sybase
 
 Release 2.1.0
 
