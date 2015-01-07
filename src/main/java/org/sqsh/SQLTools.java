@@ -307,6 +307,12 @@ public class SQLTools {
      */
     private static boolean isEmptyState(String sqlState) {
         
+        // A NULL state is not considered empty!
+        if (sqlState == null) {
+            
+            return false;
+        }
+        
         int len = sqlState.length();
         int idx = 0;
         
