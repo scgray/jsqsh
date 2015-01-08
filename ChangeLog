@@ -12,6 +12,7 @@ Bug Fixes
     gracefully (instead of stopping the whole result set, just prints 
     "*ERROR*" in the column.
   * NullPointerException when calling a stored procedure in Sybase
+  * Stop print DB2 warning about "statement succeeded". It is annoying.
 
 Release 2.1.0
 

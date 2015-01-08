@@ -258,14 +258,22 @@ public class SQLTools {
             
             /*
              * DB2 has this annoying warning:
+             * 
              *   WARN [State:      ][Code: 0]: Statement processing was successful
+             *   
+             * or this one
+             * 
+             *   WARN [State: 00000][Code: 0]: Statement processing was successful
+             *   
+             * So for those, we completely discard them as if they never happened.
              */
-            if (!(isEmptyState(state) && code == 0)) {
+            if (! ((isEmptyState(state) && code == 0)
+                    || "00000".equals(state) && code == 0)) {
                 
                 /*
                  * I don't know if this will be true of all JDBC drivers, 
                  * but for certain types of messages I don't like to
-                 * show the WARN and error code components.
+                 * show the WARN and error code components. 
                  */
                 if (state != null 
                     && "01000".equals(state) == false) {
