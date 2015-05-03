@@ -3,6 +3,9 @@ Release 2.1.1-SNAPSHOT
 New Features
   * New platform support (PowerPC 64bit and s390x)
 
+Misc
+  * Remove Jaql
+
 Release 2.1.0
 
 New Features

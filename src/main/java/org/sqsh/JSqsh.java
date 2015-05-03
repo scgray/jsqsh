@@ -30,7 +30,6 @@ import java.util.logging.LogManager;
 import org.sqsh.Session;
 import org.sqsh.SqshContext;
 import org.sqsh.commands.Help;
-import org.sqsh.commands.Jaql;
 import org.sqsh.input.ConsoleLineReader;
 import org.sqsh.options.Argv;
 import org.sqsh.options.OptionProperty;
@@ -71,22 +70,7 @@ public class JSqsh {
            option='n', longOption="non-interactive", arg=NONE,
            description="Disables recording of input history, and line editing functionality")
        public boolean isInteractive = true;
-       
-       @OptionProperty(
-           option='j', longOption="jaql", arg=NONE,
-           description="Start the session in Jaql mode")
-       public boolean jaqlMode = false;
-       
-       @OptionProperty(
-           option='a', longOption="jaql-path", arg=REQUIRED,
-           description="Colon separated list of jaql module search directories")
-       public String jaqlSearchPath = null;
-       
-       @OptionProperty(
-           option='J', longOption="jaql-jars", arg=REQUIRED,
-           description="Comma separated list of jars to be used by the jaql shell")
-       public String jaqlJars = null;
-       
+
        @OptionProperty(
            option='b', longOption="debug", arg=REQUIRED, argName="class",
            description="Turn on debugging for a java class or package")
@@ -260,16 +244,7 @@ public class JSqsh {
                 System.exit(Help.displayHelpText(session, options.topic));
             }
             
-            if (options.jaqlMode 
-                    || options.jaqlJars != null
-                    || options.jaqlSearchPath != null) {
-                
-                if (!doJaql(session, options)) {
-                    
-                    rc = 1;
-                }
-            }
-            else if (!doConnect(session, options)) {
+            if (!doConnect(session, options)) {
                 
                 rc = 1;
             }
@@ -509,40 +484,6 @@ public class JSqsh {
         }
         
         return System.out;
-    }
-    
-    /**
-     * If --jaql was provided, sets up the session to be a jaql session.
-     * 
-     * @param session The session
-     * @param options The options provided to start jsqsh
-     * @return true if teh jaql session was successfully started, false
-     *   otherwise.
-     */
-    private static boolean doJaql(Session session, Options options) {
-        
-        Jaql.Options jaqlOptions = new Jaql.Options();
-        Jaql cmd = new Jaql();
-        
-        if (options.jaqlJars != null)
-            jaqlOptions.jars = options.jaqlJars;
-        if (options.jaqlSearchPath != null)
-            jaqlOptions.jaqlPath = options.jaqlSearchPath;
-        
-        try {
-            
-            if (cmd.execute(session, jaqlOptions) != 0) {
-                
-                return false;
-            }
-        }
-        catch (Exception e) {
-            
-            e.printStackTrace();
-            return false;
-        }
-        
-        return true;
     }
     
     /**
