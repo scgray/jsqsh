@@ -13,6 +13,9 @@ Bug Fixes
     "*ERROR*" in the column.
   * NullPointerException when calling a stored procedure in Sybase
 
+Misc
+  * Remove Jaql
+
 Release 2.1.0
 
 New Features

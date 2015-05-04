@@ -206,32 +206,6 @@ GENERAL OPTIONS
        the exit status should be that of the last executed command (an explicit
        "\quit" command is excluded from consideration).
 
-JAQL OPTIONS
-   As of jsqsh 1.5, support for using jsqsh as a shell for the Jaql programming
-   language has been added. Jaql is a functional programming language for
-   Hadoop (see http://code.google.com/p/jaql). Note that Jaql nor any of its 
-   dependent jars ship with jsqsh, so they must all be in your classpath to 
-   use jaql.  If installed with an IBM BigInsights distribution, the jsqsh 
-   launch script will attempt to locate and use these jars when any of the
-   following options are provided.
-   
-   -j, --jaql
-       Launches a jaql interpreter (http://code.google.com/p/jaql). Note
-       that Jaql nor any of its dependant jars ship with jsqsh, so they must
-       all be in your classpath to use jaql.  If installed with an IBM BigInsights
-       distribution, the jsqsh launch script will attempt to locate and 
-       use these jars when this flag is provided.
-   
-   -p, --jaql-path
-       Provided a colon separated list of directories that will be searched
-       when jaql attempts to locate imported modules.  This flag automatically
-       implies the --jaql flag as well.
-       
-   -J, --jaql-jars
-       Provided a comma separated list of jars that will be made available to
-       the jaql interpreter and pushed to Hadoop during job execution. This 
-       flag automatically implies the --jaql flag as well.
-       
 START UP
    Upon startup, jsqsh performs the following activities:
    
