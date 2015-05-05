@@ -860,10 +860,19 @@ public class Session
              * character. If it is, then we need to execute the "go" 
              * command on behalf of the user.
              */
-            if (isTerminated(curBuf)) {
+            String args = isTerminated(curBuf);
+            if (args != null) {
                 
                 Command go = getCommandManager().getCommand("\\go");
-                runCommand(go, "\\go");
+                
+                if (args.length() > 0) {
+                    
+                    runCommand(go, "\\go " + args);
+                }
+                else {
+                    
+                    runCommand(go, "\\go");
+                }
             }
         }
     }
@@ -1014,10 +1023,10 @@ public class Session
      * should be executed.
      * 
      * @param buffer The buffer to evaluate.
-     * @return True if the buffer is terminated. If it is, then the
-     *   terminator character is removed from the buffer in the process.
+     * @return If the buffer was not terminated then null is returned, 
+     *   otherwise the arguments that follow the terminator are returned.
      */
-    private boolean isTerminated(Buffer buffer) {
+    private String isTerminated(Buffer buffer) {
         
         ConnectionContext conn = getConnectionContext();
         int terminator = sqshContext.getTerminator();
@@ -1028,32 +1037,54 @@ public class Session
          */
         if (conn == null || terminator < 0) {
             
-            return false;
+            return null;
         }
         
         /*
-         * First we'll do a simplistic check to see if our buffer ends
-         * with a terminator at all.
+         * Try to find the terminator
          */
-        String sql = buffer.toString();
-        int idx = sql.length() - 1;
-        while (idx >= 0 && Character.isWhitespace(sql.charAt(idx))) {
+        int idx = buffer.length() - 1;
+        while (idx >= 0 && buffer.charAt(idx) != terminator) {
             
             --idx;
         }
         
-        if (idx < 0 || sql.charAt(idx) != terminator) {
+        /*
+         * Either we didn't find the terminator, or the characters after
+         * the terminator don't appear to be valid input to the "go" command.
+         */
+        if (idx < 0 || ! looksLikeArgumentsOrWhitespace(buffer, idx+1)) {
             
-            return false;
+            return null;
+        }
+        
+        /*
+         * When asking the connection if this input is terminated, then
+         * make sure we trim off everything after the semicolon.
+         */
+        CharSequence trimmedSql = buffer;
+        if (idx < trimmedSql.length()-1) {
+            
+            trimmedSql = trimmedSql.subSequence(0, idx+1);
         }
         
         /*
          * We have a terminator at the end, its worth doing an in-depth
          * analysis at this point.
          */
-        if (conn.isTerminated(sql, (char) terminator) == false) {
+        if (conn.isTerminated(trimmedSql, (char) terminator) == false) {
             
-            return false;
+            return null;
+        }
+        
+        /*
+         * Pull off the contents after the semicolon as our residuals.
+         */
+        String residuals = "";
+        if (idx < buffer.length()-1) {
+            
+            residuals = buffer.substring(idx+1, buffer.length());
+            buffer.setLength(idx+1);
         }
         
         /*
@@ -1065,9 +1096,63 @@ public class Session
             buffer.setLength(idx);
         }
         
-        return true;
+        return residuals;
     }
     
+    /**
+     * Checks the characters following a semicolon to see if they are either 
+     * all whitespace or if they look like they may contain command line
+     * arguments to be passed to "go". The check is rather crude, simply
+     * looking to see if what follows the semicolon is an "-a" style argument
+     * or "--arg" style argument.
+     * 
+     * @param str The string to check
+     * @param idx The index immediately following the semicolon
+     * @return true if what appears after the semicolon is just whitespace or 
+     *   command line arguments.
+     */
+    private boolean looksLikeArgumentsOrWhitespace(CharSequence str, int idx) {
+        
+        final int len = str.length();
+        int i = idx;
+        while (i < len) {
+            
+            char ch = str.charAt(i);
+            if (! Character.isWhitespace(ch)) {
+                
+                // Do we have -arg
+                if (ch == '-') {
+                    
+                    ++i;
+                    // Do we have --arg?
+                    if (i < len && str.charAt(i) == '-') {
+                        
+                        ++i;
+                        if (i < len 
+                            && (str.charAt(i) >= 'a' || str.charAt(i) <= 'z')) {
+                            
+                            return true;
+                        }
+                    }
+                    else if (i < len 
+                            && (str.charAt(i) >= 'a' || str.charAt(i) <= 'z')) {
+                        
+                        return true;
+                    }
+                    
+                    return false;
+                }
+                else {
+                    
+                    return false;
+                }
+            }
+            
+            ++i;
+        }
+        
+        return true;
+    }
     
     /**
      * Called when the current SQL buffer needs to be redrawn.

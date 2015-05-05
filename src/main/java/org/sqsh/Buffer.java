@@ -27,7 +27,8 @@ import java.io.StringReader;
 /**
  * Represents SQL block that is being worked on.
  */
-public class Buffer {
+public class Buffer 
+    implements CharSequence {
     
     /**
      * Every buffer is assigned a unique ID by the {@link BufferManager}
@@ -287,8 +288,32 @@ public class Buffer {
     /**
      * Returns the buffer as a string.
      */
+    @Override
     public String toString() {
         
         return buffer.toString();
+    }
+    
+    public String substring(int start, int end) {
+        
+        return buffer.substring(start, end);
+    }
+
+    @Override
+    public char charAt(int idx) {
+
+        return buffer.charAt(idx);
+    }
+
+    @Override
+    public int length() {
+
+        return buffer.length();
+    }
+
+    @Override
+    public CharSequence subSequence(int arg0, int arg1) {
+
+        return buffer.subSequence(arg0, arg1);
     }
 }

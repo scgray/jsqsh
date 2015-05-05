@@ -3,10 +3,13 @@ Release 2.1.1-SNAPSHOT
 New Features
   * New platform support (PowerPC 64bit and s390x)
   * "perfect" display mode will try harder to avoid resizing numeric columns
+  * "go" options may now be provided after semicolon e.g. 
+       select * from foo; -m vert
 
 Bug Fixes
   * Fixed NullPointerException when stored proc output parameters return a 
     NULL value. 
+  * Fixed nested quotes in CALL statements like CALL MYPROC(?='Scott''s book')
   * Fixed bugs with word wrapping in "perfect" display mode
   * Handles failure of the driver to return the value for a column more 
     gracefully (instead of stopping the whole result set, just prints 
