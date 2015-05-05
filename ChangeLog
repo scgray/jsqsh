@@ -5,6 +5,8 @@ New Features
   * "perfect" display mode will try harder to avoid resizing numeric columns
   * "go" options may now be provided after semicolon e.g. 
        select * from foo; -m vert
+  * The datetime_fmt now allows "S" to indicate fractions of a second,
+    not just milliseconds, so you can now carry the precision out further.
 
 Bug Fixes
   * Fixed NullPointerException when stored proc output parameters return a 
