@@ -176,6 +176,14 @@ public class SqshContext {
     private VisualTimer visualTimer = new VisualTimer();
     
     /**
+     * This contains a list of commands upon which we will exit if they fail. The
+     * special command name "any" indicates that if any command fails, then 
+     * the session executing it will exit.
+     */
+    private String []exitOnCommandFailure = null;
+    private static final String []ANY = new String[] { "any" };
+    
+    /**
      * This keeps track of the previous session id used by the
      * user.
      */
@@ -362,6 +370,98 @@ public class SqshContext {
     public int getQueryTimeout() {
         
         return queryTimeout;
+    }
+    
+    /**
+     * Given a comma delimited list of command names, registers the commands to cause
+     * the invoking session to exit in the event the command returns an error. The special
+     * name "none" indicates that no command should cause jsqsh to exit (except, of course
+     * exit) and "all" indicates that all command failures should cause the session to
+     * exit.
+     * 
+     * @param commands A comma delimited list of commands. 
+     */
+    public void setCommandsToExitOnFailure(String commands) {
+        
+        if ("none".equals(commands) || "false".equals(commands) || commands.length() == 0) {
+            
+            exitOnCommandFailure = null;
+        }
+        else {            
+            
+            exitOnCommandFailure = commands.split(",");
+            for (String command : exitOnCommandFailure) {
+                
+                if ("true".equals(command) || "any".equals(command)) {
+                    
+                    exitOnCommandFailure = ANY;
+                    break;
+                }
+            }
+        }
+        
+    }
+    
+    /**
+     * @return A comma delimited list of commands that, should they return an error 
+     *   will cause the current session to exit.
+     */
+    public String getCommandsToExitOnFailure() {
+        
+        if (exitOnCommandFailure == null) {
+            
+            return "none";
+        }
+        
+        if (exitOnCommandFailure.length == 1) {
+            
+            return exitOnCommandFailure[0];
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < exitOnCommandFailure.length; i++) {
+            
+            if (i > 0) {
+                
+                sb.append(',');
+            }
+            
+            sb.append(exitOnCommandFailure[i]);
+        }
+        
+        return sb.toString();
+    }
+    
+    /**
+     * Given the name of a command, returns "true" if the command has been registered
+     * to cause the session to exit upon failure.
+     * 
+     * @param command The name of the command to test
+     * @return true if the command is registered to cause an exit upon failure.
+     */
+    public boolean shouldExitOnFailure(String command) {
+        
+        if (exitOnCommandFailure == null) {
+            
+            return false;
+        }
+        
+        if (exitOnCommandFailure == ANY) {
+            
+            return true;
+        }
+        
+        for (String name : exitOnCommandFailure) {
+            
+            if (command.equals(name) 
+                 || (command.charAt(0) == '\\' && command.length() == name.length()+1
+                       && command.regionMatches(1, name, 0, name.length()))) {
+                
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     /**

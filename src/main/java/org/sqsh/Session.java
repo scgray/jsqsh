@@ -97,7 +97,6 @@ public class Session
      */
     private SqshContext sqshContext;
     
-    
     /**
      * This is a place where commands can place arbitrary objects to 
      * maintain state between calls. See {@link SessionObject}.
@@ -412,7 +411,7 @@ public class Session
     
         this.fetchSize = fetchSize;
     }
-
+    
     /**
      * Adds an object to the session.  This is intended primarily for use
      * by commands wishing to maintain some form of state between calls.
@@ -1400,8 +1399,19 @@ public class Session
             commandReturn =
                 command.execute(this, argv.toArray(new String[0]));
             
-            if (commandReturn != 0)
+            if (commandReturn != 0) {
+                
                 ++commandFailCount;
+                
+                /*
+                 * Was the "exit_on" variable used to register this command to
+                 * cause an exit if it fails?
+                 */
+                if (sqshContext.shouldExitOnFailure(command.getName())) {
+                    
+                    throw new SqshContextExitMessage(this);
+                }
+            }
         }
         catch (IOException e) {
                 
