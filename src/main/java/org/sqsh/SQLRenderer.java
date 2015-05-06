@@ -688,10 +688,24 @@ public class SQLRenderer {
                     }
                     else if (sql.charAt(idx) == '\'' || sql.charAt(idx) == '"') {
                         
+                        char quote = sql.charAt(idx);
+                        
                         // We have a quoted value like "?='hello world'"
                         int startIdx = idx;
                         idx = SQLParseUtil.skipQuotedString(sql, len, idx);
-                        inoutParams.add(sql.substring(startIdx+1, idx-1));
+                        
+                        String value = sql.substring(startIdx+1, idx-1);
+                        
+                        // Were there nested quotes like 'Scott''s book', then
+                        // we need to de-double the quotes.
+                        if (value.indexOf(quote) >= 0) {
+                            
+                            value = value.replace(
+                                    String.valueOf(quote) + quote, 
+                                    String.valueOf(quote));
+                        }
+                        
+                        inoutParams.add(value);
                     }
                     else {
                         
