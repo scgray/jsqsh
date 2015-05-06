@@ -672,7 +672,6 @@ public class SQLConnectionContext
             return null;
         }
         
-        Statement statment = null;
         ResultSet results = null;
         String schema = null;
         

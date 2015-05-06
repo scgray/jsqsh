@@ -33,6 +33,7 @@ public class PLSQLAnalyzer
     /* (non-Javadoc)
      * @see org.sqsh.LanguageAnalyzer#isTerminated(java.lang.String, char)
      */
+    @Override
     public boolean isTerminated (CharSequence sql, char terminator) {
         
         /*

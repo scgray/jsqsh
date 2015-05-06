@@ -19,6 +19,9 @@ Bug Fixes
   * NullPointerException when calling a stored procedure in Sybase
   * Stop print DB2 warning about "statement succeeded". It is annoying.
 
+Misc
+  * Remove Jaql
+
 Release 2.1.0
 
 New Features
