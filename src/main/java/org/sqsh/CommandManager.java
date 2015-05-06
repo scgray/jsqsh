@@ -18,6 +18,7 @@ package org.sqsh;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -38,8 +39,10 @@ public class CommandManager {
     /**
      * File containing the command definitions.
      */
-    private static final String DEFINITION_FILE = 
+    private static final String INTERNAL_FILE = 
         "org/sqsh/commands/Commands.xml";
+    private static final String EXTENSION_FILE = 
+        "Commands.xml";
     
     /**
      * The actual map of commands that are available.
@@ -52,7 +55,15 @@ public class CommandManager {
      */
     public CommandManager() {
         
-        init();
+        /*
+         * Load the built-in commands
+         */
+        init(INTERNAL_FILE);
+        
+        /*
+         * Location that people can provide their own commands for extending jsqsh
+         */
+        init(EXTENSION_FILE);
     }
     
     /**
@@ -90,9 +101,7 @@ public class CommandManager {
      * Performs initialization of the commandMap by processing the XML
      * document in org/sqsh/commands/Commands.xml
      */
-    private void init() {
-        
-        
+    private void init(String location) {
         
         String path;
         Digester digester = new Digester();
@@ -116,41 +125,49 @@ public class CommandManager {
             digester.addCallParam(path, 0);
             
         digester.push(this); 
-        InputStream in = null;
         try {
             
-            in =  getClass().getClassLoader().getResourceAsStream(
-                DEFINITION_FILE);
+            Enumeration<URL> inputs = getClass().getClassLoader().getResources(location);
             
-            /*
-             * This should never happen unless I manage to build the jar
-             * file incorrectly.
-             */
-            if (in == null) {
+            while (inputs.hasMoreElements()) {
                 
-                LOG.severe("Cannot locate command definition resource "
-                    + DEFINITION_FILE);
+               URL url = inputs.nextElement();
+               InputStream in = null;
+               
+               try {
+                    
+                    in =  url.openStream();
+            
+                    /*
+                     * This should never happen unless I manage to build the jar
+                     * file incorrectly.
+                     */
+                    if (in == null) {
                 
-                return;
+                        LOG.severe("Cannot locate command definition resource " + url);
+                        return;
+                    }
+            
+                    digester.parse(in);
+                }
+                catch (Exception e) {
+                    
+                    LOG.severe("Failed to parse command file '" 
+                        + url + "': " + e.getMessage());
+                }
+                finally {
+                    
+                    if (in != null) {
+                        
+                        try { in.close(); } catch (IOException e) { /* IGNORED */ }
+                    }
+                }
             }
             
-            digester.parse(in);
         }
         catch (Exception e) {
             
-            LOG.severe("Failed to parse internal command file '"
-                + DEFINITION_FILE + "': " + e.getMessage());
-        }
-        finally {
-            
-            try {
-                
-                in.close();
-            }
-            catch (IOException e) {
-                
-                /* IGNORED */
-            }
+            LOG.severe("Unable to load \"" + location + "\": " + e.getMessage());
         }
     }
 }

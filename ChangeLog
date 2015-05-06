@@ -10,6 +10,8 @@ New Features
   * Added new "exit_on" configuration variable. This variable indicates
     which commands, should they error, will cause the jsqsh session to
     exit.
+  * Command infrastructure is no pluggable so you can provide jars that
+    add additional commands into jsqsh.
 
 Bug Fixes
   * Fixed NullPointerException when stored proc output parameters return a 
