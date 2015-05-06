@@ -43,7 +43,7 @@ public class ExecProcedureStatementCompleter
      */
     public ExecProcedureStatementCompleter () {
         
-        super("EXECUTE", null);
+        super("EXECUTE");
     }
 
     @Override

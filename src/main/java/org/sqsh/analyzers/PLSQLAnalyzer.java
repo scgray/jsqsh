@@ -33,7 +33,7 @@ public class PLSQLAnalyzer
     /* (non-Javadoc)
      * @see org.sqsh.LanguageAnalyzer#isTerminated(java.lang.String, char)
      */
-    public boolean isTerminated (String sql, char terminator) {
+    public boolean isTerminated (CharSequence sql, char terminator) {
         
         /*
          * If the terminator isn't a semicolon, then we just want to check
@@ -331,7 +331,7 @@ public class PLSQLAnalyzer
         return false;
     }
     
-    private boolean isLastToken(String sql, char terminator) {
+    private boolean isLastToken(CharSequence sql, char terminator) {
         
         SimpleKeywordTokenizer tokenizer =
             new SimpleKeywordTokenizer(sql, terminator);

@@ -42,26 +42,28 @@ public class SQLParseState
     private Stack<List<DatabaseObject>> refStack
         = new Stack<List<DatabaseObject>>();
     
-    /*
-     * A place to push the clause in whcih a subquery is located.
-     */
-    private Stack<String> clauseStack 
-        = new Stack<String>();
-    
     /**
      * The current statement type.
      */
     private String statement = null;
     
     /**
-     * The name of the clause the user is currently sitting in.
-     */
-    private String clause = null;
-    
-    /**
      * Creates the object.
      */
     public SQLParseState() {
+        
+        refStack.push(new ArrayList<DatabaseObject>());
+    }
+    
+    /**
+     * Resets the parse state for re-use.
+     */
+    @Override
+    public void reset() {
+        
+        super.reset();
+        refStack.clear();
+        statement = null;
         
         refStack.push(new ArrayList<DatabaseObject>());
     }
@@ -76,19 +78,6 @@ public class SQLParseState
     public String getStatement() {
         
         return statement;
-    }
-    
-    /**
-     * Returns the last SQL statement clause (WHERE, ORDER BY, etc.) 
-     * encountered while parsing the SQL. Not all statements will have clauses,
-     * in which case null will be returned.
-     * 
-     * @return The most recent encountered clause (in upper case) or null
-     *   if no clause was found or is applicable for the current statement.
-     */
-    public String getCurrentClause() {
-        
-        return clause;
     }
     
     /**
@@ -126,7 +115,6 @@ public class SQLParseState
          * our stack.
          */
         refStack.push(new ArrayList<DatabaseObject>());
-        clauseStack.push(clause);
     }
 
     /** {@inheritDoc} */
@@ -137,14 +125,6 @@ public class SQLParseState
          * And it gets discarded as we leave the subquery.
          */
         refStack.pop();
-        clause = clauseStack.pop();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void foundClause (SQLParser parser, String clause) {
-
-        this.clause = clause;
     }
 
     /** {@inheritDoc} */
@@ -152,7 +132,6 @@ public class SQLParseState
     public void foundStatement (SQLParser parser, String statement) {
         
         this.statement = statement;
-        clause = null;
 
         /*
          * Each time we hit a new statement we discard any context
@@ -194,5 +173,36 @@ public class SQLParseState
             DatabaseObject procRef) {
 
         refStack.peek().add(procRef);
+    }
+    
+    @Override
+    public String toString() {
+        
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < refStack.size(); i++) {
+            
+            if (i > 0) {
+                
+                sb.append(", [");
+            }
+            
+            List<DatabaseObject> refs = refStack.get(i);
+            for (int j = 0; j < refs.size(); j++) {
+                
+                if (j > 0) {
+                    
+                    sb.append(", ");
+                }
+                
+                sb.append(refs.get(j));
+            }
+        }
+        
+        for (int i = 0; i < refStack.size()-1; i++) {
+            
+            sb.append(']');
+        }
+        
+        return sb.toString();
     }
 }

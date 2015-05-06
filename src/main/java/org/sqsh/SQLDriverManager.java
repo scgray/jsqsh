@@ -704,7 +704,6 @@ public class SQLDriverManager {
         SQLConnectionContext newContext = 
             new SQLConnectionContext(session, connDesc, conn, url, 
                 sqlDriver.getAnalyzer(),
-                sqlDriver.getNormalizer(),
                 sqlDriver.getCurrentSchemaQuery());
         session.setConnectionContext(newContext, false);
 
@@ -922,20 +921,6 @@ public class SQLDriverManager {
         
         SQLDriver orig = drivers.put(driver.getName(), driver);
         
-        /*
-         * This is a complete hack.  Because it is easy to get a copy of the 
-         * driver.xml file in your home directory, I want to be able to "install"
-         * new configuration parameters like the SQL normalizer into the copy of the
-         * driver definition that the user already has defined.  So, if I see I'm
-         * replacing an existing entry for the driver with a new one, then I check
-         * if the new one doesn't have a normalizer defined (it is using the default),
-         * so I tell the new one to use the one defined internally.
-         */
-        if (orig != null && driver.getNormalizer() == SQLDriver.DEFAULT_NORMALIZER) {
-            
-            driver.setNormalizer(orig.getNormalizer());
-        }
-        
         if (orig != null && driver.getCurrentSchemaQuery() == null) {
             
             driver.setCurrentSchemaQuery(orig.getCurrentSchemaQuery());
@@ -1020,9 +1005,6 @@ public class SQLDriverManager {
         digester.addCallMethod(path, 
             "setAnalyzer", 1, new Class[] { java.lang.String.class });
             digester.addCallParam(path, 0, "analyzer");
-        digester.addCallMethod(path, 
-            "setNormalizer", 1, new Class[] { java.lang.String.class });
-            digester.addCallParam(path, 0, "normalizer");
             
         path = "Drivers/Driver/Classpath";
         digester.addCallMethod(path, 
@@ -1108,8 +1090,7 @@ public class SQLDriverManager {
                     out.println("           url=\""      + driver.getUrl() + "\"");
                     out.println("           class=\""    + driver.getDriverClass() + "\"");
                     out.println("           target=\""   + driver.getTarget() + "\"");
-                    out.println("           analyzer=\"" + driver.getAnalyzer().getClass().getName() + "\"");
-                    out.println("           normalizer=\"" + driver.getNormalizer().getClass().getName() + "\">");
+                    out.println("           analyzer=\"" + driver.getAnalyzer().getClass().getName() + "\">");
                     String classpath[] = driver.getClasspathArray();
                     if (classpath != null && classpath.length > 0) {
                         

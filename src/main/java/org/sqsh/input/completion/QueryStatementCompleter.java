@@ -21,6 +21,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.sqsh.parser.DatabaseObject;
+import static org.sqsh.input.completion.CompletionCandidate.*;
 
 /**
  * This completer is used to complete object names in SQL statements
@@ -45,19 +46,7 @@ public class QueryStatementCompleter
     public QueryStatementCompleter (String statement, String clause,
             int completionFlags) {
         
-        super(statement, clause,  completionFlags);
-    }
-    
-    /**
-     * Creates a completer.
-     * 
-     * @param statement The name of the statement for which it will complete
-     * @param clause The clause that it will complete for (null if no clause
-     *   applies).
-     */
-    public QueryStatementCompleter (String statement, String clause) {
-        
-        super(statement, clause,  CATALOGS|SCHEMAS|TABLES|COLUMNS);
+        super(statement, completionFlags);
     }
     
     /**
@@ -67,7 +56,7 @@ public class QueryStatementCompleter
      */
     public QueryStatementCompleter (String statement) {
         
-        super(statement, null, CATALOGS|SCHEMAS|TABLES|COLUMNS);
+        super(statement, CATALOGS|SCHEMAS|TABLES|COLUMNS);
     }
 
     /* (non-Javadoc)
@@ -92,9 +81,7 @@ public class QueryStatementCompleter
          * or columns of those objects. This rule does not apply if the user
          * is editing the FROM clause right now.
          */
-        if (refs.length > 0
-                && (parseState.getCurrentClause() == null
-                   || parseState.getCurrentClause().equals("FROM") == false)) {
+        if (refs.length > 0 && ! parseState.isEditingTableReference()) {
             
             /*
              * ...however, we have a small issue. The user *could* be

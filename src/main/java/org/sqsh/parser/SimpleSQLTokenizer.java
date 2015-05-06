@@ -43,6 +43,22 @@ public class SimpleSQLTokenizer {
         this.idx = 0;
     }
     
+    private void checkParen(String token) {
+        
+        if (token != null && token.length() == 1) {
+            
+            char ch = token.charAt(0);
+            if (ch == '(') {
+                
+                ++parenCount;
+            }
+            else if (ch == ')') {
+                
+                --parenCount;
+            }
+        }
+    }
+    
     /**
      * Returns the next token. 
      * 
@@ -54,15 +70,7 @@ public class SimpleSQLTokenizer {
         if (tokens.isEmpty() == false) {
             
             String s = tokens.pop();
-            if (s.equals("(")) {
-                
-                ++parenCount;
-            }
-            else if (s.equals(")")) {
-                
-                --parenCount;
-            }
-            
+            checkParen(s);
             return s;
         }
         
@@ -117,12 +125,21 @@ public class SimpleSQLTokenizer {
                 --parenCount;
             }
             
-            StringBuilder sb = new StringBuilder(1);
-            sb.append(ch);
             ++idx;
-            return sb.toString();
+            return Character.toString(ch);
         }
     }
+    
+    /**
+     * @return The next available token without moving the token pointer forward.
+     */
+    public String peek() {
+        
+        String token = next();
+        unget(token);
+        return token;
+    }
+    
     
     /**
      * Allows the user to un-read a previously read token.
@@ -130,6 +147,11 @@ public class SimpleSQLTokenizer {
      * @param token The token to unget.
      */
     public void unget(String token) {
+        
+        if (token == null) {
+            
+            return;
+        }
         
         /*
          * By "ungetting" an open paren, then means we have to undo
@@ -241,6 +263,7 @@ public class SimpleSQLTokenizer {
         char quote = sql.charAt(idx);
         ++idx;
         
+        sb.append(quote);
         while (!done && idx < len) {
             
             char ch = sql.charAt(idx);
@@ -268,6 +291,7 @@ public class SimpleSQLTokenizer {
             }
         }
         
+        sb.append(quote);
         return sb.toString();
     }
     

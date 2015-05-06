@@ -18,6 +18,8 @@ package org.sqsh.commands;
 import static org.sqsh.options.ArgumentRequired.REQUIRED;
 import static org.sqsh.options.ArgumentRequired.NONE;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -26,8 +28,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.sqsh.ColumnDescription;
+import org.sqsh.ColumnDescription.Alignment;
+import org.sqsh.ColumnDescription.OverflowBehavior;
 import org.sqsh.Command;
 import org.sqsh.DatabaseCommand;
 import org.sqsh.Renderer;
@@ -42,6 +48,8 @@ import org.sqsh.options.OptionProperty;
 public class Show 
     extends Command
     implements DatabaseCommand {
+    
+    private static final Logger LOG = Logger.getLogger(Show.class.getName());
     
     static Set<Integer> essentialTableCols = new HashSet<Integer>();
     static {
@@ -150,6 +158,7 @@ public class Show
                + "         | client info\n"
                + "         | column privs [-p col-pattern] [[[catalog.]schema-pattern.]obj-pattern]\n"
                + "         | columns [-e] [-p col-pattern] [[[catalog.]schema-pattern.]obj-pattern]\n"
+               + "         | connection info\n"
                + "         | driver version\n"
                + "         | exported keys [[catalog.]schema.]obj-name\n"
                + "         | function params [-e] [-p param-pattern] [[[catalog.]schema-pattern.]func-pattern]\n"
@@ -205,14 +214,7 @@ public class Show
         options.schemaPattern  = ctx.normalizeIdentifier(options.schemaPattern);
         options.tablePattern   = ctx.normalizeIdentifier(options.tablePattern);
         
-        if ("features".equalsIgnoreCase(subCommand)) {
-            
-            Renderer renderer = 
-                session.getRendererManager().getCommandRenderer(session);
-            doFeatures(session, renderer, con);
-            return 0;
-        }
-        else if ("server".equalsIgnoreCase(subCommand)) {
+        if ("server".equalsIgnoreCase(subCommand)) {
             
             Renderer renderer = 
                 session.getRendererManager().getCommandRenderer(session);
@@ -272,6 +274,10 @@ public class Show
             else if ("imported".equalsIgnoreCase(subCommand)) {
                 
                 result = doImportedKeys(session, con, options);
+            }
+            else if ("features".equalsIgnoreCase(subCommand)) {
+                
+                result = doFeatures(session, con, options);
             }
             else if ("primary".equalsIgnoreCase(subCommand)) {
                 
@@ -406,6 +412,151 @@ public class Show
         
         DatabaseMetaData meta = con.getMetaData();
         return meta.getClientInfoProperties();
+    }
+    
+    private ResultSet doFeatures(Session session, Connection con, Options options)
+        throws SQLException {
+        
+        if (options.arguments.size() != 1) {
+            
+            session.err.println("Use: \\show features");
+            return null;
+        }
+        
+        Renderer renderer = 
+                session.getRendererManager().getCommandRenderer(session);
+        
+        ColumnDescription []columns = new ColumnDescription[2];
+        columns[0] = new ColumnDescription("Property", 25, Alignment.LEFT, 
+                OverflowBehavior.WRAP, false);
+        columns[1] = new ColumnDescription("Value", true);
+        
+        renderer.header(columns);
+        
+        DatabaseMetaData meta = con.getMetaData();
+        Method []methods = DatabaseMetaData.class.getDeclaredMethods();
+        for (Method method : methods) {
+            
+            Class<?> returnType = method.getReturnType();
+            if ((returnType.isPrimitive()
+                    || returnType.isAssignableFrom(String.class))
+                && method.getParameterTypes().length == 0) {
+                
+                printDatabaseProperty(renderer, meta, method.getName());
+            }
+        }
+        
+        renderer.flush();
+        
+        return null;
+    }
+    
+    private void printDatabaseProperty (Renderer renderer, DatabaseMetaData meta, String methodName) {
+        
+        String value;
+        try {
+            
+            Method m = DatabaseMetaData.class.getMethod(methodName);
+            Object property = m.invoke(meta);
+            
+            if (property == null) {
+                
+                value = "null";
+            }
+            else {
+                
+                value = property.toString();
+            }
+        }
+        catch (InvocationTargetException e) {
+            
+            if (e.getCause().getClass().isAssignableFrom(AbstractMethodError.class)) {
+                
+                // Driver doesn't support this method
+                return;
+            }
+            
+            LOG.log(Level.FINE, "Error invoking DatabaseMetaData." 
+                    + methodName + ": " + e.getMessage(), e);
+            value = "*ERROR*";
+        }
+        catch (Exception e) {
+            
+            LOG.log(Level.FINE, "Error invoking DatabaseMetaData." 
+                    + methodName + ": " + e.getMessage(), e);
+            value = "*ERROR*";
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        int len = methodName.length();
+        int idx = 0;
+        int start = 0;
+        if (methodName.startsWith("get")) {
+            
+            idx += 3;
+            start += 3;
+        }
+        
+        while (idx < len) {
+            
+            char ch = methodName.charAt(idx);
+            if (Character.isUpperCase(ch)) {
+                
+                if (idx > start) {
+                        
+                    sb.append(' ');
+                }
+                    
+                if (methodName.regionMatches(true, idx, "SQL", 0, 3)) {
+                    
+                    sb.append("SQL");
+                    idx += 3;
+                }
+                else if (methodName.regionMatches(true, idx, "ANSI", 0, 3)) {
+                    
+                    sb.append("ANSI");
+                    idx += 4;
+                }
+                else if (methodName.regionMatches(true, idx, "JDBC", 0, 3)) {
+                    
+                    sb.append("JDBC");
+                    idx += 4;
+                }
+                else if (methodName.regionMatches(true, idx, "URL", 0, 3)) {
+                    
+                    sb.append("URL");
+                    idx += 4;
+                }
+                else {
+                    
+                    if (idx > start)
+                    {
+                        sb.append(Character.toLowerCase(ch));
+                    }
+                    else
+                    {
+                        sb.append(ch);
+                    }
+                    
+                    ++idx;
+                }
+            }
+            else {
+                
+                if (idx == start) {
+                    
+                    sb.append(Character.toUpperCase(ch));
+                }
+                else {
+                    
+                    sb.append(ch);
+                }
+                
+                ++idx;
+            }
+        }
+        
+        addPair(renderer, sb.toString(), value);
     }
     
     private ResultSet doColumn(Session session, Connection con, Options options)
@@ -891,41 +1042,6 @@ public class Show
         addPair(renderer, "Driver name",  meta.getDriverName());
         addPair(renderer, "Driver version", meta.getDriverVersion());
         
-        renderer.flush();
-    }
-    
-    private void doFeatures (Session session, Renderer renderer, Connection con) 
-        throws SQLException {
-        
-        ColumnDescription []columns = new ColumnDescription[2];
-        columns[0] = new ColumnDescription("Feature", 80);
-        columns[1] = new ColumnDescription("Value", 10);
-        
-        DatabaseMetaData meta = con.getMetaData();
-        
-        renderer.header(columns);
-        
-        addPair(renderer, "All procedures are callable", meta.allProceduresAreCallable());
-        addPair(renderer, "All tables are selectable", meta.allTablesAreSelectable());
-        addPair(renderer, "Auto-commit closes results", meta.autoCommitFailureClosesAllResultSets());
-        addPair(renderer, "DDL causes commit", meta.dataDefinitionCausesTransactionCommit());
-        addPair(renderer, "DDL ignored in transactions", meta.dataDefinitionIgnoredInTransactions());
-        addPair(renderer, "Deletes are detected (forward)", 
-            meta.deletesAreDetected(ResultSet.TYPE_FORWARD_ONLY));
-        addPair(renderer, "Deletes are detected (insensitive)", 
-            meta.deletesAreDetected(ResultSet.TYPE_SCROLL_INSENSITIVE));
-        addPair(renderer, "Deletes are detected (sensitive)", 
-            meta.deletesAreDetected(ResultSet.TYPE_SCROLL_SENSITIVE));
-        addPair(renderer, "Max size includes blobs", meta.doesMaxRowSizeIncludeBlobs());
-        addPair(renderer, "Inserts are detected (forward)", 
-            meta.insertsAreDetected(ResultSet.TYPE_FORWARD_ONLY));
-        addPair(renderer, "Inserts are detected (insensitive)", 
-            meta.insertsAreDetected(ResultSet.TYPE_SCROLL_INSENSITIVE));
-        addPair(renderer, "Inserts are detected (sensitive)", 
-            meta.insertsAreDetected(ResultSet.TYPE_SCROLL_SENSITIVE));
-        addPair(renderer, "Catalog in fully qualified name", 
-            meta.isCatalogAtStart());
-        addPair(renderer, "Read only", meta.isReadOnly());
         renderer.flush();
     }
     

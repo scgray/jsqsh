@@ -30,8 +30,6 @@ import java.util.logging.Logger;
 import org.sqsh.analyzers.ANSIAnalyzer;
 import org.sqsh.analyzers.SQLAnalyzer;
 import org.sqsh.analyzers.NullAnalyzer;
-import org.sqsh.normalizer.SQLNormalizer;
-import org.sqsh.normalizer.NullNormalizer;
 
 public class SQLDriver 
     implements Comparable<SQLDriver> {
@@ -86,8 +84,6 @@ public class SQLDriver
         }
     }
     
-    protected static SQLNormalizer DEFAULT_NORMALIZER = new NullNormalizer();
-    
     private SQLDriverManager driverMan = null;
     private String name = null;
     private String target = null;
@@ -99,7 +95,6 @@ public class SQLDriver
     private Map<String, String> properties = new HashMap<String, String>();
     private Map<String, String> sessionVariables = new HashMap<String, String>();
     private SQLAnalyzer analyzer = new NullAnalyzer();
-    private SQLNormalizer normalizer = DEFAULT_NORMALIZER;
     private String currentSchemaQuery = null;
     private List<String> classpath = null;
     
@@ -133,7 +128,6 @@ public class SQLDriver
         n.sessionVariables.putAll(sessionVariables);
         n.analyzer = analyzer;
         n.currentSchemaQuery = currentSchemaQuery;
-        n.normalizer = normalizer;
         if (classpath != null) {
             
             n.classpath = new ArrayList<String>();
@@ -227,60 +221,6 @@ public class SQLDriver
         }
         
         return analyzer;
-    }
-    
-    /**
-     * Sets the name of the class that will be utilized for normalizing identifier names
-     * 
-     * @param clazz The name of the class.
-     */
-    public void setNormalizer(String sqlNormalizer) {
-        
-        isInternal = false;
-        try {
-            
-            Class<? extends SQLNormalizer> clazz = 
-                Class.forName(sqlNormalizer).asSubclass(SQLNormalizer.class);
-            Constructor<? extends SQLNormalizer> constructor 
-                = clazz.getConstructor();
-            
-            normalizer = constructor.newInstance();
-        }
-        catch (Exception e) {
-            
-            throw new CannotSetValueError("Unable to instantiate "
-                + sqlNormalizer + ": " + e.getMessage());
-        }
-    }
-    
-    /**
-     * Sets the SQL normalizer for this driver
-     * @param normalizer The SQL normalizer for this driver
-     */
-    public void setNormalizer(SQLNormalizer normalizer) {
-        
-        if (normalizer == null) {
-            
-            this.normalizer = DEFAULT_NORMALIZER;
-        }
-        else {
-            
-            this.normalizer = normalizer;
-        }
-    }
-    
-    /**
-     * Returns the SQL normalizer for this driver.
-     * @return The SQL normalizer for this driver or null if none is defined.
-     */
-    public SQLNormalizer getNormalizer() {
-        
-        if (normalizer == null) {
-            
-            return DEFAULT_NORMALIZER;
-        }
-        
-        return normalizer;
     }
     
     /**

@@ -15,43 +15,75 @@
  */
 package org.sqsh.parser;
 
+import static org.sqsh.input.completion.CompletionCandidate.*;
+
 /**
  * Implementation of SQLParserListener that provides NO-OP's for all of 
  * the methods dictated by the interface. 
  */
 public class AbstractParserListener
     implements SQLParserListener {
+    
+    protected boolean isEditingTableReference;
+    
+    /** {@inheritDoc} */
+    @Override
+    public void reset() {
+        
+        isEditingTableReference = false;
+    }
+    
+    /** {@inheritDoc} */
+    @Override
+    public boolean isEditingTableReference() {
+        
+        return isEditingTableReference;
+    }
+    
+    /** {@inheritDoc} */
+    @Override
+    public void setEditingTableReference(boolean tf) {
+        
+        this.isEditingTableReference = tf;
+    }
 
     /** {@inheritDoc} */
+    @Override
     public void foundClause (SQLParser parser, String clause) {
 
         /* IGNORED */
     }
 
     /** {@inheritDoc} */
+    @Override
     public void foundStatement (SQLParser parser, String statement) {
 
         /* IGNORED */
     }
     
     /** {@inheritDoc} */
+    @Override
     public void enteredSubquery(SQLParser parser) {
         
         /* IGNORED */
     }
     
     /** {@inheritDoc} */
+    @Override
     public void exitedSubquery(SQLParser parser) {
         
         /* IGNORED */
     }
 
     /** {@inheritDoc} */
+    @Override
     public void foundTableReference (SQLParser parser, DatabaseObject tableRef) {
 
         /* IGNORED */
     }
     
+    /** {@inheritDoc} */
+    @Override
     public void foundProcedureExecution (SQLParser parser,
             DatabaseObject procRef) {
 

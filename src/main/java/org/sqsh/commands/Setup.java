@@ -15,8 +15,6 @@
  */
 package org.sqsh.commands;
 
-import static org.sqsh.options.ArgumentRequired.NONE;
-
 import java.io.File;
 import java.io.PrintStream;
 import java.net.URL;
@@ -47,12 +45,7 @@ import org.sqsh.analyzers.PLSQLAnalyzer;
 import org.sqsh.analyzers.SQLAnalyzer;
 import org.sqsh.analyzers.TSQLAnalyzer;
 import org.sqsh.input.ConsoleLineReader;
-import org.sqsh.normalizer.LowerCaseNormalizer;
-import org.sqsh.normalizer.NullNormalizer;
-import org.sqsh.normalizer.SQLNormalizer;
-import org.sqsh.normalizer.UpperCaseNormalizer;
 import org.sqsh.options.Argv;
-import org.sqsh.options.OptionProperty;
 
 public class Setup extends Command {
     
@@ -713,54 +706,59 @@ public class Setup extends Command {
             int idx = 1;
             String format       = "%-2d %s %15s : %s\n";
             String promptFormat = "%-2d %s %15s : ";
+            int nameIdx = idx++;
             if (driver.getName() == null) {
                 
                 driver.setName(getEntry(out, in, 
-                    String.format(promptFormat, idx++, "*", "Name"), true));
+                    String.format(promptFormat, nameIdx, "*", "Name"), true));
             }
             else {
                 
-	            out.format(format, idx++, "*", "Name", driver.getName());
+	            out.format(format, nameIdx, "*", "Name", driver.getName());
             }
             
+            int descIdx = idx++;
             if (driver.getTarget() == null) {
                 
                 driver.setTarget(getEntry(out, in, 
-                    String.format(promptFormat, idx++, "*", "Description"), true));
+                    String.format(promptFormat, descIdx, "*", "Description"), true));
             }
             else {
                 
-	            out.format(format, idx++, "*", "Description", driver.getTarget());
+	            out.format(format, descIdx, "*", "Description", driver.getTarget());
             }
             
+            int classIdx = idx++;
             if (driver.getDriverClass() == null) {
                 
                 driver.setDriverClass(getEntry(out, in, 
-                    String.format(promptFormat, idx++, "*", "Class"), true));
+                    String.format(promptFormat, classIdx, "*", "Class"), true));
             }
             else {
                 
 	            out.format(format, idx++, "*", "Class", driver.getDriverClass());
             }
             
+            int urlIdx = idx++;
             if (driver.getUrl() == null) {
                 
                 driver.setUrl(getEntry(out, in, 
-                    String.format(promptFormat, idx++, "*", "URL"), true));
+                    String.format(promptFormat, urlIdx, "*", "URL"), true));
             }
             else {
                 
-	            out.format(format, idx++, "*", "URL", driver.getUrl());
+	            out.format(format, urlIdx, "*", "URL", driver.getUrl());
             }
             
+            int parserIdx = idx++;
             out.format(format, 
-                idx++, " ", "SQL Parser", driver.getAnalyzer().getName());
+                parserIdx, " ", "SQL Parser", driver.getAnalyzer().getName());
+            int classpathIdx = idx++;
             out.format(format, 
-                idx++, " ", "Classpath", driver.getClasspath());
+                classpathIdx, " ", "Classpath", driver.getClasspath());
+            int schemaQueryIdx = idx++;
             out.format(format, 
-                idx++, " ", "Name normalizer", driver.getNormalizer().getName());
-            out.format(format, 
-                idx++, " ", "Schema query", 
+                schemaQueryIdx, " ", "Schema query", 
                 driver.getCurrentSchemaQuery() == null ? "(none)" : driver.getCurrentSchemaQuery());
             out.format("     %15s : %s\n", "Status",
                 driverStatus(session, driver));
@@ -769,10 +767,13 @@ public class Setup extends Command {
             out.println("URL Variable Defaults");
             out.println("---------------------");
             List<DriverVariable> vars = driver.getVariableDescriptions(false);
+            int varsStartIdx = idx;
+            int varsEndIdx = idx;
             for (int i = 0; i < vars.size(); i++) {
                 
                 DriverVariable var = vars.get(i);
                 
+                varsEndIdx = idx;
                 out.format(format, 
                     idx++, " ", var.getName(), emptyIfNull(var.getDefaultValue()));
             }
@@ -843,48 +844,43 @@ public class Setup extends Command {
                 int opt = toInt(str);
                 if (opt >= 1 && opt <= idx) {
                     
-                    if (opt == 1) {
+                    if (opt == nameIdx) {
                         
                         out.println();
                         driver.setName(getEntry(out, in, "Enter new name: ", true));
                     }
-                    else if (opt == 2) {
+                    else if (opt == descIdx) {
                         
                         out.println();
                         driver.setTarget(getEntry(out, in, "Enter new description: ", true));
                     }
-                    else if (opt == 3) {
+                    else if (opt == classIdx) {
                         
                         out.println();
                         driver.setDriverClass(getEntry(out, in, "Enter new class: ", true));
                     }
-                    else if (opt == 4) {
+                    else if (opt == urlIdx) {
                         
                         out.println();
                         driver.setUrl(getEntry(out, in, "Enter new URL: ", true));
                     }
-                    else if (opt == 5) {
+                    else if (opt == parserIdx) {
                         
                         driver.setAnalyzer(chooseAnalyzer(out, in));
                     }
-                    else if (opt == 6) {
+                    else if (opt == classpathIdx) {
                         
                         out.println();
                         driver.setClasspath(getEntry(out, in, "Enter new classpath: ", false));
                     }
-                    else if (opt == 7) {
-                        
-                        out.println();
-                        driver.setNormalizer(chooseNormalizer(out, in));
-                    }
-                    else if (opt == 8) {
+                    else if (opt == schemaQueryIdx) {
                         
                         out.println();
                         driver.setCurrentSchemaQuery(getEntry(out, in, "Enter query to fetch current schema: ", false));
                     }
-                    else if (opt > 8 && (opt-8) == vars.size()) {
+                    else if (opt >= varsStartIdx && opt <= varsEndIdx) {
                         
-                        DriverVariable var = vars.get(opt-9);
+                        DriverVariable var = vars.get(opt-varsStartIdx);
                         out.println();
                         str = in.readline("Enter new value for \"" 
                             + var.getName() + "\": ", false);
@@ -1095,41 +1091,6 @@ public class Setup extends Command {
             }
         }
             
-    }
-    
-    private SQLNormalizer chooseNormalizer(PrintStream out, ConsoleLineReader in) 
-        throws Exception {
-        
-        out.println();
-        out.println("1.  NONE");
-        out.println("2.  UPPER CASE");
-        out.println("3.  LOWER CASE");
-        
-        while (true) {
-            
-            String str = in.readline("Select object name normalization for this database: ", false);
-            str = str.trim();
-            int id = toInt(str);
-            if (id < 1 || id > 3) {
-                
-                Ansi ansi = new Ansi();
-                ansi.cursorUp(1);
-                ansi.eraseLine();
-                ansi.cursorUp(1);
-                out.println(ansi);
-            }
-            else
-            {
-                switch (id) {
-                
-                case 1: return new NullNormalizer();
-                case 2: return new UpperCaseNormalizer();
-                case 3: return new LowerCaseNormalizer();
-                default:
-                    break;
-                }
-            }
-        }
     }
     
     private void newDriverProperty(Session session, PrintStream out, 

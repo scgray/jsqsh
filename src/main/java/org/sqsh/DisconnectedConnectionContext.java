@@ -66,6 +66,12 @@ public class DisconnectedConnectionContext extends ConnectionContext {
         throw new SQLException("Session is not connected. "
             + "Run \"\\help connect\" for details");
     }
+    
+    @Override
+    public boolean isTerminated(CharSequence batch, char terminator) {
+
+        return false;
+    }
 
     @Override
     public void cancel() throws Exception {
@@ -89,11 +95,5 @@ public class DisconnectedConnectionContext extends ConnectionContext {
     public void setStyle(String name) {
 
         session.getRendererManager().setDefaultRenderer(name);
-    }
-
-    @Override
-    public boolean isTerminated(String batch, char terminator) {
-
-        return false;
     }
 }

@@ -19,6 +19,7 @@ import java.sql.Connection;
 import java.util.Set;
 
 import org.sqsh.parser.DatabaseObject;
+import static org.sqsh.input.completion.CompletionCandidate.*;
 
 public class InsertStatementCompleter
     extends GenericStatementCompleter {
@@ -33,7 +34,7 @@ public class InsertStatementCompleter
      */
     public InsertStatementCompleter () {
         
-        super("INSERT", null, CATALOGS|SCHEMAS|TABLES|COLUMNS);
+        super("INSERT", CATALOGS|SCHEMAS|TABLES|COLUMNS);
     }
 
     /* (non-Javadoc)

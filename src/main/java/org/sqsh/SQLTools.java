@@ -31,6 +31,39 @@ import org.sqsh.SqshContext.ExceptionDetail;
  */
 public class SQLTools {
     
+    /**
+     * Given a string determines if it is an identifier. An identifier is either
+     * a quoted string like "foo bar" or is a letter or underscore followed by
+     * a letter or digit or underscore.
+     * 
+     * @param name The name to test
+     * @return True if it is an identifier.
+     */
+    public static boolean isIdentifier(String name) {
+        
+        if (name == null) {
+            
+            return false;
+        }
+        
+        int len = name.length();
+        if (len >= 2 && name.charAt(0) == '"' && name.charAt(len-1) == '"') {
+            
+            return true;
+        }
+        
+        for (int i = 0; i < len; i++) {
+            
+            char ch = name.charAt(i);
+            if (! (ch == '_' || Character.isLetter(ch)
+                     || (i > 0 && Character.isDigit(ch)))) {
+                
+                return false;
+            }
+        }
+        
+        return true;
+    }
     
     /**
      * Silently close a result set, ignoring any SQLExceptions.

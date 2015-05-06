@@ -32,7 +32,7 @@ public class SQLParseUtil {
      * @return The index of the parameter marker or len, if no parameter
      *   markers have been found.
      */
-    public static int skipToParameterMarker(String str, int len, int idx) {
+    public static int skipToParameterMarker(CharSequence str, int len, int idx) {
         
         boolean done = false;
         while (idx < len && ! done) {
@@ -73,7 +73,7 @@ public class SQLParseUtil {
      * @return The index of the next non-whitespace character. If idx was
      *   sitting on a non-whitespace character, then it is not incremented
      */
-    public static int skipWhitespace(String str, int len, int idx) {
+    public static int skipWhitespace(CharSequence str, int len, int idx) {
         
         boolean done = false;
         while (idx < len && ! done) {
@@ -119,7 +119,7 @@ public class SQLParseUtil {
      * 
      * @return The index immediately after the newline terminating the comment
      */
-    public static int skipDashComment(String str, int len, int idx) {
+    public static int skipDashComment(CharSequence str, int len, int idx) {
         
         ++idx;
         if (idx < len && str.charAt(idx) == '-') {
@@ -146,7 +146,7 @@ public class SQLParseUtil {
      *   until a trailing '*' followed by '/' is encountered and the index
      *   immediately following it is returned.
      */
-    public static int skipComment(String str, int len, int idx) {
+    public static int skipComment(CharSequence str, int len, int idx) {
         
         ++idx;
         if (idx < len && str.charAt(idx) == '*') {
@@ -181,7 +181,7 @@ public class SQLParseUtil {
      * @return The index immediately following the closing quote, or the end of
      *   the string of the closing quote was not found
      */
-    public static int skipQuotedString(String str, int len, int idx) {
+    public static int skipQuotedString(CharSequence str, int len, int idx) {
         
         boolean done = false;
         
@@ -226,7 +226,7 @@ public class SQLParseUtil {
      * @return The index immediately following the closing bracket (]), or the end of
      *   the string of the closing quote was not found
      */
-    public static int skipBrackets(String str, int len, int idx) {
+    public static int skipBrackets(CharSequence str, int len, int idx) {
         
         ++idx;
         while (idx < len && str.charAt(idx) != ']') {
@@ -251,7 +251,7 @@ public class SQLParseUtil {
      * 
      * @return The index immediately following the end of the variable.
      */
-    public static int skipVariable(String str, int len, int idx) {
+    public static int skipVariable(CharSequence str, int len, int idx) {
         
         boolean done = false;
         

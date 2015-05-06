@@ -22,6 +22,26 @@ package org.sqsh.parser;
 public interface SQLParserListener {
     
     /**
+     * Reset the state of the listener.
+     */
+    public void reset();
+    
+    /**
+     * Used to indicate if the user is currently editing the set of tables
+     * that will be used by the current statement (e.g. in the FROM clause
+     * of a SELECT).
+     * 
+     * @param tf true if the user is editing the table references
+     * @return
+     */
+    public void setEditingTableReference(boolean tf);
+    
+    /**
+     * @return whether or not the user is currently editing table references.
+     */
+    public boolean isEditingTableReference();
+    
+    /**
      * Called when the parser hits a clause in a DML statement.  A clause
      *   would be considered the SET, FROM, WHERE, GROUP, ORDER, etc.
      * 

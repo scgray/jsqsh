@@ -17,7 +17,7 @@ package org.sqsh;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -26,11 +26,14 @@ import java.util.logging.Logger;
 import org.sqsh.ConnectionDescriptor;
 import org.sqsh.SQLDriver;
 import org.sqsh.SQLDriverManager;
+import org.sqsh.SQLIdentifierNormlizer.Direction;
 import org.sqsh.analyzers.SQLAnalyzer;
 import org.sqsh.input.completion.Completer;
 import org.sqsh.input.completion.DatabaseObjectCompleter;
-import org.sqsh.normalizer.SQLNormalizer;
 
+/**
+ * Representation of a connection via a JDBC driver.
+ */
 public class SQLConnectionContext
     extends ConnectionContext {
     
@@ -66,7 +69,7 @@ public class SQLConnectionContext
     /**
      * SQL normalizer for normalizing identifiers
      */
-    private SQLNormalizer normalizer;
+    private SQLIdentifierNormlizer normalizer;
     
     /**
      * The JDBC url that was used to create the connection.
@@ -108,7 +111,6 @@ public class SQLConnectionContext
             Connection conn, 
             String url, 
             SQLAnalyzer analyzer,
-            SQLNormalizer normalizer,
             String currentSchemaQuery) {
         
         super(session);
@@ -118,8 +120,74 @@ public class SQLConnectionContext
         this.connDesc = connDesc;
         this.connection = conn;
         this.url = url;
-        this.normalizer = normalizer;
         this.currentSchemaQuery = currentSchemaQuery;
+        
+        /*
+         * For some JDBC drivers it is necessary to follow the database's own
+         * identifier normalization rules when performing metadata lookups. For
+         * example, with DB2, if I had a table called mytable and I did:
+         * 
+         *    \show table mytable
+         * 
+         * I would get no results because in the DB2 catalogs, the name of the object
+         * is MYTABLE.  As a result, here I will attempt to ask the JDBC driver
+         * what the normalization rules are for the target database. If the 
+         * driver is properly implemented (yeah, good luck with that!) then the
+         * above would result in a search for MYTABLE and:
+         * 
+         *    \show table "MyTable"
+         *    
+         * would result in a searching for MyTable (since the identifier was quoted).
+         */
+        Direction quotedDirection = Direction.NONE;
+        Direction unquotedDirection = Direction.NONE;
+        
+        try {
+            
+            DatabaseMetaData meta = conn.getMetaData();
+            
+            /* 
+             * If the platform doesn't support mixed case quoted identifiers, then
+             * we need to normalize even quoted identifiers during lookup.
+             */
+            if (! meta.supportsMixedCaseQuotedIdentifiers()) {
+                
+                if (meta.storesLowerCaseQuotedIdentifiers()) {
+                    
+                    quotedDirection = Direction.LOWER_CASE;
+                }
+                else if (meta.storesUpperCaseQuotedIdentifiers()) {
+                    
+                    quotedDirection = Direction.UPPER_CASE;
+                }
+            }
+            
+            /*
+             * Same is true for regular identifiers. 
+             */
+            if (! meta.supportsMixedCaseIdentifiers()) {
+                
+                if (meta.storesLowerCaseIdentifiers()) {
+                    
+                    unquotedDirection = Direction.LOWER_CASE;
+                }
+                else if (meta.storesUpperCaseIdentifiers()) {
+                    
+                    unquotedDirection = Direction.UPPER_CASE;
+                }
+            }
+        }
+        catch (SQLException e) {
+            
+            LOG.fine("Failed to determine how platform handles identifiers, " 
+                    + "disabling identifier normalization: " + e.getMessage());
+        }
+        
+        LOG.fine("Identifier normalization rules: Identifier normalizer: "
+                + unquotedDirection + ", quoted identifier normalizer: "
+                + quotedDirection);
+        
+        normalizer = new SQLIdentifierNormlizer(unquotedDirection, quotedDirection);
     }
     
     
@@ -489,6 +557,15 @@ public class SQLConnectionContext
     }
     
     /**
+     * @return The normalizer tool for normalizing identifiers based upon this
+     *   database's normalization rules.
+     */
+    public SQLIdentifierNormlizer getIdentifierNormalizer() {
+        
+        return normalizer;
+    }
+    
+    /**
      * Normalizes an identifier according to database normalization rules for
      * the chosen database platform.
      * 
@@ -503,7 +580,7 @@ public class SQLConnectionContext
     }
     
     @Override
-    public boolean isTerminated(String batch, char terminator) {
+    public boolean isTerminated(CharSequence batch, char terminator) {
 
         return analyzer.isTerminated(batch, terminator);
     }

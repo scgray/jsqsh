@@ -29,7 +29,8 @@ public class NullAnalyzer
         return "None";
     }
 
-    public boolean isTerminated (String sql, char terminator) {
+    @Override
+    public boolean isTerminated (CharSequence sql, char terminator) {
 
         return false;
     }

@@ -23,9 +23,11 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.sqsh.SQLConnectionContext;
 import org.sqsh.Session;
 import org.sqsh.parser.SQLParser;
 import org.sqsh.parser.DatabaseObject;
+import static org.sqsh.input.completion.CompletionCandidate.*;
 
 /**
  * This class implements tab completion of database objects based upon 
@@ -59,8 +61,7 @@ public class DatabaseObjectCompleter
         STATEMENT_COMPLETERS.add(new QueryStatementCompleter("UPDATE"));
         STATEMENT_COMPLETERS.add(new QueryStatementCompleter("DELETE"));
         STATEMENT_COMPLETERS.add(
-            new GenericStatementCompleter("USE", null, 
-                GenericStatementCompleter.CATALOGS));
+            new GenericStatementCompleter("USE", CATALOGS));
         
         STATEMENT_COMPLETERS.add(new ExecProcedureStatementCompleter());
     }
@@ -77,11 +78,14 @@ public class DatabaseObjectCompleter
     private String sql;
     private QuoteType quote = QuoteType.NONE;
     private Iterator<String> iter = null;
+    private SQLConnectionContext ctx;
     
     public DatabaseObjectCompleter(Session session,
             String line, int position, String word) {
         
         super(session, line, position, word);
+        
+        ctx = (SQLConnectionContext) session.getConnectionContext();
         
         if (LOG.isLoggable(Level.FINE)) {
 
@@ -146,14 +150,13 @@ public class DatabaseObjectCompleter
          * statement that the user is currently working on.
          */
         SQLParseState info = new SQLParseState();
-        SQLParser parser = new SQLParser(info);
+        SQLParser parser = new SQLParser(ctx.getIdentifierNormalizer(), info);
         parser.parse(sql);
         
         if (LOG.isLoggable(Level.FINE)) {
 
             LOG.fine("   Parsing state:");
             LOG.fine("      Statement  = " + info.getStatement());
-            LOG.fine("      Clause     = " + info.getCurrentClause());
             
             StringBuilder sb = new StringBuilder();
             int idx = 0;
@@ -174,7 +177,6 @@ public class DatabaseObjectCompleter
          * Grab ahold of the tables that are being referenced by the
          * current SQL statement.
          */
-        DatabaseObject []tableRefs = info.getObjectReferences();
         Set<String> completions = new TreeSet<String>();
         
         /*
@@ -185,9 +187,7 @@ public class DatabaseObjectCompleter
             
             for (SQLStatementCompleter completer : STATEMENT_COMPLETERS) {
                 
-                if (completer.getStatement().equals(info.getStatement())
-                    && (completer.getClause() == null
-                       || completer.getClause().equals(info.getCurrentClause()))) {
+                if (completer.getStatement().equals(info.getStatement())) {
                     
                     completer.getCompletions(completions, 
                         session.getConnection(), nameParts, info);
@@ -357,39 +357,55 @@ public class DatabaseObjectCompleter
             }
         }
         
-        parts.add(word.toString());
+        parts.add(ctx.normalizeIdentifier(word.toString()));
         return idx;
     }
     
     /**
      * Called by doFindObject() when it has landed on the beginning of 
-     * a quoted word.
+     * a quoted word.  
      * 
      * @param parts The list of object parts that we have found thus far.
-     *   The newly parsed word will be appended to this list.
+     *   The newly parsed word will be appended to this list
      * @param line The line being parsed.
-     * @param idx The index of the first character of the word.
+     * @param idx The index of the opening quote
      * @return The index after parsing.
      */
     private int doQuotedWord(List<String> parts, String line, int idx) {
         
         StringBuilder word = new StringBuilder();
         int len = line.length();
+        
+        /*
+         * Get the quote and skip it.
+         */
+        char quote = line.charAt(idx++);
+        
+        /*
+         * Wrap in quotes so the normalization logic knows it was a quoted identifier.
+         */
+        word.append('"');
                     
         /*
          * Skip forward until we hit the likely end.
          */
-        ++idx;
         boolean done = (idx >= len);
-        while (idx < len && !done) {
+        while (idx < len && ! done) {
                         
-            char ch = line.charAt(idx);
-            if (ch == '"') {
+            char ch = line.charAt(idx++);
+            
+            /*
+             * Possibly hit closing quote.
+             */
+            if (ch == quote) {
                 
-                ++idx;
-                if (idx < (len - 1) && line.charAt(idx+1) == '"') {
+                /*
+                 * Nope, it was escaped
+                 */
+                if (idx < len && line.charAt(idx) == quote) {
                     
-                    word.append('"');
+                    word.append(quote);
+                    ++idx;
                 }
                 else {
                     
@@ -399,11 +415,12 @@ public class DatabaseObjectCompleter
             else {
                 
                 word.append(ch);
-                ++idx;
             }
         }
         
-        parts.add(word.toString());
+        word.append('"');
+        
+        parts.add(ctx.normalizeIdentifier(word.toString()));
         return idx;
     }
     
@@ -421,6 +438,11 @@ public class DatabaseObjectCompleter
         
         StringBuilder word = new StringBuilder();
         int len = line.length();
+        
+        /*
+         * Wrap in quotes so normalization logic will know it was a quoted id
+         */
+        word.append('"');
                     
         /*
          * Skip forward until we hit the likely end.
@@ -442,7 +464,9 @@ public class DatabaseObjectCompleter
             }
         }
         
-        parts.add(word.toString());
+        word.append('"');
+        
+        parts.add(ctx.normalizeIdentifier(word.toString()));
         return idx;
     }
 }

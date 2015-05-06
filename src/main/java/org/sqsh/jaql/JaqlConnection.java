@@ -233,7 +233,7 @@ public class JaqlConnection
      * @param terminator The terminator character
      */
     @Override
-    public boolean isTerminated(String batch, char terminator) {
+    public boolean isTerminated(CharSequence batch, char terminator) {
         
         int len = batch.length();
         int idx = 0;
@@ -350,7 +350,7 @@ public class JaqlConnection
      * @param quoteType Type of quote
      * @return The location immediately after the closing quote
      */
-    private int skipString(String s, int len, int idx, char quoteType) {
+    private int skipString(CharSequence s, int len, int idx, char quoteType) {
         
         while (idx < len) {
             
@@ -381,7 +381,7 @@ public class JaqlConnection
      *   opening comment location
      * @return The end of the comment (after the close)
      */
-    private int skipComment(String s, int len, int idx) {
+    private int skipComment(CharSequence s, int len, int idx) {
         
         while (idx < len) {
             

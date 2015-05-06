@@ -34,7 +34,6 @@ public abstract class SQLStatementCompleter {
         Logger.getLogger("org.sqsh.completion.SQLStatementCompleter");
     
     protected String statement;
-    protected String clause = null;
     
     /**
      * Creates a completer for a specified statement.
@@ -47,18 +46,6 @@ public abstract class SQLStatementCompleter {
     }
     
     /**
-     * Creates a completer for a specified statement and clause.
-     * 
-     * @param statement The statement
-     * @param clause The clause
-     */
-    public SQLStatementCompleter (String statement, String clause) {
-        
-        this.statement = statement;
-        this.clause = clause;
-    }
-    
-    /**
      * @return the statement
      */
     public String getStatement () {
@@ -66,14 +53,6 @@ public abstract class SQLStatementCompleter {
         return statement;
     }
 
-    /**
-     * @return the clause
-     */
-    public String getClause () {
-    
-        return clause;
-    }
-    
     /**
      * Called to retrieve list of completions based upon that current
      * SQL statement being entered by the user and the partial database 
@@ -264,6 +243,22 @@ public abstract class SQLStatementCompleter {
         for (DatabaseObject ref : referencedObjects) {
             
             /*
+             * Derived tables (FROM (SELECT ..)) will have their own local
+             * column references, so we don't hit the database if we have 
+             * a local column reference.
+             */
+            String []refColumns = ref.getColumnList();
+            
+            /*
+             * If we had columns already available to us, the number of name
+             * parts cannot be larger than two (table.col).
+             */
+            if (refColumns != null && nameParts.length > 2) {
+                
+                continue;
+            }
+            
+            /*
              * This one requires some help from the database.
              * In this case we will try to look up columns of referenced
              * tables. This leads to the following cases:
@@ -276,35 +271,66 @@ public abstract class SQLStatementCompleter {
              */
             if (nameParts.length == 0) {
                 
-                getColumns(completions, conn, 
-                    (ref.getCatalog() == null 
-                        ? getCurrentCatalog(conn) : ref.getCatalog()),
-                    ref.getSchema(), ref.getName(), "");
+                if (refColumns != null) {
+                    
+                    for (String name : refColumns) {
+                        
+                        completions.add(name);
+                    }
+                }
+                else {
+                
+                    getColumns(completions, conn, 
+                        (ref.getCatalog() == null 
+                            ? getCurrentCatalog(conn) : ref.getCatalog()),
+                        ref.getSchema(), ref.getName(), "");
+                }
             }
             else if (nameParts.length == 1) {
                 
-                getColumns(completions, conn, 
-                    (ref.getCatalog() == null 
-                        ? getCurrentCatalog(conn) : ref.getCatalog()),
-                    ref.getSchema(), ref.getName(), nameParts[0]);
+                if (refColumns != null) {
+                    
+                    addMatchingColumns(completions, refColumns, nameParts[0]);
+                }
+                else {
+                
+                    getColumns(completions, conn, 
+                        (ref.getCatalog() == null 
+                            ? getCurrentCatalog(conn) : ref.getCatalog()),
+                        ref.getSchema(), ref.getName(), nameParts[0]);
+                }
             }
             else if (nameParts.length == 2
                     && ref.getName() != null
                     && ref.getName().equals(nameParts[0])) {
                 
-                getColumns(completions, conn, 
-                    (ref.getCatalog() == null 
-                        ? getCurrentCatalog(conn) : ref.getCatalog()),
-                    ref.getSchema(), ref.getName(), nameParts[1]);
+                if (refColumns != null) {
+                    
+                    addMatchingColumns(completions, refColumns, nameParts[1]);
+                }
+                else {
+                
+                    getColumns(completions, conn, 
+                        (ref.getCatalog() == null 
+                            ? getCurrentCatalog(conn) : ref.getCatalog()),
+                        ref.getSchema(), ref.getName(), nameParts[1]);
+                }
             }
             else if (nameParts.length == 2
                     && ref.getAlias() != null
                     && ref.getAlias().equals(nameParts[0])) {
                 
-                getColumns(completions, conn, 
-                    (ref.getCatalog() == null 
-                        ? getCurrentCatalog(conn) : ref.getCatalog()),
-                    ref.getSchema(), ref.getName(), nameParts[1]);
+                if (refColumns != null) {
+                    
+                    addMatchingColumns(completions, refColumns, nameParts[1]);
+                }
+                else {
+                
+                    getColumns(completions, conn, 
+                        (ref.getCatalog() == null 
+                            ? getCurrentCatalog(conn) : ref.getCatalog()),
+                        ref.getSchema(), ref.getName(), nameParts[1]);
+                }
             }
             else if (nameParts.length == 3
                     && ref.getSchema() != null
@@ -328,6 +354,19 @@ public abstract class SQLStatementCompleter {
                 getColumns(completions, conn, 
                     ref.getCatalog(), ref.getSchema(), ref.getName(),
                     nameParts[3] + "%");
+            }
+        }
+    }
+    
+    private void addMatchingColumns (Set<String> completions, 
+        String []columns, String portion) {
+        
+        final int len = portion.length();
+        for (String column : columns) {
+            
+            if (column.regionMatches(true, 0, portion, 0, len)) {
+                
+                completions.add(column);
             }
         }
     }
@@ -381,12 +420,41 @@ public abstract class SQLStatementCompleter {
     protected void getSchemas(Set<String> completions,
             Connection conn, String catalog, String name) {
         
-        /*
-         * Currently this method does nothing, but is here as a marker
-         * for future work. As of this writing only the JDBC with 
-         * Java 6 supports queries for schemas and since I don't
-         * want to mandate java 6 yet, I'm leaving this as a stub.
-         */
+        int count = 0;
+        
+        try {
+            
+            ResultSet results = conn.getMetaData().getSchemas(
+                (catalog == null ? null : catalog),
+                (name == null ? "%" : name));
+            
+            while (results.next()) {
+                
+                completions.add(results.getString(1));
+                ++count;
+            }
+        }
+        catch (AbstractMethodError e) {
+            
+            /*
+             * This is a pre-java 1.6 JDBC driver :(
+             */
+            if (LOG.isLoggable(Level.FINE)) {
+                
+                LOG.fine("JDBC driver does not support DatabaseMetadata.getSchemas()");
+            }
+        }
+        catch (SQLException e) {
+            
+            /* IGNORED */
+        }
+        
+        if (LOG.isLoggable(Level.FINE)) {
+
+            LOG.fine("Found " + count + " schemas matching "
+                + "catalog " + catalog
+                + ", schema " + name);
+        }
     }
     
     /**

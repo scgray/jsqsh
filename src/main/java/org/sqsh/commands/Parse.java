@@ -21,11 +21,12 @@ import java.util.List;
 
 import org.sqsh.BufferManager;
 import org.sqsh.Command;
+import org.sqsh.SQLConnectionContext;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
 import org.sqsh.options.Argv;
+import org.sqsh.parser.AbstractParserListener;
 import org.sqsh.parser.SQLParser;
-import org.sqsh.parser.SQLParserListener;
 import org.sqsh.parser.DatabaseObject;
 
 /**
@@ -60,7 +61,9 @@ public class Parse
         
         BufferManager bufferMan = session.getBufferManager();
         String sql = bufferMan.getCurrent().toString();
-        SQLParser parser = new SQLParser(new ParserListener(session.out));
+        SQLParser parser = new SQLParser(
+                ((SQLConnectionContext) session.getConnectionContext()).getIdentifierNormalizer(),
+                new ParserListener(session.out));
         
         parser.parse(sql);
         
@@ -77,7 +80,7 @@ public class Parse
     }
     
     private static class ParserListener
-        implements SQLParserListener {
+        extends AbstractParserListener {
         
         private PrintStream out;
         
@@ -93,7 +96,7 @@ public class Parse
 
             out.println("====> SUBQUERY-BEGIN");
         }
-
+        
         /**
          * @see org.sqsh.parser.SQLParserListener#exitedSubquery(org.sqsh.parser.SQLParser)
          */

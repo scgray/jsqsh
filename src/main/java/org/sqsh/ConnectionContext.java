@@ -260,7 +260,7 @@ public abstract class ConnectionContext {
         
         return true;
     }
-
+    
     /**
      * Analyzes a block of text to see if it is terminated with the provided
      * terminator character (presumably the character is a semicolon most of
@@ -270,7 +270,7 @@ public abstract class ConnectionContext {
      * @param terminator The terminator character
      * @return True if the batch is terminated.
      */
-    public abstract boolean isTerminated(String batch, char terminator);
+    public abstract boolean isTerminated(CharSequence batch, char terminator);
     
     /**
      * Returns a tab word completer for the current connection type.

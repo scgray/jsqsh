@@ -36,7 +36,8 @@ public class TSQLAnalyzer
      * or trigger is complete, so it is pretty vital that the chosen
      * terminator character is not part of the language syntax.
      */
-    public boolean isTerminated (String sql, char terminator) {
+    @Override
+    public boolean isTerminated (CharSequence sql, char terminator) {
         
         SimpleKeywordTokenizer tokenizer =
             new SimpleKeywordTokenizer(sql, terminator);

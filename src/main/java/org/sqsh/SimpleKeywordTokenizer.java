@@ -25,7 +25,7 @@ import java.util.Stack;
  */
 public class SimpleKeywordTokenizer {
     
-    private String sql;
+    private CharSequence sql;
     private int len;
     private int idx;
     private char terminator;
@@ -33,7 +33,7 @@ public class SimpleKeywordTokenizer {
     
     private Stack<String> tokens = new Stack<String>();
     
-    public SimpleKeywordTokenizer (String sql, char terminator, boolean toUpperCase) {
+    public SimpleKeywordTokenizer (CharSequence sql, char terminator, boolean toUpperCase) {
         
         this.sql = sql;
         this.len = sql.length();
@@ -42,7 +42,7 @@ public class SimpleKeywordTokenizer {
         this.toUpperCase = toUpperCase;
     }
     
-    public SimpleKeywordTokenizer (String sql, char terminator) {
+    public SimpleKeywordTokenizer (CharSequence sql, char terminator) {
         
         this(sql, terminator, true);
     }

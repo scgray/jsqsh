@@ -19,10 +19,7 @@ import java.sql.Connection;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.naming.NameParser;
-
-import org.sqsh.parser.DatabaseObject;
+import static org.sqsh.input.completion.CompletionCandidate.*;
 
 /**
  * This completer is used to perform completions when specific SQL statements
@@ -34,36 +31,6 @@ public class GenericStatementCompleter
     
     private static final Logger LOG = 
         Logger.getLogger("org.sqsh.completion.GenericStatementCompleter");
-    
-    /**
-     * Flag to constructor to indicate that the completer should complete
-     * catalog names.
-     */
-    public static final int CATALOGS = (1<<0);
-    
-    /**
-     * Flag to constructor to indicate that the completer should complete
-     * schema names.
-     */
-    public static final int SCHEMAS = (1<<1);
-    
-    /**
-     * Flag to constructor to indicate that the completer should complete
-     * table names.
-     */
-    public static final int TABLES = (1<<2);
-    
-    /**
-     * Flag to constructor to indicate that the completer should complete
-     * column names.
-     */
-    public static final int COLUMNS = (1<<3);
-    
-    /**
-     * Flag to constructor to indicate that the completer should complete
-     * procedure names.
-     */
-    public static final int PROCEDURES = (1<<4);
     
     /**
      * Set of flags that indicate what this should complete.
@@ -78,10 +45,9 @@ public class GenericStatementCompleter
      *   applies).
      * @param completionFlags The set of completions it should perform.
      */
-    public GenericStatementCompleter(String statement, String clause,
-            int completionFlags) {
+    public GenericStatementCompleter(String statement, int completionFlags) {
         
-        super(statement, clause);
+        super(statement);
         this.completionFlags = completionFlags;
     }
     

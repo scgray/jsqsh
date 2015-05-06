@@ -15,6 +15,9 @@
  */
 package org.sqsh.parser;
 
+import java.util.List;
+
+
 /**
  * Representation of a database object. 
  */
@@ -25,6 +28,22 @@ public class DatabaseObject {
     private String name;
     private String column = null;
     private String alias = null;
+    private String[] columnList;
+    
+    public DatabaseObject (List<String> columns) {
+        
+        name = "";
+        columnList = columns.toArray(new String[0]);
+    }
+    
+    public DatabaseObject (String name, List<String> columns) {
+        
+        this.name = name;
+        if (columns != null) {
+            
+            columnList = columns.toArray(new String[0]);
+        }
+    }
     
     /**
      * Creates a database object.
@@ -71,6 +90,23 @@ public class DatabaseObject {
         }
         
     }
+    
+    /**
+     * If the database object has a local projection list, then it
+     * is returned.
+     * 
+     * @return The list of columns known for the object or null if
+     *   they are not known.
+     */
+    public String[] getColumnList() {
+        
+        return columnList;
+    }
+    
+    public void setColumnList (List<String> columns) {
+        
+        columnList = columns.toArray(new String[0]);
+    }
 
     /**
      * @return the catalog containing the object that is referenced.
@@ -111,7 +147,14 @@ public class DatabaseObject {
      */
     public void setAlias(String alias) {
         
-        this.alias = alias;
+        if (name != null && name.length() == 0) {
+            
+            this.name = alias;
+        }
+        else {
+            
+            this.alias = alias;
+        }
     }
     
     /**
