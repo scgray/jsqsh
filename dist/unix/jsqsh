@@ -9,7 +9,11 @@
 #
 # This determines the location of this shell script.
 #
+PROG=$(basename $0)
 PROG_DIR=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
+
+ACTUAL_PATH=$(readlink -f "$PROG_DIR/$PROG")
+PROG_DIR=$(dirname $ACTUAL_PATH)
 
 #
 # The parent directory of where this script was found
@@ -74,5 +78,5 @@ export CLASSPATH
 # echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH"
 # echo "CLASSPATH = $CLASSPATH"
 
-exec java $JSQSH_JAVA_OPTS org.sqsh.JSqsh $*
+exec java $JSQSH_JAVA_OPTS org.sqsh.JSqsh "$@"
 
