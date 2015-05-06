@@ -17,7 +17,6 @@ package org.sqsh;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -503,7 +502,7 @@ public class SQLConnectionContext
     }
     
     @Override
-    public boolean isTerminated(String batch, char terminator) {
+    public boolean isTerminated(CharSequence batch, char terminator) {
 
         return analyzer.isTerminated(batch, terminator);
     }
@@ -595,7 +594,6 @@ public class SQLConnectionContext
             return null;
         }
         
-        Statement statment = null;
         ResultSet results = null;
         String schema = null;
         

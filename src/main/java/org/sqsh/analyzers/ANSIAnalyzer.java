@@ -38,7 +38,8 @@ public class ANSIAnalyzer
      * ensures that the terminator is not located within a string,
      * a variable name, or an object name.
      */
-    public boolean isTerminated (String sql, char terminator) {
+    @Override
+    public boolean isTerminated (CharSequence sql, char terminator) {
         
         SimpleKeywordTokenizer tokenizer =
             new SimpleKeywordTokenizer(sql, terminator);

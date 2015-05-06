@@ -37,5 +37,5 @@ public interface SQLAnalyzer {
      * @param terminator The terminator character
      * @return True if the batch is terminated.
      */
-    boolean isTerminated(String batch, char terminator);
+    boolean isTerminated(CharSequence batch, char terminator);
 }

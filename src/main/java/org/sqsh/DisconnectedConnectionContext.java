@@ -92,7 +92,7 @@ public class DisconnectedConnectionContext extends ConnectionContext {
     }
 
     @Override
-    public boolean isTerminated(String batch, char terminator) {
+    public boolean isTerminated(CharSequence batch, char terminator) {
 
         return false;
     }
