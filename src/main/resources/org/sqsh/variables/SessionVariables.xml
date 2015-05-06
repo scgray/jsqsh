@@ -129,24 +129,6 @@ SQL STYLES
         Note: the variable ${window_size} can be used to control the size
         of the window that is opened to display results.
         
-JAQL STYLES
-   The following display styles may be set when a Jaql session is established.
-   
-   csv      - Values are displayed in comma delimited file format. If the
-        first value received is a record, then the field names in the record
-        are assumed to be the column headers and displayed (if $headers is 
-        true). Nested JSON records and arrays a retained as JSON objects
-        and treated as a single quoted string on output.
-   json     - Output is displayed as nicely formatted Json records, (this 
-         closely mimics the default display style of jaqlshell).
-   lines    - Outputs one entire JSON record per line. This is typically
-         not as readable, but useful for reading the file in later.
-   discard  - This causes all values to be retrieved from the query but to
-        be discarded (i.e. not displayed). This is primarily useful only
-        for timing queries that return rows where you want to discount 
-        (most of) the overhead of actually displaying the values.
-    
-        
 NOTES
    This variable is a little odd in that it has slightly different
    behavior in different contexts:
@@ -154,8 +136,7 @@ NOTES
       * If no session/connection is established, then the style name provided
         must be a valid SQL display style.
       * If a session is established, then the style name must be a valid
-        display style for that type of session. For example, a Jaql session
-        will only support styles valid for Jaql output.
+        display style for that type of session.
    
    This means that you cannot use ${style} to set the display style of a non-
    SQL session type before the session is started, and when the session ends

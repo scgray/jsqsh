@@ -71,37 +71,8 @@ for dir in $RL_IMPLS; do
 done
 export CLASSPATH
 
-#
-# The user is trying to run a Jaql session if $JAQL_HOME is set
-# and points to a valid directory and they have specified a --jaql
-# option.  
-#
-has_jaql=0
-if [ ! -z "$JAQL_HOME" -a -d "$JAQL_HOME/bin" ]; then
-    for opt in $*; do
-        long_name=$(echo "$opt" | cut -c1-6)
-        short_name=$(echo "$opt" | cut -c1-2)
-        if [ "$long_name" = "--jaql" \
-               -o "$short_name" = "-j" \
-               -o "$short_name" = "-J" \
-               -o "$short_name" = "-p" ]; then
-            has_jaql=1
-        fi
-    done
-fi
-
 # echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH"
 # echo "CLASSPATH = $CLASSPATH"
 
-#
-# This is for jaql support in jsqsh. If $JAQL_HOME is defined and there
-# is a 'jaql' launch script in there, then use it to launch Jsqsh. This
-# will ensure that the classpath is all good to run jsqsh. As far as I
-# know this configuration will only work on BigInsights. 
-#
-if [ $has_jaql -eq 1 ]; then
-   export HADOOP_CLASSPATH=$CLASSPATH
-   exec $JAQL_HOME/bin/jaql "-Djava.library.path=$LD_LIBRARY_PATH" org.sqsh.JSqsh $*
-else
-   exec java $JSQSH_JAVA_OPTS org.sqsh.JSqsh $*
-fi
+exec java $JSQSH_JAVA_OPTS org.sqsh.JSqsh $*
+
