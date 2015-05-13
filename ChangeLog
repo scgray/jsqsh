@@ -23,9 +23,10 @@ Bug Fixes
     "*ERROR*" in the column.
   * NullPointerException when calling a stored procedure in Sybase
   * Stop print DB2 warning about "statement succeeded". It is annoying.
-  * Issue #3: Command line arguments with spaces in the value were not 
-    handled property 
-  * Issue #10: Got rid of unecessary "*" when prompting for passwords
+  * Command line arguments with spaces in the value were not 
+    handled properly 
+  * Got rid of unecessary "*" when prompting for passwords
+  * Fixed NPE if no password is provided at password prompt
 
 Misc
   * Remove Jaql

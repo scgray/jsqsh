@@ -259,6 +259,11 @@ public abstract class ConsoleLineReader {
         
         Console console = System.console();
         char []chars = console.readPassword(prompt);
+        if (chars.length == 0) {
+            
+            return null;
+        }
+        
         return new String(chars);
     }
     

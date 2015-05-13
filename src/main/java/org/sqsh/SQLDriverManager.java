@@ -636,7 +636,10 @@ public class SQLDriverManager {
                 }
                 connDesc.setUsername(s);
             }
-            props.put(SQLDriver.USER_PROPERTY, s);
+            if (s != null) {
+                
+                props.put(SQLDriver.USER_PROPERTY, s);
+            }
             
             s = getProperty(properties, sqlDriver.getVariables(),
                 SQLDriver.PASSWORD_PROPERTY);
@@ -644,7 +647,10 @@ public class SQLDriverManager {
                 
                 s = promptInput(session, "Password", true);
             }
-            props.put(SQLDriver.PASSWORD_PROPERTY, s);
+            if (s != null) {
+                
+                props.put(SQLDriver.PASSWORD_PROPERTY, s);
+            }
             
             conn = DriverManager.getConnection(url, props);
             SQLTools.printWarnings(session, conn);
