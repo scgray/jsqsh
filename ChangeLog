@@ -24,7 +24,8 @@ Bug Fixes
   * NullPointerException when calling a stored procedure in Sybase
   * Stop print DB2 warning about "statement succeeded". It is annoying.
   * Issue #3: Command line arguments with spaces in the value were not 
-    handled property
+    handled property 
+  * Issue #10: Got rid of unecessary "*" when prompting for passwords
 
 Misc
   * Remove Jaql
