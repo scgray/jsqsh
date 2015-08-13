@@ -1216,11 +1216,10 @@ public class SqshContext {
             Calendar cal = Calendar.getInstance();
             int year = cal.get(Calendar.YEAR);
             
-            currentSession.out.println("JSqsh Release " 
-                + Version.getVersion() 
-                + ", Copyright (C) 2007-" + year + ", Scott C. Gray");
-            currentSession.out.println("Type \\help for available help "
-                + "topics. Using " + console.getName() + ".");
+            currentSession.out.println("Welcome to JSqsh " 
+                + Version.getVersion());
+            currentSession.out.println("Type \"\\help\" for help topics. Using " 
+                + console.getName() + ".");
             
             doneBanner = true;
             

@@ -352,7 +352,7 @@ EXAMPLES
 <Topic name="license">
 		<Description>Displays the jsqsh license</Description>
 		<HelpText><![CDATA[
-   Copyright 2007-2012 Scott C. Gray
+   Copyright 2007-2015 Scott C. Gray and Others (see AUTHORS)
   
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
