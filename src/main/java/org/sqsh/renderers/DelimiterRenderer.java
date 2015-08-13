@@ -97,7 +97,7 @@ public class DelimiterRenderer
  	/*I am being super lazy here.  Apache commons has a render
           that will rerender all escaped characters, but like I said
           lazy.   I am not sure if the code is worth it */
-    private String fixBackslashes(String val) {
+    private String fixBackSlashes(String val) {
 
         return val.replace("\\n","\n")
                 .replace("\\t","\t")
