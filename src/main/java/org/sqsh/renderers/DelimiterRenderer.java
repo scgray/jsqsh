@@ -53,6 +53,7 @@ public class DelimiterRenderer
         super(session, renderMan);
     }
 
+    /* this should only be called once during header generation to allow for changes to the aliases */
     private void setValues() {
 
         AliasManager aliasManager = session.getAliasManager();
@@ -63,19 +64,14 @@ public class DelimiterRenderer
         Alias aliasEscape = aliasManager.getAlias("escape");    
    
         if (aliasMarker != null) {        
-            marker = aliasMarker.getText();
+            marker = fixBackSlashes(aliasMarker.getText());
         }
         else {
             marker = MARKER;
         }
 
-	/*I am being super lazy here.  Apache commons has a render
-          that will rerender all escaped characters, but like I said
-          lazy.   I am not sure if the code is worth it */
         if (aliasNewline != null) {      
-            newline = aliasNewline.getText()
-		.replace("\\n","\n")
-		.replace("\\r","\r");
+            newline = fixBackSlashes(aliasNewline.getText());
         }
         else {
 
@@ -83,19 +79,30 @@ public class DelimiterRenderer
         }
 
         if (aliasDelimiter != null) {      
-            delimiter = aliasDelimiter.getText();
+            delimiter = fixBackSlashes(aliasDelimiter.getText());
         }
         else {
             delimiter = DELIMITER;
         }
 
         if (aliasEscape != null) { 
-            escape = aliasEscape.getText();
+            escape = fixBackSlashes(aliasEscape.getText());
         }
         if (aliasDelimiter != null) {
 
             escape = marker+marker;
         }
+    }
+
+ 	/*I am being super lazy here.  Apache commons has a render
+          that will rerender all escaped characters, but like I said
+          lazy.   I am not sure if the code is worth it */
+    private String fixBackslashes(String val) {
+
+        return val.replace("\\n","\n")
+                .replace("\\t","\t")
+                .replace("\\\\","\\")
+                .replace("\\r","\r"); 
     }
 
     public void header (ColumnDescription []columns) {
