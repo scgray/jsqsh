@@ -31,7 +31,7 @@ public class BlobFormatter
         
         try {
             
-            byte bytes[] = blob.getBytes(0, (int) blob.length());
+            byte bytes[] = blob.getBytes(1, (int) blob.length());
             return super.format(bytes);
         }
         catch (Exception e) {
