@@ -247,4 +247,15 @@
         <Variable name="port">1526</Variable>
         <Variable name="SID">IFX</Variable>
     </Driver>
+
+    <Driver name="netezza" 
+            target="IBM Netezza"
+            class="org.netezza.Driver"
+            analyzer="org.sqsh.analyzers.PLSQLAnalyzer"
+            normalizer="org.sqsh.normalizer.UpperCaseNormalizer"
+            url="jdbc:netezza://${server}:${port}#if($db)/${db}#end">
+        <Variable name="server">localhost</Variable>
+        <Variable name="port">5480</Variable>
+        <Variable name="db">SYSTEM</Variable>
+    </Driver>
 </Drivers>
