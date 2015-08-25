@@ -279,6 +279,14 @@
                     <prefix>/usr</prefix>
                   </mapper>
                 </data>
+                <data>
+                  <src>dist/unix/jsqsh.1</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>/usr/local/share/man/man1</prefix>
+                  </mapper>
+                </data>
               </dataSet>
             </configuration>
           </plugin>
