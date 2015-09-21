@@ -64,7 +64,9 @@ public class TimeUtils {
         sb.append (val);
 
         millis %= 1000L;
-        sb.append ('.').append (millis / 10L).append ('s');
+        sb.append ('.');
+        append3(sb, millis);
+        sb.append ('s');
 
         return sb.toString ();
     }
@@ -120,5 +122,24 @@ public class TimeUtils {
         }
         sb.append(val);
         return sb;
+    }
+    
+    private static StringBuilder append3(StringBuilder sb, long val) {
+        
+        if (val < 10) {
+            
+            sb.append("00");
+        }
+        else if (val < 100) {
+            
+            sb.append('0');
+        }
+        sb.append(val);
+        return sb;
+    }
+    
+    public static void main (String argv[]) {
+    	
+    	System.out.println(millisToDurationString(Long.parseLong(argv[0])));
     }
 }

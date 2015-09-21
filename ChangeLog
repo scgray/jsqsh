@@ -12,6 +12,7 @@ New Features
     exit.
   * Command infrastructure is no pluggable so you can provide jars that
     add additional commands into jsqsh.
+  * Query time is now carried out to milliseconds precision
 
 Bug Fixes
   * Fixed NullPointerException when stored proc output parameters return a 
