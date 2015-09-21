@@ -258,4 +258,15 @@
         <Variable name="port">5480</Variable>
         <Variable name="db">SYSTEM</Variable>
     </Driver>
+
+    <Driver name="phoenix"
+           url="jdbc:phoenix:${server}:/hbase-unsecure"
+           class="org.apache.phoenix.jdbc.PhoenixDriver"
+           target="Apache Phoenix"
+           analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+           normalizer="org.sqsh.normalizer.NullNormalizer">
+      <!-- Gross, I don't like including product-specific classpaths -->
+      <Classpath><![CDATA[/usr/hdp/current/phoenix-client/phoenix-client.jar]]></Classpath>
+      <Classpath><![CDATA[/usr/iop/current/phoenix-client/phoenix-client.jar]]></Classpath>
+   </Driver>    
 </Drivers>
