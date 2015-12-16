@@ -90,6 +90,18 @@ public class VisualTimer {
      * thread. 
      */
     private State state = State.SHUTDOWN;
+
+    /**
+     * Creates a visual timer. By default the timer is disabled and calls to
+     * {@link #start()} and {@link #stop()} are ignored.
+     */
+    public VisualTimer(boolean isEnabled) {
+        
+        if (isEnabled) {
+            
+            setEnabled(isEnabled);
+        }
+    }
     
     /**
      * Creates a visual timer. By default the timer is disabled and calls to
@@ -97,6 +109,7 @@ public class VisualTimer {
      */
     public VisualTimer() {
         
+        this(false);
     }
     
     /**

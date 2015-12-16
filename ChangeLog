@@ -13,6 +13,8 @@ New Features
   * Command infrastructure is no pluggable so you can provide jars that
     add additional commands into jsqsh.
   * Query time is now carried out to milliseconds precision
+  * The visual query timer is now enabled by default ('cause I like it!).
+    To turn off use "\set timer=false"
 
 Bug Fixes
   * Fixed NullPointerException when stored proc output parameters return a 

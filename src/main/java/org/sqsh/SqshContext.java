@@ -173,7 +173,7 @@ public class SqshContext {
     /**
      * Responsible for visually displaying a query timer.
      */
-    private VisualTimer visualTimer = new VisualTimer();
+    private VisualTimer visualTimer = new VisualTimer(true);
     
     /**
      * This contains a list of commands upon which we will exit if they fail. The
