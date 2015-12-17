@@ -12,14 +12,14 @@ JSqsh has extensive built-in documentation, however for those that prefer
 point-and-click learning, you can get an introduction to jsqsh using
 the jsqsh wiki:
 
-   [Wiki Home](https://github.com/scgray/jsqsh/wiki/Home)
-   [What's New?](https://github.com/scgray/jsqsh/wiki/What's-New?)
-   [Features](https://github.com/scgray/jsqsh/wiki/Features)
-   [Installing](https://github.com/scgray/jsqsh/wiki/Installing)
-   [Getting Started](https://github.com/scgray/jsqsh/wiki/Getting-Started)
-   [User's Guide](https://github.com/scgray/jsqsh/wiki/User's-Guide))
-   [Tips and Trick](https://github.com/scgray/jsqsh/wiki/Tips-and-Tricks))
-   [Change History](https://github.com/scgray/jsqsh/wiki/Change-History))
+    [Wiki Home](https://github.com/scgray/jsqsh/wiki/Home)
+    [What's New?](https://github.com/scgray/jsqsh/wiki/What's-New?)
+    [Features](https://github.com/scgray/jsqsh/wiki/Features)
+    [Installing](https://github.com/scgray/jsqsh/wiki/Installing)
+    [Getting Started](https://github.com/scgray/jsqsh/wiki/Getting-Started)
+    [User's Guide](https://github.com/scgray/jsqsh/wiki/User's-Guide)
+    [Tips and Trick](https://github.com/scgray/jsqsh/wiki/Tips-and-Tricks)
+    [Change History](https://github.com/scgray/jsqsh/wiki/Change-History)
 
 I totally welcome contributions, questions, and feedback. Feel free to
 contact me at scottgray1-at-gmail.com.
