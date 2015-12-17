@@ -1,7 +1,7 @@
 Release 2.1.1-SNAPSHOT
 
 New Features
-  * New platform support (PowerPC 64bit (BE and LE) and s390x)
+  * New platform support (Mac OS X X86_64, PowerPC 64bit (BE and LE) and s390x)
   * "perfect" display mode will try harder to avoid resizing numeric columns
   * "go" options may now be provided after semicolon e.g. 
        select * from foo; -m vert

@@ -27,6 +27,7 @@
     <!-- This is the root directory contained inside of assemblies when unpacked -->
     <dist.dir>${project.artifactId}-${project.version}</dist.dir>
     <dist.tmp>${basedir}/target/${project.artifactId}-${project.version}-bin/${dist.dir}</dist.tmp>
+    <jsqsh.script.src>dist/unix</jsqsh.script.src>
   </properties>
 
   <build>
@@ -92,6 +93,22 @@
   </build>
 
   <profiles>
+    <!-- =================================================================
+         ==               Mac OS
+         ================================================================= -->
+    <profile>
+      <id>build-mac</id>
+      <activation>
+        <os>
+          <name>Mac OS X</name>
+        </os>
+      </activation>
+  
+      <properties>
+        <jsqsh.script.src>dist/osx</jsqsh.script.src>
+      </properties>
+    </profile>
+
     <!-- =================================================================
          ==               Compile w/JNI Code
          ================================================================= -->

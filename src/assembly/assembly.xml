@@ -12,7 +12,7 @@
   <fileSets>
     <fileSet>
       <outputDirectory>bin</outputDirectory>
-      <directory>dist/unix</directory>
+      <directory>${jsqsh.script.src}</directory>
       <fileMode>755</fileMode>
       <includes>
         <include>jsqsh</include>

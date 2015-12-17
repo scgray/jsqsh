@@ -87,6 +87,10 @@ public class ShellManager {
                 }
             }
         }
+        else if (os.startsWith("Mac OS")) {
+        	
+           lib = "libjsqsh.dylib";
+        }
         else {
             
             lib = "libjsqsh.so";
