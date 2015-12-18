@@ -119,7 +119,7 @@ AC_DEFUN([AC_JAVA_JNI], [
 
      JAVA_INCDIR="-I\"\$(JAVA_HOME)/$JNI_INC\""
 
-     for subdir in bsdos linux genunix alpha solaris win32; do
+     for subdir in bsdos linux genunix alpha solaris win32 darwin; do
         if test -d "$JAVA_HOME/$JNI_INC/$subdir"; then
            JAVA_INCDIR="$JAVA_INCDIR -I\"\$(JAVA_HOME)/$JNI_INC/$subdir\""
         fi
