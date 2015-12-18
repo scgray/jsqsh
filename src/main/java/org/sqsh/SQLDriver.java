@@ -15,6 +15,7 @@
  */
 package org.sqsh;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.URL;
@@ -358,7 +359,20 @@ public class SQLDriver
             
             try {
                 
-                driverMan.addClasspath(urls, expander.expand(path));
+                String expanded = expander.expand(path);
+                
+                if (expanded.indexOf(File.pathSeparatorChar) >= 0) {
+                    
+                    String []parts = expanded.split(File.pathSeparator);
+                    for (String part : parts) {
+                        
+                        driverMan.addClasspath(urls, part);
+                    }
+                }
+                else {
+                
+                    driverMan.addClasspath(urls, expanded);
+                }
             }
             catch (IOException e) {
                 

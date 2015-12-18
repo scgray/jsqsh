@@ -1,12 +1,20 @@
 Release 2.1.1-SNAPSHOT
 
 New Features
-  * New platform support (PowerPC 64bit and s390x)
+  * New platform support (Mac OS X X86_64, PowerPC 64bit (BE and LE) and s390x)
   * "perfect" display mode will try harder to avoid resizing numeric columns
   * "go" options may now be provided after semicolon e.g. 
        select * from foo; -m vert
   * The datetime_fmt now allows "S" to indicate fractions of a second,
     not just milliseconds, so you can now carry the precision out further.
+  * Added new "exit_on" configuration variable. This variable indicates
+    which commands, should they error, will cause the jsqsh session to
+    exit.
+  * Command infrastructure is no pluggable so you can provide jars that
+    add additional commands into jsqsh.
+  * Query time is now carried out to milliseconds precision
+  * The visual query timer is now enabled by default ('cause I like it!).
+    To turn off use "\set timer=false"
 
 Bug Fixes
   * Fixed NullPointerException when stored proc output parameters return a 
@@ -18,6 +26,10 @@ Bug Fixes
     "*ERROR*" in the column.
   * NullPointerException when calling a stored procedure in Sybase
   * Stop print DB2 warning about "statement succeeded". It is annoying.
+  * Command line arguments with spaces in the value were not 
+    handled properly 
+  * Got rid of unecessary "*" when prompting for passwords
+  * Fixed NPE if no password is provided at password prompt
 
 Misc
   * Remove Jaql

@@ -1,0 +1,6 @@
+<Commands>
+    <Command name="\test_command" class="org.sqsh.CustomCommandTest$TestCommand">
+        <Description>blah</Description>
+        <Help>Hello</Help>
+    </Command>
+ </Commands>

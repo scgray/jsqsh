@@ -33,7 +33,7 @@
            target="MS SQL Server"
            class="com.microsoft.jdbc.sqlserver.SQLServerDriver"
            analyzer="org.sqsh.analyzers.TSQLAnalyzer"
-           url="jdbc:microsoft:sqlserver://${server}:${port}">
+           url="jdbc:microsoft:sqlserver://${server}:${port}#if($db);database=${db}#end">
        <Variable name="server">localhost</Variable>
        <Variable name="port">1433</Variable>
    </Driver>
@@ -42,7 +42,7 @@
            target="MS SQL Server 2005+"
            class="com.microsoft.sqlserver.jdbc.SQLServerDriver"
            analyzer="org.sqsh.analyzers.TSQLAnalyzer"
-           url="jdbc:sqlserver://${server}:${port}#if($sid)\${sid}#end">
+           url="jdbc:sqlserver://${server}:${port}#if($sid)\${sid}#end#if($db);database=${db}#end">
            
        <Variable name="server">localhost</Variable>
        <Variable name="port">1433</Variable>
@@ -179,15 +179,6 @@
       <SessionVariable name="max_rowsaffected"><![CDATA[1]]></SessionVariable>
     </Driver>
 
-    <Driver name="bigsql" 
-            target="IBM Big SQL v1"
-            class="com.ibm.biginsights.bigsql.jdbc.BigSQLDriver"
-            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
-            url="jdbc:bigsql://${server}:${port}#if($db)/${db}#end">
-        <Variable name="server">localhost</Variable>
-        <Variable name="port">7052</Variable>
-    </Driver>
-
     <Driver name="derby" 
             target="Apache Derby Server"
             class="org.apache.derby.jdbc.ClientDriver"
@@ -256,4 +247,26 @@
         <Variable name="port">1526</Variable>
         <Variable name="SID">IFX</Variable>
     </Driver>
+
+    <Driver name="netezza" 
+            target="IBM Netezza"
+            class="org.netezza.Driver"
+            analyzer="org.sqsh.analyzers.PLSQLAnalyzer"
+            normalizer="org.sqsh.normalizer.UpperCaseNormalizer"
+            url="jdbc:netezza://${server}:${port}#if($db)/${db}#end">
+        <Variable name="server">localhost</Variable>
+        <Variable name="port">5480</Variable>
+        <Variable name="db">SYSTEM</Variable>
+    </Driver>
+
+    <Driver name="phoenix"
+           url="jdbc:phoenix:${server}:/hbase-unsecure"
+           class="org.apache.phoenix.jdbc.PhoenixDriver"
+           target="Apache Phoenix"
+           analyzer="org.sqsh.analyzers.ANSIAnalyzer"
+           normalizer="org.sqsh.normalizer.NullNormalizer">
+      <!-- Gross, I don't like including product-specific classpaths -->
+      <Classpath><![CDATA[/usr/hdp/current/phoenix-client/phoenix-client.jar]]></Classpath>
+      <Classpath><![CDATA[/usr/iop/current/phoenix-client/phoenix-client.jar]]></Classpath>
+   </Driver>    
 </Drivers>

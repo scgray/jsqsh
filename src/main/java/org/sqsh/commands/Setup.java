@@ -703,10 +703,10 @@ public class Setup extends Command {
             out.println("Base Configuration");
             out.println("---------------------");
             
-            int idx = 1;
+            int idx = 0;
             String format       = "%-2d %s %15s : %s\n";
             String promptFormat = "%-2d %s %15s : ";
-            int nameIdx = idx++;
+            int nameIdx = ++idx;
             if (driver.getName() == null) {
                 
                 driver.setName(getEntry(out, in, 
@@ -717,18 +717,18 @@ public class Setup extends Command {
 	            out.format(format, nameIdx, "*", "Name", driver.getName());
             }
             
-            int descIdx = idx++;
+            int descriptionIdx = ++idx;
             if (driver.getTarget() == null) {
                 
                 driver.setTarget(getEntry(out, in, 
-                    String.format(promptFormat, descIdx, "*", "Description"), true));
+                    String.format(promptFormat, descriptionIdx, "*", "Description"), true));
             }
             else {
                 
-	            out.format(format, descIdx, "*", "Description", driver.getTarget());
+	            out.format(format, descriptionIdx, "*", "Description", driver.getTarget());
             }
             
-            int classIdx = idx++;
+            int classIdx = ++idx;
             if (driver.getDriverClass() == null) {
                 
                 driver.setDriverClass(getEntry(out, in, 
@@ -736,10 +736,10 @@ public class Setup extends Command {
             }
             else {
                 
-	            out.format(format, idx++, "*", "Class", driver.getDriverClass());
+	            out.format(format, classIdx, "*", "Class", driver.getDriverClass());
             }
             
-            int urlIdx = idx++;
+            int urlIdx = ++idx;
             if (driver.getUrl() == null) {
                 
                 driver.setUrl(getEntry(out, in, 
@@ -750,13 +750,13 @@ public class Setup extends Command {
 	            out.format(format, urlIdx, "*", "URL", driver.getUrl());
             }
             
-            int parserIdx = idx++;
+            int analyzerIdx = ++idx;
             out.format(format, 
-                parserIdx, " ", "SQL Parser", driver.getAnalyzer().getName());
-            int classpathIdx = idx++;
+                analyzerIdx, " ", "SQL Parser", driver.getAnalyzer().getName());
+            int classpathIdx = ++idx;
             out.format(format, 
                 classpathIdx, " ", "Classpath", driver.getClasspath());
-            int schemaQueryIdx = idx++;
+            int schemaQueryIdx = ++idx;
             out.format(format, 
                 schemaQueryIdx, " ", "Schema query", 
                 driver.getCurrentSchemaQuery() == null ? "(none)" : driver.getCurrentSchemaQuery());
@@ -767,15 +767,21 @@ public class Setup extends Command {
             out.println("URL Variable Defaults");
             out.println("---------------------");
             List<DriverVariable> vars = driver.getVariableDescriptions(false);
-            int varsStartIdx = idx;
-            int varsEndIdx = idx;
+            int variableStartIdx = 0;
+            int variableEndIdx = 0;
             for (int i = 0; i < vars.size(); i++) {
                 
                 DriverVariable var = vars.get(i);
                 
-                varsEndIdx = idx;
+                ++idx;
+                variableEndIdx = idx;
+                if (i == 0)
+                {
+                    variableStartIdx = idx;
+                }
+                
                 out.format(format, 
-                    idx++, " ", var.getName(), emptyIfNull(var.getDefaultValue()));
+                    idx, " ", var.getName(), emptyIfNull(var.getDefaultValue()));
             }
             
             out.println();
@@ -841,6 +847,7 @@ public class Setup extends Command {
             }
             else {
                 
+                
                 int opt = toInt(str);
                 if (opt >= 1 && opt <= idx) {
                     
@@ -849,7 +856,7 @@ public class Setup extends Command {
                         out.println();
                         driver.setName(getEntry(out, in, "Enter new name: ", true));
                     }
-                    else if (opt == descIdx) {
+                    else if (opt == descriptionIdx) {
                         
                         out.println();
                         driver.setTarget(getEntry(out, in, "Enter new description: ", true));
@@ -864,7 +871,7 @@ public class Setup extends Command {
                         out.println();
                         driver.setUrl(getEntry(out, in, "Enter new URL: ", true));
                     }
-                    else if (opt == parserIdx) {
+                    else if (opt == analyzerIdx) {
                         
                         driver.setAnalyzer(chooseAnalyzer(out, in));
                     }
@@ -878,9 +885,9 @@ public class Setup extends Command {
                         out.println();
                         driver.setCurrentSchemaQuery(getEntry(out, in, "Enter query to fetch current schema: ", false));
                     }
-                    else if (opt >= varsStartIdx && opt <= varsEndIdx) {
+                    else if (opt >= variableStartIdx && opt <= variableEndIdx) {
                         
-                        DriverVariable var = vars.get(opt-varsStartIdx);
+                        DriverVariable var = vars.get(opt - variableStartIdx);
                         out.println();
                         str = in.readline("Enter new value for \"" 
                             + var.getName() + "\": ", false);

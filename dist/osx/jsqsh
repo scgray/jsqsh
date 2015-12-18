@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # jsqsh - This shell script attempts to launch org.sqsh.JSqsh. 
 #   it does its best to try to figure out where various files
@@ -10,9 +10,12 @@
 # This determines the location of this shell script.
 #
 PROG=$(basename $0)
-PROG_DIR=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
+PROG_DIR=$(cd -P -- "$(dirname "$0")" && pwd -P)
 
-ACTUAL_PATH=$(readlink -f "$PROG_DIR/$PROG")
+ACTUAL_PATH=$(readlink "$PROG_DIR/$PROG")
+if [ $? -ne 0 ]; then
+   ACTUAL_PATH="${PROG_DIR}/${PROG}"
+fi
 PROG_DIR=$(dirname $ACTUAL_PATH)
 
 #

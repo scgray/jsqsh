@@ -13,32 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.sqsh.format;
+package org.sqsh;
 
-import java.sql.Blob;
+import org.junit.Test;
+import org.junit.Assert;
 
-public class BlobFormatter
-    extends ByteFormatter {
+public class CustomCommandTest {
     
-    public BlobFormatter() {
+    public static class TestCommand extends Command {
         
-        super(Integer.MAX_VALUE);
-    }
-
-    public String format (Object value) {
-
-        Blob blob = (Blob) value;
-        
-        try {
+        @Override
+        public SqshOptions getOptions() {
             
-            byte bytes[] = blob.getBytes(1, (int) blob.length());
-            return super.format(bytes);
-        }
-        catch (Exception e) {
-            
-            /* IGNORED */
+            return new SqshOptions();
         }
         
-        return "*ERROR*";
+        @Override
+        public int execute (Session session, SqshOptions opts)
+            throws Exception {
+            
+            return 0;
+        }
+     }
+    
+    @Test
+    public void testCustomCommand() {
+        
+        CommandManager cm = new CommandManager();
+        Command command = cm.getCommand("\\test_command");
+        Assert.assertNotNull(command);
     }
 }
