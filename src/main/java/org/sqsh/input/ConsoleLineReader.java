@@ -16,9 +16,6 @@
 package org.sqsh.input;
 
 import java.io.Console;
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 import org.sqsh.SqshContext;
 
@@ -242,29 +239,96 @@ public abstract class ConsoleLineReader {
      * @param addToHistory If true, then the line that is input is saved
      *    to the history.
      * @return The newly read line or NULL if there is no input.
-     * @throws EOFException Thrown if the end of input is reached.
+     * @throws ConsoleException Thrown if an issue is encountered while
+     *   reading user input.  Common subclasses you should look out for are
+     *   {@link ConsoleEOFException} and {@link ConsoleInterruptedException}
      */
     public abstract String readline(String prompt, boolean addToHistory)
-        throws EOFException, IOException, UnsupportedEncodingException;
+        throws ConsoleException;
+    
+    /**
+     * Reads a line of input, returning null if there is no input, the
+     * end-of-input (EOF) is reached, the user is interrupted (^C) or any
+     * other error is encountered.
+     * 
+     * @param prompt Prompt to present to the user.
+     * @param addToHistory If true, then the line that is input is saved
+     *    to the history.
+     * @return The newly read line or NULL if there is no input or an
+     *   error is encountered.
+     */
+    public String readlineSafe(String prompt, boolean addToHistory) {
+        
+        try {
+            
+            return readline(prompt, addToHistory);
+        }
+        catch (ConsoleException e) {
+            
+            return null;
+        }
+    }
+
+    /**
+     * Reads a line of input, returning null if there is no input, the
+     * end-of-input (EOF) is reached, the user is interrupted (^C) or any
+     * other error is encountered. If input is read, it is automatically
+     * added to the history.
+     * 
+     * @param prompt Prompt to present to the user.
+     * @return The newly read line or NULL if there is no input or an
+     *   error is encountered.
+     */
+    public String readlineSafe(String prompt) {
+        
+        return readlineSafe(prompt, true);
+    }
     
     /**
      * Reads a masked password (of up to 128 characters in length)
      * 
      * @param prompt Prompt to present to the user.
      * @return The password or null if there is no input
-     * @throws EOFException Thrown if the end of input is reached.
+     * @throws ConsoleException Thrown if an issue is encountered while
+     *   reading user input.  Common subclasses you should look out for are
+     *   {@link ConsoleEOFException} and {@link ConsoleInterruptedException}
      */
     public String readPassword(String prompt)
-        throws IOException {
+        throws ConsoleException {
         
-        Console console = System.console();
-        char []chars = console.readPassword(prompt);
-        if (chars.length == 0) {
+        try {
+
+           Console console = System.console();
+           char []chars = console.readPassword(prompt);
+           if (chars.length == 0) {
+            
+               return null;
+           }
+        
+           return new String(chars);
+        }
+        catch (Throwable e) {
+            
+            throw new ConsoleException(e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Reads a masked password (of up to 128 characters in length)
+     * 
+     * @param prompt Prompt to present to the user.
+     * @return The password or null if there is no input or an error is encountered.
+     */
+    public String readPasswordSafe(String prompt) {
+        
+        try {
+            
+            return readPassword(prompt);
+        }
+        catch (ConsoleException e) {
             
             return null;
         }
-        
-        return new String(chars);
     }
     
     /**

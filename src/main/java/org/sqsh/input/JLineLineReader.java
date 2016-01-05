@@ -18,9 +18,9 @@ package org.sqsh.input;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 import jline.console.ConsoleReader;
+import jline.console.UserInterruptException;
 import jline.console.history.FileHistory;
 
 import org.sqsh.SqshContext;
@@ -46,7 +46,7 @@ public class JLineLineReader
              * do that for us.
              */
             reader.setExpandEvents(false);
-            
+            reader.setHandleUserInterrupt(true);
             reader.setHistoryEnabled(true);
             reader.setCopyPasteDetection(true);
             reader.addCompleter(new JLineTabCompleter(ctx));
@@ -107,29 +107,58 @@ public class JLineLineReader
 
     @Override
     public String readline(String prompt, boolean addToHistory)
-        throws EOFException, IOException, UnsupportedEncodingException {
+        throws ConsoleException {
 
-        String str = reader.readLine(prompt);
-        if (str == null) {
+        try {
             
-            throw new EOFException();
+            String str = reader.readLine(prompt);
+            if (str == null) {
+                
+                throw new ConsoleEOFException();
+            }
+            return str;
         }
-        
-        return str;
+        catch (EOFException e) {
+
+            throw new ConsoleEOFException();
+        }
+        catch (UserInterruptException e) {
+            
+            throw new ConsoleInterruptedException(e.getPartialLine());
+        }
+        catch (IOException e) {
+            
+            throw new ConsoleException(e.getMessage(), e);
+        }
     }
     
 
     @Override
     public String readPassword(String prompt) 
-        throws IOException {
+        throws ConsoleException {
         
-        String str = reader.readLine(prompt, '*');
-        if (str == null) {
+        try {
+
+            String str = reader.readLine(prompt, '*');
+            if (str == null) {
             
-            throw new EOFException();
-        }
+                throw new ConsoleEOFException();
+            }
         
-        return str;
+            return str;
+        }
+        catch (EOFException e) {
+
+            throw new ConsoleEOFException();
+        }
+        catch (UserInterruptException e) {
+            
+            throw new ConsoleInterruptedException(e.getPartialLine());
+        }
+        catch (IOException e) {
+            
+            throw new ConsoleException(e.getMessage(), e);
+        }
     }
 
     @Override

@@ -16,8 +16,6 @@
 package org.sqsh.input;
 
 import java.io.EOFException;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 import org.gnu.readline.Readline;
 import org.sqsh.SqshContext;
@@ -82,9 +80,20 @@ public abstract class ReadlineLineReader
 
     @Override
     public String readline(String prompt, boolean addToHistory)
-        throws UnsupportedEncodingException, IOException, EOFException {
+        throws ConsoleException {
 
-        return Readline.readline(prompt, addToHistory);
+        try {
+
+            return Readline.readline(prompt, addToHistory);
+        }
+        catch (EOFException e) {
+            
+            throw new ConsoleEOFException();
+        }
+        catch (Throwable e) {
+            
+            throw new ConsoleException(e.getMessage(), e);
+        }
     }
     
     @Override

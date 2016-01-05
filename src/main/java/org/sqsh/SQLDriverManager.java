@@ -846,22 +846,15 @@ public class SQLDriverManager {
      */
     private static String promptInput(Session session, String prompt, boolean isMasked) {
         
-        try {
-        
-            if (isMasked == false) {
-                
-                String result = session.getContext().getConsole().readline(prompt + ": ", false);
-                return result;
-            }
-            else {
-                
-                String pwd = session.getContext().getConsole().readPassword(prompt + ": ");
-                return pwd;
-            }
-        }
-        catch (IOException e) {
+        if (isMasked == false) {
             
-            return null;
+            String result = session.getContext().getConsole().readlineSafe(prompt + ": ", false);
+            return result;
+        }
+        else {
+            
+            String pwd = session.getContext().getConsole().readPasswordSafe(prompt + ": ");
+            return pwd;
         }
     }
     

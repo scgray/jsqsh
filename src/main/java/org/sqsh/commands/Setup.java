@@ -15,8 +15,6 @@
  */
 package org.sqsh.commands;
 
-import static org.sqsh.options.ArgumentRequired.NONE;
-
 import java.io.File;
 import java.io.PrintStream;
 import java.net.URL;
@@ -52,7 +50,6 @@ import org.sqsh.normalizer.NullNormalizer;
 import org.sqsh.normalizer.SQLNormalizer;
 import org.sqsh.normalizer.UpperCaseNormalizer;
 import org.sqsh.options.Argv;
-import org.sqsh.options.OptionProperty;
 
 public class Setup extends Command {
     
@@ -131,7 +128,7 @@ public class Setup extends Command {
             out.println("   common activity here is to provide the classpath for a given JDBC driver");
             out.println();
             
-            String str = in.readline("Choose (Q)uit, (C)onnection wizard, or (D)river wizard: ", false);
+            String str = readline(in, "Choose (Q)uit, (C)onnection wizard, or (D)river wizard: ");
             str = str.trim();
             if ("q".equalsIgnoreCase(str) || "b".equalsIgnoreCase(str)) {
                 
@@ -238,7 +235,7 @@ public class Setup extends Command {
             }
             out.flush();
             
-            String str = in.readline("(B)ack, (Q)uit, or (A)dd connection: ", false);
+            String str = readline(in, "(B)ack, (Q)uit, or (A)dd connection: ");
             str = str.trim();
             
             if (str.equalsIgnoreCase("b")) {
@@ -325,7 +322,7 @@ public class Setup extends Command {
             
             out.println();
             out.flush();
-            String str = in.readline("Enter the driver number, (D)river wizard, (B)ack or (Q)uit: ", false);
+            String str = readline(in, "Enter the driver number, (D)river wizard, (B)ack or (Q)uit: ");
             str = str.trim();
             if (str.equalsIgnoreCase("b")) {
                 
@@ -461,7 +458,7 @@ public class Setup extends Command {
             String prompt = (isNew 
                 ? "(T)est, (B)ack, (Q)uit, Add (P)roperty, or (S)ave: "
                 : "(T)est, (D)elete, (B)ack, (Q)uit, Add (P)roperty, or (S)ave: ");
-            String str = in.readline(prompt, false);
+            String str = readline(in, prompt);
             
             str = str.trim();
             if (str.equalsIgnoreCase("b")) {
@@ -482,7 +479,7 @@ public class Setup extends Command {
                 ConnectionDescriptorManager connMan = session.getConnectionDescriptorManager();
                 
                 out.println();
-                str = in.readline("Are you sure (Y/N)? ", false);
+                str = readline(in, "Are you sure (Y/N)? ");
                 if ("y".equalsIgnoreCase(str)) {
                     
                     connMan.remove(conDesc.getName());
@@ -500,14 +497,14 @@ public class Setup extends Command {
                     str = "";
                     while (str.length() == 0) {
                         
-                        str = in.readline("Please provide a connection name: ", false);
+                        str = readline(in, "Please provide a connection name: ");
                         str = str.trim();
                     }
                     conDesc.setName(str);
                 }
                 else {
                 
-                    str = in.readline("Are you sure (Y/N)? ", false);
+                    str = readline(in, "Are you sure (Y/N)? ");
                     doSave = "y".equalsIgnoreCase(str);
                 }
                 
@@ -547,7 +544,7 @@ public class Setup extends Command {
                     }
                     else {
                         
-                        str = in.readline(var.getName() + ": ", false);
+                        str = readline(in, var.getName() + ": ");
                     }
                     
                     str = str.trim();
@@ -563,7 +560,7 @@ public class Setup extends Command {
                     String prop = props[(val-1) - propsStartAt];
                     out.println();
                     out.println("An empty value removes the property definition");
-                    str = in.readline("Enter new value for \"" + prop + "\": ", false);
+                    str = readline(in, "Enter new value for \"" + prop + "\": ");
                     str = str.trim();
                     if (str.length() == 0) {
                         
@@ -606,7 +603,7 @@ public class Setup extends Command {
         }
         
         out.println();
-        in.readline("Hit enter to continue:", false);
+        readline(in, "Hit enter to continue:");
     }
     
     public boolean doDriverWizard(Session session, PrintStream out, ConsoleLineReader in, Ansi cls) 
@@ -648,7 +645,7 @@ public class Setup extends Command {
             out.println("Enter a number to change an existing driver, or:");
             out.flush();
             
-            String str = in.readline("(B)ack, (Q)uit, or (A)dd new driver: ", false);
+            String str = readline(in, "(B)ack, (Q)uit, or (A)dd new driver: ");
             str = str.trim();
             if ("q".equalsIgnoreCase(str)) {
                 
@@ -801,7 +798,7 @@ public class Setup extends Command {
             String prompt = (isNewDriver 
                 ? "(B)ack, (Q)uit, Show (C)lasspath, (A)dvanced options, or (S)ave: "
                 : "(B)ack, (Q)uit, (D)elete, Show (C)lasspath, (A)dvanced options, or (S)ave: ");
-            String str = in.readline(prompt, false);
+            String str = readline(in, prompt);
             str = str.trim();
             if ("q".equalsIgnoreCase(str)) {
                 
@@ -822,7 +819,7 @@ public class Setup extends Command {
                 }
                 
                 out.println();
-                in.readline("Hit enter to continue: ", false);
+                readline(in, "Hit enter to continue: ");
             }
             else if ("a".equalsIgnoreCase(str)) {
                 
@@ -840,7 +837,7 @@ public class Setup extends Command {
             else if (! isNewDriver && "d".equalsIgnoreCase(str)) {
                 
                 out.println();
-                str = in.readline("Are you sure (Y/N)? ", false);
+                str = readline(in, "Are you sure (Y/N)? ");
                 if ("y".equalsIgnoreCase(str)) {
                     
                     SQLDriverManager driverMan = session.getDriverManager();
@@ -904,8 +901,8 @@ public class Setup extends Command {
                         
                         DriverVariable var = vars.get(opt - variableStartIdx);
                         out.println();
-                        str = in.readline("Enter new value for \"" 
-                            + var.getName() + "\": ", false);
+                        str = readline(in, "Enter new value for \"" 
+                            + var.getName() + "\": ");
                         str = str.trim();
                         
                         if (str.length() == 0) {
@@ -1008,7 +1005,7 @@ public class Setup extends Command {
             out.println("Enter a number to change a existing setting, or:");
             out.flush();
             
-            String str = in.readline("(B)ack, (Q)uit, New (V)ariable, New (P)roperty, or (S)ave: ", false);
+            String str = readline(in, "(B)ack, (Q)uit, New (V)ariable, New (P)roperty, or (S)ave: ");
             str = str.trim();
             if ("q".equalsIgnoreCase(str)) {
                 
@@ -1025,8 +1022,8 @@ public class Setup extends Command {
             else if ("v".equalsIgnoreCase(str)) {
                 
                 out.println();
-                String name = in.readline("Session variable name: ", false);
-                String value = in.readline("Session variable value: ", false);
+                String name = readline(in, "Session variable name: ");
+                String value = readline(in, "Session variable value: ");
                 name = name.trim();
                 value = value.trim();
                 if (value.length() > 0) {
@@ -1046,7 +1043,7 @@ public class Setup extends Command {
                     String var = sessionVars[opt-1];
                     out.println();
                     out.println("An empty value removes the variable definition");
-                    str = in.readline("Enter new value for \"" + var + "\": ", false);
+                    str = readline(in, "Enter new value for \"" + var + "\": ");
                     str = str.trim();
                     if (str.length() == 0) {
                         
@@ -1062,7 +1059,7 @@ public class Setup extends Command {
                     String var = driverProps[opt - driverPropsStartAt];
                     out.println();
                     out.println("An empty value removes the property definition");
-                    str = in.readline("Enter new value for \"" + var + "\": ", false);
+                    str = readline(in, "Enter new value for \"" + var + "\": ");
                     str = str.trim();
                     if (str.length() == 0) {
                         
@@ -1088,7 +1085,7 @@ public class Setup extends Command {
         
         while (true) {
             
-            String str = in.readline("Choose a SQL analyzer: ", false);
+            String str = readline(in, "Choose a SQL analyzer: ");
             str = str.trim();
             int id = toInt(str);
             if (id < 1 || id > 4) {
@@ -1125,7 +1122,7 @@ public class Setup extends Command {
         
         while (true) {
             
-            String str = in.readline("Select object name normalization for this database: ", false);
+            String str = readline(in, "Select object name normalization for this database: ");
             str = str.trim();
             int id = toInt(str);
             if (id < 1 || id > 3) {
@@ -1177,8 +1174,8 @@ public class Setup extends Command {
             out.println("Available driver properties could not be retrieved (this may happen");
             out.println("if the JDBC driver cannot be loaded), you may manually enter properties:");
             
-            String name = in.readline("Property name: ", false);
-            String value = in.readline("Property value: ", false);
+            String name = readline(in, "Property name: ");
+            String value = readline(in, "Property value: ");
             name = name.trim();
             value = value.trim();
             if (value.length() > 0) {
@@ -1239,7 +1236,7 @@ public class Setup extends Command {
             out.println();
             out.println("Enter a property number to edit that property. A question mark after");
             out.println("the property name (e.g. \"2?\") will display a description, if available: ");
-            String str = in.readline("(M)anually enter, or (B)ack: ", false);
+            String str = readline(in, "(M)anually enter, or (B)ack: ");
             str = str.trim();
             
             if (str.equalsIgnoreCase("b")) {
@@ -1250,8 +1247,8 @@ public class Setup extends Command {
                 
                 done = true;
                 out.println();
-                String name = in.readline("Property name: ", false);
-                String value = in.readline("Property value: ", false);
+                String name = readline(in, "Property name: ");
+                String value = readline(in, "Property value: ");
                 name = name.trim();
                 value = value.trim();
                 if (value.length() > 0) {
@@ -1277,7 +1274,7 @@ public class Setup extends Command {
                             out.println("No help is avalable");
                         }
                         out.println();
-                        in.readline("Hit enter to continue: ", false);
+                        readline(in, "Hit enter to continue: ");
                         continue;
                     }
                 }
@@ -1287,8 +1284,8 @@ public class Setup extends Command {
                     
                     if (info[idx-1].choices == null || info[idx-1].choices.length == 0) {
                         
-                        String value = in.readline("New value for \"" 
-                            + info[idx-1].name + "\": ", false);
+                        String value = readline(in, "New value for \"" 
+                            + info[idx-1].name + "\": ");
                         value = value.trim();
                         if (value.length() > 0) {
                         
@@ -1310,7 +1307,7 @@ public class Setup extends Command {
                         out.println();
                         while (! done) {
                             
-                            str = in.readline("Enter choice or (B)ack: ", false);
+                            str = readline(in, "Enter choice or (B)ack: ");
                             str = str.trim();
                             if ("b".equalsIgnoreCase(str)) {
                                 
@@ -1360,7 +1357,7 @@ public class Setup extends Command {
         String str = "";
         while (str.length() == 0) {
             
-            str = in.readline(prompt, false);
+            str = readline(in, prompt);
             str = str.trim();
             if (! isRequired) {
                 
@@ -1435,11 +1432,21 @@ public class Setup extends Command {
         return str;
     }
     
+    private static String readline(ConsoleLineReader in, String prompt) {
+        
+        String str = in.readlineSafe(prompt, false);
+        if (str == null) {
+            
+            return "";
+        }
+
+        return str;
+    }
+    
     private static enum ScreenReturn {
         
         BACK,
         QUIT,
         SAVE
     }
-    
 }

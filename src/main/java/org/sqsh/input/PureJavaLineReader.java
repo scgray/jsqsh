@@ -17,7 +17,6 @@ package org.sqsh.input;
 
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 import org.sqsh.Session;
 import org.sqsh.SqshContext;
@@ -48,23 +47,34 @@ public class PureJavaLineReader
 
     @Override
     public String readline(String prompt, boolean addToHistory)
-            throws EOFException, IOException, UnsupportedEncodingException {
+            throws ConsoleException {
         
         Session session = ctx.getCurrentSession();
         
         session.out.print(prompt);
         
         sb.setLength(0);
-        int ch = session.in.read();
-        if (ch == -1) {
-            
-            throw new EOFException("The End");
-        }
         
-        while (ch != -1 && ch != '\n') {
+        try {
+            int ch = session.in.read();
+            if (ch == -1) {
+                
+                throw new ConsoleEOFException();
+            }
             
-            sb.append((char) ch);
-            ch = session.in.read();
+            while (ch != -1 && ch != '\n') {
+                
+                sb.append((char) ch);
+                ch = session.in.read();
+            }
+        }
+        catch (EOFException e) {
+            
+            throw new ConsoleEOFException();
+        }
+        catch (IOException e) {
+            
+            throw new ConsoleException(e.getMessage(), e);
         }
         
         return sb.toString();

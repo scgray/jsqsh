@@ -15,6 +15,7 @@
  */
 package org.sqsh;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -29,6 +30,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.sqsh.input.ConsoleEOFException;
+import org.sqsh.input.ConsoleException;
+import org.sqsh.input.ConsoleInterruptedException;
 import org.sqsh.jni.Shell;
 import org.sqsh.jni.ShellException;
 import org.sqsh.jni.ShellManager;
@@ -785,25 +789,46 @@ public class Session
                 
                 sigHandler.clear();
                     
-                line = readLine();
-                if (line == null) {
-                    
-                    done = true;
-                }
-                else {
-                
-                    if (sigHandler.isTriggered() == false) {
-                            
-                        evaluate(line);
-                    }
-                    else if (!ioManager.isInteractive()) {
-                            
-                        /*
-                         * If the user hit CTRL-C and we aren't interactive
-                         * then we are finished and can return.
-                         */
+                try {
+
+                    line = readLine();
+
+                    if (line == null) {
+                        
                         done = true;
                     }
+                    else {
+                    
+                        if (sigHandler.isTriggered() == false) {
+                                
+                            evaluate(line);
+                        }
+                        else if (!ioManager.isInteractive()) {
+                                
+                            /*
+                             * If the user hit CTRL-C and we aren't interactive
+                             * then we are finished and can return.
+                             */
+                            done = true;
+                        }
+                    }
+                }
+                catch (ConsoleInterruptedException e) {
+                    
+                    /*
+                     * If the user hit ^C, then we abort the current buffer, saving it
+                     * away, and start a new one all a-fresh-like:
+                     */
+                    if (getBufferManager().getCurrent().length() > 0) {
+
+                        getBufferManager().newBuffer();
+                    }
+                }
+                catch (ConsoleException e) {
+                    
+                    err.println("Error reading input: " + e.getMessage());
+                    e.printStackTrace(err);
+                    done = true;
                 }
             }
         }
@@ -943,8 +968,11 @@ public class Session
      * 
      * @param input Where to read input.
      * @return The line read or null upon EOF.
+     * @throws ConsoleException If the user hits ^C ({@link ConsoleInterruptedException}),
+     *   or an error is encountered on input.
      */
-    private String readLine() {
+    private String readLine() 
+        throws ConsoleException {
         
         String line = null;
         try {
@@ -981,9 +1009,21 @@ public class Session
                 }
             }
         }
-        catch (IOException e) {
+        catch (ConsoleInterruptedException e) {
             
-            /* EOF */
+            throw e;
+        }
+        catch (ConsoleEOFException e) {
+            
+            line = null;
+        }
+        catch (EOFException e) {
+            
+            line = null;
+        }
+        catch (Throwable e) {
+            
+            throw new ConsoleException(e.getMessage(), e);
         }
         
         if (line != null && sqshContext.isInputEchoed()) {
