@@ -2,752 +2,875 @@
 	<Topic name="jsqsh">
 		<Description>JSqsh command line options</Description>
 		<HelpText><![CDATA[
-SYNOPSIS
-   jsqsh [options] [connection-name]
+## Synopsis
 
-DESCRIPTION
-   JSqsh (pronounced "jay-skwish") is a command line tool primarily intended
-   for working with relational databases systems.  It provides all of the
-   basic functionality such as entering and executing queries, display results
-   in a variety of formats, as well as a number of advanced features, such
-   as command line editing, history recall, piping of output to other commands,
-   I/O redirection and much more. 
+```
+jsqsh [options] [connection-name]
+   -A, --autoconnect          Allows jsqsh to automatically attempt to connect
+   -C, --config-dir=dir       Configuration directory in addition to $HOME/.jsqsh.
+   -D, --database=db          Database (catalog) context to use upon connection
+   -b, --debug=class          Turn on debugging for a java class or package
+   -w, --domain=domain        Windows domain to be used for authentication
+   -d, --driver=driver        Name of jsqsh driver to be used for connection
+   -R, --drivers=file         Specifies additional drivers.xml files to be loaded
+   -e, --echo                 Echoes all input back. Useful for running scripts.
+   -X, --exit=exit-type       Determines how exit status is computed ("total" failures or "last" failure
+   -g, --gui                  Send all command output to a graphical window
+   -h, --help                 Display help for command line usage
+   -i, --input-file=file      Name of file to read as input. This option may be repeated
+   -c, --jdbc-class=driver    JDBC driver class to utilize
+   -u, --jdbc-url=url         JDBC url to use for connection
+   -n, --non-interactive      Disables recording of input history, and line editing functionality
+   -o, --output-file=file     Name of file send output instead of stdout
+   -P, --password=pass        Password utilized for connection
+   -p, --port=port            Listen port for the server to connect to
+   -O, --prop=name=val        Set a driver connection property. Can be used more than once
+   -r, --readline=method      Readline method (readline,editline,getline,jline,purejava)
+   -S, --server=server        Name of the database server to connect to
+   -z, --setup                Enters jsqsh connection setup wizard
+   -s, --sid=SID              Instance id (e.g. Oracle SID) to utilize
+   -t, --topic=topic          Displays detailed help on specific topics
+   -U, --user=user            Username utilized for connection
+   -v, --var=name=value       Sets a jsqsh variable. This option may be repeated
+   -W, --width=cols           Sets the display width of output
+```
 
-NAMED CONNECTION SETUP
-   In the following sections, you will find a lot of options you may specify
-   to connect to a server (username, password, host, port, driver, etc.). To
-   avoid having to provide all of these options, jsqsh allow you to define a
-   named connection (or alias) for a set of connection properties and provides
-   a wizard for creating named connections.
+## Description
+
+JSqsh (pronounced "jay-skwish") is a command line tool primarily intended
+for working with relational databases systems.  It provides all of the
+basic functionality such as entering and executing queries, display results
+in a variety of formats, as well as a number of advanced features, such
+as command line editing, history recall, piping of output to other commands,
+I/O redirection and much more. 
+
+## Named connection setup
+
+In the following sections, you will find a lot of options you may specify
+to connect to a server (username, password, host, port, driver, etc.). To
+avoid having to provide all of these options, jsqsh allow you to define a
+named connection (or alias) for a set of connection properties and provides
+a wizard for creating named connections.
    
-  -S, --setup
-       Starts jsqsh's connection setup wizard. This will take you through a 
-       series of steps to manage your named connections. One the connection
-       wizard is complete you can use a named connection either by providing
-       the connection name to jsqsh on startup:
+### --setup (-S)
+
+Starts jsqsh's connection setup wizard. This will take you through a series of 
+steps to manage your named connections. One the connection wizard is complete 
+you can use a named connection either by providing the connection name to 
+jsqsh on startup:
        
-          shell$ jsqsh mydb
+    shell$ jsqsh mydb
           
-       or you can provide the name to the jsqsh \connect command at the jsqsh
-       prompt:
+or you can provide the name to the jsqsh `\connect` command at the jsqsh prompt:
        
-          1> \connect mydb
+    1> \connect mydb
    
-CONNECTION OPTIONS
-   The following options are all options available on the jsqsh command line
-   as well as to its "\connect" command, which may issue from the jsqsh prompt.
-   The presence of any of these options on the command line will cause jsqsh 
-   to automatically attempt to connect using the information provided, as 
-   if you had executed the "\connect" command.
+## Connection options
+
+The following options are all options available on the jsqsh command line
+as well as to its `\connect` command, which may issue from the jsqsh prompt.
+The presence of any of these options on the command line will cause jsqsh 
+to automatically attempt to connect using the information provided, as 
+if you had executed the `\connect` command.
    
-   In the help description below, you will see references to variables like
-   "${db}" or "${server}". When an option says that it sets a given variable,
-   what is referring to is that if you look at a driver definition using the
-   command "\drivers", like so:
+In the help description below, you will see references to variables like
+`${db}` or `${server}`. When an option says that it sets a given variable,
+what is referring to is that if you look at a driver definition using the
+command `\drivers`, like so:
    
-   1> \drivers
-   +-----------------+-------------+--------------------------------
-   | Target          | Name        | URL                            
-   +-----------------+-------------+--------------------------------
-   | * MySQL         | mysql       | jdbc:mysql://${server}:${port} 
+    1> \drivers
+    +-----------------+-------------+--------------------------------
+    | Target          | Name        | URL                            
+    +-----------------+-------------+--------------------------------
+    | * MySQL         | mysql       | jdbc:mysql://${server}:${port} 
    
-   The option may set one of these variables. Not all variables are meaningful
-   or used by all drivers.
+The option may set one of these variables. Not all variables are meaningful
+or used by all drivers.
    
-  -d, --driver=driver 
-       The name of the jsqsh driver definition that will be used for the 
-       connection (use \drivers to see a list).
+### --driver=*driver* (-d *driver*)
+
+The name of the jsqsh driver definition that will be used for the connection 
+(use `\drivers` to see a list).
               
-  -S, --server=server 
-       Sets the ${server} variable, which typically specifies the server name 
-       to which you wish to connect.
+### --server=*server* (-S *server*)
+
+Sets the `${server}` variable, which typically specifies the server name to which 
+you wish to connect.
                          
-  -p, --port=port 
-       Sets the ${port} variable, which typically is the port on which the
-       server is listening on for connections. Note that if not provided, most
-       JDBC drivers defined within jsqsh will automatically select a default 
-       port that is suitable for a default installation of the server to which 
-       you are connecting.
+### --port=*port* (-p *port*)
+
+Sets the `${port}` variable, which typically is the port on which the
+server is listening on for connections. Note that if not provided, most
+JDBC drivers defined within jsqsh will automatically select a default 
+port that is suitable for a default installation of the server to which 
+you are connecting.
                           
-  -D, --database=db   
-       Sets the ${db} property. This will cause the database context to be 
-       set to the provided database following connection to the server (in the 
-       JDBC world the database context is known as the "catalog"). 
-       Not all drivers support this behavior.
+### --database=*db* (-D *db*)
+
+Sets the ${db} property. This will cause the database context to be 
+set to the provided database following connection to the server (in the 
+JDBC world the database context is known as the "catalog"). 
+Not all drivers support this behavior.
                           
-  -U, --username=user 
-       Sets the ${user} property that determines the username that will be 
-       utilized to connect to the database.
+### --username=*user* (-U *user*)
+
+Sets the `${user}` property that determines the username that will be 
+utilized to connect to the database.
                           
-  -P, --password=pass 
-       Sets the ${password} property that will be used to authenticate with 
-       the server.
-                          
-  -s, --sid=SID
-       Sets the ${SID} property, and provides the Oracle SID that will be used 
-       when connecting to Oracle.
-  
-  -u, --jdbc-url=url  
-       This option allows you to provide an explicit JDBC URL to utilize when 
-       establishing the connection rather than using jsqsh's driver mechanism. 
-       Typically use of this parameter also requires the use of the --jdbc-class 
-       argument as well.
+### --password=*pass* (-P *pass*)
+
+Sets the `${password}` property that will be used to authenticate with 
+the server.
+
+### --sid=*SID* (-s *SID*)
+
+Sets the `${SID}` property, and provides the Oracle SID that will be used 
+when connecting to Oracle.
+
+### --jdbc-url=*url* (-u *url*)
+
+This option allows you to provide an explicit JDBC URL to utilize when 
+establishing the connection rather than using jsqsh's driver mechanism. 
+Typically use of this parameter also requires the use of the `--jdbc-class`
+argument as well.
                
-  -c, --jdbc-class=class 
-        When utilizing a direct JDBC url (and not a jsqsh driver definition), 
-        this should be utilized to define which JDBC driver class will be 
-        utilized for the connection.
+### --jdbc-class=*class* (-c *class*)
+
+When utilizing a direct JDBC url (and not a jsqsh driver definition), this 
+should be utilized to define which JDBC driver class will be utilized for 
+the connection.
                           
-  -w, --domain=domain 
-        For Windows based authentication, sets the ${domain} property, specifying 
-        the windows domain to be utilized when establishing the connection. 
-        Not all JDBC drivers support this functionality.
-        
-  -O, --prop=name=value 
-        This option allows JDBC driver properties to be explicitly set prior 
-        to connecting, and may be listed more than once. For example: 
-        
-           \connect --prop compress=true --prop failover=false
-                        
-        The set of properties that are available are specific to a given JDBC 
-        driver, so you'll need to consult the documentation for your driver 
-        for details.
+### --domain=*domain* (-w *domain*)
+
+For Windows based authentication, sets the `${domain}` property, specifying 
+the windows domain to be utilized when establishing the connection. Not 
+all JDBC drivers support this functionality.
                        
-   connection-name 
-        If provided, this indicates the logical connection name that should be 
-        used to establish the connection. If additional arguments are provided, 
-        then they will override the same options associated with the logical 
-        connection name. See "\help connect" for details on named connections.
+### --prop=*name=value* (-O *name=value*)
 
+This option allows JDBC driver properties to be explicitly set prior to 
+connecting, and may be listed more than once. For example:
+                      
+    \connect --prop compress=true --prop failover=false
+                        
+The set of properties that are available are specific to a given JDBC 
+driver, so you'll need to consult the documentation for your driver for 
+details.
+                          
+### connection-name 
+
+If provided, this indicates the logical connection name that should be 
+used to establish the connection. If additional arguments are provided, 
+then they will override the same options associated with the logical 
+connection name. See "\help connect" for details on named connections.
+
+## General options
+
+The following command line options are supported by jsqsh.
    
-GENERAL OPTIONS
-   The following command line options are supported by jsqsh.
+### --config-dir=*dir* (-C *dir*)
+
+The `--config-dir` option can be used to specify a directory containing
+jsqsh configuration files (see START UP, above). This directory will
+be processed in addition (and following) `$HOME/.jsqsh`.  This option
+may be provided more than once if you wish to read multiple configuration
+directories.
+
+### --debug=*class* (-b *class*)
+
+Enable java debugging output for a specific jsqsh java class or package.
+All such debugging messages will be issued to stdout of jsqsh
    
-   -C, --config-dir=dir
-       The --config-dir option can be used to specify a directory containing
-       jsqsh configuration files (see START UP, above). This directory will
-       be processed in addition (and following) $HOME/.jsqsh.  This option
-       may be provided more than once if you wish to read multiple configuration
-       directories.
+### --echo (-e)
+
+Causes all input to be echoed to the screen. This is particularly useful
+with the `--input-file` (`-i`) option, if you wish to see the supplied
+input along with the output of the commands.
+
+### --help (-h)
+
+Display command line help information and exit.
    
-   -e, --echo
-       Causes all input to be echoed to the screen. This is particularly useful
-       with the --input-file (-i) option, if you wish to see the supplied
-       input along with the output of the commands.
-   
-   -i, --input-file=filename
-       Indicates that input will be provided from an input file rather than
-       reading from interactive input from a user. 
+### --input-file=*filename* (-i *filename*)
+
+Indicates that input will be provided from an input file rather than
+reading from interactive input from a user. 
        
-       This option may be provided more than once on the command line, and 
-       input will be read from all files that are provided in the order 
-       that they are provided. It is important to note that each input file 
-       is processed within the same physical jsqsh session. This means that 
-       configuration options or variables that are set by one input file can 
-       affect the following input file.
+This option may be provided more than once on the command line, and 
+input will be read from all files that are provided in the order 
+that they are provided. It is important to note that each input file 
+is processed within the same physical jsqsh session. This means that 
+configuration options or variables that are set by one input file can 
+affect the following input file.
        
-       If the filename provided is "-" that indicates that the input should
-       be read interactively from the user (from "stdin"). This option is useful
-       if you wish to execute a "setup" script before supplying input, like so:
+If the filename provided is `-` that indicates that the input should
+be read interactively from the user (from "stdin"). This option is useful
+if you wish to execute a "setup" script before supplying input, like so:
        
-          jsqsh -i setup.sql -i -
-          ...
-          1> 
+    jsqsh -i setup.sql -i -
+    ...
+    1> 
           
-       will read and execute the contents of setup.sql, then prompt the user
-       for interactive input.
+will read and execute the contents of setup.sql, then prompt the user
+for interactive input.
        
-   -n, --non-interactive
-       When input is read from a file (--input-file), the input is automatically
-       considered non-interactive, and the following functionality is disabled:
+### --non-interactive (-n)
+
+When input is read from a file (`--input-file`), the input is automatically
+considered non-interactive, and the following functionality is disabled:
        
-         * Display of the welcome banner
-         * Display of the prompt
-         * Recording of line editor line history 
-         * Recording of statement history
+* Display of the welcome banner
+* Display of the prompt
+* Recording of line editor line history 
+* Recording of statement history
          
-       When input is read from stdin, however, jsqsh cannot detect if the 
-       input is actual user input or is redirected input from a file, like so:
+When input is read from stdin, however, jsqsh cannot detect if the 
+input is actual user input or is redirected input from a file, like so:
        
-           jsqsh < input.sql
+    jsqsh < input.sql
            
-       so the --non-interactive flag may be used to force non-interactive
-       behavior when it isn't desirable.
+so the `--non-interactive` flag may be used to force non-interactive behavior 
+when it isn't desirable.
        
-   -o, --output-file=filename
-       Causes output to be redirected to an output file rather than the users
-       screen. Note that error output continues to go to the screen (stderr).
+### --output-file=*filename* (-o *filename*)
+
+Causes output to be redirected to an output file rather than the users
+screen. Note that error output continues to go to the screen (stderr).
        
-   -R, --drivers=file
-       The --drivers option can be used to explicitly load additional JDBC
-       driver definition files.  The driver definition file teaches jsqsh
-       how to load a given JDBC driver without the user having to provide
-       a full JDBC URL and driver class name.  Once jsqsh is started an 
-       example template for a driver definition file is placed in your
-       $HOME/.jsqsh/drivers.xml.  This option may be provided more than
-       once if you wish to load multiple driver definition files.
-       
-   -v, --var=name=value
-       The --var (-v) option may be used to explicitly set or define a 
-       jsqsh variable. For example, if you wish to enable variable expansion
-       during SQL execution you can do any one of the following:
-          
-           jsqsh --var expand=true
-           jsqsh --var=expand=true
-           jsqsh -vexpand=true
-           jsqsh -v expand=true
+### --drivers=*file* (-R *file*)
+
+The `--drivers` option can be used to explicitly load additional JDBC
+driver definition files.  The driver definition file teaches jsqsh
+how to load a given JDBC driver without the user having to provide
+a full JDBC URL and driver class name.  Once jsqsh is started an 
+example template for a driver definition file is placed in your
+`$HOME/.jsqsh/drivers.xml`.  This option may be provided more than
+once if you wish to load multiple driver definition files.
+
+### --exit=*exit-value* (-X *exit-value*)
+
+The `--exit` flag determines how jsqsh computes its final exit status. The
+default is "total", in which the final exit code is the total number of
+failures seen during the session.  A value of "last" indicates that the
+the exit status should be that of the last executed command (an explicit
+`\quit` command is excluded from consideration).
+
+### --setup
+
+Start's jsqsh directly into the driver/connection setup wizard.  This 
+is the same as running the `\setup` command at the jsqsh prompt.
+
+### --topic=*topic* (-t *topic*)
+
+Displays the text of a builtin jsqsh help topic and then exits.  This
+is the same as running the `\help` command. For example:
+
+    jsqsh --topic help
     
-       This option may be provided more than once to set multiple variables.
-       
-   -X, --exit=exit-value
-       The --exit flag determines how jsqsh computes its final exit status. The
-       default is "total", in which the final exit code is the total number of
-       failures seen during the session.  A value of "last" indicates that the
-       the exit status should be that of the last executed command (an explicit
-       "\quit" command is excluded from consideration).
+will display help for the `\help`.
 
-START UP
-   Upon startup, jsqsh performs the following activities:
+### --var=*name*=*value* (-v *name*=*value*)
+
+The `--var` (`-v`) option may be used to explicitly set or define a 
+jsqsh variable. For example, if you wish to enable variable expansion
+during SQL execution you can do any one of the following:
+          
+    jsqsh --var expand=true
+    jsqsh --var=expand=true
+    jsqsh -vexpand=true
+    jsqsh -v expand=true
+    
+This option may be provided more than once to set multiple variables.
+
+### --width=*width* (-W *width*)
+
+For certain display styles, such as [[perfect]], jsqsh will attempt to fit
+the columns to the current display width.  The `--width` (`-W`) option allows
+you to force the screen width to the specified value.
+
+## Start up
+
+Upon startup, jsqsh performs the following activities:
    
-   1. If $HOME/.jsqsh doesn't exist, it is created and populated with two
-      files, driver.xml and sqshrc. These files are described below.
-   2. If $HOME/.jsqsh/drivers.xml file is present, it is loaded. This file 
-      can be used to define JDBC drivers to jsqsh that it does not 
-      understand natively. The default drivers.xml file is empty, but has 
-      lots of comments and examples describing the format.
-   3. If $HOME/.jsqsh/sqshrc is read if present. This file main contain any
-      jsqsh command or directive, and is typically used to set default
-      configuration variables, classpath settings, aliases, etc.
-   4. If $HOME/.jsqsh/history.xml is present it is loaded. This file contains
-      your previous query execution history (see "\help history").
-   5. Any additional configuration directories specified with --config-dir (-C)
-      (see below) are processed in the same fashion as steps #2-#4.
-   6. Any additional driver definition files specified with --drivers (-R)
-      (see below) are loaded.
-   7. If any connection options were provided (see CONNECTION OPTIONS, below)
-      an attempt is made to connect with the driver. If this fails, jsqsh
-      exits.
-   8. The jsqsh prompt is presented (in interactive mode) or input is processed
-      if --input-file (-i) was provided.  
+1. If `$HOME/.jsqsh` doesn't exist, it is created and populated with two
+   files, `driver.xml` and `sqshrc`. These files are described below.
+2. If `$HOME/.jsqsh/drivers.xml` file is present, it is loaded. This file 
+   can be used to define JDBC drivers to jsqsh that it does not 
+   understand natively. The default `drivers.xml` file is empty, but has 
+   lots of comments and examples describing the format.
+3. If `$HOME/.jsqsh/sqshrc` is read if present. This file main contain any
+   jsqsh command or directive, and is typically used to set default
+   configuration variables, classpath settings, aliases, etc.
+4. If `$HOME/.jsqsh/history.xml` is present it is loaded. This file contains
+   your previous query execution history (see [[\history]]).
+5. Any additional configuration directories specified with `--config-dir` (`-C`)
+   (see below) are processed in the same fashion as steps #2-#4.
+6. Any additional driver definition files specified with `--drivers` (`-R`)
+   (see below) are loaded.
+7. If any connection options were provided (see **Connection options*, below)
+   an attempt is made to connect with the driver. If this fails, jsqsh
+   exits.
+8. The jsqsh prompt is presented (in interactive mode) or input is processed
+   if `--input-file` (`-i`) was provided.  
 
-SEE ALSO
-   connect, drivers    
+## See also
+
+[[\connect]], [[\drivers]]
           ]]></HelpText>
 </Topic>
 
 	<Topic name="jni">
 		<Description>Features provided by the jsqsh JNI layer</Description>
 		<HelpText><![CDATA[
-JSQSH JNI LAYER
-    JSqsh is written in almost 100% java code, making it very 
-    portable between platforms, however there are a few places 
-    where java just does not provide enough functionality to 
-    implement certain features that are needed by jsqsh, so jsqsh 
-    can optinally load  a shared library (or DLL) that provides
-    this additional  functionality. This shared library is
-    written using the Java Native Interface (JNI) and on UNIX
-    platforms is typically called 'libjsqsh.so' and on
-    Windows is 'libjsqsh.dll'.
+## Jsqsh JNI layer
+
+JSqsh is written in almost 100% java code, making it very 
+portable between platforms, however there are a few places 
+where java just does not provide enough functionality to 
+implement certain features that are needed by jsqsh, so jsqsh 
+can optinally load  a shared library (or DLL) that provides
+this additional  functionality. This shared library is
+written using the Java Native Interface (JNI) and on UNIX
+platforms is typically called 'libjsqsh.so' and on
+Windows is 'libjsqsh.dll'.
             
-    The jsqsh shared library is not available on all platforms, and
-    jsqsh will generate a warning upon startup if it is unable to
-    load its JNI interface.  Lack of JNI causes the following
-    behavior:
+The jsqsh shared library is not available on all platforms, and
+jsqsh will generate a warning upon startup if it is unable to
+load its JNI interface.  Lack of JNI causes the following
+behavior:
             
-    - Operating system commands that are piped to (e.g. "go | grep ...")
-      will not have direct access to the console (in the UNIX world
-      this is called "tty" access). This means that these commands 
-      cannot perform any console operations. Specifically, commands
-      such as "more" will not function properly because "more" needs
-      to query the console as to its size and will be unable to do so.
-              
-    - Similarly, the editor launched by \buf-edit will not have access
-      to the console, so text-based editors such as 'vi' or 'emacs' 
-      will not work properly. In this case, you will need to use a 
-      graphical editor such as "notepad.exe" or "gvim".
+- Operating system commands that are piped to (e.g. `go | grep ...`)
+  will not have direct access to the console (in the UNIX world
+  this is called "tty" access). This means that these commands 
+  cannot perform any console operations. Specifically, commands
+  such as "more" will not function properly because "more" needs
+  to query the console as to its size and will be unable to do so.
+          
+- Similarly, the editor launched by `\buf-edit` will not have access
+  to the console, so text-based editors such as `vi` or `emacs` 
+  will not work properly. In this case, you will need to use a 
+  graphical editor such as "notepad.exe" or "gvim".
 		]]></HelpText>
 </Topic>
 
 <Topic name="welcome">
 		<Description>The jsqsh welcome message</Description>
 		<HelpText><![CDATA[
-WELCOME TO JSQSH!
+## Welcome to JSqsh!
             
-    It looks like this is the first time that you've run jsqsh (or
-    you just typed '\help welcome' at the jsqsh prompt). If this is
-    the first time you have run jsqsh, you will find that you have
-    a shiney new directory called '.jsqsh' in your home directory
-    and that this directory contains a couple of files that you
-    should be aware of:
+It looks like this is the first time that you've run jsqsh (or
+you just typed '\help welcome' at the jsqsh prompt). If this is
+the first time you have run jsqsh, you will find that you have
+a shiney new directory called '.jsqsh' in your home directory
+and that this directory contains a couple of files that you
+should be aware of:
             
-    drivers.xml - JSqsh comes pre-defined to understand how to use
-       a fixed number of JDBC drivers, however this file may be
-       used to teach it how to recognize other JDBC drivers. The
-       file is pretty well commented, so hopefully it is enough
-       to get you started.
+* drivers.xml  
+  JSqsh comes pre-defined to understand how to use
+  a fixed number of JDBC drivers, however this file may be
+  used to teach it how to recognize other JDBC drivers. The
+  file is pretty well commented, so hopefully it is enough
+  to get you started.
                
-    sqshrc - Everything contained in this file is executed just
-       as if you had typed commands at the sqsh prompt and is 
-       the place where you can set variables and configure sqsh
-       to your likings.
+* sqshrc  
+  Everything contained in this file is executed just
+  as if you had typed commands at the sqsh prompt and is 
+  the place where you can set variables and configure sqsh
+  to your likings.
                
-    JSqsh is intended to be self-documenting. If you would like
-    to see this information again, then type '\help welcome' at 
-    the jsqsh prompt, or run '\help' to see a list of all help
-    topics that are available.
+JSqsh is intended to be self-documenting. If you would like
+to see this information again, then type '\help welcome' at 
+the jsqsh prompt, or run '\help' to see a list of all help
+topics that are available.
 	  ]]></HelpText>
 </Topic>
 
 <Topic name="buffers">
     <Description>SQL buffers and how they are referenced.</Description>
     <HelpText><![CDATA[
-JSQSH SQL BUFFERS
+## JSqsh SQL buffers
     
-    Each time you create and execute a SQL statement, that statement is saved
-    away into your SQL buffer history. The list of prior SQL statements 
-    can be displayed using the '\history' command.
-    
-    Many jsqsh command allow you to refer to SQL buffers via special syntax,
-    each starting with an exclamation character (!).  This syntax allows for
-    the following forms:
-    
-    !.   Refers to the current SQL buffer that you are currently 
-         typing in to (but have not yet executed).
-         
-    !..  Refers to the most recently executed SQL buffer.
-    
-    !!   A synonym for "!..". In addition, typing "!!" at the prompt
-         causes the current SQL buffer ("!.") to be appended with the
-         most recently executed SQL statement. This is a useful feature
-         for re-executing the previous statment. For example, to re-execute
-         the most recently executed SQL statement:
-         
-           1> !!
-           ...
-           5> \go
-           
-         The "!!" appends the previously executed statement to the current
-         buffer (which was empty) and the \go, obviously, executes the
-         statement.
-    
-    !... Refers to the statement you executed two executions prior. Additional
-         periods may be provided to continue moving back through executions 
-         (e.g. !....... refers to the statement executed 6 executions prior).
-         
-    !N   This syntax allows you to refer to SQL statements executed a specific
-         number of executions prior. For example "!0" refers to the current
-         buffer (that has not yet been executed), "!1" refers to the 
-         most recently execute statements, "!2" the one before that and so on.
-         
-EXAMPLES
-    Examples of commands that utilize this syntax are \buf-edit, \but-copy,
-    and \buf-append.  For example:
-    
-       \buf-edit !!
+Each time you create and execute a SQL statement, that statement is saved
+away into your SQL buffer history. The list of prior SQL statements 
+can be displayed using the `\history` command.
+
+Many jsqsh command allow you to refer to SQL buffers via special syntax,
+each starting with an exclamation character (`!`).  This syntax allows for
+the following forms:
+
+* `!.`  
+  Refers to the current SQL buffer that you are currently 
+  typing in to (but have not yet executed).
+     
+* `!..`  
+  Refers to the most recently executed SQL buffer.
+
+* `!!`  
+   A synonym for `!..`. In addition, typing `!!` at the prompt
+   causes the current SQL buffer (`!.`) to be appended with the
+   most recently executed SQL statement. This is a useful feature
+   for re-executing the previous statment. For example, to re-execute
+   the most recently executed SQL statement:
+     
+        1> !!
+        ...
+        5> \go
        
-    indicats that the most recently executed statement should be edited.
+    The `!!` appends the previously executed statement to the current
+    buffer (which was empty) and the \go, obviously, executes the
+    statement.
+
+* `!...`  
+  Refers to the statement you executed two executions prior. Additional
+  periods may be provided to continue moving back through executions 
+  (e.g. `!.......` refers to the statement executed 6 executions prior).
+     
+* `!N`  
+  This syntax allows you to refer to SQL statements executed a specific
+  number of executions prior. For example `!0` refers to the current
+  buffer (that has not yet been executed), `!1` refers to the 
+  most recently execute statements, `!2` the one before that and so on.
+     
+## Examples
+
+Examples of commands that utilize this syntax are `\buf-edit`, `\but-copy`,
+and `\buf-append`.  For example:
+    
+    \buf-edit !!
+       
+indicates that the most recently executed statement should be edited.
 	  ]]></HelpText>
 </Topic>
 
 <Topic name="license">
 		<Description>Displays the jsqsh license</Description>
 		<HelpText><![CDATA[
-   Copyright 2007-2015 Scott C. Gray and Others (see AUTHORS)
+Copyright 2007-2015 Scott C. Gray and Others (see AUTHORS)
   
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
   
-       http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
   
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 	  ]]></HelpText>
 </Topic>
 
 <Topic name="contributors">
 		<Description>Individuals who have contributed to jsqsh</Description>
 		<HelpText><![CDATA[
-JSQSH CONTRIBUTORS
+## JSqsh contributors
 
-   The following individuals have contributed to the development of
-   jsqsh either by direct contribution of code, suggestions, or 
-   inspiration.
+The following individuals have contributed to the development of
+jsqsh either by direct contribution of code, suggestions, or 
+inspiration.
    
-   Walter Jordan <walter.gator at gmail.com>
-       Patches and useful suggestions.
+Walter Jordan <walter.gator at gmail.com> - Patches and useful suggestions.
        
-   Ryan Stouffer <rstouffer at inventa.com>
-       Enhancements and additions to GUI widgets.
+Ryan Stouffer <rstouffer at inventa.com> - Enhancements and additions to GUI widgets.
 	  ]]></HelpText>
 </Topic>
 
 <Topic name="options">
 		<Description>Command line option processing</Description>
 		<HelpText><![CDATA[
-COMMAND LINE OPTIONS
-   Jsqsh commands executed on the jsqsh command line follow many 
-   of the same rules as program executed at your computers command
-   line (well, unless you are used to working in the Windows 
-   command shell, then you'll find it is better).
-   
-   All jsqsh commands accept command line options. These options
-   are provided in two different forms: a short form an a long form.
-   
-SHORT OPTIONS
-   Short command line options are provided in the form of a dash (-)
-   followed by a letter. For example, the \connect command requires
-   a username to be used to establish a connection to the database
-   server.  The short form of this option is "-U" followed by the name
-   of the user. You can either have a space following the username or 
-   not, so that:
-   
-      \connect -Usgray
-      
-   is the same as:
-   
-      \connect -U sgray
+## Command line options
 
-   In some cases, the command line option does not take an argument 
-   (in the above "sgray" was the argument to the -U option). For 
-   example, with the \echo command:
+Jsqsh commands executed on the jsqsh command line follow many 
+of the same rules as program executed at your computers command
+line (well, unless you are used to working in the Windows 
+command shell, then you'll find it is better).
    
-      \echo -n hello
+All jsqsh commands accept command line options. These options
+are provided in two different forms: a short form an a long form.
+   
+## Short options
+
+Short command line options are provided in the form of a dash (`-`)
+followed by a letter. For example, the `\connect` command requires
+a username to be used to establish a connection to the database
+server.  The short form of this option is `-U` followed by the name
+of the user. You can either have a space following the username or 
+not, so that:
+   
+    \connect -Usgray
       
-   the '-n' flag indicates that a new-line should NOT be displayed
-   after printing the word "hello" 
+is the same as:
    
-LONG OPTIONS
-   Short options are easy to enter, but for command, such as \connect,
-   which require a lot of options, it can begin to look like alphabet
-   soup:
+    \connect -U sgray
+
+In some cases, the command line option does not take an argument 
+(in the above "sgray" was the argument to the `-U` option). For 
+example, with the `\echo` command:
    
-      \connect -Usa -Pguessme -Dmaster -Ssql-prod -dmssql-jtds
-   
-   To address this, every command line option also has an alternate
-   long form. For example, the equivalent of the -U option for 
-   \connect is (note the double-dashes, they indicate it is a long option):
-   
-      \connect --user=sgray
-   
-   or
-   
-      \connect --user sgray
+    \echo -n hello
       
-   this, the full command line shown above would be:
+the `-n` flag indicates that a new-line should NOT be displayed after 
+printing the word "hello" 
    
-      \connect --user=sa --password=guessme --database=master
-               --server=sql-prod --driver=mssql-jtds
+## Long options
+
+Short options are easy to enter, but for command, such as \connect,
+which require a lot of options, it can begin to look like alphabet
+soup:
    
-   this form may take more typing but is much more explicit.
+    \connect -Usa -Pguessme -Dmaster -Ssql-prod -dmssql-jtds
    
-OPTION DOCUMENTATION
-   In all help documents, options are generally shown as:
+To address this, every command line option also has an alternate
+long form. For example, the equivalent of the `-U` option for 
+`\connect` is (note the double-dashes, they indicate it is a long option):
+
+    \connect --user=sgray
    
-      -X, --long-name1=value
+or
    
-   where the option -X is also known as --long-name1 and takes
-   an argument (e.g. "-X value", "-Xvalue", "--long-name1=value"
-   or "--long-name1 value" are all the same).
-   
-      -Y, --long-name2[=value]
+    \connect --user sgray
       
-   where the option -Y is also known as --long-name2 and has
-   a value that is not required. 
+this, the full command line shown above would be:
    
-      -Z, --long-name3
+    \connect --user=sa --password=guessme --database=master --server=sql-prod --driver=mssql-jtds
+   
+this form may take more typing but is much more explicit.
+   
+## Option documentation
+
+In all help documents, options are generally shown as:
+   
+### --long-name1=*value* (-X *value*)
+   
+where the option `-X` is also known as `--long-name1` and takes
+an argument (e.g. `-X value`, `-Xvalue`, `--long-name1=value`
+or `--long-name1 value` are all the same).
+   
+### --long-name2\[=*value*\] (-Y [*value*])
+      
+where the option `-Y` is also known as `--long-name2` and has
+a value that is not required. 
+   
+### --long-name3 (-Z)
     
-   where the option -Z is also known as --long-name3 and does
-   not have an argument (e.g. "-Z", or "--long-name3" are the same)
+where the option `-Z` is also known as `--long-name3` and does
+not have an argument (e.g. `-Z`, or `--long-name3` are the same)
       
-OPTIONS SUPPORTED BY ALL COMMANDS
-   All jsqsh commands accept the following arguments:
+## Options supported by all commands
+
+All jsqsh commands accept the following arguments:
    
-   -g, --gui   Display all output in a graphical popup window. This is 
-               useful for setting aside a result set for later reference
-               while you continue to work.
+### --gui (-g)
+
+Display all output in a graphical popup window. This is useful for 
+setting aside a result set for later reference while you continue to work.
                
-   -h, --help  Displays a description how to execute the command.
+### --help (-h)
+
+Displays a description how to execute the command.
 	  ]]></HelpText>
 </Topic>
 
 <Topic name="redirection">
 		<Description>Command line output redirection</Description>
 		<HelpText><![CDATA[
-COMMAND LINE REDIRECTION
-    As with standard Bourne shell (and most other shells, for that 
-    matter), a command's output may be redirected using a special
-    notation interpreted by the jsqsh. The following may appear anywhere
-    on the command line, but only redirection that is specified prior
-    to a pipe (|) actually has any effect on the behavior of internal
-    jsqsh commands.
-    
-    [n]>file  Causes the output of the command to be redirected to a 
-              file.  Following standard shell conventions, the "n" is 
-              an optional number that can be used to indicate which
-              output of the command is redirected to the file.  A "1"
-              indicates the regular output should be redirected, and
-              a "2" indicates only the errors should be redirected.
-              If no number is provided, then regular output is diverted.
-              
-              For example:
-              
-              \go >tmp.out  Sends the output of the "\go" command
-                            to a file called tmp.out. Errors will still
-                            go to your screen.
-                            
-              \go 1>tmp.out Synonym for the above.
-                            
-              \go 2>tmp.out The results from the \go will go to your screen
-                            but errors will be captured in tmp.out.
-    
-    [n]>>file This is identical to the above except that if the file 
-              exists, it is appended to rather than overwritten.
-    
-    [m]>&[n]  This allows one type of output stream (regular output
-              or errors) to be redirected to the other type of stream.
-              For example:
-              
-              \go 2>&1      Causes errors from the SQL to go to the
-                            regular output stream
-              
-              \echo "Error!" 1>&2 
-                            Causes the output of the \echo command to
-                            be send to the error stream.
-                            
-              \echo "Error!" >&2 
-                            A synonym for the above.
-   
-    >+[id]   This syntax is specific to jsqsh and is used to redirect the
-             output from the current command to the context of another 
-             session (specified by "id"). If no session id is provided,
-             then the output of the current session is "looped back" to itself.
-             See SESSION REDIRECTION, below for details.
-             
-PIPES AND REDIRECTION
-    It is important to understand that jsqsh handles pipes very differently
-    from that of a typical shell. In jsqsh anything following a pipe 
-    character (|) is passed directly to the operating system shell, which
-    means that any I/O redirection following the pipe character is being
-    performed by your local operating system shell and not by jsqsh and will
-    therefore follow whatever rules are defined by your O/S shell.
+## Command line redirection
 
-SESSION REDIRECTION
-    Session redirection is indicated by the special syntax ">+[id]" where
-    "id" is the id of the session that you wish to re-direct the output to.
-    If the id is not specified then the output is sent back to your current
-    session for subsequent processing.
+As with standard Bourne shell (and most other shells, for that 
+matter), a command's output may be redirected using a special
+notation interpreted by the jsqsh. The following may appear anywhere
+on the command line, but only redirection that is specified prior
+to a pipe (`|`) actually has any effect on the behavior of internal
+jsqsh commands.
     
-    When jsqsh encounters a session redirection the following takes place:
-    
-    1. A temporary file is created and the commands output is sent to
-       that file.
-    2. If the command involves a pipe, the output of the pipe is sent to
-       that file.
-    3. After the command completes, the contents of the file is executed
-       in the context of the target session as if:
+* `[n]>file`  
+
+   Causes the output of the command to be redirected to a 
+   file.  Following standard shell conventions, the `n` is 
+   an optional number that can be used to indicate which
+   output of the command is redirected to the file.  A `1`
+   indicates the regular output should be redirected, and
+   a `2` indicates only the errors should be redirected.
+   If no number is provided, then regular output is diverted.
+              
+   For example:
+              
+        \go >tmp.out
+   
+   Sends the output of the `\go` command to a file called 
+   `tmp.out`. Errors will still go to your screen.
+                            
+        \go 1>tmp.out
        
-           \eval <tmp_file>
+   Synonym for the above.
+                            
+        \go 2>tmp.out 
        
-       was executed in the target session.
+   The results from the `\go` will go to your screen but errors 
+   will be captured in tmp.out.
+    
+* `[n]>>file`  
+
+   This is identical to the above except that if the file 
+   exists, it is appended to rather than overwritten.
+    
+* `[m]>&[n]`  
+
+   This allows one type of output stream (regular output
+   or errors) to be redirected to the other type of stream.
+   For example:
+              
+        \go 2>&1
+
+   Causes errors from the SQL to go to the regular output 
+   stream
+              
+        \echo "Error!" 1>&2 
+
+   Causes the output of the \echo command to be send to the error 
+   stream.
+                 
+        \echo "Error!" >&2 
+
+   A synonym for the above.
+   
+* `>+[id]`  
+
+  This syntax is specific to jsqsh and is used to redirect the output 
+  from the current command to the context of another session (specified 
+  by `id`). If no session id is provided, then the output of the current 
+  session is "looped back" to itself. See **Session redirection**, below 
+  for details.
+             
+## Pipes and redirection
+
+It is important to understand that jsqsh handles pipes very differently
+from that of a typical shell. In jsqsh anything following a pipe 
+character (`|`) is passed directly to the operating system shell, which
+means that any I/O redirection following the pipe character is being
+performed by your local operating system shell and not by jsqsh and will
+therefore follow whatever rules are defined by your O/S shell.
+
+## Session redirection
+
+Session redirection is indicated by the special syntax `>+[id]` where
+`id` is the id of the session that you wish to re-direct the output to.
+If the id is not specified then the output is sent back to your current
+session for subsequent processing.
+    
+When jsqsh encounters a session redirection the following takes place:
+    
+1. A temporary file is created and the commands output is sent to
+   that file.
+2. If the command involves a pipe, the output of the pipe is sent to
+   that file.
+3. After the command completes, the contents of the file is executed
+   in the context of the target session as if:
        
-    The important item to note is that any output from the command being
-    directed is treated *exactly* as if the user had typed it into the
-    prompt in the context of the target session.
-    
-    Here's why this is so important to understand:
-    
-       1> echo 'select 1' >+2 
+        \eval tmp_file
        
-    will *not* cause a "select 1" to be executed in session #2. All that
-    will happen is that jsqsh will switch to the context of session #2,
-    pretend that the user has typed "select 1", and then switch back to the
-    current session.  The end result, is that a "select 1" will be appended
-    to the current SQL buffer (the SQL buffer is independant of sessions).
-    
-    If you actually want to execute the command then you can do one of two
-    things:
-    
-       1> echo 'select 1;' >+ 2
+   was executed in the target session.
        
-    or 
+The important item to note is that any output from the command being
+directed is treated *exactly* as if the user had typed it into the
+prompt in the context of the target session.
     
-       1> echo 'select 1' >+2
-       2> \echo 'go' >+2
+Here's why this is so important to understand:
+    
+    1> echo 'select 1' >+2 
        
-    In the first case, the semicolon causes the execution of the SQL
-    and in the second, the "go" executed in the context of session #2
-    causes the execution.
+will *not* cause a `select 1` to be executed in session #2. All that
+will happen is that jsqsh will switch to the context of session #2,
+pretend that the user has typed `select 1`, and then switch back to the
+current session.  The end result, is that a `select 1` will be appended
+to the current SQL buffer (the SQL buffer is independant of sessions).
+    
+If you actually want to execute the command then you can do one of two
+things:
+    
+    1> echo 'select 1;' >+ 2
+       
+or 
+    
+    1> echo 'select 1' >+2
+    2> \echo 'go' >+2
+       
+In the first case, the semicolon causes the execution of the SQL
+and in the second, the `go` executed in the context of session #2
+causes the execution.
 	  ]]></HelpText>
 </Topic>
 
 <Topic name="editing">
         <Description>JSqsh line editing</Description>
         <HelpText><![CDATA[
-JSQSH LINE EDITING
-   Jsqsh can utilize several different line editing libraries that allow
-   you to move around and edit the current line you are typing at, as well
-   as to scroll backwards and forwards through previous lines of text
-   that you have typed in.  Note that this is different from recalling
-   and editing entire statements: for that, please see the \help for 
-   "buffers" "history", and "buf-edit".
+## JSqsh line editing
 
-CHOOSING A LINE EDITOR
-   JSqsh uses JLine as the default line editor (see below).  However,
-   it supports a number of editors, You can control which editor is used 
-   via either the "--readline" command line option when starting jsqsh, 
-   or the JSQSH_READLINE environment variable, so to one of the values 
-   below:
+Jsqsh can utilize several different line editing libraries that allow
+you to move around and edit the current line you are typing at, as well
+as to scroll backwards and forwards through previous lines of text
+that you have typed in.  Note that this is different from recalling
+and editing entire statements: for that, please see the `\help` for 
+[[buffers]], [[\history]], and [[\buf-edit|\buf_edit]].
 
-      * jline    - JLine (built-in)
-      * readline - GNU Readline (via java-readline, see below)
-      * editline - BSD Editline (via java-readline, see below)
-      * getline  - Getline (via java-readline, see below)
-      * none     - None (no line editor)
+## Choosing a line editor
 
-JLINE LINE EDITING
-   As of JSqsh 1.5, the default line editor is JLine:
+JSqsh uses JLine as the default line editor (see below).  However,
+it supports a number of editors, You can control which editor is used 
+via either the `--readline` command line option when starting jsqsh, 
+or the `JSQSH_READLINE` environment variable, so to one of the values 
+below:
 
-       https://github.com/jline/jline2
+Value     | Description
+----------|-------------------------------------------
+jline     | JLine (built-in)
+readline  | GNU Readline (via java-readline, see below)
+editline  | BSD Editline (via java-readline, see below)
+getline   | Getline (via java-readline, see below)
+none      | None (no line editor)
 
-   This library provides full line editing, history recall, searching,
-   emacs and vi keymaps, configurable keymaps and a bunch of other 
-   functionality.  The JLine library is not 100% java and relies upon
-   some native code.  As a result, it is only supported on Windows (32
-   and 64 bit), Linux (32 and 64 bit) and MacOS.
+## Jline line editing
 
-GNU READLINE SUPPORT
-   GNU readline used to be the default editor in JSqsh, however as of
-   JSqsh 1.5, JLine is now the default and readline is not included
-   with the JSqsh distribution. This was due to both the JSqsh license 
-   change to the Apache license, as well as to the fact that the 
-   Java-Readline library appears to be abandoned. 
+As of JSqsh 1.5, the default line editor is JLine:
 
-   While Jsqsh retains its support for Java-Readline, the library
-   is not included with the jsqsh distribution.  If you wish to utilize
-   the library, most Linux distributions can easily install
-   Java-Readline using the software package manager (typically under
-   a package named "libreadline-java").
+https://github.com/jline/jline2
 
-   JAVA-READLINE DETECTION
+This library provides full line editing, history recall, searching,
+emacs and vi keymaps, configurable keymaps and a bunch of other 
+functionality.  The JLine library is not 100% java and relies upon
+some native code.  As a result, it is only supported on Windows (32
+and 64 bit), Linux (32 and 64 bit) and MacOS.
+
+## GNU readline support
+
+GNU readline used to be the default editor in JSqsh, however as of
+JSqsh 1.5, JLine is now the default and readline is not included
+with the JSqsh distribution. This was due to both the JSqsh license 
+change to the Apache license, as well as to the fact that the 
+Java-Readline library appears to be abandoned. 
+
+While Jsqsh retains its support for Java-Readline, the library
+is not included with the jsqsh distribution.  If you wish to utilize
+the library, most Linux distributions can easily install
+Java-Readline using the software package manager (typically under
+a package named "libreadline-java").
+
+## Java-readline detection
    
-   The JSqsh startup script will automaticallyl detect and utilize
-   java-readline if it is installed on your system on a debian based
-   linux distribution (e.g. Debian, Ubuntu, Mint, etc.).  
-   If these are found, then readline support will be enabled. 
+The JSqsh startup script will automaticallyl detect and utilize
+java-readline if it is installed on your system on a debian based
+linux distribution (e.g. Debian, Ubuntu, Mint, etc.).  If these are found, 
+then readline support will be enabled. 
       ]]></HelpText>
 </Topic>
 
 <Topic name="contributors">
         <Description>Individuals who have contributed to jsqsh</Description>
         <HelpText><![CDATA[
-JSQSH CONTRIBUTORS
+## JSqsh contributorS
 
-   The following individuals have contributed to the development of jsqsh
-   inspiration.
+The following individuals have contributed to the development of jsqsh
+inspiration.
    
-   Walter Jordan <walter.gator at gmail.com>
-       Patches and useful suggestions.
+Walter Jordan <walter.gator at gmail.com> - Patches and useful suggestions.
        
-   Ryan Stouffer <rstouffer at inventa.com>
-       Enhancements and additions to GUI widgets.
+Ryan Stouffer <rstouffer at inventa.com> - Enhancements and additions to GUI widgets.
       ]]></HelpText>
 </Topic>
 
 <Topic name="storedprocs">
         <Description>Calling stored procedures with JSqsh</Description>
         <HelpText><![CDATA[
-CALLING STORED PROCEDURES
+# Calling stored procedures
 
-   JSqsh provides special support for calling stored procedures that require
-   output (OUT) or input/output (INOUT) parameters. 
+JSqsh provides special support for calling stored procedures that require
+output (OUT) or input/output (INOUT) parameters. 
    
-JDBC ESCAPE SYNTAX
+## JDBC escape syntax
    
-   The JDBC standard defines a canonical way of executing stored procedures 
-   in a manner that abstracts away the specifics of how procedures are invoked
-   for a given platform.  The following example executes a procedure passing one
-   input argument and retrieving one output argument using this syntax:
+The JDBC standard defines a canonical way of executing stored procedures 
+in a manner that abstracts away the specifics of how procedures are invoked
+for a given platform.  The following example executes a procedure passing one
+input argument and retrieving one output argument using this syntax:
    
-      1> { call my_test_proc(10, ?) };
-      +-------------+
-      | Param #1    |
-      +-------------+
-      | Fred        |
+    1> { call my_test_proc(10, ?) };
+    +-------------+
+    | Param #1    |
+    +-------------+
+    | Fred        |
       +-------------+
       
-   here, a question mark ("?") is used to denote an output parameter. After
-   execution, the contents of that output parameter is displayed as shown.
+here, a question mark (`?`) is used to denote an output parameter. After
+execution, the contents of that output parameter is displayed as shown.
    
-   In addition, many platforms allow you to also get a return value from the
-   stored procedure.  To do this in JDBC escape syntax do:
+In addition, many platforms allow you to also get a return value from the
+stored procedure.  To do this in JDBC escape syntax do:
    
-      1> { ?= call my_test_proc(10, ?) };
-      +-------------+-------------+
-      | Return Code | Param #2    |
-      +-------------+-------------+
-      |           0 | Fred        |
-      +-------------+-------------+
+    1> { ?= call my_test_proc(10, ?) };
+    +-------------+-------------+
+    | Return Code | Param #2    |
+    +-------------+-------------+
+    |           0 | Fred        |
+    +-------------+-------------+
       
-   In the case of input/output parameters, jsqsh slightly extends the JDBC
-   standard with "?=<value>" which indicates that the parameter is an INOUT
-   parameter, and that the initial input value should be "<value>", like so:
+In the case of input/output parameters, jsqsh slightly extends the JDBC
+standard with `?=<value>` which indicates that the parameter is an INOUT
+parameter, and that the initial input value should be `<value>`, like so:
    
-      1> { ?= call double_my_inout_param_value(10, ?=321) };
-      +-------------+-------------+
-      | Return Code | Param #2    |
-      +-------------+-------------+
-      |           0 | 642         |
-      +-------------+-------------+
+    1> { ?= call double_my_inout_param_value(10, ?=321) };
+    +-------------+-------------+
+    | Return Code | Param #2    |
+    +-------------+-------------+
+    |           0 | 642         |
+    +-------------+-------------+
 
-AUTOMATIC "CALL" HANDLING
+## Automatic "CALL" handling
 
-   The JDBC escape syntax above is awkward to work with, so jsqsh will attempt
-   to automatically recognize when you are trying to call a procedure.  It does
-   so according to the following rules:
+The JDBC escape syntax above is awkward to work with, so jsqsh will attempt
+to automatically recognize when you are trying to call a procedure.  It does
+so according to the following rules:
    
-      1. The first keyword in your statement is CALL
-      2. There are one or more parameter markers ("?") following the CALL keyword
-         ("?" characters contained in comments or string constants are ignored)
+  1. The first keyword in your statement is `CALL`
+  2. There are one or more parameter markers (`?`) following the CALL keyword
+     (`?` characters contained in comments or string constants are ignored)
   
-   If both of these are true, then jsqsh automatically takes your statement
-   and attempts to make it a JDBC escape syntax statement.  For example, 
-   executing the following:
+If both of these are true, then jsqsh automatically takes your statement
+and attempts to make it a JDBC escape syntax statement.  For example, 
+executing the following:
    
-      1> call my_proc(10, ?);
+    1> call my_proc(10, ?);
    
-   will cause jsqsh to turn it into:
+will cause jsqsh to turn it into:
    
-      { ?= call my_proc(10, ?) }
+    { ?= call my_proc(10, ?) }
    
-   and execute the statement.   
+and execute the statement.   
 
-OUTPUT CURSORS
-   Unfortunately, there is no standard in JDBC for the handling of CURSOR 
-   output parameter types, so each JDBC driver deals with them differently.
-   As a result, jsqsh currently only has an understanding of how to handle
-   CURSOR output parameters for IBM DB2 and Informix, and Oracle.  
+## Output cursors
+
+Unfortunately, there is no standard in JDBC for the handling of CURSOR 
+output parameter types, so each JDBC driver deals with them differently.
+As a result, jsqsh currently only has an understanding of how to handle
+CURSOR output parameters for IBM DB2 and Informix, and Oracle.  
    
-   When faced with an OUTPUT parameter of type cursor, jsqsh will display
-   the results like so:
+When faced with an OUTPUT parameter of type cursor, jsqsh will display
+the results like so:
    
-      1> call my_cursor_output(?);
+    1> call my_cursor_output(?);
       
-      Parameter #2 CURSOR:
-      +---+
-      | 1 |
-      +---+
-      | 5 |
-      +---+
+    Parameter #2 CURSOR:
+    +---+
+    | 1 |
+    +---+
+    | 5 |
+    +---+
 
-      +-------------+
-      | Return Code |
-      +-------------+
-      |           0 |
-      +-------------+
+    +-------------+
+    | Return Code |
+    +-------------+
+    |           0 |
+    +-------------+
       ]]></HelpText>
 </Topic>
 
