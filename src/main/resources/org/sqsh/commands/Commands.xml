@@ -2189,5 +2189,29 @@ Jumps straight into the driver definition wizard
 [[\connect]], [[\drivers]]
       ]]></Help>
     </Command>
+
+    <Command name="\md" class="org.sqsh.commands.Md">
+
+        <Description><![CDATA[
+           Test jsqsh's markdown rendering
+        ]]></Description>
+            <Help><![CDATA[
+## Synopsis
+
+`\md [-w width]`
+
+## Description
+
+The `\md` command treats the contents of the current SQL buffer as markdown
+and renders it.  This is for testing jsqsh's markdown rendering engine and
+should be treated as purely internal.
+
+## Options
+
+### --width=*width* (-w *width*)
+
+Restricts the output to at most *width* characters.
+      ]]></Help>
+    </Command>
     
 </Commands>

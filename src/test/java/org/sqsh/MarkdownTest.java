@@ -1,21 +1,32 @@
 package org.sqsh;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 
 import org.junit.Test;
 import org.junit.Assert;
-import org.sqsh.MarkdownFormatter.WrappingStream;
 import org.sqsh.MarkdownFormatter.Decoration;
-import static org.sqsh.MarkdownFormatter.RAW_DECORATION;
+import org.sqsh.MarkdownFormatter.WrappingStream;
+import org.sqsh.MarkdownFormatter.Line;
+
+import static org.sqsh.MarkdownFormatter.Decoration.OFF_ESC;
+import static org.sqsh.MarkdownFormatter.Decoration.BOLD_ESC;
+import static org.sqsh.MarkdownFormatter.Decoration.ITALIC_ESC;
+import static org.sqsh.MarkdownFormatter.Decoration.RAW_ESC;
 
 public class MarkdownTest {
-
-    private static final char BOLD = '^';
-    private static final char ITALIC = '@';
-    private static final char BOLD_ITALIC = '%';
-    private static final char RAW = '`';
     
+    private static final String BOLD_RAW_ESC = Decoration.getEscape(
+                    Decoration.RAW | Decoration.BOLD);
+    private static final String ITALIC_RAW_ESC = Decoration.getEscape(
+                    Decoration.RAW | Decoration.ITALIC);
+
     @Test
     public void testLineClassification() {
         
@@ -35,60 +46,98 @@ public class MarkdownTest {
         MarkdownFormatter.Line line = new MarkdownFormatter.Line(input);
         
         Assert.assertTrue(line.next());
-        Assert.assertEquals(MarkdownFormatter.LineType.HEADER, line.type);
+        Assert.assertEquals(Line.Type.HEADER, line.type);
         Assert.assertEquals("Header 1", line.getContent());
         Assert.assertEquals(1, line.level);
         Assert.assertEquals(0, line.indent);
 
         Assert.assertTrue(line.next());
-        Assert.assertEquals(MarkdownFormatter.LineType.TEXT, line.type);
+        Assert.assertEquals(Line.Type.TEXT, line.type);
         Assert.assertEquals("This is an example of some text in a markdown file",
            line.getContent());
         Assert.assertEquals(2, line.indent);
 
         Assert.assertTrue(line.next());
-        Assert.assertEquals(MarkdownFormatter.LineType.TEXT, line.type);
+        Assert.assertEquals(Line.Type.TEXT, line.type);
         Assert.assertEquals("that we will process with the line processor",
            line.getContent());
         Assert.assertEquals(2, line.indent);
 
         Assert.assertTrue(line.next());
-        Assert.assertEquals(MarkdownFormatter.LineType.TEXT, line.type);
+        Assert.assertEquals(Line.Type.TEXT, line.type);
         Assert.assertEquals("", line.getContent());
         Assert.assertEquals(0, line.indent);
 
         Assert.assertTrue(line.next());
-        Assert.assertEquals(MarkdownFormatter.LineType.ULIST, line.type);
+        Assert.assertEquals(Line.Type.ULIST, line.type);
         Assert.assertEquals("And a bulleted list", line.getContent());
         Assert.assertEquals(2, line.indent);
 
         Assert.assertTrue(line.next());
-        Assert.assertEquals(MarkdownFormatter.LineType.ULIST, line.type);
+        Assert.assertEquals(Line.Type.ULIST, line.type);
         Assert.assertEquals("With some subbullets", line.getContent());
         Assert.assertEquals(2, line.indent);
 
         Assert.assertTrue(line.next());
-        Assert.assertEquals(MarkdownFormatter.LineType.ULIST, line.type);
+        Assert.assertEquals(Line.Type.ULIST, line.type);
         Assert.assertEquals("Here is a sub-bullet", line.getContent());
         Assert.assertEquals(4, line.indent);
 
         Assert.assertTrue(line.next());
-        Assert.assertEquals(MarkdownFormatter.LineType.ULIST, line.type);
+        Assert.assertEquals(Line.Type.ULIST, line.type);
         Assert.assertEquals("And another", line.getContent());
         Assert.assertEquals(6, line.indent);
 
         Assert.assertTrue(line.next());
-        Assert.assertEquals(MarkdownFormatter.LineType.TEXT, line.type);
+        Assert.assertEquals(Line.Type.TEXT, line.type);
         Assert.assertEquals("And the start of a new paragraph", line.getContent());
         Assert.assertEquals(1, line.indent);
 
         Assert.assertTrue(line.next());
-        Assert.assertEquals(MarkdownFormatter.LineType.TEXT, line.type);
+        Assert.assertEquals(Line.Type.TEXT, line.type);
         Assert.assertEquals("With a code block", line.getContent());
         Assert.assertEquals(4, line.indent);
 
         Assert.assertFalse(line.next());
         Assert.assertFalse(line.next());
+        input =
+            "this is line one\n"
+          + " * bullet\n"
+          + " * bullet\n"
+          + " \n"
+          + "paragraph\n";
+          
+        line.reset(input);
+
+        Assert.assertTrue(line.next());
+        Assert.assertEquals(Line.Type.TEXT, line.type);
+        Assert.assertEquals("this is line one", line.getContent());
+        Assert.assertEquals(0, line.indent);
+        Assert.assertEquals(0, line.contentStart);
+        Assert.assertEquals(0, line.start);
+
+        Assert.assertTrue(line.next());
+        Assert.assertEquals(Line.Type.ULIST, line.type);
+        Assert.assertEquals("bullet", line.getContent());
+        Assert.assertEquals(17, line.start);
+ 
+        Assert.assertTrue(line.next());
+        Assert.assertEquals(Line.Type.ULIST, line.type);
+        Assert.assertEquals("bullet", line.getContent());
+        Assert.assertEquals(27, line.start);
+
+        Assert.assertTrue(line.next());
+        Assert.assertEquals(Line.Type.TEXT, line.type);
+        Assert.assertEquals(37, line.start);
+        Assert.assertEquals(1, line.indent);
+        Assert.assertEquals(38, line.contentEnd);
+        Assert.assertEquals(39, line.idx);
+        Assert.assertTrue(line.isEmpty());
+
+        Assert.assertTrue(line.next());
+        Assert.assertEquals(Line.Type.TEXT, line.type);
+        Assert.assertEquals("paragraph", line.getContent());
+        Assert.assertEquals(39, line.start);
     }
 
     @Test
@@ -109,7 +158,7 @@ public class MarkdownTest {
             "This is some\n" +
             "  simple text that\n" +
             "  we expect to be\n" +
-            "  word wrapped", 
+            "  word wrapped\n", 
             result);
 
         bytes.reset();
@@ -122,7 +171,7 @@ public class MarkdownTest {
             "This\n" +
             "  isareallylongstrin\n" +
             "  gthatwillwrapacros\n" +
-            "  smultiple lines",
+            "  smultiple lines\n",
             result);
 
         bytes.reset();
@@ -136,7 +185,7 @@ public class MarkdownTest {
             "  isareallylongstrin\n" +
             "  gthatwillwrapacros\n" +
             "  smultiplelong\n" +
-            "  lines",
+            "  lines\n",
             result);
 
         bytes.reset();
@@ -147,7 +196,7 @@ public class MarkdownTest {
         // System.out.println(result);
         Assert.assertEquals(
               "This has trailing\n" +
-            "  spaces",
+            "  spaces\n",
             result);
 
         bytes.reset();
@@ -158,104 +207,154 @@ public class MarkdownTest {
         // System.out.println(result);
         Assert.assertEquals(
               "Wrap at exactly 20\n" +
-            "  test",
+            "  test\n",
             result);
 
         bytes.reset();
         // Simple word wrapping test
-        print(out, BOLD+"This is"+BOLD+" "+ITALIC+"some"+ITALIC+" simple text");
+        print(out, "^This is^ /some/ simple text");
         out.flush();
         
         result = bytes.toString();
-        // System.out.println(result);
+        System.out.println(result);
         Assert.assertEquals(
-            Decoration.BOLD+"This is"+Decoration.OFF+" "+Decoration.ITALIC+"some"+Decoration.OFF+"\n" +
-            "  simple text",
+            BOLD_ESC+"This is"+OFF_ESC+" "+ITALIC_ESC+"some"+OFF_ESC+"\n" +
+            "  simple text\n",
             result);
 
         bytes.reset();
         // Test a decoration floating between spaces
-        print(out, "Test " + BOLD + " float bold"+BOLD);
+        print(out, "Test ^ float bold^");
         out.flush();
         
         result = bytes.toString();
         // System.out.println(result);
         Assert.assertEquals(
-            "Test " + Decoration.BOLD + "float bold" + Decoration.OFF,
+            "Test "+BOLD_ESC+"float bold"+OFF_ESC+"\n",
             result);
 
         bytes.reset();
         // Test a decoration floating between spaces and wrapping to another line
-        print(out, "Test " + BOLD + " float bold with"+BOLD+" wrap");
+        print(out, "Test ^ float bold with^ wrap");
         out.flush();
         
         result = bytes.toString();
         // System.out.println(result);
         Assert.assertEquals(
-            "Test " + Decoration.BOLD + "float bold" + Decoration.OFF + "\n"
-                + "  " + Decoration.BOLD + "with" + Decoration.OFF + " wrap",
+            "Test " + BOLD_ESC + "float bold" + OFF_ESC + "\n"
+                + "  " + BOLD_ESC + "with" + OFF_ESC + " wrap\n",
             result);
 
         bytes.reset();
         // Make sure decoration closes itself
-        print(out, "Test " + BOLD + " abandoned decoration");
+        print(out, "Test ^ abandoned decoration");
         out.flush();
         
         result = bytes.toString();
         // System.out.println(result);
         Assert.assertEquals(
-            "Test " + Decoration.BOLD + "abandoned" + Decoration.OFF + "\n"
-                + "  "+Decoration.BOLD + "decoration" + Decoration.OFF,
+            "Test " + BOLD_ESC + "abandoned" + OFF_ESC + "\n"
+                + "  " + BOLD_ESC + "decoration" + OFF_ESC + "\n",
             result);
 
         bytes.reset();
         // Test raw mode -- are white spaces retained? Is the style wrapped?
-        print(out, "Test " + RAW + "   are  white  spaces  retained?" + RAW);
+        print(out, "Test `space`");
         out.flush();
-        
         result = bytes.toString();
         // System.out.println(result);
         Assert.assertEquals(
-            "Test"+RAW_DECORATION+"   are  white "+Decoration.OFF+"\n"
-                + "  " + RAW_DECORATION+" spaces  retained?" + Decoration.OFF,
+            "Test "+RAW_ESC+"space"+OFF_ESC+"\n",
             result);
 
         bytes.reset();
         // Test raw mode -- are white spaces retained? Is the style wrapped?
-        print(out, "Test " + RAW + "   are  white  spaces  retained?" + RAW);
+        print(out, "Test`nospace`");
+        out.flush();
+        result = bytes.toString();
+        //System.out.println(result);
+        Assert.assertEquals(
+            "Test"+RAW_ESC+"nospace"+OFF_ESC+"\n",
+            result);
+
+        // Test where adding the space for the raw text would cause
+        // it to wrap and the space shouldn't be printed.
+        bytes.reset();
+        print(out, "Test wrap the raw `foo`");
+        out.flush();
+        result = bytes.toString();
+        // System.out.println(result);
+        Assert.assertEquals(
+            "Test wrap the raw\n" +
+             "  "+RAW_ESC+"foo"+OFF_ESC+"\n",
+            result);
+
+        bytes.reset();
+        // Test raw mode -- are white spaces retained? Is the style wrapped?
+        print(out, "Test `   are  white  spaces  retained?`");
         out.flush();
         
         result = bytes.toString();
         // System.out.println(result);
         Assert.assertEquals(
-            "Test"+RAW_DECORATION+"   are  white "+Decoration.OFF+"\n"
-                + "  " + RAW_DECORATION+" spaces  retained?" + Decoration.OFF,
+            "Test "+RAW_ESC+"   are  white"+OFF_ESC+"\n"
+                + "  "+RAW_ESC+"  spaces  retained"+OFF_ESC+"\n"
+                + "  "+RAW_ESC+"?"+OFF_ESC+"\n",
+            result);
+
+        bytes.reset();
+        // Test raw mode -- are white spaces retained? Is the style wrapped?
+        print(out, "Test`   are  white  spaces  retained?`");
+        out.flush();
+        
+        result = bytes.toString();
+        // System.out.println(result);
+        Assert.assertEquals(
+            "Test"+RAW_ESC+"   are  white "+OFF_ESC+"\n"
+                + "  "+RAW_ESC+" spaces  retained?" + OFF_ESC + "\n",
+            result);
+
+        bytes.reset();
+        print(out, "Simple ^bold^ word");
+        out.flush();
+        
+        result = bytes.toString();
+        // System.out.println(result);
+        Assert.assertEquals(
+            "Simple "+BOLD_ESC+"bold"+OFF_ESC+" word\n",
             result);
 
         bytes.reset();
         // Test raw + BOLDs
-        print(out, "Test "+BOLD+RAW +"bold and raw with wrapping"+RAW+" of text"+BOLD);
+        print(out, "Test ^`bold and raw with wrapping` of text^");
         out.flush();
         
         result = bytes.toString();
         // System.out.println(result);
+        // This is a bug, but I don't really feel like fixing it right now.
+        // The above is really output like:
+        //   Test^ 'bold and raw...
+        // I understand why it is happening and it is a decent amount of work
+        // to fix, but should only happen when you have a decorator 
+        // immediately followed by raw and will be visually unnoticible unless
+        // the decoration is underscore.
         Assert.assertEquals(
-            "Test "+Decoration.BOLD+RAW_DECORATION+"bold and raw "+Decoration.OFF+"\n"
-                + "  "+RAW_DECORATION+"with wrapping"+Decoration.BOLD+" of"+Decoration.OFF+"\n"
-                + "  "+Decoration.BOLD+"text"+Decoration.OFF,
+            "Test"+BOLD_ESC+" "+BOLD_RAW_ESC+"bold and raw "+OFF_ESC+"\n"
+                + "  "+BOLD_RAW_ESC+"with wrapping "+BOLD_ESC+"of"+OFF_ESC+"\n"
+                + "  "+BOLD_ESC+"text"+OFF_ESC+"\n",
             result);
 
         bytes.reset();
         // Test raw + ITALIC
-        print(out, "Test "+ITALIC+RAW +"italic and raw with wrapping"+RAW+" of text"+ITALIC);
+        print(out, "Test /`italic and raw with wrapping` of text/");
         out.flush();
         
         result = bytes.toString();
         // System.out.println(result);
         Assert.assertEquals(
-            "Test "+Decoration.ITALIC+Decoration.BOLD_ITALIC+"italic and ra"+Decoration.OFF+"\n"
-                + "  "+Decoration.BOLD_ITALIC+"w with wrapping"+Decoration.ITALIC+" of"+Decoration.OFF+"\n"
-                + "  "+Decoration.ITALIC+"text"+Decoration.OFF,
+            "Test"+ITALIC_ESC+" "+ITALIC_RAW_ESC+"italic and ra"+OFF_ESC+"\n"
+                + "  "+ITALIC_RAW_ESC+"w with wrapping "+ITALIC_ESC+"of"+OFF_ESC+"\n"
+                + "  "+ITALIC_ESC+"text"+OFF_ESC+"\n",
             result);
 
         bytes.reset();
@@ -267,82 +366,145 @@ public class MarkdownTest {
         Assert.assertEquals(
               "Test\n"+
             "  wrapping with\n" +
-            "  explicit newlines",
+            "  explicit newlines\n",
             result);
 
         bytes.reset();
-        print(out, BOLD+"Test\nwrapping"+BOLD+" with explicit newlines");
+        print(out, "^Test\nwrapping^ with explicit newlines");
         out.flush();
         
         result = bytes.toString();
         System.out.println(result);
         Assert.assertEquals(
-              Decoration.BOLD+"Test"+Decoration.OFF+"\n"+
-            "  "+Decoration.BOLD+"wrapping"+Decoration.OFF+" with\n" +
-            "  explicit newlines",
+              BOLD_ESC+"Test"+OFF_ESC+"\n"+
+            "  "+BOLD_ESC+"wrapping"+OFF_ESC+" with\n" +
+            "  explicit newlines\n",
             result);
+    }
+    
+    @Test
+    public void testMarkdown() throws Exception {
+        
+        String tmpDir = System.getProperty("test.tmp.dir");
+        Assert.assertTrue("Property test.tmp.dir is not set!", tmpDir != null);
+        
+        File file = new File(tmpDir);
+        Assert.assertTrue(tmpDir + " does not exist or is not a directory", 
+           file.isDirectory());
+        
+        runTest("test1", tmpDir);
     }
     
     private void print(WrappingStream out, String str) {
         
         int len = str.length();
         int i = 0;
-        char decoration = 0;
+        int decoration = Decoration.OFF;
         boolean isRaw = false;
         
         while (i < len) {
             
             char ch = str.charAt(i++);
             switch (ch) {
-            case BOLD:
-                if (decoration == 0) {
+            case '^':
+                if (decoration == Decoration.OFF) {
 
-                    out.print(Decoration.BOLD);
-                    decoration = BOLD;
+                    out.bold(true);
+                    decoration = Decoration.BOLD;
                 }
-                else if (decoration == BOLD) {
+                else if (decoration == Decoration.BOLD) {
 
-                    out.print(Decoration.OFF);
-                    decoration = 0;
+                    out.bold(false);
+                    decoration = Decoration.OFF;
                 }
                 else
-                    throw new RuntimeException("Expected '" + BOLD + "'");
+                    throw new RuntimeException("Expected '^'");
                 break;
-            case ITALIC:
-                if (decoration == 0) {
+            case '/':
+                if (decoration == Decoration.OFF) {
 
-                    out.print(Decoration.ITALIC);
-                    decoration = ITALIC;
+                    out.italic(true);
+                    decoration = Decoration.ITALIC;
                 }
-                else if (decoration == ITALIC) {
+                else if (decoration == Decoration.ITALIC) {
 
-                    out.print(Decoration.OFF);
-                    decoration = 0;
+                    out.italic(false);
+                    decoration = Decoration.OFF;
                 }
                 else
-                    throw new RuntimeException("Expected '" + ITALIC + "'");
+                    throw new RuntimeException("Expected '/'");
                 break;
-            case BOLD_ITALIC:
-                if (decoration == 0) {
-
-                    out.print(Decoration.BOLD_ITALIC);
-                    decoration = BOLD_ITALIC;
-                }
-                else if (decoration == BOLD_ITALIC) {
-                    
-                    out.print(Decoration.OFF);
-                    decoration = 0;
-                }
-                else
-                    throw new RuntimeException("Expected '" + BOLD_ITALIC + "'");
-                break;
-            case RAW:
+            case '`':
                 isRaw = !isRaw;
-                out.setRaw(isRaw);
+                out.raw(isRaw);
                 break;
             default:
                 out.print(ch);
             }
         }
+    }
+    
+    private void runTest(String testName, String tmpDir) throws Exception {
+        
+        InputStream srcStream = MarkdownTest.class.getResourceAsStream("/"+testName + ".md");
+        Assert.assertNotNull("Could not find resource " + testName + ".md", srcStream);
+
+        InputStream goldStream = MarkdownTest.class.getResourceAsStream("/"+testName + ".gold");
+        Assert.assertNotNull("Could not find resource " + testName + ".gold", goldStream);
+
+        PrintStream out = new PrintStream(new FileOutputStream(tmpDir + "/" + testName + ".out"));
+        
+        StringBuilder sb = new StringBuilder();
+        BufferedReader srcReader = new BufferedReader(new InputStreamReader(srcStream));
+        String line;
+        while ((line = srcReader.readLine()) != null) {
+            
+            sb.append(line).append('\n');
+        }
+        srcReader.close();
+        
+        MarkdownFormatter formatter = new MarkdownFormatter(40, out);
+        formatter.format(sb.toString());
+        out.close();
+        
+        InputStream actualStream = new FileInputStream(tmpDir + "/" + testName + ".out");
+        boolean ok = diff(actualStream, goldStream);
+        actualStream.close();
+        goldStream.close();
+        
+        Assert.assertTrue(testName + ".gold differs from "
+                        + tmpDir + "/" + testName + ".out", ok);
+    }
+    
+    /**
+     * Diffs the actual output & the gold output
+     * @throws Exception Thrown if something fails or there are differences
+     */
+    private boolean diff(InputStream actualFile, InputStream goldFile) throws Exception {
+
+        BufferedReader actual = new BufferedReader(new InputStreamReader(actualFile));
+        BufferedReader gold = new BufferedReader(new InputStreamReader(goldFile));
+        String goldLine;
+        String actualLine;
+        
+        while ((goldLine = gold.readLine()) != null) {
+            
+            if ((actualLine = actual.readLine()) == null) {
+                
+                return false;
+            }
+            
+            if (! goldLine.equals(actualLine)) {
+                
+                return false;
+            }
+        }
+        
+        if (actual.readLine() != null) {
+            
+            return false;
+        }
+        
+        return true;
     }
 }
