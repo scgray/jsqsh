@@ -86,7 +86,7 @@ public class MarkdownFormatter {
         public static final int DIM        = 2;
         public static final int ITALIC     = 4;
         public static final int UNDERSCORE = 8;
-        public static final int RAW        = 16;
+        public static final int CODE       = 16;
         
         // These are the actual codes that we will use to display our text
         // properties.  Note that they don't exactly line up with the terminal
@@ -96,7 +96,7 @@ public class MarkdownFormatter {
         private static final int DIM_CODE        = 2;
         private static final int ITALIC_CODE     = 4; // underscore
         private static final int UNDERSCORE_CODE = 4;
-        private static final int RAW_CODE        = 1; // bold
+        private static final int CODE_CODE       = 1; // bold
 
         private static final Map<Integer, String> codes =
                         new HashMap<Integer, String>();
@@ -106,7 +106,7 @@ public class MarkdownFormatter {
         public static final String DIM_ESC        = getEscape(DIM);
         public static final String ITALIC_ESC     = getEscape(ITALIC);
         public static final String UNDERSCORE_ESC = getEscape(UNDERSCORE);
-        public static final String RAW_ESC        = getEscape(RAW);
+        public static final String CODE_ESC       = getEscape(CODE);
         
         /**
          * Given a set of bits representing which decorations are currently
@@ -169,14 +169,14 @@ public class MarkdownFormatter {
                         sb.append(UNDERSCORE_CODE);
                     }
                 }
-                if ((bits & RAW) != 0) {
+                if ((bits & CODE) != 0) {
 
-                    if ((beenSet & (1 << RAW_CODE)) == 0) {
+                    if ((beenSet & (1 << CODE_CODE)) == 0) {
                         
                         if (sb.length() > 2)
                             sb.append(';');
-                        beenSet |= (1 << RAW_CODE);
-                        sb.append(RAW_CODE);
+                        beenSet |= (1 << CODE_CODE);
+                        sb.append(CODE_CODE);
                     }
                 }
                 
@@ -204,7 +204,11 @@ public class MarkdownFormatter {
     public void format (String str) {
         
         SectionType currentSectionType = SectionType.TEXT;
-        boolean prevLineWasEmpty = true;
+        
+        // For each section below (header, list, text, etc.) this indicates
+        // to that section that it needs to put a blank line in front of 
+        // itself before displaying
+        boolean needsBlankLine = false;
         boolean isFirstLine = true;
         listStates.clear();
         block.setLength(0);
@@ -213,7 +217,24 @@ public class MarkdownFormatter {
         wrappingOut.setIndent(0);
         
         while (line.next()) {
+            
+            // For blank lines, we want to collapse them all together into a
+            // single blank line
+            if (line.isEmpty()) {
 
+                // A blank line always forces the current block to finish
+                printBlock();
+                
+                // Unless, we haven't hit the first usable line in our input
+                // then we just ignore it all together
+                if (! isFirstLine) {
+                    
+                    needsBlankLine = true;
+                }
+                
+                continue;
+            }
+            
             int codeBlockIndentSize = 4 + (listStates.size() * 4);
             
             // A code block is a code block if:
@@ -221,8 +242,7 @@ public class MarkdownFormatter {
             //      list nesting level
             //   2. It was preceeded by an empty line
             // If we see this, then we process the whole code block here.
-            //
-            if (prevLineWasEmpty && ! line.isEmpty() 
+            if ((needsBlankLine || isFirstLine) 
                 && line.indent >= codeBlockIndentSize) {
                 
                 // If the previous line was empty, then the previous block 
@@ -234,30 +254,44 @@ public class MarkdownFormatter {
                 // Dump all of the lines in the code block
                 do {
                     
-                    if (prevLineWasEmpty && ! isFirstLine) {
+                    if (needsBlankLine && ! isFirstLine) {
                         
                         out.println();
                     }
+                    isFirstLine = false;
 
-                    if (! line.isEmpty()) {
+                    if (line.isEmpty()) {
+                        
+                        needsBlankLine = true;
+                    }
+                    else {
 
                         out.append(SPACES, 0, codeBlockIndentSize);
                         out.append(line.str, line.start + codeBlockIndentSize, 
                                 line.contentEnd);
                         out.println();
+                        needsBlankLine = false;
                     }
-                    
-                    prevLineWasEmpty = line.isEmpty();
-                    isFirstLine = false;
                 }
-                while ((wasNext = line.next())
-                    && (line.isEmpty() || line.indent >= codeBlockIndentSize));
+                while ((wasNext = line.next()) && (line.isEmpty() || line.indent >= codeBlockIndentSize));
                 
                 if (! wasNext) {
                     
                     break;
                 }
+                
+                // Code block is finished, we want to ensure the next section
+                // that is displayed knows it needs to insert a blank line
+                needsBlankLine = true;
             }
+            
+            // NOTE: At this point, we cannot have an empty line in our hand
+            // as the logic above won't allow it.
+            assert ! line.isEmpty();
+            
+            // If we have been indicated that a blank line is needed, then 
+            // the block buffer had best be dumped.
+            assert needsBlankLine == false || block.length() == 0;
             
             switch (line.type) {
             
@@ -266,40 +300,44 @@ public class MarkdownFormatter {
                 // with something special like a header (##) or a bullet (*), 
                 // so it could be normal text, or it could be the continuation
                 // of, say, a bulleted list.
-                
-                // An empty line indicates that the current block needs to be
-                // dumped
-                if (line.isEmpty()) {
+                if (isFirstLine) {
                     
-                    printBlock();
+                    currentSectionType = SectionType.TEXT;
+                    out.append(SPACES, 0, TEXT_INDENT);
+                    wrappingOut.setIndent(TEXT_INDENT);
                 }
-                else {
-                    
-                    if (prevLineWasEmpty 
-                       && (currentSectionType == SectionType.TEXT 
-                           || (line.indent == 0))) {
-                        
-                        if (! isFirstLine) {
+                else if (needsBlankLine) {
 
-                            out.println();
-                        }
+                    out.println();
+                    if (currentSectionType == SectionType.TEXT 
+                        || line.indent == 0) {
 
                         currentSectionType = SectionType.TEXT;
                         listStates.clear();
                         out.append(SPACES, 0, TEXT_INDENT);
                         wrappingOut.setIndent(TEXT_INDENT);
                     }
-                    
-                    if (block.length() > 0) {
+                    else if (! listStates.isEmpty()) {
                         
-                        block.append(' ');
+                        // If we were in the middle of a bulleted list, then
+                        // blank line probably came from an inline code-block
+                        // or something like that, so we need to resume our
+                        // indent from the bullets.
+                        out.append(SPACES, 0, wrappingOut.getIndent());
                     }
+                    
+                    needsBlankLine = false;
+                }
+                
+                if (block.length() > 0) {
+                    
+                    block.append(' ');
+                }
 
-                    block.append(line.str, line.contentStart, line.contentEnd);
-                    if (line.forcesNewline()) {
-                            
-                        block.append('\n');
-                    }
+                block.append(line.str, line.contentStart, line.contentEnd);
+                if (line.forcesNewline()) {
+                        
+                    block.append('\n');
                 }
                 break;
 
@@ -310,9 +348,10 @@ public class MarkdownFormatter {
                 
                 // If we weren't in a list to begin with, then put a blank line
                 // before the start of the list
-                if (! isFirstLine && listStates.size() == 0) {
+                if (needsBlankLine) {
                     
                     out.println();
+                    needsBlankLine = false;
                 }
                 
                 // It took me a lot of tinkering around on github to figure out.
@@ -348,7 +387,7 @@ public class MarkdownFormatter {
                         toDelete = listStates.size() - (i+1);
                         break;
                     }
-                    else if (cur.indent < line.indent) {
+                    else if (line.indent < cur.indent) {
 
                         // The indent is less than the level we are looking
                         // at, this could be:
@@ -409,7 +448,6 @@ public class MarkdownFormatter {
                 }
                 
                 block.append(line.str, line.contentStart, line.contentEnd);
-                
                 break;
 
                 
@@ -417,6 +455,11 @@ public class MarkdownFormatter {
                 // A header ends the previous block, adds a newline (if necessary)
                 // and resets all indent.
                 printBlock();
+                
+                if (needsBlankLine) {
+                    
+                    out.println();
+                }
                 
                 // For sex-appeal, levels 1 and 2 are always printed in
                 // UPPER case
@@ -432,8 +475,10 @@ public class MarkdownFormatter {
                 }
                 wrappingOut.setIndent(0);
                 print(headerText, wrappingOut);
-
                 currentSectionType = SectionType.TEXT;
+
+                // Always force a blank line after a header.
+                needsBlankLine = true;
                 break;
                 
             default:
@@ -441,7 +486,6 @@ public class MarkdownFormatter {
                     + line.type);
             }
             
-            prevLineWasEmpty = line.isEmpty();
             isFirstLine = false;
         }
         
@@ -472,7 +516,7 @@ public class MarkdownFormatter {
                 
                 // If we hit a backtick (code block), then seek forward until
                 // we hit the end of the block.
-                wrappingOut.raw(true);
+                wrappingOut.code(true);
                 while (idx < len) {
                     
                     ch = block.charAt(idx++);
@@ -485,7 +529,7 @@ public class MarkdownFormatter {
                         wrappingOut.print(ch);
                     }
                 }
-                wrappingOut.raw(false);
+                wrappingOut.code(false);
                 break;
 
             // Some kind of emphasis.
@@ -701,6 +745,19 @@ public class MarkdownFormatter {
         return false;
     }
     
+    /**
+     * Having just read a backtick (`) which indicates inline code, this
+     * search to find the closing backtick.  After testing github markdown
+     * it looks like there is no such thing as an escape within such a 
+     * block, so this is as simple as searching for the backtick.
+     * 
+     * @param block The block to search in
+     * @param len The length of said block
+     * @param idx Where to start searching. Presumably this should be 
+     *   immediately after the opening backtick
+     * @return The index AFTER the closing backtick, or <b>len</b> if
+     *   there is no closing backtick
+     */
     private static int skipCode(CharSequence block, int len, int idx) {
 
         for (++idx; idx < len; idx++) {
@@ -714,11 +771,11 @@ public class MarkdownFormatter {
         return len;
     }
     
-
-    
-    
-
-    
+    /**
+     * @param ch A character that immediately follows a backslash
+     * @return true if that character is one that is allowed to be
+     *   escpaed in markdown.
+     */
     private static boolean isValidEscapeChar (char ch) {
 
         return (ch == '\\' || ch == '`' || ch == '*' || ch == '_' 
@@ -1010,6 +1067,14 @@ public class MarkdownFormatter {
         }
         
         /**
+         * @return The current amount of indent
+         */
+        public int getIndent() {
+            
+            return indent;
+        }
+        
+        /**
          * Toggles a particular decoration on or off
          * 
          * @param decoration The decoration to toggle
@@ -1035,19 +1100,16 @@ public class MarkdownFormatter {
         }
         
         /**
-         * Enables or disables "raw" mode.  With raw mode, every character
-         * sent to the output is directly sent without interpretation. The main
-         * main side effect is that all white space is preserved exactly as send
-         * (repeating white spaces are not removed).
+         * Enables or disables "code" display style
          * 
-         * @param onOff If true, then raw mode is enabled
+         * @param onOff If true, then code mode is enabled
          */
-        public void raw (boolean isOn) {
+        public void code (boolean isOn) {
             
             if (isOn) 
-                decorationOn(Decoration.RAW);
+                decorationOn(Decoration.CODE);
             else 
-                decorationOff(Decoration.RAW);
+                decorationOff(Decoration.CODE);
         }
         
         /**
@@ -1114,17 +1176,6 @@ public class MarkdownFormatter {
             else if (ch == '\r') {
                 
                 return;
-            }
-            else if ((decorations & Decoration.RAW) != 0) {
-                
-                if (lineWidth >= screenWidth) {
-                    
-                    wrap();
-                    checkIndent(true);
-                }
-
-                out.print(ch);
-                ++lineWidth;
             }
             else {
                 
@@ -1207,39 +1258,6 @@ public class MarkdownFormatter {
                 return;
             }
 
-            // Entering raw mode.  We need to dump the last word that we were
-            // in the middle of processing.
-            if (bit == Decoration.RAW) {
-
-                // If we have a word that has been accumulated but not displayed
-                // then we have this scenario:
-                //    abc`def`
-                // however, if there had previously been a space, like so:
-                //    abc `def`
-                // then the word would have been dumped already, which means
-                // we need to insert a space to give the proper output.
-                boolean needSpace = (wordWidth == 0);
-                dumpWord(false);
-                
-                // We have to insert a space...
-                if (needSpace) {
-
-                    // Won't fit on the screen? Then wrap...
-                    if (lineWidth+1 >= screenWidth) {
-                        
-                        wrap();
-                        checkIndent(true);
-                    }
-                    else if (lineWidth > indent) {
-                        
-                        // Only add the space if this isn't at the start of
-                        // the line
-                        out.print(' ');
-                        ++lineWidth;
-                    }
-                }
-            }
-
             decorations |= bit;
             
             // Ensure BOLD and DIM are not on at the same time
@@ -1252,14 +1270,7 @@ public class MarkdownFormatter {
                 decorations &= ~(Decoration.BOLD);
             }
 
-            if (bit == Decoration.RAW) {
-
-                out.print(Decoration.getEscape(decorations));
-            }
-            else {
-                
-                word.append(Decoration.getEscape(decorations));
-            }
+            word.append(Decoration.getEscape(decorations));
         }
         
         private void decorationOff(int bit) {
@@ -1273,14 +1284,7 @@ public class MarkdownFormatter {
             }
             
             decorations &= ~(bit);
-            if ((decorations & Decoration.RAW) != 0) {
-
-                out.print(Decoration.getEscape(decorations));
-            }
-            else {
-                
-                word.append(Decoration.getEscape(decorations));
-            }
+            word.append(Decoration.getEscape(decorations));
         }
         
         private void checkIndent(boolean force) {

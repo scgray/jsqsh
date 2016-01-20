@@ -42,6 +42,13 @@
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.7.2</version>
+        <configuration>
+          <workingDirectory>${project.build.directory}/test-output</workingDirectory>
+          <systemPropertyVariables>
+            <test.tmp.dir>${project.build.directory}/test-output</test.tmp.dir>
+          </systemPropertyVariables>
+        </configuration>
+
       </plugin>
 
       <plugin>

@@ -18,14 +18,14 @@ import org.sqsh.MarkdownFormatter.Line;
 import static org.sqsh.MarkdownFormatter.Decoration.OFF_ESC;
 import static org.sqsh.MarkdownFormatter.Decoration.BOLD_ESC;
 import static org.sqsh.MarkdownFormatter.Decoration.ITALIC_ESC;
-import static org.sqsh.MarkdownFormatter.Decoration.RAW_ESC;
+import static org.sqsh.MarkdownFormatter.Decoration.CODE_ESC;
 
 public class MarkdownTest {
     
-    private static final String BOLD_RAW_ESC = Decoration.getEscape(
-                    Decoration.RAW | Decoration.BOLD);
-    private static final String ITALIC_RAW_ESC = Decoration.getEscape(
-                    Decoration.RAW | Decoration.ITALIC);
+    private static final String BOLD_CODE_ESC = Decoration.getEscape(
+                    Decoration.CODE | Decoration.BOLD);
+    private static final String ITALIC_CODE_ESC = Decoration.getEscape(
+                    Decoration.CODE | Decoration.ITALIC);
 
     @Test
     public void testLineClassification() {
@@ -216,7 +216,7 @@ public class MarkdownTest {
         out.flush();
         
         result = bytes.toString();
-        System.out.println(result);
+        // System.out.println(result);
         Assert.assertEquals(
             BOLD_ESC+"This is"+OFF_ESC+" "+ITALIC_ESC+"some"+OFF_ESC+"\n" +
             "  simple text\n",
@@ -264,7 +264,7 @@ public class MarkdownTest {
         result = bytes.toString();
         // System.out.println(result);
         Assert.assertEquals(
-            "Test "+RAW_ESC+"space"+OFF_ESC+"\n",
+            "Test "+CODE_ESC+"space"+OFF_ESC+"\n",
             result);
 
         bytes.reset();
@@ -274,7 +274,7 @@ public class MarkdownTest {
         result = bytes.toString();
         //System.out.println(result);
         Assert.assertEquals(
-            "Test"+RAW_ESC+"nospace"+OFF_ESC+"\n",
+            "Test"+CODE_ESC+"nospace"+OFF_ESC+"\n",
             result);
 
         // Test where adding the space for the raw text would cause
@@ -285,8 +285,8 @@ public class MarkdownTest {
         result = bytes.toString();
         // System.out.println(result);
         Assert.assertEquals(
-            "Test wrap the raw\n" +
-             "  "+RAW_ESC+"foo"+OFF_ESC+"\n",
+            "Test wrap the raw"+OFF_ESC+"\n" +
+             "  "+CODE_ESC+CODE_ESC+"foo"+OFF_ESC+"\n",
             result);
 
         bytes.reset();
@@ -297,9 +297,8 @@ public class MarkdownTest {
         result = bytes.toString();
         // System.out.println(result);
         Assert.assertEquals(
-            "Test "+RAW_ESC+"   are  white"+OFF_ESC+"\n"
-                + "  "+RAW_ESC+"  spaces  retained"+OFF_ESC+"\n"
-                + "  "+RAW_ESC+"?"+OFF_ESC+"\n",
+            "Test "+CODE_ESC+"are white"+OFF_ESC+"\n"
+                + "  "+CODE_ESC+"spaces retained?"+OFF_ESC+"\n",
             result);
 
         bytes.reset();
@@ -310,8 +309,18 @@ public class MarkdownTest {
         result = bytes.toString();
         // System.out.println(result);
         Assert.assertEquals(
-            "Test"+RAW_ESC+"   are  white "+OFF_ESC+"\n"
-                + "  "+RAW_ESC+" spaces  retained?" + OFF_ESC + "\n",
+            "Test"+CODE_ESC+" are white"+OFF_ESC+"\n"
+                + "  "+CODE_ESC+"spaces retained?" + OFF_ESC + "\n",
+            result);
+
+        bytes.reset();
+        print(out, "aa`bb`cc");
+        out.flush();
+        
+        result = bytes.toString();
+        // System.out.println(result);
+        Assert.assertEquals(
+            "aa"+CODE_ESC+"bb"+OFF_ESC+"cc\n",
             result);
 
         bytes.reset();
@@ -331,16 +340,9 @@ public class MarkdownTest {
         
         result = bytes.toString();
         // System.out.println(result);
-        // This is a bug, but I don't really feel like fixing it right now.
-        // The above is really output like:
-        //   Test^ 'bold and raw...
-        // I understand why it is happening and it is a decent amount of work
-        // to fix, but should only happen when you have a decorator 
-        // immediately followed by raw and will be visually unnoticible unless
-        // the decoration is underscore.
         Assert.assertEquals(
-            "Test"+BOLD_ESC+" "+BOLD_RAW_ESC+"bold and raw "+OFF_ESC+"\n"
-                + "  "+BOLD_RAW_ESC+"with wrapping "+BOLD_ESC+"of"+OFF_ESC+"\n"
+            "Test "+BOLD_ESC+BOLD_CODE_ESC+"bold and raw"+OFF_ESC+"\n"
+                + "  "+BOLD_CODE_ESC+"with wrapping"+BOLD_ESC+" of"+OFF_ESC+"\n"
                 + "  "+BOLD_ESC+"text"+OFF_ESC+"\n",
             result);
 
@@ -352,9 +354,9 @@ public class MarkdownTest {
         result = bytes.toString();
         // System.out.println(result);
         Assert.assertEquals(
-            "Test"+ITALIC_ESC+" "+ITALIC_RAW_ESC+"italic and ra"+OFF_ESC+"\n"
-                + "  "+ITALIC_RAW_ESC+"w with wrapping "+ITALIC_ESC+"of"+OFF_ESC+"\n"
-                + "  "+ITALIC_ESC+"text"+OFF_ESC+"\n",
+            "Test "+ITALIC_ESC+ITALIC_CODE_ESC+"italic and"+OFF_ESC+"\n"
+                + "  "+ITALIC_CODE_ESC+"raw with wrapping"+ITALIC_ESC+OFF_ESC+"\n"
+                + "  "+ITALIC_ESC+"of text"+OFF_ESC+"\n",
             result);
 
         bytes.reset();
@@ -374,7 +376,7 @@ public class MarkdownTest {
         out.flush();
         
         result = bytes.toString();
-        System.out.println(result);
+        // System.out.println(result);
         Assert.assertEquals(
               BOLD_ESC+"Test"+OFF_ESC+"\n"+
             "  "+BOLD_ESC+"wrapping"+OFF_ESC+" with\n" +
@@ -393,6 +395,7 @@ public class MarkdownTest {
            file.isDirectory());
         
         runTest("test1", tmpDir);
+        runTest("bullets", tmpDir);
     }
     
     private void print(WrappingStream out, String str) {
@@ -400,7 +403,7 @@ public class MarkdownTest {
         int len = str.length();
         int i = 0;
         int decoration = Decoration.OFF;
-        boolean isRaw = false;
+        boolean isCode = false;
         
         while (i < len) {
             
@@ -435,8 +438,8 @@ public class MarkdownTest {
                     throw new RuntimeException("Expected '/'");
                 break;
             case '`':
-                isRaw = !isRaw;
-                out.raw(isRaw);
+                isCode = !isCode;
+                out.code(isCode);
                 break;
             default:
                 out.print(ch);
@@ -452,7 +455,8 @@ public class MarkdownTest {
         InputStream goldStream = MarkdownTest.class.getResourceAsStream("/"+testName + ".gold");
         Assert.assertNotNull("Could not find resource " + testName + ".gold", goldStream);
 
-        PrintStream out = new PrintStream(new FileOutputStream(tmpDir + "/" + testName + ".out"));
+        File outFile = new File(tmpDir + "/" + testName + ".out");
+        PrintStream out = new PrintStream(new FileOutputStream(outFile));
         
         StringBuilder sb = new StringBuilder();
         BufferedReader srcReader = new BufferedReader(new InputStreamReader(srcStream));
@@ -467,13 +471,18 @@ public class MarkdownTest {
         formatter.format(sb.toString());
         out.close();
         
-        InputStream actualStream = new FileInputStream(tmpDir + "/" + testName + ".out");
+        InputStream actualStream = new FileInputStream(outFile);
         boolean ok = diff(actualStream, goldStream);
         actualStream.close();
         goldStream.close();
         
         Assert.assertTrue(testName + ".gold differs from "
-                        + tmpDir + "/" + testName + ".out", ok);
+              + outFile, ok);
+        
+        if (ok)  {
+
+            outFile.delete();
+        }
     }
     
     /**

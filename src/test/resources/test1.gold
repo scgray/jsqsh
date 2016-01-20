@@ -17,5 +17,5 @@ HEADER #1
       to make sure there is enough here
       to make the line wrap a few times.
 
-  And resuming the paragraphs, with some
-  [1minline code [0mbecause that is cool
+  And resuming the paragraphs, with some[0m
+  [1m[1minline code[0m because that is cool
