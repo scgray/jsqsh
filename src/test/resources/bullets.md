@@ -5,9 +5,11 @@ variety of layouts, indent depths, and nested code elements.
 
   * This is a bullet at the first level `it
     has some nested code in it because, well, what the hell?`
- * According to github markdown, this should be at level 2, even
-   though it is indented less than the previous one.
-     * And this should line up with the previous one at level 2
+ * We'll force this one up to the level of the previous
+   one. This isn't the same behavior as github, but it is 
+   a silly use case anyway.
+     * This line should appear on level 2 because it is
+       indented more than the previous level
         * And do I hear a level 3??
   * And back to level 1
 

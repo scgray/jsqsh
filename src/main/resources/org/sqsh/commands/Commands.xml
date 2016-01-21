@@ -207,7 +207,8 @@ Displays a history of SQL statements executed.
 
 ## See also
 
-[[\buf-edit]], [[\buf-copy]], [[\buf-append]], [[\buf-load]], [[buffers]]
+[[\buf-edit|\buf_edit]], [[\buf-copy|\buf_copy]], [[\buf-append|\buf_append]], 
+[[\buf-load|\buf_load]], [[buffers]]
            ]]></Help>
     </Command>
     

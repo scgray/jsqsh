@@ -24,6 +24,7 @@ import org.sqsh.ColumnDescription.Alignment;
 import org.sqsh.ColumnDescription.OverflowBehavior;
 import org.sqsh.Command;
 import org.sqsh.HelpTopic;
+import org.sqsh.MarkdownFormatter;
 import org.sqsh.PagedCommand;
 import org.sqsh.Renderer;
 import org.sqsh.Session;
@@ -162,8 +163,17 @@ public class Help
             rc = 1;
         }
         else {
+            
+            int width = session.getScreenWidth();
+            if (width > 70) {
                 
-            session.out.println(topic.getHelp());
+                width -= 8;
+            }
+                
+            // session.out.println(topic.getHelp());
+            MarkdownFormatter formatter =
+                new MarkdownFormatter(width, session.out);
+            formatter.format(topic.getHelp());
         }
         
         return rc;

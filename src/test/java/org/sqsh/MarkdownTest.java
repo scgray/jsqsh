@@ -341,8 +341,8 @@ public class MarkdownTest {
         result = bytes.toString();
         // System.out.println(result);
         Assert.assertEquals(
-            "Test "+BOLD_ESC+BOLD_CODE_ESC+"bold and raw"+OFF_ESC+"\n"
-                + "  "+BOLD_CODE_ESC+"with wrapping"+BOLD_ESC+" of"+OFF_ESC+"\n"
+            "Test "+BOLD_ESC+OFF_ESC+BOLD_CODE_ESC+"bold and raw"+OFF_ESC+"\n"
+                + "  "+BOLD_CODE_ESC+"with wrapping"+OFF_ESC+BOLD_ESC+" of"+OFF_ESC+"\n"
                 + "  "+BOLD_ESC+"text"+OFF_ESC+"\n",
             result);
 
@@ -354,8 +354,8 @@ public class MarkdownTest {
         result = bytes.toString();
         // System.out.println(result);
         Assert.assertEquals(
-            "Test "+ITALIC_ESC+ITALIC_CODE_ESC+"italic and"+OFF_ESC+"\n"
-                + "  "+ITALIC_CODE_ESC+"raw with wrapping"+ITALIC_ESC+OFF_ESC+"\n"
+            "Test "+ITALIC_ESC+OFF_ESC+ITALIC_CODE_ESC+"italic and"+OFF_ESC+"\n"
+                + "  "+ITALIC_CODE_ESC+"raw with wrapping"+OFF_ESC+ITALIC_ESC+OFF_ESC+"\n"
                 + "  "+ITALIC_ESC+"of text"+OFF_ESC+"\n",
             result);
 
@@ -385,17 +385,21 @@ public class MarkdownTest {
     }
     
     @Test
-    public void testMarkdown() throws Exception {
+    public void testBasicMarkdown() throws Exception {
         
-        String tmpDir = System.getProperty("test.tmp.dir");
-        Assert.assertTrue("Property test.tmp.dir is not set!", tmpDir != null);
+        runTest("test1");
+    }
+
+    @Test
+    public void testBulletedLists() throws Exception {
         
-        File file = new File(tmpDir);
-        Assert.assertTrue(tmpDir + " does not exist or is not a directory", 
-           file.isDirectory());
+        runTest("bullets");
+    }
+
+    @Test
+    public void testNumberedLists() throws Exception {
         
-        runTest("test1", tmpDir);
-        runTest("bullets", tmpDir);
+        runTest("numbers");
     }
     
     private void print(WrappingStream out, String str) {
@@ -447,7 +451,14 @@ public class MarkdownTest {
         }
     }
     
-    private void runTest(String testName, String tmpDir) throws Exception {
+    private void runTest(String testName) throws Exception {
+
+        String tmpDir = System.getProperty("test.tmp.dir");
+        Assert.assertTrue("Property test.tmp.dir is not set!", tmpDir != null);
+        
+        File file = new File(tmpDir);
+        Assert.assertTrue(tmpDir + " does not exist or is not a directory", 
+           file.isDirectory());
         
         InputStream srcStream = MarkdownTest.class.getResourceAsStream("/"+testName + ".md");
         Assert.assertNotNull("Could not find resource " + testName + ".md", srcStream);

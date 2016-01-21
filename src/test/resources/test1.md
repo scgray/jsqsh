@@ -15,3 +15,19 @@ because wrapping is totally awesome
     here to make the line wrap a few times.
   
 And resuming the paragraphs, with some `inline code` because that is cool
+
+## Header 2
+
+This is the second header
+
+### This is *header 3* and it is cool
+
+Here's a test of  
+a hard  
+break  
+two spaces
+
+  * Hard  
+    break in a bulleted list
+  * And  
+    another one

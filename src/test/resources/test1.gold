@@ -5,17 +5,34 @@ HEADER #1
   starting putting stuff in here to see
   if it works!
 
-    How about a fancy code block?
-    It'll look totally cool
+     How about a fancy code block?
+     It'll look totally cool
 
   And here is another paragraph, that
   should also wrap, because wrapping is
   totally awesome
 
-    * And how about a bullet, eh?
-    * And [4manother[0m bullet? We'll also try
-      to make sure there is enough here
-      to make the line wrap a few times.
+     * And how about a bullet, eh?
+     * And [4manother[0m bullet? We'll also
+       try to make sure there is enough
+       here to make the line wrap a few
+       times.
 
   And resuming the paragraphs, with some[0m
   [1m[1minline code[0m because that is cool
+
+HEADER 2
+
+  This is the second header
+
+  [1mThis is [0m[1;4mheader 3[0m[1m and it is cool[0m
+
+  Here's a test of
+  a hard
+  break
+  two spaces
+
+     * Hard
+       break in a bulleted list
+     * And
+       another one

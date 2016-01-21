@@ -5,49 +5,53 @@ TESTING BULLETED LISTS
   layouts, indent depths, and nested
   code elements.
 
-    * This is a bullet at the first
-      level [1mit has some nested code in[0m
-      [1mit because, well, what the hell?[0m
-      * According to github markdown,
-        this should be at level 2, even
-        though it is indented less than
-        the previous one.
-        * And this should line up with
-          the previous one at level 2
-          * And do I hear a level 3??
-    * And back to level 1
+     * This is a bullet at the first
+       level [1mit has some nested code in[0m
+       [1mit because, well, what the hell?[0m
+     * We'll force this one up to the
+       level of the previous one. This
+       isn't the same behavior as
+       github, but it is a silly use
+       case anyway.
+        - This line should appear on
+          level 2 because it is indented
+          more than the previous level
+           o And do I hear a level 3??
+     * And back to level 1
 
   And back to a regular paragraph
 
-    * Let's test code blocks now this
-      should not be a code block because
-      it does not have a preceeding
-      blank space.
-    * But, now I will have a code block.
+     * Let's test code blocks now this
+       should not be a code block
+       because it does not have a
+       preceeding blank space.
+     * But, now I will have a code
+       block.
 
-        Here is my very first code block 
-        in a bulleted list
+          Here is my very first code block 
+          in a bulleted list
 
-      text continuing the current bullet
-    * And another bullet
+       text continuing the current
+       bullet
+     * And another bullet
 
-        With a closing
-        Code block
+          With a closing
+          Code block
 
   And a closing paragraph
 
-    * A new bullet, and some more that
-      is part of the same bullet
-      * And a sub-bullet
+     * A new bullet, and some more that
+       is part of the same bullet
+        - And a sub-bullet
 
 HEADER 2
 
   And starting a new paragraph
 
-    * Bullets
+     * Bullets
 
-    * With
+     * With
 
-    * Blank
+     * Blank
 
-    * Lines
+     * Lines

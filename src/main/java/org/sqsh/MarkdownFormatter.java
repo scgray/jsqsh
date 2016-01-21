@@ -35,7 +35,11 @@ public class MarkdownFormatter {
     // How much a normal text block is indented
     private static final int TEXT_INDENT = 2;
     // How many spaces a list item is indented
-    private static final int LIST_INDENT = 2;
+    private static final int LIST_INDENT = 3;
+    // Number of spaces (relative to current block) to indent code blocks
+    private static final int CODE_INDENT = 3;
+    
+    private static final char[] BULLET_CHARS = { '*', '-', 'o' };
 
     /*
      * Spaces used as a source of characters for indenting. Who could
@@ -251,6 +255,12 @@ public class MarkdownFormatter {
                 
                 boolean wasNext = false;
                 
+                int displayIndentSize = 
+                      (listStates.size() > 0) 
+                          ? getListWrappingIndent() + CODE_INDENT
+                          : TEXT_INDENT + CODE_INDENT;
+                                  
+                
                 // Dump all of the lines in the code block
                 do {
                     
@@ -265,8 +275,8 @@ public class MarkdownFormatter {
                         needsBlankLine = true;
                     }
                     else {
-
-                        out.append(SPACES, 0, codeBlockIndentSize);
+                        
+                        out.append(SPACES, 0, displayIndentSize);
                         out.append(line.str, line.start + codeBlockIndentSize, 
                                 line.contentEnd);
                         out.println();
@@ -354,26 +364,23 @@ public class MarkdownFormatter {
                     needsBlankLine = false;
                 }
                 
-                // It took me a lot of tinkering around on github to figure out.
-                // List indenting works like this:
+                // My formatting for bulleted lists doesn't exactly correspond
+                // with github's markdown.  The rule is this: 
+                //  * The first bullet establishes the initial indent level
+                //  * A bullet that aligns before the first bullet is bumped
+                //    up to align with the first bullet
+                //  * A bullet that is aligned between an established set of
+                //    indent levels is bumped up to the nearest one
                 //
-                // 1. The first * is always the first indent level
-                // 2. A * that is indented EXACTLY at the same level as
-                //    the previous * is considered at the same level
-                // 3. A * that is not indented exactly at the same level
-                //    is considered the next level, even if it is before
-                //    the previous * (!!)
+                // So:
+                //   * This is at level 1
+                //  * This is also at level 1
                 //
-                // so:
-                //
-                //   * this is level 1
-                // * and this is level 2
-                //
-                // is rendered like so:
-                //
-                //   * this is level 1
-                //     * and this is level 2
-              
+                // And:
+                //   * This is at level 1
+                //     * This is at level 2
+                //    * This will be bumped to level 2
+                // 
                 ListState state = null;
                 int toDelete = 0;
                 for (int i = 0; i < listStates.size(); i++) {
@@ -381,31 +388,11 @@ public class MarkdownFormatter {
                     ListState cur = listStates.get(i);
                     
                     // An exact match for indent
-                    if (cur.indent == line.indent) { 
+                    if (line.indent <= cur.indent) {
 
                         state = cur;
                         toDelete = listStates.size() - (i+1);
                         break;
-                    }
-                    else if (line.indent < cur.indent) {
-
-                        // The indent is less than the level we are looking
-                        // at, this could be:
-                        //
-                        //    * this is level 1
-                        //  * this is level 2
-                        //
-                        // or it could be
-                        //
-                        //  * This is level 1
-                        //      * This is level 2
-                        //    * This is also level 2
-                        //
-                        if (i+1 < listStates.size()) {
-                            
-                            state = listStates.get(i+1);
-                            toDelete = listStates.size() - (i+2);
-                        }
                     }
                 }
                 
@@ -425,29 +412,51 @@ public class MarkdownFormatter {
                     --toDelete;
                 }
                 
-                int newIndent = TEXT_INDENT + (LIST_INDENT * listStates.size());
-                out.append(SPACES, 0, newIndent);
+                out.append(SPACES, 0, 
+                    TEXT_INDENT + (LIST_INDENT * listStates.size())); 
+                
+                // Figure out how nested this entry is
+                int depth = 0;
+                for (int i = listStates.size() - 1; i > 0 
+                    && listStates.get(i).type == state.type; i--) {
+                    
+                    ++depth;
+                }
+                
+                // System.out.println(line + ": Depth " + depth);
 
                 if (currentSectionType == SectionType.ULIST) {
-                    
-                    out.print("* ");
-                    wrappingOut.setIndent(newIndent + 2);
+
+                    out.print(BULLET_CHARS[depth % BULLET_CHARS.length]);
+                    out.print(' ');
                 }
                 else {
                     
-                    out.print(state.num);
-                    out.print(". ");
-                    newIndent += 2;
-                    if (state.num < 10) {
+                    if ((depth % 2) == 1) {
                         
                         out.print(' ');
-                        ++newIndent;
+                        out.print((char) ('a' + (state.num-1)));
+                        out.print(". ");
+                    }
+                    else {
+
+                        if (state.num < 10) {
+                            
+                            out.print(' ');
+                        }
+                        out.print(state.num);
+                        out.print(". ");
                     }
                     ++state.num;
-                    wrappingOut.setIndent(newIndent);
                 }
                 
+                wrappingOut.setIndent(getListWrappingIndent());
+                
                 block.append(line.str, line.contentStart, line.contentEnd);
+                if (line.forcesNewline()) {
+                        
+                    block.append('\n');
+                }
                 break;
 
                 
@@ -456,8 +465,8 @@ public class MarkdownFormatter {
                 // and resets all indent.
                 printBlock();
                 
-                if (needsBlankLine) {
-                    
+                if (! isFirstLine) {
+
                     out.println();
                 }
                 
@@ -467,14 +476,18 @@ public class MarkdownFormatter {
                 if (line.level < 3) {
                     
                     headerText = headerText.toUpperCase();
+                    wrappingOut.setIndent(0);
+                    print(headerText, wrappingOut);
+                }
+                else {
+                    
+                    out.append(SPACES, 0, TEXT_INDENT);
+                    wrappingOut.setIndent(TEXT_INDENT);
+                    wrappingOut.bold(true);
+                    print(headerText, wrappingOut);
                 }
                 
-                if (! isFirstLine) {
-                    
-                    out.println();
-                }
-                wrappingOut.setIndent(0);
-                print(headerText, wrappingOut);
+                wrappingOut.setIndent(TEXT_INDENT);
                 currentSectionType = SectionType.TEXT;
 
                 // Always force a blank line after a header.
@@ -490,6 +503,27 @@ public class MarkdownFormatter {
         }
         
         printBlock();
+    }
+    
+    private int getListWrappingIndent() {
+        
+        int len = listStates.size();
+        
+        assert len > 0;
+
+        ListState state = listStates.peek();
+        switch (state.type) {
+        
+        case OLIST:
+            return TEXT_INDENT + (LIST_INDENT * listStates.size()) + 4;
+
+        case ULIST:
+            // Add extra two spaces to account for "* "
+            return TEXT_INDENT + (LIST_INDENT * listStates.size()) + 2;
+
+        default:
+            throw new RuntimeException("Invalid list type");
+        }
     }
     
     protected void printBlock() {
@@ -642,7 +676,68 @@ public class MarkdownFormatter {
                 break;
                 
             case '[':
-                // XXX -- TODO, URL's
+                if (idx < len && block.charAt(idx) == '[') {
+                    
+                    ++idx;
+                    if (hasClosingBrace(block, idx, true)) {
+                        
+                        boolean hitPipe = false;
+                        boolean done = false;
+                        boolean wasBold = wrappingOut.isBold();
+
+                        wrappingOut.bold(true);
+                        while (idx < len && !done) {
+                            
+                            ch = block.charAt(idx++);
+                            if (ch == ']' 
+                                && idx < len && block.charAt(idx) == ']') {
+                                
+                                ++idx;
+                                done = true;
+                            }
+                            else if (ch == '|') {
+                                
+                                hitPipe = true;
+                            }
+                            else {
+                                
+                                if (!hitPipe) {
+                                    
+                                    wrappingOut.print(ch);
+                                }
+                            }
+                        }
+                        wrappingOut.bold(wasBold);
+                    }
+                    else {
+                        
+                        wrappingOut.print('[');
+                        wrappingOut.print('[');
+                    }
+                }
+                else {
+                    
+                    if (hasClosingBrace(block, idx, false)) {
+                        
+                        boolean done = false;
+                        while (idx < len && ! done) {
+                            
+                            ch = block.charAt(idx++);
+                            if (ch == ']') {
+                                
+                                done = true;
+                            }
+                            else {
+                                
+                                wrappingOut.print(ch);
+                            }
+                        }
+                    }
+                    else {
+                        
+                        wrappingOut.print('[');
+                    }
+                }
                 break;
 
             default: 
@@ -651,6 +746,32 @@ public class MarkdownFormatter {
         }
         
         wrappingOut.flush();
+    }
+    
+    private static boolean hasClosingBrace(CharSequence block, int idx, 
+        boolean isDoubled) {
+
+        int len = block.length();
+        while (idx < len) {
+            
+            char ch = block.charAt(idx++);
+            if (ch == ']') {
+                
+                if (isDoubled) {
+                    
+                    if (idx < len && block.charAt(idx) == ']') {
+                        
+                        return true;
+                    }
+                }
+                else {
+                    
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
     
     /**
@@ -1123,6 +1244,14 @@ public class MarkdownFormatter {
             else 
                 decorationOff(Decoration.BOLD);
         }
+        
+        /**
+         * @return true if bold is on
+         */
+        public boolean isBold() {
+            
+            return (decorations & Decoration.BOLD) != 0;
+        }
 
         /**
          * Turns underscoring on or off
@@ -1257,6 +1386,11 @@ public class MarkdownFormatter {
                 
                 return;
             }
+            
+            if (decorations != Decoration.OFF) {
+                
+                word.append(Decoration.OFF_ESC);
+            }
 
             decorations |= bit;
             
@@ -1284,6 +1418,11 @@ public class MarkdownFormatter {
             }
             
             decorations &= ~(bit);
+            if (decorations != 0) {
+                
+                word.append(Decoration.OFF_ESC);
+            }
+
             word.append(Decoration.getEscape(decorations));
         }
         

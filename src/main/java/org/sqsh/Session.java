@@ -1531,7 +1531,15 @@ public class Session
         String pager = variableManager.get("PAGER");
         if (pager == null) {
             
-            pager = "more";
+            if (System.getProperty("os.name").startsWith("Windows")) {
+                
+                pager = "more";
+            }
+            else {
+                
+                pager = "more -R";
+            }
+                
         }
         
         try {
