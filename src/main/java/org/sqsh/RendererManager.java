@@ -77,7 +77,11 @@ public class RendererManager {
             org.sqsh.renderers.VerticalRenderer.class);
         renderers.put("json",
             org.sqsh.renderers.JsonRenderer.class);
-    }
+        renderers.put("delim",
+            org.sqsh.renderers.DelimiterRenderer.class);
+        renderers.put("delimiter",
+            org.sqsh.renderers.DelimiterRenderer.class);
+}
     
     /**
      * Returns the renderer that should be used by commands when displaying

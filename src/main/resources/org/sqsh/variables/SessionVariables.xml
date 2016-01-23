@@ -128,7 +128,16 @@ SQL STYLES
 
         Note: the variable ${window_size} can be used to control the size
         of the window that is opened to display results.
-        
+   delimiter- same as delim
+   delim    - Just like csv except you can customize the output by setting 
+        aliases for the parameters.
+
+        delimiter - the string to set to separate values default ,
+        marker - the string to set to wrap values default "
+        newline - the string to set to indicate new line default \n
+        escape - the string to set to indicate an escape sequence for a 
+                 marker.  Default is double the marker.
+            
 NOTES
    This variable is a little odd in that it has slightly different
    behavior in different contexts:
