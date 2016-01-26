@@ -339,14 +339,14 @@ jsqsh will generate a warning upon startup if it is unable to
 load its JNI interface.  Lack of JNI causes the following
 behavior:
             
-- Operating system commands that are piped to (e.g. `go | grep ...`)
+* Operating system commands that are piped to (e.g. `go | grep ...`)
   will not have direct access to the console (in the UNIX world
   this is called "tty" access). This means that these commands 
   cannot perform any console operations. Specifically, commands
   such as "more" will not function properly because "more" needs
   to query the console as to its size and will be unable to do so.
           
-- Similarly, the editor launched by `\buf-edit` will not have access
+* Similarly, the editor launched by `\buf-edit` will not have access
   to the console, so text-based editors such as `vi` or `emacs` 
   will not work properly. In this case, you will need to use a 
   graphical editor such as "notepad.exe" or "gvim".
@@ -470,9 +470,10 @@ The following individuals have contributed to the development of
 jsqsh either by direct contribution of code, suggestions, or 
 inspiration.
    
-Walter Jordan <walter.gator at gmail.com> - Patches and useful suggestions.
-       
-Ryan Stouffer <rstouffer at inventa.com> - Enhancements and additions to GUI widgets.
+  * **Walter Jordan** (walter.gator at gmail.com) - Patches and useful suggestions.
+  * **Ryan Stouffer** (rstouffer at gmail.com) - Enhancements and additions to GUI widgets.
+  * **Scott Wakeling** (scott at diskfish.org>) - Build enhancements for debian
+
 	  ]]></HelpText>
 </Topic>
 
@@ -765,20 +766,6 @@ then readline support will be enabled.
       ]]></HelpText>
 </Topic>
 
-<Topic name="contributors">
-        <Description>Individuals who have contributed to jsqsh</Description>
-        <HelpText><![CDATA[
-## JSqsh contributorS
-
-The following individuals have contributed to the development of jsqsh
-inspiration.
-   
-Walter Jordan <walter.gator at gmail.com> - Patches and useful suggestions.
-       
-Ryan Stouffer <rstouffer at inventa.com> - Enhancements and additions to GUI widgets.
-      ]]></HelpText>
-</Topic>
-
 <Topic name="storedprocs">
         <Description>Calling stored procedures with JSqsh</Description>
         <HelpText><![CDATA[
@@ -799,7 +786,7 @@ input argument and retrieving one output argument using this syntax:
     | Param #1    |
     +-------------+
     | Fred        |
-      +-------------+
+    +-------------+
       
 here, a question mark (`?`) is used to denote an output parameter. After
 execution, the contents of that output parameter is displayed as shown.

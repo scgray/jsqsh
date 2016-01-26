@@ -241,7 +241,7 @@ public class JSqsh {
             
             if (options.topic != null) {
             
-                System.exit(Help.displayHelpText(session, options.topic));
+                System.exit(Help.displayHelpText(session, options.topic, false));
             }
             
             if (!doConnect(session, options)) {

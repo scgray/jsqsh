@@ -15,6 +15,8 @@
  */
 package org.sqsh.commands;
 
+import static org.sqsh.options.ArgumentRequired.NONE;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -31,6 +33,7 @@ import org.sqsh.Session;
 import org.sqsh.SqshOptions;
 import org.sqsh.Variable;
 import org.sqsh.options.Argv;
+import org.sqsh.options.OptionProperty;
 
 /**
  * Implements the 'help' command.
@@ -45,6 +48,11 @@ public class Help
      */
     private static class Options
         extends SqshOptions {
+        
+        @OptionProperty(
+            option='r', longOption="raw", arg=NONE, 
+            description="Displays help text in raw markdown form")
+        public boolean raw = false;
         
         @Argv(program="\\help", min=0, max=1,
             usage="[topics|vars|commands|name]")
@@ -97,7 +105,7 @@ public class Help
         }
         else {
             
-            rc = displayHelpText(session, word);
+            rc = displayHelpText(session, word, options.raw);
         }
         
         return rc;
@@ -110,7 +118,7 @@ public class Help
      * @param word The topic to look for.
      * @return 0 if the topic was found and displayed, 1 otherwise.
      */
-    public static int displayHelpText(Session session, String word) {
+    public static int displayHelpText(Session session, String word, boolean isRaw) {
         
         int rc = 0;
         
@@ -164,16 +172,27 @@ public class Help
         }
         else {
             
-            int width = session.getScreenWidth();
-            if (width > 70) {
+            if (isRaw) {
                 
-                width -= 8;
+                session.out.println(topic.getHelp());
             }
-                
-            // session.out.println(topic.getHelp());
-            MarkdownFormatter formatter =
-                new MarkdownFormatter(width, session.out);
-            formatter.format(topic.getHelp());
+            else {
+            
+                int width = session.getScreenWidth();
+                if (width > 70) {
+                    
+                    width -= 8;
+                }
+                else if (width < 40) {
+                    
+                    width = 40;
+                }
+                    
+                // session.out.println(topic.getHelp());
+                MarkdownFormatter formatter =
+                    new MarkdownFormatter(width, session.out);
+                formatter.format(topic.getHelp());
+            }
         }
         
         return rc;

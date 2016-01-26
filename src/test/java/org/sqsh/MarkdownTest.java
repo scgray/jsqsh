@@ -100,6 +100,7 @@ public class MarkdownTest {
 
         Assert.assertFalse(line.next());
         Assert.assertFalse(line.next());
+
         input =
             "this is line one\n"
           + " * bullet\n"
@@ -138,6 +139,37 @@ public class MarkdownTest {
         Assert.assertEquals(Line.Type.TEXT, line.type);
         Assert.assertEquals("paragraph", line.getContent());
         Assert.assertEquals(39, line.start);
+
+        input =
+            "this is a paragraph\n"
+          + "  col1 | col2\n"
+          + "  ---- | ----\n"
+          + "  a    | b\n"
+          + "   c    | d\n"
+          + "\n"
+          + "paragraph\n";
+          
+        line.reset(input);
+
+        Assert.assertTrue(line.next());
+        Assert.assertEquals(Line.Type.TEXT, line.type);
+        Assert.assertEquals("this is a paragraph", line.getContent());
+
+        Assert.assertTrue(line.next());
+        Assert.assertEquals(Line.Type.TABLE_HEADER, line.type);
+        Assert.assertEquals("col1 | col2", line.getContent());
+        Assert.assertEquals(2, line.indent);
+
+        Assert.assertTrue(line.next());
+        Assert.assertEquals(Line.Type.TABLE_HEADER_DIVIDER, line.type);
+
+        Assert.assertTrue(line.next());
+        Assert.assertEquals(Line.Type.TABLE_ROW, line.type);
+        Assert.assertEquals("a    | b", line.getContent());
+
+        Assert.assertTrue(line.next());
+        Assert.assertEquals(Line.Type.TABLE_ROW, line.type);
+        Assert.assertEquals("c    | d", line.getContent());
     }
 
     @Test

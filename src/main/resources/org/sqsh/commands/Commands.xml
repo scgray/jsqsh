@@ -515,7 +515,7 @@ is also provided by a built-in alias of `go`.
 
 ## See also
 
-[[style]], [[header]], [[footer]]
+[[style]], [[header]], [[footer]], [[timer]]
         ]]></Help>
     </Command>
 
@@ -618,7 +618,7 @@ invoked to completely remove the variable in this case.
         <Help><![CDATA[
 ## Synopsis
 
-`\help [[topics|vars|commands] | item]`
+`\help [--raw] [[topics|vars|commands] | item]`
 
 ## Description
 
@@ -629,18 +629,38 @@ names lists a set of help items available within the category.
   
 ## Options
 
-Option    | Description
-----------|----------------------------------------------------------------
-topics    | Displays a list of overall topics about jsqsh
-vars      | Displays a list of variables that control jsqsh's behavior
-commands  | Displays a list of commands supported by jsqsh
-*item*    | The name of a specific help item (command, variable, or topic)
+### --raw (-r)
+
+Jsqsh documentation is stored internally in a simple markup format
+called "markdown".  The --raw flag causes the raw markdown to be
+displayed.
+
+### topics
+
+Displays a list of general help topics about jsqsh
+
+### vars
+
+Displays a list of all variables that control jsqsh's behavior
+
+### commands
+
+Displays a list of all jsqsh commands
+
+### *item*
+
+Given the name of a topic, variable, or command displays detailed 
+help for it.
   
 ## Command line option
 
 All jsqsh commands take a special command line option of `--help` or `-h`
 which will cause help to be displayed on the available command line
 options available for the command.
+
+## See also
+
+[[arguments]]
         ]]></Help>
     </Command>
     
@@ -1296,7 +1316,7 @@ None
 
 `\eval filename`
               
-Description
+## Description
 
 The `\eval` command reads in and processes a file full of SQL in the context
 of the current session. That is, it treats the SQL and/or jsqsh commands 
@@ -1699,12 +1719,12 @@ prefixes are:
    
 Argument  | Description
 ----------|------------------------------------
-S:*value* | Specifies a string value
-C:*value* | Specifies a character value
-Z:*value* | Specifies a boolean value
-D:*value* | Specifies a double value
-I:*value* | Specifies an integer value
-J:*value> | Specifies a long (64 bit integer) value
+S:*value*   | Specifies a string value
+C:*value*   | Specifies a character value
+Z:*value*   | Specifies a boolean value
+D:*value*   | Specifies a double value
+I:*value*   | Specifies an integer value
+J:*value*   | Specifies a long (64 bit integer) value
 R:        | (Oracle or DB2) Output a REFCURSOR 
 
 The `R:` argument acts as a place holder for dealing with Oracle or DB2

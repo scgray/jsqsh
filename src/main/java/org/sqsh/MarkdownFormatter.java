@@ -26,8 +26,29 @@ import java.util.Stack;
  * readable enough for my taste, so this class is used to nicely format
  * the output taking into account things like the current screen width.
  * 
- * <p>This formatter handles the following markdown elements:
+ * <p>This class handles only the sub-set of markdown functionality that
+ * I use in the jsqsh documentation. Anything that is <b>not</b> listed
+ * here is not supported.
  * <ul>
+ *   <li> <b>headers</b> are supported, but only the '#' style of headers 
+ *        is and trailing '#' will be left in tact</li>
+ *   <li> <b>bold</b> Is supported (**bold**)</li>
+ *   <li> <b>italics</b> Is supported  (*italics*)</li>
+ *   <li> <b>italics</b> Is supported  (*italics*)</li>
+ *   <li> <b>bulleted</b> lists are supported, but only with the '*' to
+ *        denote the start of a bullet</li>
+ *   <li> <b>numbered</b> lists are supported</li>
+ *   <li> <b>monospace</b> is supported (`like this`)</li>
+ *   <li> <b>hard breaks</b> are supported with two trailing spaces</li>
+ *   <li> <b>wiki links</b> are supported (e.g. [[Hello World|Hi]]</li>
+ *   <li> <b>tables</b> are just barely supported in this form:
+ *   <pre>
+ *   Column 1 | Column 2
+ *   ---------|----------
+ *   val1     | val2
+ *   </pre>
+ *   when displayed, they will be displayed like a code block, with white
+ *   spaces being retained.
  * </ul>
  */
 public class MarkdownFormatter {
@@ -197,6 +218,7 @@ public class MarkdownFormatter {
     private WrappingStream wrappingOut;
     private StringBuilder block = new StringBuilder();
     private Line line = new Line();
+    private Line nextLine;
     private Stack<ListState> listStates = new Stack<ListState>();
 
     public MarkdownFormatter (int screenWidth, PrintStream out) {
@@ -218,7 +240,7 @@ public class MarkdownFormatter {
         block.setLength(0);
         
         line.reset(str);
-        wrappingOut.setIndent(0);
+        wrappingOut.setIndent(TEXT_INDENT);
         
         while (line.next()) {
             
@@ -306,48 +328,72 @@ public class MarkdownFormatter {
             switch (line.type) {
             
             case TEXT:
-                // In this context "TEXT" just means that the line didn't start
-                // with something special like a header (##) or a bullet (*), 
-                // so it could be normal text, or it could be the continuation
-                // of, say, a bulleted list.
-                if (isFirstLine) {
+                
+                // Is this going to be a code block?
+                if (line.str.startsWith("```", line.contentStart)) {
                     
-                    currentSectionType = SectionType.TEXT;
-                    out.append(SPACES, 0, TEXT_INDENT);
-                    wrappingOut.setIndent(TEXT_INDENT);
+                    if (! isFirstLine) {
+                        
+                        printBlock();
+                        out.println();
+                    }
+                    
+                    while (line.next() && 
+                        ! line.str.startsWith("```", line.contentStart)) {
+                        
+                        out.append(SPACES, 0, wrappingOut.getIndent());
+                        out.append(line.str, line.start, line.contentEnd);
+                        out.println();
+                    }
+
+                    needsBlankLine = true;
                 }
-                else if (needsBlankLine) {
+                else {
 
-                    out.println();
-                    if (currentSectionType == SectionType.TEXT 
-                        || line.indent == 0) {
-
+                    // In this context "TEXT" just means that the line didn't start
+                    // with something special like a header (##) or a bullet (*), 
+                    // so it could be normal text, or it could be the continuation
+                    // of, say, a bulleted list.
+                    if (isFirstLine) {
+                        
                         currentSectionType = SectionType.TEXT;
-                        listStates.clear();
                         out.append(SPACES, 0, TEXT_INDENT);
                         wrappingOut.setIndent(TEXT_INDENT);
                     }
-                    else if (! listStates.isEmpty()) {
+                    else if (needsBlankLine) {
+
+                        out.println();
+                        if (currentSectionType == SectionType.TEXT 
+                            || line.indent == 0) {
+
+                            currentSectionType = SectionType.TEXT;
+                            listStates.clear();
+                            out.append(SPACES, 0, TEXT_INDENT);
+                            wrappingOut.setIndent(TEXT_INDENT);
+                        }
+                        else if (! listStates.isEmpty()) {
+                            
+                            // If we were in the middle of a bulleted list, then
+                            // blank line probably came from an inline code-block
+                            // or something like that, so we need to resume our
+                            // indent from the bullets.
+                            out.append(SPACES, 0, wrappingOut.getIndent());
+                        }
                         
-                        // If we were in the middle of a bulleted list, then
-                        // blank line probably came from an inline code-block
-                        // or something like that, so we need to resume our
-                        // indent from the bullets.
-                        out.append(SPACES, 0, wrappingOut.getIndent());
+                        needsBlankLine = false;
                     }
                     
-                    needsBlankLine = false;
-                }
-                
-                if (block.length() > 0) {
                     
-                    block.append(' ');
-                }
-
-                block.append(line.str, line.contentStart, line.contentEnd);
-                if (line.forcesNewline()) {
+                    if (block.length() > 0) {
                         
-                    block.append('\n');
+                        block.append(' ');
+                    }
+
+                    block.append(line.str, line.contentStart, line.contentEnd);
+                    if (line.forcesNewline()) {
+                            
+                        block.append('\n');
+                    }
                 }
                 break;
 
@@ -494,6 +540,38 @@ public class MarkdownFormatter {
                 needsBlankLine = true;
                 break;
                 
+            case TABLE_HEADER:
+                printBlock();
+                if (! isFirstLine) {
+                    
+                    out.println();
+                }
+                
+                // We will ensure that the indent of all subsuquent lines in
+                // the table are the same as the header column
+                int tableIndent = line.indent;
+                out.append(SPACES, 0, wrappingOut.getIndent());
+
+                wrappingOut.raw(true);
+                print(line.str, line.contentEnd, line.start+tableIndent, wrappingOut, false);
+                wrappingOut.print('\n');
+                
+                Line next = peek();
+                while (next != null 
+                    && (next.type == Line.Type.TABLE_HEADER_DIVIDER 
+                        || next.type == Line.Type.TABLE_ROW)) {
+                    
+                    line.next();
+                    print(line.str, line.contentEnd, line.start+tableIndent, wrappingOut, false);
+                    wrappingOut.print('\n');
+                    next = peek();
+                }
+                wrappingOut.raw(false);
+                wrappingOut.flush();
+
+                needsBlankLine = true;
+                break;
+                
             default:
                 throw new RuntimeException("Unexpected line type!: " 
                     + line.type);
@@ -504,6 +582,13 @@ public class MarkdownFormatter {
         
         printBlock();
     }
+    
+    private Line peek() {
+        
+        nextLine = line.peek(nextLine);
+        return nextLine;
+    }
+    
     
     private int getListWrappingIndent() {
         
@@ -534,12 +619,16 @@ public class MarkdownFormatter {
             block.setLength(0);
         }
     }
-    
-    protected static void print(CharSequence block, WrappingStream wrappingOut) {
 
-        int idx = 0;                      // Current location in the block
-        int len = block.length();
+    protected static void print(CharSequence block, WrappingStream wrappingOut) {
         
+        print(block, block.length(), 0, wrappingOut, true);
+
+    }
+    
+    protected static void print(CharSequence block, int len, int idx, 
+             WrappingStream wrappingOut, boolean doFlush) {
+
         while (idx < len) {
             
             char ch = block.charAt(idx++);
@@ -745,7 +834,10 @@ public class MarkdownFormatter {
             }
         }
         
-        wrappingOut.flush();
+        if (doFlush) {
+
+            wrappingOut.flush();
+        }
     }
     
     private static boolean hasClosingBrace(CharSequence block, int idx, 
@@ -919,9 +1011,12 @@ public class MarkdownFormatter {
             ULIST,
             OLIST,
             HEADER,
+            TABLE_HEADER,
+            TABLE_HEADER_DIVIDER,
+            TABLE_ROW
         }
         
-        public Type     type;
+        public Type     type = Type.TEXT;
         
         /**
          * The physical start of the current line
@@ -970,6 +1065,50 @@ public class MarkdownFormatter {
             this.len = str.length();
             this.idx = 0;
         }
+
+        /**
+         * "Peeks" at the next line of input
+         * 
+         * @param into  This is a Line object that will be used to populate
+         *   the state information for the next line.  if it is null, then
+         *   a new Line object will be allocated
+         * @return The Line object representing the next line, or null if
+         *   there is no next line
+         */
+        public Line peek (Line into) {
+            
+            if (into == null) {
+                
+                into = new Line();
+            }
+            
+            into.type         = type;
+            into.start        = start;
+            into.contentStart = contentStart;
+            into.contentEnd   = contentEnd;
+            into.indent       = indent;
+            into.level        = level;
+            into.str          = str;
+            into.len          = len;
+            into.idx          = idx;
+            
+            if (into.next()) {
+                
+                return into;
+            }
+            
+            return null;
+        }
+        
+        /**
+         * Peeks at the next line of input
+         * 
+         * @return The next line or null if there are no more lines
+         */
+        public Line peek () {
+            
+            return peek(null);
+        }
         
         public boolean next () {
             
@@ -982,6 +1121,68 @@ public class MarkdownFormatter {
             }
             
             char ch = str.charAt(idx);
+            
+            // If the previous line was a table header, then we want to process
+            // this line as the table divider, which is easy, just seek forward
+            // to the newline.
+            if (type == Type.TABLE_HEADER) {
+                
+                type = Type.TABLE_HEADER_DIVIDER;
+                idx = skipWhitespace(str, len, idx);
+                contentStart = idx;
+                indent = (contentStart - start);
+
+                // Fine the newline
+                for (; idx < len && str.charAt(idx) != '\n'; idx++);
+
+                contentEnd = idx;
+
+                // Skip the newline
+                if (idx < len)
+                    ++idx;
+                
+                return true;
+            }
+            else if (type == Type.TABLE_HEADER_DIVIDER
+                || type == Type.TABLE_ROW) {
+                
+                type = Type.TABLE_ROW;
+
+                int curIdx = idx;
+                curIdx = skipWhitespace(str, len, curIdx);
+                int curContentStart = curIdx;
+                int curIndent = (contentStart - start);
+
+                boolean hasPipe = false;
+                while (curIdx < len) {
+                    
+                    char curChar = str.charAt(curIdx++);
+                    if (curChar == '\n') {
+                        
+                        break;
+                    }
+                    else if (hasPipe == false 
+                        || (curChar == '|' 
+                               && (curChar == idx || str.charAt(curIdx-1) != '\\'))) {
+                        
+                        hasPipe = true;
+                    }
+                }
+                
+                if (hasPipe) {
+                    
+                    contentStart = curContentStart;
+                    indent = curIndent;
+                    contentEnd = curIdx-1;
+                    idx = curIdx;
+
+                    return true;
+                }
+            }
+
+            // Ok, we found the start of the content, now seek forward to
+            // the end of the line and we are done.
+            boolean mightBeTable = (ch == '|');
 
             // Do we have a header?
             if (ch == '#') {
@@ -1018,14 +1219,17 @@ public class MarkdownFormatter {
                     indent = (idx - start);
                     
                     ch = str.charAt(idx++);
+                    
+                    // Do we have a numbered list?
                     if (ch >= '0' && ch <= '9') {
                     
-                        // We possibly have a numbered list. 
+                        // Skip all of the digits
                         while (idx < len && Character.isDigit(str.charAt(idx))) {
                         
                             ++idx;
                         }
                     
+                        // We have to have a ". " to be a numbered list
                         if (idx+1 < len && str.charAt(idx) == '.'
                             && Character.isWhitespace(str.charAt(idx+1))) {
                         
@@ -1061,9 +1265,9 @@ public class MarkdownFormatter {
                 }
             }
             
-            // Ok, we found the start of the content, now seek forward to
-            // the end of the line and we are done.
+
             idx = contentStart;
+            contentEnd = -1;
             while (idx < len) {
                 
                 ch = str.charAt(idx);
@@ -1071,19 +1275,43 @@ public class MarkdownFormatter {
                     
                     contentEnd = idx;
                     idx += 2;
-                    return true;
+                    break;
                 }
                 else if (ch == '\n') {
                     
                     contentEnd = idx;
                     ++idx;
-                    return true;
+                    break;
+                }
+                else if (ch == '|' && mightBeTable == false) {
+                    
+                    if (idx == start || str.charAt(idx-1) != '\\') {
+                        
+                        mightBeTable = true;
+                    }
                 }
                 
                ++idx;
             }
+            
+            // If we hit a pipe in the input, then we need to peek into the
+            // next line to determine if we might have a table going on here
+            if (mightBeTable) {
+                
+                // Check the start of the next line to see if we have a table
+                // divider. If so, then change the type to table.
+                if (isTableDivider(str, len, idx)) {
+                    
+                    type = Type.TABLE_HEADER;
+                    contentStart = skipWhitespace(str, len, start);
+                    indent = contentStart - start;
+                }
+            }
 
-            contentEnd = idx;
+            if (contentEnd == -1) {
+                
+                contentEnd = idx;
+            }
             return true;
         }
         
@@ -1123,6 +1351,75 @@ public class MarkdownFormatter {
             
             return len;
         }
+
+        /**
+         * Given a line that contains a '|' character, checks to see if it is part
+         * of a table
+         * 
+         * @param line The line containing a '|' character
+         * @return true if there is a table here
+         */
+        private boolean isTableDivider(String str, int len, int idx) {
+
+            char ch;
+            
+            idx = skipWhitespace(str, len, idx);
+
+            int cnt = 0;
+            while (idx < len) {
+                
+                ch = str.charAt(idx);
+                if (ch == '\n') {
+                    
+                    return false;
+                }
+                else if (ch == '-') {
+                    
+                    ++idx;
+                    ++cnt;
+                }
+                else {
+                    
+                    break;
+                }
+            }
+            
+            if (cnt < 3) {
+                
+                return false;
+            }
+            
+            idx = skipWhitespace(str, len, idx);
+            ch = str.charAt(idx);
+            if (idx >= len || ch != '|') {
+                
+                return false;
+            }
+            
+            ++idx;
+            idx = skipWhitespace(str, len, idx);
+
+            cnt = 0;
+            while (idx < len) {
+                
+                ch = str.charAt(idx);
+                if (ch == '\n') {
+                    
+                    break;
+                }
+                else if (ch == '-') {
+                    
+                    ++idx;
+                    ++cnt;
+                }
+                else {
+                    
+                    break;
+                }
+            }
+            
+            return cnt >= 3;
+        }
         
         @Override
         public String toString() {
@@ -1157,6 +1454,7 @@ public class MarkdownFormatter {
         private StringBuilder word = new StringBuilder();
         private int wordWidth = 0;
         private int lineWidth;
+        private boolean rawMode = false;
         private boolean needIndent = false;
         
         /**
@@ -1193,6 +1491,16 @@ public class MarkdownFormatter {
         public int getIndent() {
             
             return indent;
+        }
+        
+        /**
+         * Raw mode causes automatic word wrapping to be disabled and all 
+         * whitespace to be retained as written, decorations are still honored.
+         * @param onOff true if you want to enter raw mode, false otherwise
+         */
+        public void raw(boolean onOff) {
+            
+            this.rawMode = onOff;
         }
         
         /**
@@ -1308,6 +1616,13 @@ public class MarkdownFormatter {
             }
             else {
                 
+                if (rawMode) {
+                    
+                    word.append(ch);
+                    ++wordWidth;
+                    return;
+                }
+                
                 // A space indicates the end of the previous word and the
                 // start of a new one
                 if (Character.isWhitespace(ch)) {
@@ -1321,7 +1636,6 @@ public class MarkdownFormatter {
                     }
                 }
                 else {
-                    
                     
                     // Add the letter to the word
                     word.append(ch);
@@ -1375,6 +1689,7 @@ public class MarkdownFormatter {
             decorations = Decoration.OFF;
             lineWidth = indent;
             needIndent = false;
+            rawMode = false;
         }
 
         private void decorationOn(int bit) {
