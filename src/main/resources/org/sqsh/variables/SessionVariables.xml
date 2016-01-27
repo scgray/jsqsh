@@ -14,7 +14,7 @@
    
 ## See also
 
-   [[prompt]], [[\sessions]]
+   [[prompt]], [[\session]]
         ]]></Help>	
 	</Property>
 	
@@ -162,7 +162,7 @@
    * If a session is established, then the style name must be a valid
      display style for that type of session.
    
-   This means that you cannot use `${style}` to set the display style of a non-
+This means that you cannot use `${style}` to set the display style of a non-
    SQL session type before the session is started, and when the session ends
    the value of `${style}` will revert to the current SQL display style.
 
@@ -201,7 +201,7 @@
 	
 	<Property bean="session" name="fail_count" property="commandFailCount"
 		settable="true">
-        <Description>Contains the connection's current database</Description>
+        <Description>The number of commands that have exited in error</Description>
         <Help><![CDATA[
 ## Variable
 

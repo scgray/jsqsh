@@ -242,7 +242,7 @@
    
 ## See also
 
-  [[\style]]
+  [[style]]
         ]]></Help>
 	</Property>
 	
@@ -330,11 +330,11 @@
     for configuring is available from:  
     http://linux.die.net/man/5/editrc
   * `getline` - Getline is used primarily on Windows and provides basic 
-    command line editing, but no completion functionality. 
+    command line editing, but no completion functionality.
   * `purejava` - This is the most basic interface and provides no editing 
-     or completion functionality.
+    or completion functionality.
    
-  Although it is not possible to change the readline library at run-time,
+Although it is not possible to change the readline library at run-time,
   you may force the library to be used with with the `--readline` command
   line option to jsqsh or by setting the `JSQSH_READLINE` environment variable.
   Both methods may be provided one of the names above.
@@ -703,7 +703,7 @@
   * Utilizing a back-tick (e.g. **\echo \`echo hi\`**)
   * Running external editors (e.g. by **\buf-edit**).
    
-  The variable must contain the name of the shell, plus a comma-delimited
+The variable must contain the name of the shell, plus a comma-delimited
   list of arguments to pass to the shell. A special argument of `?` must
   be provided to indicate where the command being executed should be 
   placed.
@@ -723,7 +723,7 @@
       
 ## See also
 
-  [[\buf-edit]]
+  [[\buf-edit|\buf_edit]]
         ]]></Help>
 	
 	</Property>

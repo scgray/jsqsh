@@ -284,7 +284,7 @@ This option may be provided more than once to set multiple variables.
 
 ### --width=*width* (-W *width*)
 
-For certain display styles, such as [[perfect]], jsqsh will attempt to fit
+For certain display styles, such as `perfect` (see [[style]]), jsqsh will attempt to fit
 the columns to the current display width.  The `--width` (`-W`) option allows
 you to force the screen width to the specified value.
 
@@ -472,7 +472,7 @@ inspiration.
    
   * **Walter Jordan** (walter.gator at gmail.com) - Patches and useful suggestions.
   * **Ryan Stouffer** (rstouffer at gmail.com) - Enhancements and additions to GUI widgets.
-  * **Scott Wakeling** (scott at diskfish.org>) - Build enhancements for debian
+  * **Scott Wakeling** (scott at diskfish.org) - Build enhancements for debian
 
 	  ]]></HelpText>
 </Topic>
