@@ -16,6 +16,11 @@
 * The visual query timer is now enabled by default ('cause I like it!).
   To turn off use `\set timer=false`
 * Upgraded jline to 2.13, and added proper handling of ^C while editing
+* Internal documentation has been refreshed, and now is nicely formatted
+  to the current display width and using bold and underscore. The 
+  online wiki documentation is now auto-generated using the "\wiki"
+  command.  Check out the awesome new reference documentation at:
+  https://github.com/scgray/jsqsh/wiki/Reference
 
 ## Bug Fixes
 

@@ -113,6 +113,11 @@ public class CommandManager {
         digester.addCallMethod(path, 
             "setName", 1, new Class[] { java.lang.String.class });
             digester.addCallParam(path, 0, "name");
+
+        path = "Commands/Command/Internal";
+        digester.addCallMethod(path, 
+            "setHidden", 1, new Class[] { Boolean.TYPE });
+            digester.addCallParam(path, 0);
             
         path = "Commands/Command/Description";
         digester.addCallMethod(path, 

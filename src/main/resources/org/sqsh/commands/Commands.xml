@@ -665,6 +665,7 @@ options available for the command.
     </Command>
     
     <Command name="\wrap" class="org.sqsh.commands.Wrap">
+        <Internal>True</Internal>
         <Description><![CDATA[
            Used internally for testing of jsqsh's word-wrapping facility.
         ]]></Description>
@@ -1351,6 +1352,7 @@ The name of the file to execute.
     </Command>
     
     <Command name="\parse" class="org.sqsh.commands.Parse">
+        <Internal>true</Internal>
         <Description>(Internal) Used to test SQL parsing</Description>
            
         <Help><![CDATA[
@@ -1371,7 +1373,8 @@ None.
     </Command>
     
     <Command name="\debug" class="org.sqsh.commands.Debug">
-        <Description>(Internal) Used to enable debugging</Description>
+        <Internal>true</Internal>
+        <Description> Used to enable debugging</Description>
            
         <Help><![CDATA[
 ## Synopsis
@@ -1390,6 +1393,8 @@ None.
     </Command>
     
     <Command name="\diff" class="org.sqsh.commands.Diff">
+        <!-- Not ready for prime time -->
+        <Internal>True</Internal>
         <Description>Compares results from multiple sessions</Description>
            
         <Help><![CDATA[
@@ -1827,6 +1832,7 @@ synonym | Displays only synonyms
     
     <Command name="\globals" class="org.sqsh.commands.Globals">
 
+        <Internal>true</Internal>
         <Description><![CDATA[
            Displays all global variables
         ]]></Description>
@@ -2213,6 +2219,7 @@ Jumps straight into the driver definition wizard
 
     <Command name="\md" class="org.sqsh.commands.Md">
 
+        <Internal>True</Internal>
         <Description><![CDATA[
            Test jsqsh's markdown rendering
         ]]></Description>
@@ -2232,6 +2239,29 @@ should be treated as purely internal.
 ### --width=*width* (-w *width*)
 
 Restricts the output to at most *width* characters.
+      ]]></Help>
+    </Command>
+
+    <Command name="\wiki" class="org.sqsh.commands.Wiki">
+
+        <Internal>True</Internal>
+        <Description><![CDATA[
+           Generate jsqsh documentation for the wiki
+        ]]></Description>
+            <Help><![CDATA[
+## Synopsis
+
+`\wiki [dest_dir]`
+
+## Description
+
+The `\wiki` command generates all of the jsqsh wiki documentation
+
+## Options
+
+### dest_dir
+
+Directory in which to generate docs
       ]]></Help>
     </Command>
     

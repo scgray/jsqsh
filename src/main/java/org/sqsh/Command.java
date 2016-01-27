@@ -61,6 +61,12 @@ public abstract class Command
     private CommandManager manager = null;
     
     /**
+     * If true, then this command is "hidden" -- it is considered internal
+     * and should not be displayed in the general command list.
+     */
+    private boolean isHidden = false;
+    
+    /**
      * This constructor should only be called by the CommandManager.
      */
     public Command () {
@@ -80,6 +86,23 @@ public abstract class Command
         this.name = name;
     }
     
+    /**
+     * @return whether or not this command should appear in documentation
+     */
+    public boolean isHidden() {
+    
+        return isHidden;
+    }
+
+    /**
+     * Sets whether or not the command will be hidden from documentation
+     * @param isHidden if true, the command will not appear in documentation
+     */
+    public void setHidden(boolean isHidden) {
+    
+        this.isHidden = isHidden;
+    }
+
     /**
      * Used by the CommandManager to record itself as being the "owner"
      * of this command.

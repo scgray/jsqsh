@@ -252,11 +252,14 @@ public class Help
         
         for (int i = 0; i < commands.length; i++) {
                 
-            String []row = new String[2];
-            row[0] = commands[i].getName();
-            row[1] = commands[i].getDescription();
+            if (! commands[i].isHidden()) {
+
+                String []row = new String[2];
+                row[0] = commands[i].getName();
+                row[1] = commands[i].getDescription();
                 
-            renderer.row(row);
+                renderer.row(row);
+            }
         }
         
         renderer.flush();
