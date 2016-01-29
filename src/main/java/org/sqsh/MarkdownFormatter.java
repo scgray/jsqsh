@@ -221,12 +221,45 @@ public class MarkdownFormatter {
     private Line nextLine;
     private Stack<ListState> listStates = new Stack<ListState>();
 
+    /**
+     * Creates a new formatter
+     * 
+     * @param screenWidth The width of the screen (the point at which to
+     *   perform word wrapping).
+     * @param out Where send the output
+     */
     public MarkdownFormatter (int screenWidth, PrintStream out) {
         
         this.out = out;
         this.wrappingOut = new WrappingStream(out, 0, screenWidth);
     }
     
+    /**
+     * Enables or disables decorations (bold, italics, underline, etc.).
+     * If disabled no decorations will be displayed.
+     * 
+     * @param isOn if true, then decorations will be displayed, otherwise
+     *   they will not appear in the final output
+     */
+    public void setDecorationsEnabled (boolean onOff) {
+        
+        wrappingOut.setDecorationsEnabled(onOff);
+    }
+    
+    /**
+     * @return whether or not decorations are enabled.
+     */
+    public boolean hasDecorationsEnabled() {
+        
+        return wrappingOut.hasDecorationsEnabled();
+    }
+    
+    /**
+     * Given a string full of markdown formatting, nicely formats the markdown
+     * output to the <b>out</b> that was provided in the constructor.
+     * 
+     * @param str A string full of markdown.
+     */
     public void format (String str) {
         
         SectionType currentSectionType = SectionType.TEXT;
@@ -1455,6 +1488,7 @@ public class MarkdownFormatter {
         private int wordWidth = 0;
         private int lineWidth;
         private boolean rawMode = false;
+        private boolean decorationsEnabled = true;
         private boolean needIndent = false;
         
         /**
@@ -1596,6 +1630,26 @@ public class MarkdownFormatter {
             else 
                 decorationOff(Decoration.DIM);
         }
+        
+        /**
+         * Enables or disables decorations (bold, italics, underline, etc.).
+         * If disabled no decorations will be displayed.
+         * 
+         * @param isOn if true, then decorations will be displayed, otherwise
+         *   they will not appear in the final output
+         */
+        public void setDecorationsEnabled(boolean isOn) {
+            
+            this.decorationsEnabled = isOn;
+        }
+        
+        /**
+         * @return whether or not decorations are enabled.
+         */
+        public boolean hasDecorationsEnabled() {
+            
+            return decorationsEnabled;
+        }
 
         /**
          * Sends a character to the output, performing word wrap as necessary
@@ -1696,8 +1750,8 @@ public class MarkdownFormatter {
             
             assert bit != Decoration.OFF; 
 
-            // Bit is already set, it is a no-op
-            if ((decorations & bit) != 0) {
+            // Bit is already set or decorations are disabled, it is a no-op
+            if (!decorationsEnabled || (decorations & bit) != 0) {
                 
                 return;
             }

@@ -15,7 +15,7 @@
  */
 package org.sqsh.commands;
 
-import static org.sqsh.options.ArgumentRequired.NONE;
+import static org.sqsh.options.ArgumentRequired.REQUIRED;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,9 +50,9 @@ public class Help
         extends SqshOptions {
         
         @OptionProperty(
-            option='r', longOption="raw", arg=NONE, 
-            description="Displays help text in raw markdown form")
-        public boolean raw = false;
+            option='f', longOption="format", arg=REQUIRED,  argName="style",
+            description="The display format for the help text (markdown, raw, or pretty)")
+        public String format = null;
         
         @Argv(program="\\help", min=0, max=1,
             usage="[topics|vars|commands|name]")
@@ -82,6 +82,18 @@ public class Help
             return 1;
         }
         
+        if (options.format != null) {
+            
+            if (! (options.format.equals("markdown") 
+                  || options.format.equals("raw") 
+                  || options.format.equals("pretty"))) {
+                
+                System.err.println("Invalid display format: " + options.format
+                   + ".  Valid formats are: \"markdown\", \"raw\", and \"pretty\"");
+                return 1;
+            }
+        }
+        
         if (nArgs == 0) {
             
             displayHelpCategories(session);
@@ -105,10 +117,15 @@ public class Help
         }
         else {
             
-            rc = displayHelpText(session, word, options.raw);
+            rc = displayHelpText(session, word, options);
         }
         
         return rc;
+    }
+
+    public static int displayHelpText(Session session, String word) {
+        
+        return displayHelpText(session, word, new Options());
     }
     
     /**
@@ -118,7 +135,7 @@ public class Help
      * @param word The topic to look for.
      * @return 0 if the topic was found and displayed, 1 otherwise.
      */
-    public static int displayHelpText(Session session, String word, boolean isRaw) {
+    public static int displayHelpText(Session session, String word, Options options) {
         
         int rc = 0;
         
@@ -172,7 +189,7 @@ public class Help
         }
         else {
             
-            if (isRaw) {
+            if (options.format != null && "markdown".equals(options.format)) {
                 
                 session.out.println(topic.getHelp());
             }
@@ -191,6 +208,12 @@ public class Help
                 // session.out.println(topic.getHelp());
                 MarkdownFormatter formatter =
                     new MarkdownFormatter(width, session.out);
+                
+                if (options.format != null && "raw".equals(options.format)) {
+                    
+                    formatter.setDecorationsEnabled(false);
+                }
+
                 formatter.format(topic.getHelp());
             }
         }

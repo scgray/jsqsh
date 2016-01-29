@@ -629,11 +629,20 @@ names lists a set of help items available within the category.
   
 ## Options
 
-### --raw (-r)
+### --format *format* (-f *format*)
 
-Jsqsh documentation is stored internally in a simple markup format
-called "markdown".  The --raw flag causes the raw markdown to be
-displayed.
+Displays help text in one of the following display styles:
+
+* `pretty` - This is the default mode. Help text is displayed nicely
+  formatted to the width of your terminal and with text decorations
+  (bolding and underline).
+* `raw` - Help text is displayed in a nicely formatted style, but  
+  with all text decorations (bold and underline) disabled. This is
+  useful if you are using jsqsh from a terminal that does not support
+  such decorations, or if you wish to redirect the help text to a
+  text file.
+* `markdown` - Help text is displayed in markdown format
+  (see https://daringfireball.net/projects/markdown/).
 
 ### topics
 
