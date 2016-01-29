@@ -1,4 +1,4 @@
-# Release 2.1.1-SNAPSHOT
+# Release 2.2
 
 ## New Features
 
