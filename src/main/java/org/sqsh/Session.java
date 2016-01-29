@@ -1531,13 +1531,14 @@ public class Session
         String pager = variableManager.get("PAGER");
         if (pager == null) {
             
-            if (System.getProperty("os.name").startsWith("Windows")) {
-                
-                pager = "more";
+            String os = System.getProperty("os.name");
+            if (os.startsWith("Linux") || os.startsWith("Mac")) {
+
+                pager = "less -R";
             }
             else {
                 
-                pager = "more -R";
+                pager = "more";
             }
                 
         }
