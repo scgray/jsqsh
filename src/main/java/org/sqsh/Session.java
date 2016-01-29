@@ -125,6 +125,13 @@ public class Session
     private int fetchSize = -1;
     
     /**
+     * Enables or disables whether or not commands that are tagged for 
+     * auto-pagination (e.g. piping output through "more") are actually
+     * paged.
+     */
+    private boolean autoPager = true;
+    
+    /**
      * The database connection used by the session and the URL that was
      * used to create it. This will never be null, but will contain a 
      * DisconnectedConnectionContext when there is no connection.
@@ -393,6 +400,26 @@ public class Session
         connection.setStyle(name);
     }
     
+    /**
+     * @return whether or not commands that are tagged for auto-paging (see
+     *  {@link PagedCommand}) are honored.
+     */
+    public boolean isAutoPager() {
+    
+        return autoPager;
+    }
+
+    /**
+     * Enables or disables auto-paging for commands that are tagged with the
+     * functionality.
+     * 
+     * @param autoPager If true, then auto-paging will be honored.
+     */
+    public void setAutoPager(boolean autoPager) {
+    
+        this.autoPager = autoPager;
+    }
+
     /**
      * @return The number of rows-per-fetch that will be requested of the driver
      *   when rows are fetched from the server.  Note that the driver may not
@@ -1427,8 +1454,10 @@ public class Session
              * If the command requested that its output be paged, then lets 
              * attempt to do so.
              */
-            if (command instanceof PagedCommand 
-                && pipeShell == null && out == System.out) {
+            if (autoPager 
+                && command instanceof PagedCommand 
+                && pipeShell == null
+                && out == System.out) {
                 
                 pipeShell = getPager();
             }

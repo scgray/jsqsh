@@ -549,5 +549,25 @@ This means that you cannot use `${style}` to set the display style of a non-
   [[\go]]
         ]]></Help>
   </Property>
+
+	<Property bean="session" name="auto_pager" property="autoPager">
+        <Description>Controls automatically paged command output</Description>
+        <Help><![CDATA[
+## Variable
+
+   `auto_pager` - Controls if certain jsqsh commands are automatically paged
+
+## Description
+
+   Certain jsqsh commands, such as `\help`, automatically send their output
+   to a pager program, such as the `more` command, allowing you to page
+   forward and backwards through the output of the command. The `${auto_pager}` 
+   variable controls whether not auto-paging is enabled for these commands.
+   
+## See also
+
+   [[\help]]
+        ]]></Help>	
+	</Property>
 	
 </Variables>

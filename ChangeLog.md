@@ -18,9 +18,13 @@
 * Upgraded jline to 2.13, and added proper handling of ^C while editing
 * Internal documentation has been refreshed, and now is nicely formatted
   to the current display width and using bold and underscore. The 
-  online wiki documentation is now auto-generated using the "\wiki"
+  online wiki documentation is now auto-generated using the `\wiki`
   command.  Check out the awesome new reference documentation at:
   https://github.com/scgray/jsqsh/wiki/Reference
+* The `\help` command now takes a --format argument to select how you want
+  the help formatted
+* The new ${auto_pager} variable controls whether or not help is 
+  automatically send through a pager (e.g. "more")
 
 ## Bug Fixes
 
