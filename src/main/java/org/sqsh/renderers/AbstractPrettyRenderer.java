@@ -55,7 +55,7 @@ public abstract class AbstractPrettyRenderer
         /*
          * Just abort if we aren't supposed to be showing headers.
          */
-        if (manager.isShowHeaders() == false) {
+        if (!manager.isShowHeaders()) {
             
             printHorizontalLine();
             return;
