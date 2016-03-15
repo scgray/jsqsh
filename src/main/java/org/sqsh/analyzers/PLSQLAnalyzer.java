@@ -158,12 +158,9 @@ public class PLSQLAnalyzer
                         ++blockNestCount;
                     }
                 }
-                else if ("END".equals(token)) {
-                    
-                    if (isEndBlock(tokenizer)) {
-                        
-                        --blockNestCount;
-                    }
+                else if ("END".equals(token) && isEndBlock(tokenizer)) {
+
+                    --blockNestCount;
                 }
             }
             
@@ -216,12 +213,9 @@ public class PLSQLAnalyzer
         String tok = tokenizer.next();
         while (tok != null) {
             
-            if ("BEGIN".equals(tok)) {
+            if ("BEGIN".equals(tok) && isBeginBlock(tokenizer)) {
                 
-                if (isBeginBlock(tokenizer)) {
-                    
-                    return true;
-                }
+                return true;
             }
             
             tok = tokenizer.next();
