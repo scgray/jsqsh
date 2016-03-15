@@ -106,7 +106,7 @@ public class PropertyVariable
         
         Throwable failure = null;
         
-        if (settable == false) {
+        if (!settable) {
             
             throw new CannotSetValueError("The value of \"" 
                 + getName() + "\" is read only");
@@ -151,16 +151,16 @@ public class PropertyVariable
             
             if (val == null) {
                 
-                return null;
+                return "";
             }
             
             return val.toString();
         }
         catch (Throwable e) {
             
-            if (quiet == true) {
+            if (quiet) {
                 
-                return null;
+                return "";
             }
             
             return "Cannot read variable '" + getName() + "': " 
