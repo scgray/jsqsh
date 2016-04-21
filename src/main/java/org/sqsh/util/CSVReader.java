@@ -148,12 +148,12 @@ public class CSVReader {
             }
         }
         
-        if (done == false && (words.size() > 0 || word.length() > 0)) {
+        if (!done && (!words.isEmpty() || word.length() > 0)) {
             
             words.add(trimField(word));
         }
         
-        if (ch == -1 && words.size() == 0) {
+        if (ch == -1 && words.isEmpty()) {
             
             return null;
         }

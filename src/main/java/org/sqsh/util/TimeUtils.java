@@ -19,7 +19,9 @@ package org.sqsh.util;
  * General purpose utilities for working with time.
  */
 public class TimeUtils {
-    
+
+    private TimeUtils() {}
+
     /**
      * Given a number of milliseconds, product a string of the format
      * <pre>
@@ -138,7 +140,7 @@ public class TimeUtils {
         return sb;
     }
     
-    public static void main (String argv[]) {
+    public static void main (String[] argv) {
     	
     	System.out.println(millisToDurationString(Long.parseLong(argv[0])));
     }
