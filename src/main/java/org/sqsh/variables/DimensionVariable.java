@@ -76,7 +76,7 @@ public class DimensionVariable
     @Override
     public String toString () {
 
-        return (width + "x" + height);
+        return width + "x" + height;
     }
 
     
