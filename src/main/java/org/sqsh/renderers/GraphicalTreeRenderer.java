@@ -340,7 +340,7 @@ public class GraphicalTreeRenderer
          */
         public boolean isLeaf(){
             
-            return (force ? false : super.isLeaf());           
+            return force ? false : super.isLeaf();
             
         }
         
