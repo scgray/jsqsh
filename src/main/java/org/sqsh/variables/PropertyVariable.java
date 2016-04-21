@@ -151,7 +151,7 @@ public class PropertyVariable
             
             if (val == null) {
                 
-                return "";
+                return "null";
             }
             
             return val.toString();
@@ -160,7 +160,7 @@ public class PropertyVariable
             
             if (quiet) {
                 
-                return "";
+                return "null";
             }
             
             return "Cannot read variable '" + getName() + "': " 
