@@ -44,8 +44,7 @@ public class TSQLAnalyzer
         
         String prevToken = null;
         String token = tokenizer.next();
-        int blockCount = 0;
-        
+
         while (token != null) {
             
             /*
@@ -61,22 +60,14 @@ public class TSQLAnalyzer
                     
                     tokenizer.unget(nextToken);
                 }
-                else {
-                    
-                    ++blockCount;
-                }
             }
-            else if ("END".equals(token)) {
-                
-                --blockCount;
-            }
-            
+
             prevToken = token;
             token = tokenizer.next();
         }
         
-        return (prevToken != null 
+        return prevToken != null
                     && prevToken.length() == 1 
-                    && prevToken.charAt(0) == terminator);
+                    && prevToken.charAt(0) == terminator;
     }
 }

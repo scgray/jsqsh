@@ -53,8 +53,8 @@ public class ANSIAnalyzer
             token = tokenizer.next();
         }
         
-        return (prevToken != null 
+        return prevToken != null
                     && prevToken.length() == 1 
-                    && prevToken.charAt(0) == terminator);
+                    && prevToken.charAt(0) == terminator;
     }
 }
