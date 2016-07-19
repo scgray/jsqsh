@@ -1,0 +1,15 @@
+<Variables>
+	<Dynamic class="org.sqsh.exttest.FooVar"  
+	         name="foo" value="1">
+        <Description>Number of foos</Description>
+        <Help><![CDATA[
+## Variable
+
+  `foo` - Number of foos currently fooing
+
+## Description
+
+  The `${foo}` variable is used to test the `import` command.
+        ]]></Help>
+    </Dynamic> 
+</Variables>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.sqsh</groupId>
+  <artifactId>jsqsh-exttest</artifactId>
+  <packaging>jar</packaging>
+  <version>2.3-SNAPSHOT</version>
+  <name>JSqsh Import Test</name>
+
+  <scm>
+    <connection>scm:git:git@github.com:scgray/jsqsh.git</connection>
+    <url>scm:git:git@github.com:scgray/jsqsh.git</url>
+    <developerConnection>scm:git:git@github.com:scgray/jsqsh.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
+  <parent>
+    <groupId>org.sqsh</groupId>
+    <artifactId>jsqsh-root</artifactId>
+    <version>3.2-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.1</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <descriptors>
+            <descriptor>assembly.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.sqsh</groupId>
+      <artifactId>jsqsh</artifactId>
+      <version>2.3-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+</project>

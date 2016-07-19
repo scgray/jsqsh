@@ -1,3 +1,15 @@
+# Release 2.3-SNAPSHOT
+
+## New Features
+
+* Extension plugin framework: Extensions to jsqsh can be developed that 
+  provide a way to load additional commands and variables into jsqsh at
+  runtime (see the `\import` command).  With this feature jsqsh can 
+  be dynamically extended with new features that, for example, take 
+  advantages of features specific to a particular database implementation.
+  Details on extending jsqsh can be found in the 'EXTENDING.md" file
+  included with the source code.
+
 # Release 2.2
 
 ## New Features

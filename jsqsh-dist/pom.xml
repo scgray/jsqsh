@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.sqsh</groupId>
+  <artifactId>jsqsh-dist</artifactId>
+  <packaging>pom</packaging>
+  <version>2.3-SNAPSHOT</version>
+  <name>JSqsh Packaging</name>
+
+  <scm>
+    <connection>scm:git:git@github.com:scgray/jsqsh.git</connection>
+    <url>scm:git:git@github.com:scgray/jsqsh.git</url>
+    <developerConnection>scm:git:git@github.com:scgray/jsqsh.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
+  <parent>
+    <groupId>org.sqsh</groupId>
+    <artifactId>jsqsh-root</artifactId>
+    <version>3.2-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <properties>
+    <!-- Used by the RPM build to indicate the install location -->
+    <install.dir>/usr</install.dir>
+    <jni.src.dir>${basedir}/src/main/jni</jni.src.dir>
+    <jni.install.dir>${project.build.directory}/staging/jni</jni.install.dir>
+    <build.arch>noarch</build.arch>
+    <deb.arch>all</deb.arch>
+    <build.timestamp>${maven.build.timestamp}</build.timestamp>
+    <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
+    <!-- This is the root directory contained inside of assemblies when unpacked -->
+    <dist.dir>${project.artifactId}-${project.version}</dist.dir>
+    <dist.tmp>${basedir}/target/${project.artifactId}-${project.version}-bin/${dist.dir}</dist.tmp>
+    <jsqsh.script.src>dist/unix</jsqsh.script.src>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.1</version>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <descriptors>
+            <descriptor>assembly.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <!-- =================================================================
+         ==               Mac OS
+         ================================================================= -->
+    <profile>
+      <id>build-mac</id>
+      <activation>
+        <os>
+          <name>Mac OS X</name>
+        </os>
+      </activation>
+  
+      <properties>
+        <jsqsh.script.src>dist/osx</jsqsh.script.src>
+      </properties>
+    </profile>
+
+    <!-- =================================================================
+         ==               Create RPM Build Target
+         ================================================================= -->
+    <profile>
+      <id>rpm</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>rpm-maven-plugin</artifactId>
+            <version>2.1-alpha-3</version>
+            <executions>
+              <execution>
+                <id>pkg</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>rpm</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <group>Applications/Databases</group>
+              <prefix>${install.dir}</prefix>
+              <changelogFile>${base.dir}/ChangeLog</changelogFile>
+              <copyright>Apache 2.0</copyright>
+              <needarch>${build.arch}</needarch>
+              <mappings>
+                <mapping>
+                  <directory>${install.dir}</directory>
+                  <directoryIncluded>false</directoryIncluded>
+                  <filemode>666</filemode>
+                  <sources>
+                    <source>
+                      <location>${dist.tmp}</location>
+                      <includes>
+                        <include>share/**/*</include>
+                      </includes>
+                    </source>
+                  </sources>
+                </mapping>
+                <mapping>
+                  <directory>${install.dir}</directory>
+                  <directoryIncluded>false</directoryIncluded>
+                  <filemode>755</filemode>
+                  <sources>
+                    <source>
+                      <location>${dist.tmp}</location>
+                      <includes>
+                        <include>bin/*</include>
+                      </includes>
+                    </source>
+                  </sources>
+                </mapping>
+              </mappings>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- =================================================================
+         ==               Create DEB Build Target
+         ================================================================= -->
+    <profile>
+      <id>deb</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.vafer</groupId>
+            <artifactId>jdeb</artifactId>
+            <version>1.0.1</version>
+            <executions>
+              <execution>
+                <id>pkg</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>jdeb</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <deb>${basedir}/target/${project.artifactId}-${project.version}-${build.arch}.deb</deb>
+              <installDir>/usr</installDir>
+              <dataSet>
+                <data>
+                  <src>${dist.tmp}</src>
+                  <type>directory</type>
+                  <includes>bin/*</includes>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>755</filemode>
+                    <prefix>/usr</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${dist.tmp}</src>
+                  <type>directory</type>
+                  <excludes>bin/*</excludes>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>644</filemode>
+                    <prefix>/usr</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>dist/unix/jsqsh.1</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>/usr/local/share/man/man1</prefix>
+                  </mapper>
+                </data>
+              </dataSet>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.sqsh</groupId>
+      <artifactId>jsqsh</artifactId>
+      <version>2.3-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sqsh</groupId>
+      <artifactId>jsqsh-exttest</artifactId>
+      <version>2.3-SNAPSHOT</version>
+      <classifier>ext</classifier>
+      <type>tar.gz</type>
+    </dependency>
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+      <version>1.8.3</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-collections</groupId>
+      <artifactId>commons-collections</artifactId>
+      <version>3.2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-digester</groupId>
+      <artifactId>commons-digester</artifactId>
+      <version>1.8.1</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.velocity</groupId>
+      <artifactId>velocity</artifactId>
+      <version>1.7</version>
+    </dependency>
+    <dependency>
+      <groupId>jline</groupId>
+      <artifactId>jline</artifactId>
+      <version>2.13</version>
+    </dependency>
+  </dependencies>
+</project>
