@@ -255,7 +255,7 @@ public class InsertRenderer
         if (conn == null) {
             
             session.out.println(str);
-            return (session.out.checkError() == false);
+            return !session.out.checkError();
         }
         
         /*

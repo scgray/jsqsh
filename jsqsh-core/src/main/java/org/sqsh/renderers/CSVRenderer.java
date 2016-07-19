@@ -129,7 +129,7 @@ public class CSVRenderer
         }
         
         session.out.println(line);
-        return (session.out.checkError() == false);
+        return !session.out.checkError();
     }
     
     @Override
