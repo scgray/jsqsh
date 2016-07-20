@@ -13,16 +13,24 @@ and jsqsh is still otherwise usable.
 
 This document describes how to develop your own jsqsh extensions.
 
-## The `\import` command
+## Extensions directories
 
-The `\import` command is pretty well documented in the built-in documentation
-but at its heart it takes a path to an extension to import (if you don't provide
-the full path it assumes it is located at `$JSQSH/extensions/name`).
+JSqsh extensions live in `$JSQSH_HOME/extensions`. Each sub-directory 
+underneath of there is expected to represent a jsqsh extension.  A typical
+extension directory should look like:
 
-An extension is just a directory, and in the directory may be found a number of
-things:
+<pre>
+   $JSQSH_HOME/extensions/
+      myextension/
+         jsqsh-extension.conf
+         Commands.xml
+         Variables.xml
+         MyExtension.jar
+         SomeOtherJar.jar
+</pre>
 
-  * Any number of jars that implement the extension
+Where these files are:
+
   * A 'jsqsh-extension.conf'.  This is a properties file that defines some
     attributes of the extension.  The supported contents of this file is
     defined in the javadocs for org.sqsh.ExtensionManager.  It controls 
@@ -43,6 +51,41 @@ things:
     will be executed prior to loading the command jar files and can be
     used to pull in jars and directories from other locations that
     may help to implement the command.
+  * Any number of jars that implement the extension
+
+## Loading extensions
+
+An extension can be loaded in the following ways:
+
+  * A user may explicitly load the extension with the `\import` command
+  * The extension may be set to automatically load when jsqsh starts
+    via the `load.on.start` property in jsqsh-extensions.conf
+  * An extension may be automatically loaded when a particular jdbc 
+    driver becomes available via the 'load.on.driver' property in the
+    jsqsh-extensions.conf file. 
+
+## Extension classpaths
+
+As noted above, an extension may include all of the jars it needs to
+implement itself, however extensions have other ways to find
+dependencies:
+
+  * The `jsqsh-extension.conf` file may specify the name of a script
+    to run that will return a classpath needed for the extension
+    (via the `classpath.script.unix` and `classpath.script.win`
+    properties). 
+  * When an extension is automatically loaded when a particular jdbc
+    driver becomes available (via the `load.on.drivers` property),
+    the extension automatically inherits the classpath of the driver
+    that caused it to be loaded.
+
+## More complex extension behavior
+
+Extensions wanting to do more than just install commands and variables
+may provide an `ExtensionConfigurator` class via the `load.config.class`
+property in `jsqsh-extension.conf`.  This class will be instantiated
+and invoked, passing it the main jsqsh class (SqshContext) and from there
+may do pretty much anything it needs.
 
 ## Example extension
 

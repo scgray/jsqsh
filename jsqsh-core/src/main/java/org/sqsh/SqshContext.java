@@ -347,6 +347,14 @@ public class SqshContext {
          * this happens
          */
         extensionManager = new ExtensionManager(this);
+        
+        /*
+         * Register a listener that will cause the extension manager to
+         * load any extensions that are requesting to be loaded when the
+         * driver is available.
+         */
+        driverManager.addListener(
+            new SqshContextDriverListener(this));
     }
     
     /**
@@ -1775,5 +1783,48 @@ public class SqshContext {
         }
         
         saveReadlineHistory(homedir);
+    }
+    
+    /**
+     * A listener that waits for drivers to be made available to the
+     * SQLDriverManager and, as a result, triggers extensions to be loaded.
+     */
+    private static class SqshContextDriverListener 
+        implements SQLDriverListener {
+        
+        private SqshContext context;
+        
+        public SqshContextDriverListener (SqshContext context) {
+            
+            this.context = context;
+        }
+
+        @Override
+        public void driverAvailable(SQLDriverManager dm, SQLDriver driver) {
+            
+            LOG.fine("Driver \"" + driver.getName()
+                + "\" is available. Notifying interested parties");
+
+            ExtensionManager em = context.getExtensionManager();
+            try {
+
+                em.triggerAutoExtensionsForDriver(
+                    driver.getDriver().getClassLoader(),
+                    driver.getName());
+            }
+            catch (ExtensionException e) {
+                
+                // TODO: I need a better way to deal with this
+                Session session = context.getCurrentSession();
+                if (session != null) {
+                    
+                    session.err.println(e.getMessage());
+                }
+                else {
+                    
+                    System.err.println(e.getMessage());
+                }
+            }
+        }
     }
 }

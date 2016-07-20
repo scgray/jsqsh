@@ -16,9 +16,13 @@ import java.util.Properties;
  */
 public class Extension {
     
+    private static final String EMPTY_STRING_ARRAY[] = new String[0];
+    
     private String name;        // Short name of the extension
     private String directory;   // The directory in which the extension is located
     private String []classpath; // Classpath of the extension
+    private String []drivers = EMPTY_STRING_ARRAY; // Drivers that can trigger extension being loaded
+    private String configClass = null;
     private ClassLoader classloader; // Classloader used to load the extension
     private Properties config;  // Configuration properties for the extension
     private boolean isDisabled = false;
@@ -53,6 +57,18 @@ public class Extension {
             
             scriptPath = config.getProperty(ExtensionManager.CLASSPATH_SCRIPT_UNIX);
         }
+        
+        str = config.getProperty(ExtensionManager.LOAD_ON_DRIVERS);
+        if (str != null) {
+            
+            drivers = str.split(",");
+            for (int i = 0; i < drivers.length; i++) {
+                
+                drivers[i] = drivers[i].trim();
+            }
+        }
+        
+        configClass = config.getProperty(ExtensionManager.LOAD_CONFIG_CLASS);
     }
     
     /**
@@ -130,12 +146,56 @@ public class Extension {
     }
     
     /**
+     * @return The set of drivers that can trigger this to be loaded. If none
+     *   are registered an empty array is returned.
+     */
+    public String[] getLoadOnDrivers() {
+        
+        return drivers;
+    }
+    
+    /**
+     * Returns whether or not this extension will be triggered to be loaded
+     * by a specific JDBC driver.
+     * 
+     * @param name The name of the driver
+     * @return true if the driver should trigger this extension to be loaded
+     */
+    public boolean isLoadedByDriver (String name) {
+        
+        for (String driver : drivers) {
+            
+            if (driver.equals(name)) {
+                
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * @return The name of the class that will be used to configure the
+     *   extension when it is loaded or null if no class is configured.
+     */
+    public String getConfigurationClass() {
+        
+        return configClass;
+    }
+    
+    
+    /**
      * Loads the extension into a context
      * @param context The context to load it into
      * @throws ExtensionException Thrown if something goes wrong
      */
-    protected void load(SqshContext context)
+    protected void load(SqshContext context, ClassLoader parentClassloader)
         throws ExtensionException {
+        
+        if (parentClassloader == null) {
+            
+            parentClassloader = this.getClass().getClassLoader();
+        }
         
         // Don't load this if it was already loaded or is currently disabled.
         if (isDisabled || isLoaded) {
@@ -222,7 +282,7 @@ public class Extension {
             urls[i] = toURL(classpath[i]);
         }
 
-        this.classloader = new URLClassLoader(urls, this.getClass().getClassLoader());
+        this.classloader = new URLClassLoader(urls, parentClassloader);
         
         CommandManager cm = context.getCommandManager();
         try {
@@ -253,6 +313,33 @@ public class Extension {
                 
                 if (in != null) 
                     try { in.close(); } catch (IOException e2) { /* IGNORE */ }
+            }
+        }
+        
+        // If there was a configurator, then create it and invoke it.
+        if (configClass != null) {
+            
+            ExtensionConfigurator configurator = null;
+            try {
+                
+                Class<? extends ExtensionConfigurator> clazz =
+                    classloader.loadClass(configClass).asSubclass(ExtensionConfigurator.class);
+                configurator = clazz.newInstance();
+            }
+            catch (Exception e) {
+                
+                throw new ExtensionException("Failed to create configuration class "
+                    + configClass + ": " + e.getMessage(), e);
+            }
+            
+            try {
+                
+                configurator.configure(context);
+            }
+            catch (Exception e) {
+                
+                throw new ExtensionException("Extension configurator "
+                    + configClass + " failed due to: " + e.getMessage(), e);
             }
         }
     }

@@ -62,7 +62,10 @@ import org.sqsh.util.ProcessUtils;
  *     extension should be automatically loaded when jsqsh starts.  If false
  *     the driver may be loaded using the jsqsh <code>\import</code> command. 
  *   <li> <code>load.on.drivers</code> - A comma delimited list of drivers 
- *     which, when available, will trigger the extension to be loaded. 
+ *     which, when available, will trigger the extension to be loaded. When
+ *     an extension is loaded via this property the extension will also
+ *     automatically inherit the classpath that was used to load the JDBC
+ *     driver.
  *   <li> <code>classpath.script.win</code> - The name of a script that will
  *     be executed when on a Windows environment when loading the extension.
  *     This script is expected to return (to its stdout) a classpath that
@@ -71,6 +74,11 @@ import org.sqsh.util.ProcessUtils;
  *     be executed when on a Unix (specifically, non-windows) environment when 
  *     loading the extension. This script is expected to return (to its stdout) 
  *     a classpath that should be used for loading the extensions.
+ *   <li> <code>load.config.class</code> - The name of a class that extends
+ *     {@link ExtensionConfigurator} that will be instantiated and invoked
+ *     when the extension is loaded.  A configurator class can perfom low
+ *     level programmatic operations within jsqsh, such as changing 
+ *     configuration variables.
  *   <li> <code>load.disabled</code> - If true, the extension will never be 
  *     loaded under any circumstances.
  * </ul>
@@ -94,6 +102,7 @@ public class ExtensionManager {
     public static final String LOAD_DISABLED         = "load.disabled";
     public static final String LOAD_ON_START         = "load.on.start";
     public static final String LOAD_ON_DRIVERS       = "load.on.drivers";
+    public static final String LOAD_CONFIG_CLASS     = "load.config.class";
     public static final String CLASSPATH_SCRIPT_WIN  = "classpath.script.win";
     public static final String CLASSPATH_SCRIPT_UNIX = "classpath.script.unix";
     
@@ -150,7 +159,7 @@ public class ExtensionManager {
                     
                     try {
 
-                        extension.load(sqshContext);
+                        extension.load(sqshContext, null);
                     }
                     catch (ExtensionException e) {
                         
@@ -160,6 +169,43 @@ public class ExtensionManager {
                     }
                 }
             }
+        }
+    }
+    
+    /**
+     * This method should be called when a JDBC driver is loaded for which
+     * an extension is set to auto-load via the load.on.drivers property
+     * 
+     * @param loader The classloader that was used to load the JDBC driver 
+     * @param drivername  The name of the driver that was loaded
+     * @throws ExtensionException Thrown if one or more extensions failed
+     *   to load.
+     */
+    public void triggerAutoExtensionsForDriver (ClassLoader loader, String drivername) 
+        throws ExtensionException {
+        
+        StringBuilder sb = new StringBuilder();
+        for (Extension ext : extensions.values()) {
+            
+            if (ext.isLoadedByDriver(drivername)) {
+                
+                try {
+                    
+                    ext.load(sqshContext, loader);
+                }
+                catch (ExtensionException e) {
+                    
+                    if (sb.length() > 0) 
+                        sb.append('\n');
+                    sb.append("Attempt to auto-load extension \"" + ext.getName()
+                        + "\" by driver \"" + drivername + "\" failed: " + e.getMessage());
+                }
+            }
+        }
+        
+        if (sb.length() > 0) {
+            
+            throw new ExtensionException(sb.toString());
         }
     }
     
@@ -230,7 +276,7 @@ public class ExtensionManager {
             throw new ExtensionException("Extension \"" + name + "\" does not exist");
         }
         
-        extension.load(sqshContext);
+        extension.load(sqshContext, null);
     }
     
     private Extension loadExtensionDefinition (File extensionDir) {

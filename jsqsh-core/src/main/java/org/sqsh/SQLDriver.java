@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.sql.Driver;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -95,7 +96,7 @@ public class SQLDriver
     private String url = null;
     private String clazz = null;
     private boolean isInternal = false;
-    private boolean isAvailable = false;
+    private Class<? extends Driver> driver = null;
     private Map<String, String> variables = new HashMap<String, String>();
     private Map<String, String> properties = new HashMap<String, String>();
     private Map<String, String> sessionVariables = new HashMap<String, String>();
@@ -124,7 +125,7 @@ public class SQLDriver
         SQLDriver n = new SQLDriver(this.name, clazz, url);
         n.driverMan = driverMan;
         n.isInternal = false;
-        n.isAvailable = isAvailable;
+        n.driver = driver;
         n.target = target;
         n.variables = new HashMap<String, String>();
         n.variables.putAll(variables);
@@ -476,17 +477,33 @@ public class SQLDriver
      */
     public boolean isAvailable() {
         
-        return isAvailable;
+        return driver != null;
     }
     
     /**
-     * Sets whether or not the driver is available.
-     * 
-     * @param isAvailable
+     * @return If the SQL driver is available, returns the actual JDBC driver
+     *   class, otherwise null.
      */
-    public void setAvailable (boolean isAvailable) {
+    public Class<? extends Driver> getDriver() {
         
-        this.isAvailable = isAvailable;
+        return driver;
+    }
+    
+    /**
+     * Marks the driver as available, indicating which SQL driver will be
+     * used to load it.
+     * 
+     * @param driver The driver class that loads it
+     */
+    public void setAvailable (Class<? extends Driver> driver) {
+        
+        boolean wasSet = this.driver != null;
+        this.driver = driver;
+
+        if (! wasSet && driverMan != null) {
+            
+            driverMan.notifyDriverAvailable(this);
+        }
     }
     
     /**
@@ -523,12 +540,12 @@ public class SQLDriver
             
             try {
                 
-                Class.forName(clazz);
-                isAvailable = true;
+                this.driver = Class.forName(clazz).asSubclass(Driver.class);
+                setAvailable(this.driver);
             }
             catch (Exception e) {
                 
-                isAvailable = false;
+                LOG.fine("Cannot load driver \"" + clazz + "\": " + e.getMessage());
             }
         }
     }

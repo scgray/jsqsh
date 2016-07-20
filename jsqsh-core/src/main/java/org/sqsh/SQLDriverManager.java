@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2012 Scott C. Gray
+ * Copyright 2007-2016 Scott C. Gray
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,6 +96,12 @@ public class SQLDriverManager {
      * Set to true while internal drivers are being loaded
      */
     private boolean isLoadingInternal = false;
+    
+    /**
+     * Classes that have registered to listen for when drivers become
+     * available
+     */
+    private List<SQLDriverListener> listeners = new ArrayList<>();
     
     /**
      * Wrapper class around drivers that are to be loaded with my custom
@@ -320,6 +326,27 @@ public class SQLDriverManager {
     }
     
     /**
+     * Adds a class that registers to be notified when a driver becomes
+     * available.  The listener will automatically be notified of any driver
+     * that is available at the time of registering.
+     * 
+     * @param listener The listener to add
+     */
+    public void addListener (SQLDriverListener listener) {
+        
+        for (SQLDriver driver : this.drivers.values()) {
+            
+            Class<? extends Driver> clazz = driver.getDriver();
+            if (clazz != null) {
+                
+                listener.driverAvailable(this, driver);
+            }
+        }
+        
+        listeners.add(listener);
+    }
+    
+    /**
      * @return The classloader used by the manager
      */
     public ClassLoader getClassLoader() {
@@ -383,6 +410,18 @@ public class SQLDriverManager {
     }
     
     /**
+     * Used by a SQLDriver to notify any listeners when it becomes available.
+     * @param driver The driver that is available
+     */
+    protected void notifyDriverAvailable (SQLDriver driver) {
+        
+        for (SQLDriverListener listener : listeners) {
+            
+            listener.driverAvailable(this, driver);
+        }
+    }
+    
+    /**
      * Check the availability of a specific driver
      * @param name The name of the driver or null if all drivers should be 
      *   checked.
@@ -407,13 +446,13 @@ public class SQLDriverManager {
                     Driver d = driverClass.newInstance();
                     DriverManager.registerDriver(new DriverShim(d));
                     
-                    driver.setAvailable(true);
+                    driver.setAvailable(driverClass);
                 }
                 catch (Throwable e) {
                     
                     LOG.fine("Unable to load " + driver.getDriverClass() + ": "
                         + e.getMessage());
-                    driver.setAvailable(false);
+                    driver.setAvailable(null);
                 }
             }
         }
