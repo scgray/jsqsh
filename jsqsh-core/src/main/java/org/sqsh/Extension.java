@@ -1,3 +1,18 @@
+/*
+ * Copyright 2007-2016 Scott C. Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.sqsh;
 
 import java.io.File;
@@ -12,22 +27,94 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- *  Definition of a jsqsh extension.
+ * Definition of a jsqsh extension. All extensions that are known to jsqsh,
+ * either by explicitly importing (via the <code>\import</code> command)
+ * or by way of being defined in <code>$JSQSH_HOME/extensions</code> 
+ * or <code>$HOME/.jsqsh/extensions</code> will have a definition, however
+ * just having a definition doesn't mean that the extension has been loaded.
+ * That is, the jars may not yet have been loaded, the commands may not yet
+ * be defined, etc.   The extension's {@link #isLoaded()} method may be
+ * used to determine if it has been loaded and the {@link #load(SqshContext, ClassLoader)}
+ * method will cause it to be loaded (note that only the {@link ExtensionsManager}
+ * is allowed to load an extension
  */
 public class Extension {
     
     private static final String EMPTY_STRING_ARRAY[] = new String[0];
     
-    private String name;        // Short name of the extension
-    private String directory;   // The directory in which the extension is located
-    private String []classpath; // Classpath of the extension
-    private String []drivers = EMPTY_STRING_ARRAY; // Drivers that can trigger extension being loaded
+    /**
+     * The short name of the extension.  This corresponds to the name of the
+     * directory in which it is found
+     */
+    private String name;
+    
+    /**
+     * The directory from which the extension was/can be loaded.
+     */
+    private String directory;
+
+    /**
+     * The classpath used to load the extension. This will be null until the 
+     * point at which the extension is loaded.  For extensions that are loaded
+     * in response to a JDBC driver being loaded, this will not reflect the
+     * classpath that was used to load the JDBC driver as well.
+     */
+    private String []classpath;
+    
+    /**
+     * A list of driver definitions that can trigger the extension to be 
+     * loaded. This will never be null, but may be empty.
+     */
+    private String []drivers = EMPTY_STRING_ARRAY;
+
+    /**
+     * If not null, the name of a class implementing {@link ExtensionConfigurator}
+     * that will be invoked when the extension is loaded in order to configure
+     * the extension.
+     */
     private String configClass = null;
-    private ClassLoader classloader; // Classloader used to load the extension
-    private Properties config;  // Configuration properties for the extension
+    
+    /**
+     * The classloader used to load the extension. This will be null if the
+     * extension has not yet been loaded.
+     */
+    private ClassLoader classloader;
+    
+    /**
+     * The properties from <code>jsqsh-extension.conf</code> that were used
+     * to configure the extension.  Note that these are kept here for reference
+     * only, and the configuration properties are turned into discrete class
+     * member variables (e.g. isLoadOnStart) when the extension is created.
+     * 
+     * <p>One interesting note: the Extension class is passed to the 
+     * {@link ExtensionConfigurator} when it is configured and, as a result, 
+     * these properties are available to it, so it is possible to pass 
+     * additional configuration information via the jsqsh-extensions.conf 
+     * into the configurator class if desired.
+     */
+    private Properties config;
+
+    /**
+     * True if the extension is disabled
+     */
     private boolean isDisabled = false;
+    
+    /**
+     * True if the extension should be loaded when jsqsh starts up
+     */
     boolean isLoadOnStart = false;
+
+    /**
+     * True if this extension has been loaded.  Note that this will be true
+     * even if the extension threw an exception and failed to load.
+     */
     private boolean isLoaded = false;
+    
+    /**
+     * If not null, contains the path to a script that will be executed 
+     * when the extension is loaded, that is expected to return a classpath
+     * that should be used to load the extension jars.
+     */
     private String scriptPath = null;
     
     protected Extension (String name, String directory, Properties config) {
@@ -334,7 +421,7 @@ public class Extension {
             
             try {
                 
-                configurator.configure(context);
+                configurator.configure(context, this);
             }
             catch (Exception e) {
                 

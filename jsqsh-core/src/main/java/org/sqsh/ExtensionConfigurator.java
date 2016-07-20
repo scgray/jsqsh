@@ -34,5 +34,5 @@ public abstract class ExtensionConfigurator {
      * 
      * @param context The context in which the extension was loaded.
      */
-    public abstract void configure (SqshContext context);
+    public abstract void configure (SqshContext context, Extension extension);
 }

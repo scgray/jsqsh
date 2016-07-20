@@ -307,10 +307,12 @@ Upon startup, jsqsh performs the following activities:
    (see below) are processed in the same fashion as steps #2-#4.
 6. Any additional driver definition files specified with `--drivers` (`-R`)
    (see below) are loaded.
-7. If any connection options were provided (see **Connection options*, below)
+7. Any extension definitions located in `$JSQSH_HOME/extensions` or 
+   `$HOME/.jsqsh/extensions` are imported and loaded, if necessary.
+8. If any connection options were provided (see **Connection options*, below)
    an attempt is made to connect with the driver. If this fails, jsqsh
    exits.
-8. The jsqsh prompt is presented (in interactive mode) or input is processed
+9. The jsqsh prompt is presented (in interactive mode) or input is processed
    if `--input-file` (`-i`) was provided.  
 
 ## See also

@@ -15,9 +15,9 @@ This document describes how to develop your own jsqsh extensions.
 
 ## Extensions directories
 
-JSqsh extensions live in `$JSQSH_HOME/extensions`. Each sub-directory 
-underneath of there is expected to represent a jsqsh extension.  A typical
-extension directory should look like:
+JSqsh extensions can live in `$JSQSH_HOME/extensions` or `$HOME/.jsqsh/extensions`.
+Each sub-directory underneath of there is expected to represent a jsqsh extension.
+A typical extension directory should look like:
 
 <pre>
    $JSQSH_HOME/extensions/
@@ -31,9 +31,9 @@ extension directory should look like:
 
 Where these files are:
 
-  * A 'jsqsh-extension.conf'.  This is a properties file that defines some
+  * A `jsqsh-extension.conf`.  This is a properties file that defines some
     attributes of the extension.  The supported contents of this file is
-    defined in the javadocs for org.sqsh.ExtensionManager.  It controls 
+    defined in the javadocs for `org.sqsh.ExtensionManager`.  It controls 
     things like additional classpath entries needed for the extension,
     when the extension gets loaded, etc.
   * A `Commands.xml` file.  This file defines a jsqsh command. The definition
@@ -59,7 +59,7 @@ An extension can be loaded in the following ways:
 
   * A user may explicitly load the extension with the `\import` command
   * The extension may be set to automatically load when jsqsh starts
-    via the `load.on.start` property in jsqsh-extensions.conf
+    via the `load.on.start` property in `jsqsh-extensions.conf`
   * An extension may be automatically loaded when a particular jdbc 
     driver becomes available via the 'load.on.driver' property in the
     jsqsh-extensions.conf file. 

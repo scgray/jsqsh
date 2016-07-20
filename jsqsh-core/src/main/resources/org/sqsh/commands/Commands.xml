@@ -2300,21 +2300,18 @@ an extension package.  When just a name is provided, such as:
 
         1> \import foo
 
-the package directory is expected to reside in `$JSQSH_HOME/extensions`.
+the package directory is expected to reside in `$JSQSH_HOME/extensions`
+or `$HOME/.jsqsh/extensions`
 
-## Package directory contents
+If a package name is not provided, then a list of the available extensions
+and their current state (loaded, disabled, classpath, etc.) is displayed.
 
-A package directory may contain the following:
+## Extensions directories
 
-  * A file called `Commands.xml` that defines the commands that are 
-    provided by the extension package.
-  * A file called 'Variables.xml' that defines new variables that may
-    be used to configure jsqsh behavior
-  * One or more `.jar` files that provides the extension functionality
-  * A script called 'classpath', or 'classpath.sh' (on UNIX) or 
-    `classpath.bat`, or `classpath.exe` (on Windows). This script will
-    be executed during the import process and is expected to print out 
-    a classpath that should be used when importing the new commands.
+Extensions should typically live in `$JSQSH_HOME/extensions` or in 
+`$HOME/.jsqsh/extensions`.  The contents of this directory and details on
+how to create your own extensions are included in the EXTENSIONS.md file
+that is included with the jsqsh source code.
       ]]></Help>
     </Command>
     

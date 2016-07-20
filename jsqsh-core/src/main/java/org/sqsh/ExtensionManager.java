@@ -48,15 +48,18 @@ import org.sqsh.util.ProcessUtils;
  *     values for the extension (see below)
  * </ul>
  * 
- * <p>Extensions are, by default, located in $JSQSH_HOME/extensions, with
- * each subdirectory representing the extension.
+ * <p>Extensions are, by default, located in <code>$JSQSH_HOME/extensions</code>
+ * (for globally available extensions) or <code>$HOME/.jsqsh/extensions</code>
+ * (for extensions that are private to the user).   Each subdirectory underneath
+ * represents an extension.
  * 
  * <h2>jsqsh-extension.conf</h2>
  * 
  * The file <code>jsqsh-extension.conf</code> contains configuration properties
  * for the extension.  This file is automatically read at jsqsh start-up time for
- * extensions located in the $JSQSH_HOME/extensions directory and may contain
- * the following configuration properties:
+ * extensions located in <code>$JSQSH_HOME/extensions</code> or 
+ * <code>$HOME/.jsqsh/extensions</code>, and may contain the following configuration 
+ * properties:
  * <ul>
  *   <li> <code>load.on.start</code> - A boolean indicating whether or not the
  *     extension should be automatically loaded when jsqsh starts.  If false
@@ -78,7 +81,10 @@ import org.sqsh.util.ProcessUtils;
  *     {@link ExtensionConfigurator} that will be instantiated and invoked
  *     when the extension is loaded.  A configurator class can perfom low
  *     level programmatic operations within jsqsh, such as changing 
- *     configuration variables.
+ *     configuration variables. Note that the extension configurator class
+ *     also has access to any properties that are set in the <code>jsqsh-extensions.conf</code>
+ *     file and, thus additional properties may be present in the file 
+ *     that are specific to an extension configurator.
  *   <li> <code>load.disabled</code> - If true, the extension will never be 
  *     loaded under any circumstances.
  * </ul>
@@ -134,41 +140,18 @@ public class ExtensionManager {
         
         velocityContext = new VelocityContext(System.getenv());
         
+        // First load all global extensions
         String jsqshHome = System.getenv("JSQSH_HOME");
         if (jsqshHome != null) {
             
-            File extensionsDir = new File(jsqshHome, EXTENSIONS_DIR);
-            File extensionSubDirs[] = extensionsDir.listFiles(new FileFilter() {
-                
-                @Override
-                public boolean accept(File pathname) {
-                
-                    return pathname.isDirectory();
-                }
-            });
+            importExtensions(new File(jsqshHome, EXTENSIONS_DIR));
+        }
+        
+        // Next load all private extensions for the user
+        String userHome = System.getProperty("user.home");
+        if (userHome != null) {
             
-            /*
-             * Inspect all of the extensions
-             */
-            for (File extensionDir : extensionSubDirs) {
-                
-                Extension extension = loadExtensionDefinition(extensionDir);
-                extensions.put(extension.getName(), extension);
-                
-                if (extension.isLoadOnStart) {
-                    
-                    try {
-
-                        extension.load(sqshContext, null);
-                    }
-                    catch (ExtensionException e) {
-                        
-                        LOG.warning("Failed to import extension \"" 
-                            + extension.getName() + "\" from "
-                            + extension.getDirectory() + ": " + e.getMessage());
-                    }
-                }
-            }
+            importExtensions(new File(new File(userHome, ".jsqsh"), EXTENSIONS_DIR));
         }
     }
     
@@ -501,6 +484,49 @@ public class ExtensionManager {
                 case LogChute.ERROR_ID: return "ERROR";
                 default:
                     return "UNKNOWN";
+            }
+        }
+    }
+
+    /**
+     * Given a directory known to contain extension subdirectories, iterates
+     * through each subdirectory, loading the extension definition from the
+     * jsqsh-extensions.conf file and, if necessary, loading the extension 
+     * itself.
+     * 
+     * @param extensionsDir A directory containing zero or more extensions
+     */
+    private void importExtensions (File extensionsDir) {
+        
+        File extensionSubDirs[] = extensionsDir.listFiles(new FileFilter() {
+            
+            @Override
+            public boolean accept(File pathname) {
+            
+                return pathname.isDirectory();
+            }
+        });
+            
+        /*
+         * Inspect all of the extensions
+         */
+        for (File extensionDir : extensionSubDirs) {
+            
+            Extension extension = loadExtensionDefinition(extensionDir);
+            extensions.put(extension.getName(), extension);
+            
+            if (extension.isLoadOnStart) {
+                
+                try {
+
+                    extension.load(sqshContext, null);
+                }
+                catch (ExtensionException e) {
+                    
+                    LOG.warning("Failed to import extension \"" 
+                        + extension.getName() + "\" from "
+                        + extension.getDirectory() + ": " + e.getMessage());
+                }
             }
         }
     }
