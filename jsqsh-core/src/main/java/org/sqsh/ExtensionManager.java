@@ -497,7 +497,7 @@ public class ExtensionManager {
      * @param extensionsDir A directory containing zero or more extensions
      */
     private void importExtensions (File extensionsDir) {
-        
+
         File extensionSubDirs[] = extensionsDir.listFiles(new FileFilter() {
             
             @Override
@@ -510,22 +510,24 @@ public class ExtensionManager {
         /*
          * Inspect all of the extensions
          */
-        for (File extensionDir : extensionSubDirs) {
-            
-            Extension extension = loadExtensionDefinition(extensionDir);
-            extensions.put(extension.getName(), extension);
-            
-            if (extension.isLoadOnStart) {
-                
-                try {
+        if (extensionSubDirs != null) {
 
-                    extension.load(sqshContext, null);
-                }
-                catch (ExtensionException e) {
-                    
-                    LOG.warning("Failed to import extension \"" 
-                        + extension.getName() + "\" from "
-                        + extension.getDirectory() + ": " + e.getMessage());
+            for (File extensionDir : extensionSubDirs) {
+
+                Extension extension = loadExtensionDefinition(extensionDir);
+                extensions.put(extension.getName(), extension);
+
+                if (extension.isLoadOnStart) {
+
+                    try {
+
+                        extension.load(sqshContext, null);
+                    } catch (ExtensionException e) {
+
+                        LOG.warning("Failed to import extension \""
+                                + extension.getName() + "\" from "
+                                + extension.getDirectory() + ": " + e.getMessage());
+                    }
                 }
             }
         }
