@@ -28,7 +28,7 @@ import org.sqsh.options.OptionProperty;
 /**
  * Container for a block of settings that are used for connecting
  * to a specific database platform.  This object is also a self-
- * describing {@link SqshOption} and as such can be populated
+ * describing {@link SqshOptions} and as such can be populated
  * using the {@link org.sqsh.options.OptionProcessor}.
  */
 public class ConnectionDescriptor
@@ -77,6 +77,11 @@ public class ConnectionDescriptor
     public List<String> properties = new ArrayList<String>();
 
     @OptionProperty(
+            option='V', longOption="url-var", arg=REQUIRED, argName="name=val",
+            description="Set a driver URL variable. Can be used more than once")
+    public List<String> urlVariables = new ArrayList<String>();
+
+    @OptionProperty(
         option='c', longOption="jdbc-class", arg=REQUIRED, argName="driver",
         description="JDBC driver class to utilize")
     public String driverClass = null;
@@ -102,9 +107,17 @@ public class ConnectionDescriptor
      * The name cannot be set with a flag.
      */
     public String name = null;
-    
+
+    /**
+     * Properties as a name=value map
+     */
     private Map<String,String> propMap = null;
-    
+
+    /**
+     * URL variables as a name=value map
+     */
+    private Map<String,String> urlVarMap = null;
+
     /**
      * Creates an empty connection descriptor.
      */
@@ -180,8 +193,8 @@ public class ConnectionDescriptor
             
             return getUsername();
         }
-        
-        return null;
+
+        return getUrlVariablesMap().get(name);
     }
     
     /**
@@ -195,7 +208,7 @@ public class ConnectionDescriptor
             
             value = null;
         }
-        
+
         if (name.equals(SQLDriver.DATABASE_PROPERTY)) {
             
             setCatalog(value);
@@ -204,11 +217,11 @@ public class ConnectionDescriptor
             
             setDomain(value);
         }
-        if (name.equals(SQLDriver.PASSWORD_PROPERTY)) {
+        else if (name.equals(SQLDriver.PASSWORD_PROPERTY)) {
             
             setPassword(value);
         }
-        if (name.equals(SQLDriver.PORT_PROPERTY)) {
+        else if (name.equals(SQLDriver.PORT_PROPERTY)) {
             
             try {
                 
@@ -219,17 +232,21 @@ public class ConnectionDescriptor
                 /* What to do? */
             }
         }
-        if (name.equals(SQLDriver.SERVER_PROPERTY)) {
+        else if (name.equals(SQLDriver.SERVER_PROPERTY)) {
             
             setServer(value);
         }
-        if (name.equals(SQLDriver.SID_PROPERTY)) {
+        else if (name.equals(SQLDriver.SID_PROPERTY)) {
             
             setSid(value);
         }
-        if (name.equals(SQLDriver.USER_PROPERTY)) {
+        else if (name.equals(SQLDriver.USER_PROPERTY)) {
             
             setUsername(value);
+        }
+        else {
+
+            setUrlVariable(name, value);
         }
     }
     
@@ -466,22 +483,11 @@ public class ConnectionDescriptor
      * @param properties New connection properties to use
      */
     public void setProperties(List<String> properties) {
-        
+
         this.propMap = null;
         this.properties = properties;
     }
-    
-    /**
-     * Add a property to the descriptor.
-     * @param name The name
-     * @param value The value
-     */
-    public void addProperty(String name, String value) {
-        
-        this.propMap = null;
-        properties.add(name + "=" + value);
-    }
-    
+
     /**
      * Sets a property on the descriptor
      * @param name The name of the property
@@ -490,16 +496,7 @@ public class ConnectionDescriptor
     public void setProperty(String name, String value) {
         
         this.propMap = null;
-        String lead = name + "=";
-        for (int i = 0; i < properties.size(); i++) {
-            
-            if (properties.get(i).startsWith(lead)) {
-                
-                properties.remove(i);
-                break;
-            }
-        }
-        properties.add(name + "=" + value);
+        setVariable(properties, name, value);
     }
     
     /**
@@ -509,15 +506,7 @@ public class ConnectionDescriptor
     public void removeProperty(String name) {
         
         this.propMap = null;
-        String lead = name + "=";
-        for (int i = 0; i < properties.size(); i++) {
-            
-            if (properties.get(i).startsWith(lead)) {
-                
-                properties.remove(i);
-                break;
-            }
-        }
+        removeVariable(properties, name);
     }
     
     /**
@@ -526,15 +515,9 @@ public class ConnectionDescriptor
     public void addProperties(List<String> properties) {
         
         propMap = null;
-        for (String prop : properties) {
-            
-            if (!this.properties.contains(prop)) {
-                
-                this.properties.add(prop);
-            }
-        }
+        addVariables(this.properties, properties);
     }
-    
+
     /**
      * @return The set of properties for this connection
      */
@@ -556,13 +539,65 @@ public class ConnectionDescriptor
         
         return propMap;
     }
-    
+
+    /**
+     * Sets a JDBC URL variable on the descriptor
+     * @param name The name of the variable
+     * @param value The value of the variable
+     */
+    public void setUrlVariable(String name, String value) {
+
+        this.urlVarMap = null;
+        setVariable(urlVariables, name, value);
+    }
+
+    /**
+     * Removes a JDBC URL variable from the connection descriptor
+     * @param name The variable to remove
+     */
+    public void removeUrlVariable(String name) {
+
+        this.urlVarMap = null;
+        removeVariable(urlVariables, name);
+    }
+
+    /**
+     * @param urlVariables Additional URL variables to add
+     */
+    public void addUrlVariables(List<String> urlVariables) {
+
+        urlVarMap = null;
+        addVariables(this.urlVariables, urlVariables);
+    }
+
+    /**
+     * @return The set of properties for this connection
+     */
+    public List<String> getUrlVariables() {
+
+        return this.urlVariables;
+    }
+
+    /**
+     * @return The set of variables that are to be used when expanding variables in the URL
+     *   of JDBC driver during connect.
+     */
+    public Map<String,String> getUrlVariablesMap() {
+
+        if (urlVarMap == null) {
+
+            urlVarMap = getValues(urlVariables);
+        }
+
+        return urlVarMap;
+    }
+
     /**
      * Converts a list of "name=value" pairs into a hash map.
      * @param pairs The list of "name=value" pairs.
      * @return The newly created hash map
      */
-    protected Map<String,String> getValues(List<String> pairs) {
+    protected static Map<String,String> getValues(List<String> pairs) {
         
         Map<String, String> map = new HashMap<String, String>();
         if (pairs == null || pairs.size() == 0) {
@@ -597,40 +632,75 @@ public class ConnectionDescriptor
     }
     
     /**
-     * Returns true if this descriptor matches that descriptor.
-     * 
-     * @param that The descriptor to compare to.
-     * @return true if they are completely identical.
+     * Given a list of strings of the form "name=value" adds or replaces and
+     * existing entry.
+     * @param variables The list of name=value pairs
+     * @param name The name to add
+     * @param value the value to add
      */
-    public boolean isIdentical(ConnectionDescriptor that) {
-        
-        return (nullEquals(this.database, that.database)
-              && nullEquals(this.domain, that.domain)
-              && nullEquals(this.driverClass, that.driverClass)
-              && nullEquals(this.driverName, that.driverName)
-              && nullEquals(this.name, that.name)
-              && nullEquals(this.password, that.password)
-              && this.port == that.port
-              && nullEquals(this.server, that.server)
-              && nullEquals(this.SID, that.SID)
-              && nullEquals(this.url, that.url)
-              && nullEquals(this.username, that.username)
-              && this.properties.equals(that.properties));
+    private static void setVariable(List<String> variables, String name, String value) {
+
+        String lead = name + "=";
+        for (int i = 0; i < variables.size(); i++) {
+
+            if (variables.get(i).startsWith(lead)) {
+
+                variables.remove(i);
+                break;
+            }
+        }
+        variables.add(name + "=" + value);
     }
-    
+
     /**
-     * Helper to compare two objects that could be null.
-     * 
-     * @param o1 First object to compare.
-     * @param o2 Second object to compare.
-     * @return True if they are equal.
+     * Given a two lists of "name=value" pairs, adds the values in the existing list from the toBeAdded
+     * list, replacing an existing variable by the same name along the way.
+     * @param existing Existing list
+     * @param toBeAdded List to be added
      */
-    private boolean nullEquals(Object o1, Object o2) {
-        
-        return ((o1 == null && o2 == null)
-                || (o1 != null && o2 != null && o1.equals(o2)));
+    public static void addVariables(List<String> existing, List<String> toBeAdded) {
+
+        for (String nameValue : toBeAdded) {
+
+            String name = null;
+            String value = null;
+            int idx = nameValue.indexOf("=");
+            if (idx < 0) {
+
+                name = nameValue;
+            }
+            else if (idx == 0) {
+
+                name = "null";
+                value = nameValue;
+            }
+            else {
+
+                name = nameValue.substring(0, idx);
+                value = nameValue.substring(idx+1);
+            }
+
+            setVariable(existing, name, value);
+        }
     }
-    
+
+    /**
+     * Removes a variable name from a list of "name=value" pairs
+     * @param variables The list of "name=value" pairs
+     * @param name The name to remove
+     */
+    private static void removeVariable(List<String> variables, String name) {
+        String lead = name + "=";
+        for (int i = 0; i < variables.size(); i++) {
+
+            if (variables.get(i).startsWith(lead)) {
+
+                variables.remove(i);
+                break;
+            }
+        }
+    }
+
     /* (non-Javadoc)
      * @see java.lang.Object#hashCode()
      */
@@ -685,6 +755,14 @@ public class ConnectionDescriptor
             if (i > 0)
                 sb.append(',');
             sb.append(properties.get(i));
+        }
+        sb.append(']');
+        sb.append(", urlVariables=[");
+        for (int i = 0; i < urlVariables.size(); i++)
+        {
+            if (i > 0)
+                sb.append(',');
+            sb.append(urlVariables.get(i));
         }
         sb.append(']');
         return sb.toString();

@@ -168,6 +168,7 @@ public class VariableManager
     /**
      * Clears the variable map.
      */
+    @Override
     public void clear() {
         
         variables.clear();
@@ -181,6 +182,7 @@ public class VariableManager
      * 
      * @return The old value of the variable.
      */
+    @Override
     public String put(String name, String value) {
         
         return put(name, value, false);
@@ -189,6 +191,7 @@ public class VariableManager
     /**
      * @see java.util.Map#putAll(java.util.Map)
      */
+    @Override
     public void putAll (Map<? extends String, ? extends String> map) {
         
         for (Entry<? extends String, ? extends String>e : map.entrySet()) {
@@ -257,6 +260,7 @@ public class VariableManager
      * 
      * @param key The name of a variable.
      */
+    @Override
     public boolean containsKey(Object key) {
         
         boolean ok = variables.containsKey(key);
@@ -286,6 +290,7 @@ public class VariableManager
      * @param value The value we are searching for.
      * @return true on match.
      */
+    @Override
     public boolean containsValue(Object value) {
         
         boolean ok = false;
@@ -309,6 +314,7 @@ public class VariableManager
     /**
      * Returns the entry set for the map.
      */
+    @Override
     public Set<Entry<String, String>> entrySet() {
         
         Set<Entry<String, String>> set = new HashSet<Entry<String, String>>();
@@ -329,6 +335,7 @@ public class VariableManager
     /**
      * Returns false.
      */
+    @Override
     public boolean equals(Object o) {
         
         return false;
@@ -341,6 +348,7 @@ public class VariableManager
      * @return The current variable state or null if the variable
      *   is not defined.
      */
+    @Override
     public String get(Object name) {
         
         Variable var = variables.get(name);
@@ -377,6 +385,7 @@ public class VariableManager
     /**
      * Returns true of the map is empty.
      */
+    @Override
     public boolean isEmpty() {
         
         boolean ok = (variables.size() == 0);
@@ -391,6 +400,7 @@ public class VariableManager
     /**
      * Returns the set of keys installed in this map.
      */
+    @Override
     public Set<String> keySet() {
         
         if (parent == null) {
@@ -433,6 +443,7 @@ public class VariableManager
     /**
      * Returns the number of entries in the map.
      */
+    @Override
     public int size() {
         
         int size = variables.size();
@@ -447,6 +458,7 @@ public class VariableManager
     /**
      * Returns the values o the map.
      */
+    @Override
     public Collection<String> values() {
         
         List <String>values = new ArrayList<String>();

@@ -86,6 +86,14 @@ public class SQLDriver
 
             return this.displayName.compareTo(o.displayName);
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof DriverVariable) {
+                return ((DriverVariable)o).name.equals(this.name);
+            }
+            return false;
+        }
     }
     
     protected static SQLNormalizer DEFAULT_NORMALIZER = new NullNormalizer();
@@ -743,7 +751,7 @@ public class SQLDriver
      *     value (if any) for each variable
      */
     public List<DriverVariable> getVariableDescriptions(boolean userAndPassword) {
-        
+
         List<DriverVariable> vars = new ArrayList<SQLDriver.DriverVariable>();
         
         /*
@@ -801,7 +809,6 @@ public class SQLDriver
                     }
                     
                     DriverVariable var = new DriverVariable(name, displayName, getVariable(name));
-                    
                     if (! vars.contains(var)) {
                         
                         vars.add(new DriverVariable(name, displayName, getVariable(name)));
@@ -840,6 +847,7 @@ public class SQLDriver
      * @param o The object to test equality.
      * @return true if o is a Drivers that has the same name as this.
      */
+    @Override
     public boolean equals(Object o) {
         
         if (o instanceof SQLDriver) {
@@ -856,6 +864,7 @@ public class SQLDriver
      * 
      * @return The hash code of the driver's name.
      */
+    @Override
     public int hashCode() {
         
         return name.hashCode();

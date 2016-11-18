@@ -10,6 +10,17 @@
   advantages of features specific to a particular database implementation.
   Details on extending jsqsh can be found in the 'EXTENDING.md" file
   included with the source code.
+* New `--url-var` (`-V`) option is now available in `\connect` or on the
+  jsqsh command line to explicitly set a variable contained in a JDBC
+  URL by name, like so:
+
+        \connect -Vdb=myDb -dmydriver
+
+  In addition, the connection and driver manager configuration wizards 
+  will automatically detect such variables and allow you to set them.
+
+  This feature makes working with new JDBC URl's that need configuration
+  parameters that JSqsh didn't natively recognize much simpler.
 
 # Release 2.2
 

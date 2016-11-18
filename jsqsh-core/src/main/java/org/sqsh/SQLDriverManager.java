@@ -496,13 +496,11 @@ public class SQLDriverManager {
     /**
      * Attempts to connect to the database utilizing a driver.
      * 
-     * @param driver The name of the driver to utilize. The special
-     *    driver name "generic" can be provided if the manager does not
-     *    have a registered driver that can be used. 
-     * @param session The session for which the connection is being 
+     * @param session The session for which the connection is being
      *    established. The session is primarly used as a place to
      *    send error messages.
-     * @param properties Connection properties to be utilized.
+     * @param connDesc Descriptor for the connection that is to be used to establish
+     *    the connection
      * @return A newly created connection.
      * @throws SQLException Thrown if the connection could not be 
      *    established.
@@ -588,11 +586,12 @@ public class SQLDriverManager {
          * referenced while expanding the URL.
          */
         Map<String, String> properties = toProperties(session, connDesc);
+        Map<String, String> variables = toVariables(connDesc, sqlDriver);
         
         /*
          * Expand the url of its variables.
          */
-        url = getUrl(session, properties, sqlDriver.getVariables(), url);
+        url = getUrl(session, properties, variables, url);
         
         Connection conn = null;
         try {
@@ -818,6 +817,21 @@ public class SQLDriverManager {
             SQLDriver.DOMAIN_PROPERTY, connDesc.getDomain());
         
         return properties;
+    }
+
+    /**
+     * Merges the JDBC driver URL variables that are provided by the driver as well as by the connection
+     * descriptor, with the connection descriptor taking precidence.
+     * @param connDesc Connection descriptor
+     * @param driver Driver
+     * @return The merged variables
+     */
+    private Map<String, String> toVariables(ConnectionDescriptor connDesc, SQLDriver driver) {
+
+        Map<String, String> vars = new HashMap<String, String>();
+        vars.putAll(driver.getVariables());
+        vars.putAll(connDesc.getUrlVariablesMap());
+        return vars;
     }
     
     /**

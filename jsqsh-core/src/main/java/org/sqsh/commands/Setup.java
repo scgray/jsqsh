@@ -434,7 +434,7 @@ public class Setup extends Command {
             
             out.printf(format, idx+1, "Autoconnect", (conDesc.isAutoconnect() ? "true" : "false"));
             int autoConnectAt = idx++;
-            
+
             out.println();
             out.println("JDBC Driver Properties");
             out.println("------------------------");

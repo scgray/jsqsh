@@ -142,6 +142,10 @@ public class ConnectionDescriptorManager {
         
             n.addProperties(c2.getProperties());
         }
+        if (c2.getUrlVariables().size() > 0) {
+
+            n.addUrlVariables(c2.getUrlVariables());
+        }
         if (c2.isAutoconnect() != false) {
             
             n.setAutoconnect(true);
@@ -330,6 +334,7 @@ public class ConnectionDescriptorManager {
                     
                     out.println("      <properties>");
                     for (Entry<String, String> e : props.entrySet()) {
+
                         out.print("          <property name=\"");
                         out.print(e.getKey());
                         out.print("\"><![CDATA[");
@@ -338,7 +343,22 @@ public class ConnectionDescriptorManager {
                     }
                     out.println("      </properties>");
                 }
-                
+
+                Map<String,String> vars = connDesc.getUrlVariablesMap();
+                if (vars.size() > 0) {
+
+                    out.println("      <url-variables>");
+                    for (Entry<String, String> e : vars.entrySet()) {
+
+                        out.print("          <variable name=\"");
+                        out.print(e.getKey());
+                        out.print("\"><![CDATA[");
+                        out.print(e.getValue());
+                        out.println("]]></variable>");
+                    }
+                    out.println("      </url-variables>");
+                }
+
                 out.println("   </connection>");
             }
             
@@ -509,11 +529,18 @@ public class ConnectionDescriptorManager {
             
         path = "connections/connection/properties/property";
         digester.addCallMethod(path, 
-            "addProperty", 2, new Class[] {
+            "setProperty", 2, new Class[] {
                 java.lang.String.class, java.lang.String.class });
             digester.addCallParam(path, 0, "name");
             digester.addCallParam(path, 1);
-            
+
+        path = "connections/connection/url-variables/variable";
+        digester.addCallMethod(path,
+                "setUrlVariable", 2, new Class[] {
+                        java.lang.String.class, java.lang.String.class });
+        digester.addCallParam(path, 0, "name");
+        digester.addCallParam(path, 1);
+
         digester.push(this); 
         try {
                 

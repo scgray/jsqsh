@@ -192,7 +192,7 @@
             target="Apache Derby Embedded"
             class="org.apache.derby.jdbc.EmbeddedDriver"
             analyzer="org.sqsh.analyzers.ANSIAnalyzer"
-            url="jdbc:derby:${db};create=${create}">
+            url="jdbc:derby:${db};#if(${create})create=${create}#end">
         <Variable name="db">derby_db</Variable>
         <Variable name="create">false</Variable>
     </Driver>

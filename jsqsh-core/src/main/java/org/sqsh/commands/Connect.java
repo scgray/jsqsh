@@ -250,7 +250,7 @@ public class Connect
     
     private void doList(Session session, boolean showPassword) {
         
-        ColumnDescription []columns = new ColumnDescription[12];
+        ColumnDescription []columns = new ColumnDescription[13];
         boolean hasStar = false;
         
         columns[0]  = new ColumnDescription("Name", false);
@@ -265,7 +265,8 @@ public class Connect
         columns[9]  = new ColumnDescription("Class");
         columns[10]  = new ColumnDescription("URL");
         columns[11] = new ColumnDescription("Properties");
-        
+        columns[12] = new ColumnDescription("URL Vars");
+
         DataFormatter formatter =
             session.getDataFormatter();
         Renderer renderer = 
@@ -286,7 +287,7 @@ public class Connect
         
         for (ConnectionDescriptor connDesc : connDescs) {
             
-            String row[] = new String[12];
+            String row[] = new String[columns.length];
             String name = connDesc.getName();
             if (connDesc.isAutoconnect()) {
                 
@@ -342,7 +343,25 @@ public class Connect
                 
                 row[idx] = sb.toString();
             }
-            
+            ++idx;
+
+            row[idx] = null;
+            List<String> vars = connDesc.getUrlVariables();
+            if (vars.size() > 0) {
+
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < vars.size(); i++) {
+
+                    if (i > 0) {
+
+                        sb.append(", ");
+                    }
+                    sb.append(vars.get(i));
+                }
+
+                row[idx] = sb.toString();
+            }
+
             renderer.row(row);
         }
         

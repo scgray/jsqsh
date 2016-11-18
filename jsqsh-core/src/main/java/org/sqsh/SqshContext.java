@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.sql.Driver;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
@@ -1806,10 +1807,12 @@ public class SqshContext {
                 + "\" is available. Notifying interested parties");
 
             ExtensionManager em = context.getExtensionManager();
+            Class<? extends Driver> jdbcDriver = driver.getDriver();
+
             try {
 
                 em.triggerAutoExtensionsForDriver(
-                    driver.getDriver().getClassLoader(),
+                    jdbcDriver != null ? driver.getClass().getClassLoader() : this.getClass().getClassLoader(),
                     driver.getName());
             }
             catch (ExtensionException e) {

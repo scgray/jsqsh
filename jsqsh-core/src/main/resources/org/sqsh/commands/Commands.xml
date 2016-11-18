@@ -321,7 +321,30 @@ or used by all drivers.
   The set of properties that are available are specific to a given JDBC 
   driver, so you'll need to consult the documentation for your driver for 
   details.
-                      
+
+### --url-var=*name=value* (-V *name=value*)
+
+  Allows a JDBC URL variable to be set by name. For certain variables explicit
+  command line options are available to set a variable, for example ${db} can
+  be set with the `--database` (`-D`) option, other variables may no available
+  command line option to represent the variable and this option may be used
+  to set it.  For example, given a driver called `mydriver` with the following
+  URL:
+
+        jdbc:mydriver:${db};sessionTimeout=$(timeout}
+
+  you could connect using:
+
+        \connect --driver mydriver --database mydb --url-var timeout=10
+
+  or even:
+
+        \connect --driver mydriver --url-var db=mydb --url-var timeout=10
+
+  or, if you prefer the short form:
+
+        \connect -d mydriver -V db=mydb -V timeout=10
+
 ### --new-session (-n)
 
   Create a new session for this connect without closing the connection 
