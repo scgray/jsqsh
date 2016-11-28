@@ -16,7 +16,9 @@
 package org.sqsh;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -40,11 +42,10 @@ public class RendererManager {
     
     private Map<String, Class<? extends Renderer>> renderers = 
         new HashMap<String, Class<? extends Renderer>>();
-    
+    private List<RendererFactory> factories = new ArrayList<RendererFactory>();
+
     /**
      * Creates a renderer manager.
-     * 
-     * @param session The parent session.
      */
     public RendererManager () {
         
@@ -78,6 +79,27 @@ public class RendererManager {
         renderers.put("json",
             org.sqsh.renderers.JsonRenderer.class);
     }
+
+    /**
+     * Adds a factory capable of producing a Render. This factory will be
+     * consulted first when looking up display styles before resorting to
+     * the internal list of styles built into the manager.
+     *
+     * @param factory The factory
+     */
+    public void addFactory(RendererFactory factory) {
+
+        factories.add(factory);
+    }
+
+    /**
+     * Removes a factory
+     * @param factory The factory to remove
+     */
+    public void removeFactory(RendererFactory factory) {
+
+        factories.remove(factory);
+    }
     
     /**
      * Returns the renderer that should be used by commands when displaying
@@ -108,6 +130,15 @@ public class RendererManager {
      * @return A newly created renderer.
      */
     public Renderer getRenderer(Session session, String name) {
+
+        for (RendererFactory factory : factories) {
+
+            Renderer renderer = factory.get(name);
+            if (renderer != null) {
+
+                return renderer;
+            }
+        }
         
         Class<? extends Renderer> renderer = renderers.get(name);
         try {
@@ -132,7 +163,16 @@ public class RendererManager {
      * @param renderer The name of the default renderer that will be used.
      */
     public void setDefaultRenderer(String renderer) {
-        
+
+        for (RendererFactory factory : factories) {
+
+            if (factory.get(renderer) != null) {
+
+                defaultRenderer = renderer;
+                return;
+            }
+        }
+
         if (renderers.containsKey(renderer)) {
             
             defaultRenderer = renderer;

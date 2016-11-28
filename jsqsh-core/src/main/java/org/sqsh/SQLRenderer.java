@@ -339,7 +339,7 @@ public class SQLRenderer {
      * Executes and displays the results from a prepared statement.
      * 
      * @param session The session that will be used for output.
-     * @param statement A prepared statement that has had all of its
+     * @param sql A prepared statement that has had all of its
      *    SQL and parameters provided.
      * 
      * @return true if the SQL executed without error (warnings do not

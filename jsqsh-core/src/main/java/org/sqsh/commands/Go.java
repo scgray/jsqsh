@@ -21,19 +21,12 @@ import static org.sqsh.options.ArgumentRequired.REQUIRED;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
-import org.sqsh.BufferManager;
-import org.sqsh.CannotSetValueError;
-import org.sqsh.Command;
-import org.sqsh.ConnectionContext;
-import org.sqsh.RendererManager;
-import org.sqsh.SQLRenderer;
-import org.sqsh.SQLTools;
-import org.sqsh.Session;
-import org.sqsh.SqshOptions;
-import org.sqsh.Style;
+import org.sqsh.*;
 import org.sqsh.options.Argv;
 import org.sqsh.options.OptionProperty;
+import org.sqsh.renderers.PivotRenderer;
 import org.sqsh.util.TimeUtils;
 
 /**
@@ -74,7 +67,12 @@ public class Go
             option='t', longOption="timeout", arg=REQUIRED, argName="sec",
             description="Specifies number of seconds before the query should timeout")
         public int queryTimeout = 0;
-        
+
+        @OptionProperty(
+                option='c', longOption="crosstab", arg=REQUIRED, argName="vcol,hval,dcol",
+                description="Produces a crosstab of the final results")
+        public String crosstab = null;
+
         @Argv(program="\\go", min=0, max=0,
             usage="[-m style] [-i table] [-H] [-F]")
         public List<String> arguments = new ArrayList<String>();
@@ -133,11 +131,13 @@ public class Go
                 return 1;
             }
         }
-        
+
         BufferManager bufferMan = session.getBufferManager();
         SQLRenderer sqlRenderer = session.getSQLRenderer();
         String sql = bufferMan.getCurrent().toString();
-        
+        RendererFactory rendererFactory = null;
+
+
         boolean origHeaders = renderMan.isShowHeaders();
         boolean origFooters = renderMan.isShowFooters();
         int origTimeout = conn.getQueryTimeout();
@@ -163,6 +163,44 @@ public class Go
         }
 
         try {
+
+            if (options.crosstab != null) {
+
+                String[] parts = options.crosstab.split(",");
+                if (parts.length != 3) {
+
+                    session.err.println("--crosstab (-c) requires three values vcol,hcol,dcol "
+                            + "(vertical column, horizontal column, data column");
+                    return 1;
+                }
+
+                Renderer currentRenderer = renderMan.getRenderer(session);
+                final PivotRenderer pivot = new PivotRenderer(session, renderMan, currentRenderer,
+                        parts[0], parts[1], parts[2]);
+                final String rendererName = UUID.randomUUID().toString();
+
+                rendererFactory = new RendererFactory() {
+
+                    @Override
+                    public Renderer get(String name) {
+
+                        if (name.equals(rendererName)) {
+
+                            return pivot;
+                        }
+
+                        return null;
+                    }
+                };
+
+                renderMan.addFactory(rendererFactory);
+                if (origStyle == null) {
+
+                    origStyle = conn.getStyle();
+                }
+
+                conn.setStyle(rendererName);
+            }
 
             for (int i = 0; i < options.repeat; i++) {
 
@@ -224,6 +262,11 @@ public class Go
             
             renderMan.setShowHeaders(origHeaders);
             renderMan.setShowFooters(origFooters);
+
+            if (rendererFactory != null) {
+
+                renderMan.removeFactory(rendererFactory);
+            }
         }
 
         if (options.repeat > 1) {
