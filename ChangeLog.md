@@ -12,6 +12,7 @@
   included with the source code.
 * Added ability for `\go` to produce a crosstab of the underlying results,
   like so:
+
         [null][me] 1> select * from x
         [null][me] 2> go
         +-------+-----------+----------+
@@ -38,6 +39,7 @@
         | Thu       |  [NULL] |   [NULL] | 17.10000 |
         +-----------+---------+----------+----------+
         (8 rows in results(first row: 0.001s; total: 0.002s)
+
 * New `--url-var` (`-V`) option is now available in `\connect` or on the
   jsqsh command line to explicitly set a variable contained in a JDBC
   URL by name, like so:
