@@ -29,10 +29,13 @@ public abstract class AbstractPrettyRenderer
      * that we will re-use throughout the rendering process.
      */
     private LineIterator []iterators = null;
+    protected boolean hasOuterBorder;
     
-    public AbstractPrettyRenderer(Session session, RendererManager renderMan) {
+    public AbstractPrettyRenderer(Session session, RendererManager renderMan,
+            boolean hasOuterBorder) {
         
         super(session, renderMan);
+        this.hasOuterBorder = hasOuterBorder;
     }
     
     /** {@inheritDoc} */
@@ -52,17 +55,20 @@ public abstract class AbstractPrettyRenderer
      */
     public void printHeader() {
         
-        /*
-         * Just abort if we aren't supposed to be showing headers.
-         */
-        if (!manager.isShowHeaders()) {
-            
+        if (hasOuterBorder) {
+
             printHorizontalLine();
+        }
+        else {
+
+            session.out.println();
+        }
+
+        if (!manager.isShowHeaders()) {
+
             return;
         }
-        
-        printHorizontalLine();
-        
+
         String []names = new String[columns.length];
         for (int i = 0; i < columns.length; i++) {
             
@@ -101,9 +107,12 @@ public abstract class AbstractPrettyRenderer
         
         boolean done = false;
         while (!done) {
-            
-            session.out.print("| ");
-            
+
+            if (hasOuterBorder) {
+
+                session.out.print("| ");
+            }
+
             done = true;
             for (int i = 0; i < columns.length; i++) {
                 
@@ -126,22 +135,40 @@ public abstract class AbstractPrettyRenderer
                     printColumnValue(columns[i], " ");
                 }
             }
-            
-            session.out.println(" |");
+
+            if (hasOuterBorder) {
+
+                session.out.println(" |");
+            }
+            else {
+
+                session.out.println();
+            }
         }
     }
     
     public void printFooter() {
-        
-        printHorizontalLine();
+
+        if (hasOuterBorder) {
+
+            printHorizontalLine();
+        }
+        else {
+
+            session.out.println();
+        }
     }
     
     /**
      * Displays a horizontal line 
      */
     public void printHorizontalLine() {
-        
-        session.out.print("+-");
+
+        if (hasOuterBorder) {
+
+            session.out.print("+-");
+        }
+
         for (int i = 0; i < columns.length; i++) {
             
             if (i > 0) {
@@ -154,6 +181,14 @@ public abstract class AbstractPrettyRenderer
             
             dashes(width);
         }
-        session.out.println("-+");
+
+        if (hasOuterBorder) {
+
+            session.out.println("-+");
+        }
+        else {
+
+            session.out.println();
+        }
     }
 }

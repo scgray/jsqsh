@@ -40,6 +40,25 @@
         +-----------+---------+----------+----------+
         (8 rows in results(first row: 0.001s; total: 0.002s)
 
+* Added two new display syles, `simple` and `tight`. These styles are 
+  identical in behavior to `pretty` and `perfect` (respectively) except
+  that they drop the outer borders allowing for a few more characters of
+  available screen space per line, like so:
+
+        [null][me] 1> select * from x
+        [null][me] 2> go -m tight
+        
+        STATE | DAYOFWEEK |    SALES
+        ------+-----------+---------
+        NJ    | Mon       | 14.20000
+        NJ    | Tue       | 11.40000
+        NJ    | Wed       | 19.30000
+        CA    | Mon       |  4.10000
+        CA    | Tue       |  8.30000
+        CA    | Wed       | 44.20000
+        NJ    | Thu       | 17.10000
+        AR    | Tue       |  4.30000
+
 * New `--url-var` (`-V`) option is now available in `\connect` or on the
   jsqsh command line to explicitly set a variable contained in a JDBC
   URL by name, like so:

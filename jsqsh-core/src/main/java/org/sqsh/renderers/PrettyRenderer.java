@@ -29,17 +29,21 @@ public class PrettyRenderer
     
     /**
      * Creates the renderer.
-     * 
+     *
+     * @param session The ownning session.
      * @param renderMan The owning manager.
-     * @param columns The columns. The width specified by the column's
-     *    {@link ColumnDescription#getWidth()} will be ignored and calculated
-     *    prior to displaying the results.
      */
     public PrettyRenderer(Session session, RendererManager renderMan) {
         
-        super(session, renderMan);
+        super(session, renderMan, true);
     }
-    
+
+    protected PrettyRenderer(Session session, RendererManager renderMan,
+            boolean hasOuterBorder) {
+
+        super(session, renderMan, hasOuterBorder);
+    }
+
     public void header (ColumnDescription []columns) {
         
         super.header(columns);

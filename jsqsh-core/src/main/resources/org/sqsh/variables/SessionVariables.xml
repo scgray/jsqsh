@@ -59,7 +59,16 @@
    
    * `csv`  
      Displays the output as a set of comma separated values suitable for 
-     loading into, say, Excel. The results displayed attempts to conform to:  
+     loading into, say, Excel. For example:
+
+        1> select DB_ID, OWNER, TBL_NAME from TBLS LIMIT 3
+        2> go -m csv
+        DB_ID,OWNER,TBL_NAME
+        1,gray,struct_simple1
+        1,gray,struct_nested3
+        81,gray,dist_inventory_fact
+
+     The results displayed attempts to conform to:
 
      http://www.creativyst.com/Doc/Articles/CSV/CSV01.htm  
 
@@ -81,11 +90,9 @@
       This causes all rows to be retrieved from the query but to
       be discarded (i.e. not displayed). This is primarily useful only
       for timing queries that return rows where you want to discount 
-      (most of) the overhead of actually displaying the rows.  It is 
-      important to note that jsqsh will still fetch the row and format
-      the columns into strings for display so there is still that overhead
-      involved in the process.
-        
+      (most of) the overhead involved in formatting and displaying the
+      final rows (this overhead can be quite high for some display formats!).
+
    * `graphical`  
       Displays the results in a graphical window (GUI). This will
       only work on environments where the graphical interface is 
@@ -99,10 +106,49 @@
    
    * `isql`  
      This formats its output in a fashion similar to that of Sybase's (or 
-     Microsoft SQL Server's) `isql` program.
-        
-   * `json`  
-     Displays results as an array of JSON records (http://json.org).
+     Microsoft SQL Server's) `isql` program.  For example:
+
+        1> select DB_ID, OWNER, TBL_NAME from TBLS LIMIT 3
+        2> go -m isql
+         DB_ID
+            OWNER
+            TBL_NAME
+         ----------------------
+            -----------------------------------------------
+            -----------------------------------------------
+                              1
+            gray
+            struct_simple1
+                              1
+            gray
+            struct_nested3
+                             81
+            gray
+            dist_inventory_fact
+
+   * `json`
+     Displays results as an array of JSON records (http://json.org). For
+     example:
+
+        1> select DB_ID, OWNER, TBL_NAME from TBLS LIMIT 3
+        2> go -m json
+        [
+           {
+              "DB_ID": 1,
+              "OWNER": "gray",
+              "TBL_NAME": "struct_simple1"
+           },
+           {
+              "DB_ID": 1,
+              "OWNER": "gray",
+              "TBL_NAME": "struct_nested3"
+           },
+           {
+              "DB_ID": 81,
+              "OWNER": "gray",
+              "TBL_NAME": "dist_inventory_fact"
+           }
+        ]
    
    * `perfect`  
      This is the default display style and is very similar to how tools like 
@@ -136,11 +182,41 @@
      attempt to perform a perfect fit on the data before display and,
      thus, does not need to hold the results in memory during display.
      Use this style when you need to work with very large result sets.
-   
+
+   * `simple`
+     The `simple` style is a simpler form of `pretty`. With it, the
+     outer borders are dropped providing a simpler, tighter output
+     like so:
+
+        COLUMN 1 | COLUMN 2
+        ---------+---------
+            1234 | hello
+
+   * `tight`
+     The `tight` style is the same as `simple` except that it follows
+     the same logic as `perfect` to try to "perfect" the space
+     consumed on the final output.  Just like perfect, it consumes
+     memory buffering sample rows (dictated by [[perfect_sample_rows]])
+     in its attempt to maximize screen real estate.
+
    * `vertical`  
      The vert (or vertical) style rotates the output, so that every 
      line is represented by a column name followed by a column value. This 
-     is nice for looking at particularly wide output.
+     is nice for looking at particularly wide output.  For example:
+
+        1> select DB_ID, OWNER, TBL_NAME from TBLS LIMIT 3
+        2> go -m vertical
+        DB_ID:    1
+        OWNER:    gray
+        TBL_NAME: struct_simple1
+
+        DB_ID:    1
+        OWNER:    gray
+        TBL_NAME: struct_nested3
+
+        DB_ID:    81
+        OWNER:    gray
+        TBL_NAME: dist_inventory_fact
    
    * `vert`  
      A synonym for `vertical`.

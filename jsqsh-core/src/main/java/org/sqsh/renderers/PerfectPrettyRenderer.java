@@ -52,18 +52,23 @@ public class PerfectPrettyRenderer
     
     /**
      * Creates the renderer.
-     * 
+     *
+     * @param session The owning session.
      * @param renderMan The owning manager.
-     * @param columns The columns. The width specified by the column's
-     *    {@link ColumnDescription#getWidth()} will be ignored and calculated
-     *    prior to displaying the results.
      */
     public PerfectPrettyRenderer(Session session, RendererManager renderMan) {
         
-        super(session, renderMan);
+        super(session, renderMan, true);
         sampleSize = renderMan.getPerfectSampleSize();
     }
-    
+
+    protected PerfectPrettyRenderer(Session session, RendererManager renderMan,
+           boolean hasOuterBorder) {
+
+        super(session, renderMan, hasOuterBorder);
+        sampleSize = renderMan.getPerfectSampleSize();
+    }
+
     @Override
     public void header (ColumnDescription []columns) {
     
@@ -156,7 +161,7 @@ public class PerfectPrettyRenderer
      * the width of the screen overall.
      */
     private void perfectWidth() {
-        
+
         /*
          * Attempt to grab the width of the console. If we can't get it,
          * then don't go any further.
@@ -168,17 +173,29 @@ public class PerfectPrettyRenderer
         }
         
         /*
-         * Pre-add in the trailing " |" for the closing border.
+         * Pre-add in the trailing " |" for the closing border if we have it
          */
-        int totalWidth = 2;
+        int totalWidth = 0;
         for (int i = 0; i < columns.length; i++) {
-            
+
             /*
-             * For each column it will be displayed as:
-             *    "| value "
+             * Account for the left hand border of "| " for inner rows or if
+             * we have an outer border turned on
              */
-            totalWidth += (3 + columns[i].getWidth());
+            totalWidth += (i > 0 || hasOuterBorder) ? 2 : 0;
+
+            /*
+             * Add in the width of the column itself. One is added to allow for
+             * a space before the next divider, like "value |"
+             */
+            totalWidth += columns[i].getWidth() + 1;
         }
+
+        /*
+         * If we didn't have an outer border, then remove the last trailing space
+         * we added on in our width calculation.
+         */
+        totalWidth -= (hasOuterBorder ? 0 : 1);
         
         /*
          * Pass #1: (this is not as efficient as it could be...)
