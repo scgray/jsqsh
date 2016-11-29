@@ -164,6 +164,14 @@ public class Go
 
         try {
 
+            /*
+             * If the user has asked for a crosstab, I go through some wacky chicanery here.
+             * To do the crosstab there is a "special" renderer called the PivotRenderer. This
+             * one isn't registered or created like a normal renderer. Instead we create it,
+             * and temporarily register it with the renderer manager under a "random" name,
+             * then we set this name as the display style to use.  At the end, the renderer is
+             * unregistered.
+             */
             if (options.crosstab != null) {
 
                 String[] parts = options.crosstab.split(",");
@@ -175,10 +183,14 @@ public class Go
                 }
 
                 Renderer currentRenderer = renderMan.getRenderer(session);
+
+                // Create the renderer and give it a random name
                 final PivotRenderer pivot = new PivotRenderer(session, renderMan, currentRenderer,
                         parts[0], parts[1], parts[2]);
                 final String rendererName = UUID.randomUUID().toString();
 
+                // Register a factory with the renderer manager that will serve up our renderer
+                // whenever it is asked for
                 rendererFactory = new RendererFactory() {
 
                     @Override
@@ -194,6 +206,9 @@ public class Go
                 };
 
                 renderMan.addFactory(rendererFactory);
+
+                // We musn't forget the original style that the user was running as we are going
+                // to override it with our "random" style.
                 if (origStyle == null) {
 
                     origStyle = conn.getStyle();

@@ -20,10 +20,48 @@ import org.sqsh.Renderer;
 import org.sqsh.RendererManager;
 import org.sqsh.Session;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
+/**
+ * The PivotRenderer is a "special" renderer that takes an incoming result
+ * set and pivots it based upon specific column in the original result set.
+ * For example, given a result set of:
+ * <pre>
+ * +-------+-----------+----------+
+ * | STATE | DAYOFWEEK |    SALES |
+ * +-------+-----------+----------+
+ * | NJ    | Mon       | 14.20000 |
+ * | NJ    | Tue       | 11.40000 |
+ * | NJ    | Wed       | 19.30000 |
+ * | CA    | Mon       |  4.10000 |
+ * | CA    | Tue       |  8.30000 |
+ * | CA    | Wed       | 44.20000 |
+ * | NJ    | Thu       | 17.10000 |
+ * | AR    | Tue       |  4.30000 |
+ * +-------+-----------+----------+
+ * </pre>
+ * You can indicate which column becomes the row header (called the vertical
+ * header), which becomes the column header (the horizontal header) and which
+ * provides the data. In this case, choosing:
+ * <pre>
+ *     Vertical   = DAYOFWEEK
+ *     Horizontal = STATE
+ *     Data       = SALES
+ * </pre>
+ * It would produce a result set like:
+ * <pre>
+ * +-----------+---------+----------+----------+
+ * | DAYOFWEEK |      AR |       CA |       NJ |
+ * +-----------+---------+----------+----------+
+ * | Mon       |  [NULL] |  4.10000 | 14.20000 |
+ * | Tue       | 4.30000 |  8.30000 | 11.40000 |
+ * | Wed       |  [NULL] | 44.20000 | 19.30000 |
+ * | Thu       |  [NULL] |   [NULL] | 17.10000 |
+ * +-----------+---------+----------+----------+
+ * </pre>
+ * In order to do this, it is important to note that the PivotRenderer must buffer
+ * all of the data for the final table in memory before display!
+ */
 public class PivotRenderer extends Renderer {
 
     private Renderer out;
@@ -38,13 +76,55 @@ public class PivotRenderer extends Renderer {
     private String dataColName;
     private boolean isOk = true;
 
+    // The actual underlying table of data in [row][column] order
     private String[][] table;
-    private Map<String, Integer> valueToRowIdx = new LinkedHashMap<String, Integer>();
-    private Map<String, Integer> valueToColIdx = new HashMap<String, Integer>();
+    // Maps a value in the row (vertical) column header to which row in the
+    // final table contains the values
+    private Map<String, Integer> valueToRowIdx = new LinkedHashMap<>();
+    // Maps a value in the column (horizontal) header to which row in the
+    // final table contains the values
+    private Map<String, Integer> valueToColIdx = new HashMap<>();
+    // Number of columns in the results
     private int nColumns;
-    private ColumnDescription []descriptions;
+    // Column descriptors for each column header in the final table
+    private ColumnInfo []descriptions;
+    // The original column descriptor for the column chosen as the
+    // horizontal column header. A copy of this is made each time a new
+    // column is added to the final table.
     private ColumnDescription valueColumnDescription;
 
+    private static class ColumnInfo {
+
+        // Index of the column in the table[row][column] array
+        public int idx;
+        // Description of the column
+        public ColumnDescription desc;
+
+        public ColumnInfo(ColumnDescription desc, int idx, String name) {
+
+            this.desc = new ColumnDescription(
+                    name,
+                    desc.getWidth(),
+                    desc.getAlignment(),
+                    desc.getOverflowBehavior(),
+                    desc.isResizeable());
+
+            this.idx = idx;
+        }
+    }
+
+    /**
+     * Creates the pivot renderer
+     * @param session The session running the query
+     * @param renderMan The renderer manager
+     * @param out A renderer that performs the actual final display of the results
+     *            that the pivot renderer produces
+     * @param vertColName The name or number (indexed from 1) of the column that
+     *            will produce the row headers
+     * @param horizColName The name or number of the column that will produce the
+     *            horizontal column headers
+     * @param dataColName The column that will provide the data for the final table.
+     */
     public PivotRenderer(Session session, RendererManager renderMan,
         Renderer out, String vertColName, String horizColName, String dataColName) {
 
@@ -69,14 +149,14 @@ public class PivotRenderer extends Renderer {
         isOk = (vertColNum >= 0 && horizColNum >= 0 && dataColNum >= 0);
         valueToRowIdx.clear();
         valueToColIdx.clear();
-        nColumns = 0;
+        nColumns = 1;
         table = null;
 
         if (isOk) {
 
             valueColumnDescription = columns[dataColNum];
-            descriptions = new ColumnDescription[1];
-            descriptions[0] = copyDescription(columns[vertColNum], "");
+            descriptions = new ColumnInfo[1];
+            descriptions[0] = new ColumnInfo(columns[vertColNum], 0, columns[vertColNum].getName());
         }
     }
 
@@ -121,7 +201,7 @@ public class PivotRenderer extends Renderer {
     @Override
     public void footer(String footer) {
 
-        // DO NOTHING
+        out.footer(footer);
     }
 
     @Override
@@ -134,8 +214,39 @@ public class PivotRenderer extends Renderer {
 
         if (table != null) {
 
-            out.header(descriptions);
-            for (String []row : table) {
+            Arrays.sort(descriptions, 1, descriptions.length, new Comparator<ColumnInfo>() {
+
+                @Override
+                public int compare(ColumnInfo o1, ColumnInfo o2) {
+
+                    return o1.desc.getName().compareTo(o2.desc.getName());
+                }
+            });
+
+            ColumnDescription []cols = new ColumnDescription[descriptions.length];
+            for (int i = 0; i < descriptions.length; i++) {
+
+                cols[i] = descriptions[i].desc;
+            }
+
+            out.header(cols);
+
+
+            for (int i = 0; i < table.length; i++) {
+
+                String[] row = new String[nColumns];
+                String[] currentRow = table[i];
+                for (int j = 0; j < descriptions.length; j++) {
+                    int idx = descriptions[j].idx;
+                    if (idx < currentRow.length) {
+
+                        row[j] = currentRow[idx];
+                    }
+                    else {
+
+                        row[idx] = null;
+                    }
+                }
 
                 out.row(row);
             }
@@ -155,6 +266,7 @@ public class PivotRenderer extends Renderer {
             String[] newRow = new String[nColumns];
             System.arraycopy(row, 0, newRow, 0, row.length);
             row = newRow;
+            table[rowId] = row;
         }
 
         row[colId] = value;
@@ -194,13 +306,14 @@ public class PivotRenderer extends Renderer {
 
     private int addColumn(String columnName) {
 
+        int newIdx = nColumns++;
+
         // Add the column definition
-        ColumnDescription[] newDescs = new ColumnDescription[descriptions.length+1];
+        ColumnInfo[] newDescs = new ColumnInfo[descriptions.length+1];
         System.arraycopy(descriptions, 0, newDescs, 0, descriptions.length);
-        newDescs[descriptions.length] = copyDescription(valueColumnDescription, columnName);
+        newDescs[descriptions.length] = new ColumnInfo(valueColumnDescription, newIdx, columnName);
         descriptions = newDescs;
 
-        int newIdx = nColumns++;
         valueToColIdx.put(columnName, newIdx);
         return newIdx;
     }
@@ -226,31 +339,19 @@ public class PivotRenderer extends Renderer {
         valueToRowIdx.put(newRow[0], idx);
     }
 
-    private static ColumnDescription copyDescription(ColumnDescription source, String newName) {
-
-        ColumnDescription dest = new ColumnDescription(
-                newName,
-                source.getWidth(),
-                source.getAlignment(),
-                source.getOverflowBehavior(),
-                source.isResizeable());
-
-        return dest;
-    }
-
     private int findColumn(ColumnDescription []columns, String name) {
 
         if (isNumber(name)) {
 
             int val = Integer.parseInt(name);
-            if (val < 0 || val >= columns.length) {
+            if (val < 1 || val > columns.length) {
 
                 session.err.println("Column #" + val + " does not exist in result set "
                     + "(which has " + columns.length + " columns)");
                 return -1;
             }
 
-            return val;
+            return val-1;
         }
 
         /*
@@ -271,6 +372,7 @@ public class PivotRenderer extends Renderer {
     }
 
     private static boolean isNumber(String str) {
+
         final int len = str.length();
         for (int i = 0; i < len; i++) {
 
@@ -281,5 +383,33 @@ public class PivotRenderer extends Renderer {
         }
 
         return true;
+    }
+
+    private void dumpTable() {
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < descriptions.length; i++) {
+
+            if (i > 0) {
+
+                sb.append(",");
+            }
+            sb.append(descriptions[i].desc.getName());
+        }
+        System.out.println(sb.toString());
+
+        for (int i = 0; i < table.length; i++) {
+
+            sb.setLength(0);
+            for (int j = 0; j < table[i].length; j++) {
+
+                if (j > 0) {
+
+                    sb.append(",");
+                }
+                sb.append(table[i][j]);
+            }
+            System.out.println(sb.toString());
+        }
     }
 }

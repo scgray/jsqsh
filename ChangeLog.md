@@ -10,6 +10,34 @@
   advantages of features specific to a particular database implementation.
   Details on extending jsqsh can be found in the 'EXTENDING.md" file
   included with the source code.
+* Added ability for `\go` to produce a crosstab of the underlying results,
+  like so:
+        [null][me] 1> select * from x
+        [null][me] 2> go
+        +-------+-----------+----------+
+        | STATE | DAYOFWEEK |    SALES |
+        +-------+-----------+----------+
+        | NJ    | Mon       | 14.20000 |
+        | NJ    | Tue       | 11.40000 |
+        | NJ    | Wed       | 19.30000 |
+        | CA    | Mon       |  4.10000 |
+        | CA    | Tue       |  8.30000 |
+        | CA    | Wed       | 44.20000 |
+        | NJ    | Thu       | 17.10000 |
+        | AR    | Tue       |  4.30000 |
+        +-------+-----------+----------+
+
+        [null][me] 1> select * from x
+        [null][me] 2> go --crosstab dayofweek,state,sales
+        +-----------+---------+----------+----------+
+        | DAYOFWEEK |      AR |       CA |       NJ |
+        +-----------+---------+----------+----------+
+        | Mon       |  [NULL] |  4.10000 | 14.20000 |
+        | Tue       | 4.30000 |  8.30000 | 11.40000 |
+        | Wed       |  [NULL] | 44.20000 | 19.30000 |
+        | Thu       |  [NULL] |   [NULL] | 17.10000 |
+        +-----------+---------+----------+----------+
+        (8 rows in results(first row: 0.001s; total: 0.002s)
 * New `--url-var` (`-V`) option is now available in `\connect` or on the
   jsqsh command line to explicitly set a variable contained in a JDBC
   URL by name, like so:

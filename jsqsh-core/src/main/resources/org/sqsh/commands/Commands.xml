@@ -251,8 +251,8 @@ or used by all drivers.
 
 ### --setup (-e)
 
-  Enters the connection setup wizard. This allow you to easily define named 
-  connections, so that only the connection name needs to be provided to 
+  Enters the connection setup wizard. This allow you to easily define named
+  connections, so that only the connection name needs to be provided to
   establish a connection.
 
 ### --driver=*driver* (-d *driver*)
@@ -263,7 +263,7 @@ or used by all drivers.
 ### --server=*server* (-S *server*)
   
   Sets the value of `${server}`
-                         
+
 ###  --port=*port* (-p *port*)
 
   Sets the `${port}` property. This typically defines the listening port 
@@ -495,20 +495,82 @@ is also provided by a built-in alias of `go`.
            
 ## Options
 
+### --crosstab=*vcol,hcol,dcol* (-c *vcol,hcol,dcol*)
+
+  Produces a crosstab of the actual result set. Where:
+
+  * *vcol* indicates the column in the original result set that will
+    drive the rows (the vertical column headers) of the final result
+    table.  This can either specify a column name or a column number
+    (starting from 1) in the original result set.
+  * *hcol* indicates the column in the original result set that will
+    drive the horizontal column headers of the final result table.
+    This can either specify a column name or a column number (starting
+    from 1) in the original result set.
+  * *dcol* indicates the column in the original result set that will
+    provide the data for the table.
+
+  for example, given the following result set:
+
+        [null][me] 1> select * from x
+        [null][me] 2> go
+        +-------+-----------+----------+
+        | STATE | DAYOFWEEK |    SALES |
+        +-------+-----------+----------+
+        | NJ    | Mon       | 14.20000 |
+        | NJ    | Tue       | 11.40000 |
+        | NJ    | Wed       | 19.30000 |
+        | CA    | Mon       |  4.10000 |
+        | CA    | Tue       |  8.30000 |
+        | CA    | Wed       | 44.20000 |
+        | NJ    | Thu       | 17.10000 |
+        | AR    | Tue       |  4.30000 |
+        +-------+-----------+----------+
+        (8 rows in results(first row: 0.000s; total: 0.002s)
+
+   you can produce a sales by dayofweek for each state like so:
+
+        [null][me] 1> select * from x
+        [null][me] 2> go -c dayofweek,state,sales
+        +-----------+---------+----------+----------+
+        | DAYOFWEEK |      AR |       CA |       NJ |
+        +-----------+---------+----------+----------+
+        | Mon       |  [NULL] |  4.10000 | 14.20000 |
+        | Tue       | 4.30000 |  8.30000 | 11.40000 |
+        | Wed       |  [NULL] | 44.20000 | 19.30000 |
+        | Thu       |  [NULL] |   [NULL] | 17.10000 |
+        +-----------+---------+----------+----------+
+        (8 rows in results(first row: 0.001s; total: 0.002s)
+
+   similarly this could have been done by column position:
+
+        [null][me] 1> select * from x
+        [null][me] 2> go -c 2,1,3
+
+   note that the footer (containing the row counts and timings)
+   will always reflect that of the underlying result set that
+   produces the crosstab.
+
+### --display-style=*style* (-m *style*)
+
+  Specifies a custom display style for showing the results of the
+  execution. The available styles may be found by running `\help style`.
+  Note that the set of valid display styles depends upon the type of
+  session that is currently established. For example, attempting to set
+  a SQL display style, such as `pretty` for a non-SQL session will cause
+  an error.
+
 ### --insert=*table* (-i *table*)
 
   Causes the results to be generated as INSERT statements for 
   the specified table name. This flag causes the value provided by 
   `-m` to be ignored.
 
-### --display-style=*style* (-m *style*)
+### --no-footers (-F)
 
-  Specifies a custom display style for showing the results of the 
-  execution. The available styles may be found by running `\help style`. 
-  Note that the set of valid display styles depends upon the type of 
-  session that is currently established. For example, attempting to set 
-  a SQL display style, such as `pretty` for a non-SQL session will cause 
-  an error.
+  Toggles the display of result footer information (row count and timing
+  information). This flag effectively flips the  value of ${[[footer]]} for
+  the duration of the query execution.
 
 ### --no-headers (-H)
 
@@ -521,12 +583,6 @@ is also provided by a built-in alias of `go`.
   When this flag is provided the variable ${iteration} will be available 
   during variable expansion and will reflect which iteration the query 
   is being executed in (starting from 0).
-
-### --no-footers (-F)
-
-  Toggles the display of result footer information (row count and timing 
-  information). This flag effectively flips the  value of ${[[footer]]} for 
-  the duration of the query execution.
 
 ### --timeout=*sec* (-t *sec*)
 
