@@ -70,6 +70,8 @@
 
   This feature makes working with new JDBC URl's that need configuration
   parameters that JSqsh didn't natively recognize much simpler.
+* Added new `\read` command to allow you to set variables using input 
+  provided by the user
 
 # Release 2.2
 
