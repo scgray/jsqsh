@@ -171,32 +171,29 @@ public class PerfectPrettyRenderer
             
             return;
         }
-        
+
         /*
-         * Pre-add in the trailing " |" for the closing border if we have it
+         * If borders are enabled, then pre-add the space for the leading "| "
+         * and the trailing " |".
          */
-        int totalWidth = 0;
+        int totalWidth = (hasOuterBorder ? 4 : 0);
         for (int i = 0; i < columns.length; i++) {
 
             /*
-             * Account for the left hand border of "| " for inner rows or if
-             * we have an outer border turned on
+             * For all columns after the first, account for " | " before the
+             * column value is printed.
              */
-            totalWidth += (i > 0 || hasOuterBorder) ? 2 : 0;
+            if (i > 0) {
+
+                totalWidth += 3;
+            }
 
             /*
-             * Add in the width of the column itself. One is added to allow for
-             * a space before the next divider, like "value |"
+             * Add in the width of the column itself.
              */
-            totalWidth += columns[i].getWidth() + 1;
+            totalWidth += columns[i].getWidth();
         }
 
-        /*
-         * If we didn't have an outer border, then remove the last trailing space
-         * we added on in our width calculation.
-         */
-        totalWidth -= (hasOuterBorder ? 0 : 1);
-        
         /*
          * Pass #1: (this is not as efficient as it could be...)
          * 
