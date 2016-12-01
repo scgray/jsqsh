@@ -40,12 +40,12 @@ jsqsh [options] [connection-name]
 
 JSqsh (pronounced "jay-skwish") is a command line tool primarily intended
 for working with relational databases systems.  It provides all of the
-basic functionality such as entering and executing queries, display results
-in a variety of formats, as well as a number of advanced features, such
-as command line editing, history recall, piping of output to other commands,
-I/O redirection and much more. 
+basic functionality of any database query too, such as entering and executing
+queries, displaying results in a variety of formats, in addition to a number of
+advanced features, such as command line editing, history recall, piping of output
+to other commands, I/O redirection and much more.
 
-## Named connection setup
+## Setup wizard
 
 In the following sections, you will find a lot of options you may specify
 to connect to a server (username, password, host, port, driver, etc.). To
@@ -53,25 +53,30 @@ avoid having to provide all of these options, jsqsh allow you to define a
 named connection (or alias) for a set of connection properties and provides
 a wizard for creating named connections.
    
-### --setup (-S)
+The `--setup` command line option (or `-S`) starts jsqsh's connection setup
+wizard:
 
-Starts jsqsh's connection setup wizard. This will take you through a series of 
-steps to manage your named connections. One the connection wizard is complete 
-you can use a named connection either by providing the connection name to 
-jsqsh on startup:
+    $ jsqsh --setup
+
+this will take you through a series of steps to manage your named connections.
+Once the connection wizard is complete you can use a named connection either
+by providing the connection name to jsqsh on startup:
        
-    shell$ jsqsh mydb
-          
+    $ jsqsh mydb
+
 or you can provide the name to the jsqsh `\connect` command at the jsqsh prompt:
        
     1> \connect mydb
+
+Examples of working with the jsqsh setup Wizard may be found on the [jsqsh wiki
+page] (https://github.com/scgray/jsqsh/wiki/Getting-Started#connection-setup).
    
 ## Connection options
 
-The following options are all options available on the jsqsh command line
-as well as to its `\connect` command, which may issue from the jsqsh prompt.
-The presence of any of these options on the command line will cause jsqsh 
-to automatically attempt to connect using the information provided, as 
+The following options are all available on the jsqsh command line as well as
+to its `\connect` command (see [[\connect]]), which may issue from the jsqsh
+prompt. The presence of any of these options on the command line will cause
+jsqsh to automatically attempt to connect using the information provided, as
 if you had executed the `\connect` command.
    
 In the help description below, you will see references to variables like
@@ -85,9 +90,10 @@ command `\drivers`, like so:
     +-----------------+-------------+--------------------------------
     | * MySQL         | mysql       | jdbc:mysql://${server}:${port} 
    
-The option may set one of these variables. Not all variables are meaningful
-or used by all drivers.
-   
+The option may set one of these variables and will be mentioned in the help
+text below.  For example, the `--server` option sets the `${server}` variable
+in the JDBC URL.
+
 ### --driver=*driver* (-d *driver*)
 
 The name of the jsqsh driver definition that will be used for the connection 
@@ -95,8 +101,8 @@ The name of the jsqsh driver definition that will be used for the connection
               
 ### --server=*server* (-S *server*)
 
-Sets the `${server}` variable, which typically specifies the server name to which 
-you wish to connect.
+Sets the `${server}` JDBC URL variable, which typically specifies the server
+name to which you wish to connect.
                          
 ### --port=*port* (-p *port*)
 
@@ -160,11 +166,11 @@ details.
 
 ### --url-var=*name=value* (-V *name=value*)
 
-  Allows a JDBC URL variable to be set by name. For certain variables explicit
+  Allows a JDBC URL variable to be set by name. For certain variables, explicit
   command line options are available to set a variable, for example ${db} can
-  be set with the `--database` (`-D`) option, other variables may no available
-  command line option to represent the variable and this option may be used
-  to set it.  For example, given a driver called `mydriver` with the following
+  be set with the `--database` (`-D`) option, other variables may not have an
+  available command line option so the `--url-var` option may be the only way of
+  setting it. For example, given a driver called `mydriver` with the following
   URL:
 
         jdbc:mydriver:${db};sessionTimeout=$(timeout}
@@ -195,7 +201,7 @@ The following command line options are supported by jsqsh.
 ### --config-dir=*dir* (-C *dir*)
 
 The `--config-dir` option can be used to specify a directory containing
-jsqsh configuration files (see START UP, above). This directory will
+jsqsh configuration files (see START UP, below). This directory will
 be processed in addition (and following) `$HOME/.jsqsh`.  This option
 may be provided more than once if you wish to read multiple configuration
 directories.
@@ -209,7 +215,19 @@ All such debugging messages will be issued to stdout of jsqsh
 
 Causes all input to be echoed to the screen. This is particularly useful
 with the `--input-file` (`-i`) option, if you wish to see the supplied
-input along with the output of the commands.
+input along with the output of the commands. For example:
+
+    $ cat query.sql
+    select count(*) from foo;
+    $ jsqsh -e -i query.sql mydb
+    select count(*) from foo;
+    +----+----+
+    | c1 | c2 |
+    +----+----+
+    |  1 |  a |
+    +----+----+
+    1 rows in results(first row: 0.191s; total: 0.194s)
+    $
 
 ### --help (-h)
 
@@ -251,7 +269,7 @@ considered non-interactive, and the following functionality is disabled:
 When input is read from stdin, however, jsqsh cannot detect if the 
 input is actual user input or is redirected input from a file, like so:
        
-    jsqsh < input.sql
+    $ jsqsh < input.sql
            
 so the `--non-interactive` flag may be used to force non-interactive behavior 
 when it isn't desirable.
@@ -274,10 +292,13 @@ once if you wish to load multiple driver definition files.
 ### --exit=*exit-value* (-X *exit-value*)
 
 The `--exit` flag determines how jsqsh computes its final exit status. The
-default is "total", in which the final exit code is the total number of
-failures seen during the session.  A value of "last" indicates that the
-the exit status should be that of the last executed command (an explicit
-`\quit` command is excluded from consideration).
+*exit-value* may be one of the following:
+
+* *total* (default)
+  The final exit code is the total number of failures seen during the session.
+* *last*
+   Indicates that the the exit status should be that of the last executed
+   command (an explicit `\quit` command is excluded from consideration).
 
 ### --setup
 
@@ -299,10 +320,10 @@ The `--var` (`-v`) option may be used to explicitly set or define a
 jsqsh variable. For example, if you wish to enable variable expansion
 during SQL execution you can do any one of the following:
           
-    jsqsh --var expand=true
-    jsqsh --var=expand=true
-    jsqsh -vexpand=true
-    jsqsh -v expand=true
+    $ jsqsh --var expand=true
+    $ jsqsh --var=expand=true
+    $ jsqsh -vexpand=true
+    $ jsqsh -v expand=true
     
 This option may be provided more than once to set multiple variables.
 
@@ -394,10 +415,17 @@ should be aware of:
 * drivers.xml  
   JSqsh comes pre-defined to understand how to use
   a fixed number of JDBC drivers, however this file may be
-  used to teach it how to recognize other JDBC drivers. The
-  file is pretty well commented, so hopefully it is enough
-  to get you started.
-               
+  used to teach it how to recognize other JDBC drivers. Typically
+  you should not need to exit this file directly, but can
+  edit it with via the jsqsh driver setup wizard, accessed
+  via the `--setup` option when you run jsqsh.
+
+* connections.xml  
+  The `connections.xml` file defines connections to specific
+  JDBC sources. You should not need to directly edit this
+  configuration file, but should instead use the jsqsh setup
+  wizard, access via the `--setup` option when you run jsqsh.
+
 * sqshrc  
   Everything contained in this file is executed just
   as if you had typed commands at the sqsh prompt and is 
@@ -499,7 +527,7 @@ The complete set of buffer references is:
 <Topic name="license">
 		<Description>Displays the jsqsh license</Description>
 		<HelpText><![CDATA[
-Copyright 2007-2015 Scott C. Gray and Others (see AUTHORS)
+Copyright 2007-2017 Scott C. Gray and Others (see AUTHORS)
   
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
