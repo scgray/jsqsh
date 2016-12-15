@@ -28,7 +28,6 @@ jsqsh [options] [connection-name]
    -r, --readline=method      Readline method (readline,editline,getline,jline,purejava)
    -S, --server=server        Name of the database server to connect to
    -z, --setup                Enters jsqsh connection setup wizard
-   -s, --sid=SID              Instance id (e.g. Oracle SID) to utilize
    -t, --topic=topic          Displays detailed help on specific topics
    -V, --url-var=name=val     Set a driver URL variable. Can be used more than once
    -U, --user=user            Username utilized for connection
@@ -128,11 +127,6 @@ utilized to connect to the database.
 
 Sets the `${password}` property that will be used to authenticate with 
 the server.
-
-### --sid=*SID* (-s *SID*)
-
-Sets the `${SID}` property, and provides the Oracle SID that will be used 
-when connecting to Oracle.
 
 ### --jdbc-url=*url* (-u *url*)
 

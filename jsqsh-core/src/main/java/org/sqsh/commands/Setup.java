@@ -699,7 +699,7 @@ public class Setup extends Command {
             out.println("JDBC WIZARD DRIVER EDITOR - (edits $HOME/.jsqsh/drivers.xml)");
             out.println();
             out.println("The following are standard driver configuration variables for jsqsh JDBC URL's:");
-            out.println("  ${server}, ${port}, ${db}, ${domain}, ${user}, ${password}, ${SID}");
+            out.println("  ${server}, ${port}, ${db}, ${domain}, ${user}, ${password}");
             out.println("You may also define your own variables by placing them in the URL");
             out.println();
             out.println("Example URL: jdbc:db2://${server}:${port}/${db}");

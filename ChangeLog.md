@@ -73,6 +73,10 @@
 * Added new `\read` command to allow you to set variables using input 
   provided by the user
 
+## Bug Fixes
+
+# Fixed a loooong standing bug with jsqsh's inability to connect to Oracle.
+
 # Release 2.2
 
 ## New Features

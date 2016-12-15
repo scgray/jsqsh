@@ -338,11 +338,6 @@ or used by all drivers.
   Sets the ${password} property that will be used to authenticate with the 
   server.
                           
-### --sid=*SID* (-s *SID*)
-
-  Sets the `${SID}` property, and provides the Oracle SID that will be used 
-  when connecting to Oracle.
-
 ### --jdbc-url=*url* (-u *url*)
 
   This option allows you to provide an explicit JDBC URL to utilize when 
@@ -494,11 +489,11 @@ To view the set of logical connection names currently being managed, you
 an use the `--list` argument:
    
     1> \connect --list
-    +------+--------+--------+------+--------+----------+----------+--------
-    | Name | Driver | Server | Port | SID    | Username | Password | ...    
-    +------+--------+--------+------+--------+----------+----------+--------
-    | PROD | sybase | prod   | 5000 | [NULL] | sa       | *******  | ...
-    +------+--------+--------+------+--------+----------+----------+--------
+    +------+--------+--------+------+----------+----------+--------
+    | Name | Driver | Server | Port | Username | Password | ...
+    +------+--------+--------+------+----------+----------+--------
+    | PROD | sybase | prod   | 5000 | sa       | *******  | ...
+    +------+--------+--------+------+----------+----------+--------
    
 To delete a logical connection name, use the --remove argument:
    
@@ -1235,7 +1230,7 @@ the results of the select statement would be the word 'one'. However,
 supplying the `-g` flag to alias causes the word to be replace ANYWHERE
 it appears in the line of input. so:
    
-    1> \alias -g one=1
+    1> \alias -G one=1
     1> select 'one';
      
 would return a result set with '1' in it. 

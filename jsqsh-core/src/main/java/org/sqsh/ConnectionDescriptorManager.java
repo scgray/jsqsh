@@ -126,10 +126,6 @@ public class ConnectionDescriptorManager {
             
             n.setServer(c2.getServer());
         }
-        if (c2.getSid() != null) {
-            
-            n.setSid(c2.getSid());
-        }
         if (c2.getUrl() != null) {
             
             n.setUrl(c2.getUrl());
@@ -270,13 +266,6 @@ public class ConnectionDescriptorManager {
                     
                     out.print("               port=\"");
                     out.print(connDesc.getPort());
-                    out.println("\"");
-                }
-                
-                if (connDesc.getSid() != null) {
-                    
-                    out.print("               sid=\"");
-                    out.print(connDesc.getSid());
                     out.println("\"");
                 }
                 

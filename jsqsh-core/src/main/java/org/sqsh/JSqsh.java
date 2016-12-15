@@ -514,7 +514,6 @@ public class JSqsh {
                 || options.getCatalog() != null
                 || options.getUsername() != null
                 || options.getPassword() != null
-                || options.getSid() != null
                 || options.getJdbcClass() != null
                 || options.getDriver() != null
                 || options.getDomain() != null

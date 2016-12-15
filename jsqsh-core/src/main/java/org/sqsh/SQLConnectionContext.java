@@ -455,15 +455,6 @@ public class SQLConnectionContext
 
     /**
      * @return
-     * @see org.sqsh.ConnectionDescriptor#getSid()
-     */
-    public String getSid () {
-
-        return getProperty(connDesc.getSid(), SQLDriver.SID_PROPERTY);
-    }
-
-    /**
-     * @return
      * @see org.sqsh.ConnectionDescriptor#getUsername()
      */
     public String getUsername () {

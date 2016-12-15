@@ -67,11 +67,6 @@ public class ConnectionDescriptor
     public String domain = null;
 
     @OptionProperty(
-        option='s', longOption="sid", arg=REQUIRED, argName="SID",
-        description="Instance id (e.g. Oracle SID) to utilize")
-    public String SID = null;
-    
-    @OptionProperty(
         option='O', longOption="prop", arg=REQUIRED, argName="name=val",
         description="Set a driver connection property. Can be used more than once")
     public List<String> properties = new ArrayList<String>();
@@ -185,10 +180,6 @@ public class ConnectionDescriptor
             
             return getServer();
         }
-        if (name.equals(SQLDriver.SID_PROPERTY)) {
-            
-            return getSid();
-        }
         if (name.equals(SQLDriver.USER_PROPERTY)) {
             
             return getUsername();
@@ -235,10 +226,6 @@ public class ConnectionDescriptor
         else if (name.equals(SQLDriver.SERVER_PROPERTY)) {
             
             setServer(value);
-        }
-        else if (name.equals(SQLDriver.SID_PROPERTY)) {
-            
-            setSid(value);
         }
         else if (name.equals(SQLDriver.USER_PROPERTY)) {
             
@@ -413,22 +400,6 @@ public class ConnectionDescriptor
             
             this.password = password;
         }
-    }
-    
-    /**
-     * @return the sid
-     */
-    public String getSid () {
-    
-        return SID;
-    }
-    
-    /**
-     * @param sid the sid to set
-     */
-    public void setSid (String sid) {
-    
-        this.SID = sid;
     }
     
     /**
@@ -744,7 +715,6 @@ public class ConnectionDescriptor
         sb.append(", username=").append(username);
         sb.append(", password=").append(password);
         sb.append(", domain=").append(domain);
-        sb.append(", SID=").append(SID);
         sb.append(", driverClass=").append(driverClass);
         sb.append(", driverName=").append(driverName);
         sb.append(", url=").append(url);

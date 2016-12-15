@@ -250,7 +250,7 @@ public class Connect
     
     private void doList(Session session, boolean showPassword) {
         
-        ColumnDescription []columns = new ColumnDescription[13];
+        ColumnDescription []columns = new ColumnDescription[12];
         boolean hasStar = false;
         
         columns[0]  = new ColumnDescription("Name", false);
@@ -258,14 +258,13 @@ public class Connect
         columns[2]  = new ColumnDescription("Server");
         columns[3]  = new ColumnDescription("Port");
         columns[4]  = new ColumnDescription("Database");
-        columns[5]  = new ColumnDescription("SID");
-        columns[6]  = new ColumnDescription("Username");
-        columns[7]  = new ColumnDescription("Password");
-        columns[8]  = new ColumnDescription("Domain");
-        columns[9]  = new ColumnDescription("Class");
-        columns[10]  = new ColumnDescription("URL");
-        columns[11] = new ColumnDescription("Properties");
-        columns[12] = new ColumnDescription("URL Vars");
+        columns[5]  = new ColumnDescription("Username");
+        columns[6]  = new ColumnDescription("Password");
+        columns[7]  = new ColumnDescription("Domain");
+        columns[8]  = new ColumnDescription("Class");
+        columns[9]  = new ColumnDescription("URL");
+        columns[10] = new ColumnDescription("Properties");
+        columns[11] = new ColumnDescription("URL Vars");
 
         DataFormatter formatter =
             session.getDataFormatter();
@@ -305,8 +304,6 @@ public class Connect
                         formatter.getNull() : Integer.toString(connDesc.getPort()));
             row[idx++] = (connDesc.getCatalog() == null ?
                         formatter.getNull() : connDesc.getCatalog());
-            row[idx++] = (connDesc.getSid() == null ?
-                        formatter.getNull() : connDesc.getSid());
             row[idx++] = (connDesc.getUsername() == null ?
                         formatter.getNull() : connDesc.getUsername());
 

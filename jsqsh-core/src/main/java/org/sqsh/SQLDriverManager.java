@@ -603,39 +603,7 @@ public class SQLDriverManager {
              * the driver and set them as necessary.
              */
             Properties props = new Properties();
-            try {
-                
-                /*
-                 * One little trick we can do is to ask the driver for all
-                 * of the properties that it supports. If there so happens to
-                 * exist an variable associated with the driver that matches
-                 * that variable name, we will set it. 
-                 */
-                DriverPropertyInfo []supportedProperties =
-                    jdbcDriver.getPropertyInfo(url, null);
-                
-                for (int i = 0; i < supportedProperties.length; i++) {
-                    
-                    String name = supportedProperties[i].name;
-                    String value = getProperty(properties,
-                        sqlDriver.getVariables(), name);
-                    
-                    if (value != null) {
-                        
-                        LOG.fine("Setting connection property '"
-                                + name + "' to '" + value + "'");
-                        props.put(name, value);
-                    }
-                }
-                
-            }
-            catch (Exception e) {
-                
-                session.err.println("WARNING: Failed to retrieve JDBC driver "
-                    + "supported connection property list ("
-                    + e.getMessage() + ")");
-            }
-            
+
             /*
              * If the driver explicitly declares a property 
              * we just blindly pass it in.
@@ -689,7 +657,7 @@ public class SQLDriverManager {
                 
                 props.put(SQLDriver.PASSWORD_PROPERTY, s);
             }
-            
+
             conn = DriverManager.getConnection(url, props);
             SQLTools.printWarnings(session, conn);
         }
@@ -791,7 +759,7 @@ public class SQLDriverManager {
      * and it is up to the {@link SQLDriver} to provide a default.
      * 
      * @param session The session used to look up the properties.
-     * @param options The options the user provided.
+     * @param connDesc The connection descriptor
      * @return A map of properties.
      */
     private Map<String, String> toProperties(
@@ -809,8 +777,6 @@ public class SQLDriverManager {
             SQLDriver.USER_PROPERTY, connDesc.getUsername());
         setProperty(properties, session,
             SQLDriver.PASSWORD_PROPERTY, connDesc.getPassword());
-        setProperty(properties, session,
-            SQLDriver.SID_PROPERTY, connDesc.getSid());
         setProperty(properties, session,
             SQLDriver.DATABASE_PROPERTY, connDesc.getCatalog());
         setProperty(properties, session,

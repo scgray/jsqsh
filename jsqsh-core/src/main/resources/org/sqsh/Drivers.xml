@@ -63,23 +63,14 @@
            class="oracle.jdbc.OracleDriver"
            analyzer="org.sqsh.analyzers.PLSQLAnalyzer"
            normalizer="org.sqsh.normalizer.UpperCaseNormalizer"
-           url="jdbc:oracle:thin:@${server}:${port}:${SID}">
+           url="jdbc:oracle:thin:@//${server}:${port}/${db}">
            
        <Variable name="server">localhost</Variable>
        <Variable name="port">1521</Variable>
-       <Variable name="SID">ORCL</Variable>
+       <Variable name="db">orcl</Variable>
    </Driver>
 
-   <Driver name="oracleoci" 
-           target="Oracle OCI"
-           class="oracle.jdbc.driver.OracleDriver"
-           analyzer="org.sqsh.analyzers.PLSQLAnalyzer"
-           normalizer="org.sqsh.normalizer.UpperCaseNormalizer"
-           url="jdbc:oracle:oci8:@${SID}">
-       <Variable name="SID">ORCL</Variable>
-   </Driver>
-   
-   <Driver name="db2" 
+   <Driver name="db2"
            target="IBM Data Server (DB2, Informix, Big SQL)"
            class="com.ibm.db2.jcc.DB2Driver"
            analyzer="org.sqsh.analyzers.PLSQLAnalyzer"
@@ -238,17 +229,7 @@
         <Variable name="server">projecturl</Variable>
     </Driver>
 
-    <Driver name="informix" 
-            target="IBM Informix"
-            class="com.informix.jdbc.IfxDriver"
-            analyzer="org.sqsh.analyzers.ANSIAnalyzer"
-            url="jdbc:informix-sqli://${server}:${port}#if($db)/${db}#end:INFORMIXSERVER=${SID}">
-        <Variable name="server">localhost</Variable>
-        <Variable name="port">1526</Variable>
-        <Variable name="SID">IFX</Variable>
-    </Driver>
-
-    <Driver name="netezza" 
+    <Driver name="netezza"
             target="IBM Netezza"
             class="org.netezza.Driver"
             analyzer="org.sqsh.analyzers.PLSQLAnalyzer"

@@ -481,27 +481,6 @@ This means that you cannot use `${style}` to set the display style of a non-
         ]]></Help>	
 	</Property>
 	
-	<Property bean="session" name="SID" property="connectionContext.sid"
-	          quiet="true">
-        <Description>Oracle instance to which connection is established</Description>
-        <Help><![CDATA[
-## Variable
-
-   `SID` - Oracle instance name to which a connection is established.
-
-## Description
-
-   The read-only `${SID}` variable will contain the name of the Oracle
-   instance to which the current session has a connection established. If no
-   connection is established (or the connection isn't to Oracle) then this
-   variable will not be set.
-   
-## See also
-
-   [[domain]], [[driver]], [[user]], [[server]], [[port]]
-        ]]></Help>	
-	</Property>
-	
 	<Property bean="session" name="jdbc_url" property="connectionContext.url"
 	          quiet="true">
         <Description>The JDBC URL that was used for connection</Description>
@@ -518,7 +497,7 @@ This means that you cannot use `${style}` to set the display style of a non-
    
 ## See also
 
-   [[domain]], [[driver]], [[user]], [[server]], [[port]], [[SID]]
+   [[domain]], [[driver]], [[user]], [[server]], [[port]]
         ]]></Help>	
 	</Property>
 	
@@ -538,7 +517,7 @@ This means that you cannot use `${style}` to set the display style of a non-
    
 ## See also
 
-   [[domain]], [[driver]], [[user]], [[server]], [[port]], [[SID]]
+   [[domain]], [[driver]], [[user]], [[server]], [[port]]
         ]]></Help>	
 	</Property>
 	
@@ -560,7 +539,7 @@ This means that you cannot use `${style}` to set the display style of a non-
    
 ## See also
 
-   [[domain]], [[driver]], [[user]], [[server]], [[port]], [[SID]]
+   [[domain]], [[driver]], [[user]], [[server]], [[port]]
         ]]></Help>	
 	</Property>
 
