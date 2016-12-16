@@ -15,14 +15,15 @@
  */
 package org.sqsh;
 
+import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Writer;
 import java.util.logging.Logger;
 
 /*
  * NOTE: These classes are available because they are embedded in jline.
  */
-import org.fusesource.jansi.Ansi;
-import org.fusesource.jansi.AnsiConsole;
+import org.sqsh.util.Ansi;
 import org.sqsh.util.TimeUtils;
 
 /**
@@ -92,11 +93,17 @@ public class VisualTimer {
     private State state = State.SHUTDOWN;
 
     /**
+     * Where to send the output from the timer
+     */
+    private Writer out;
+
+    /**
      * Creates a visual timer. By default the timer is disabled and calls to
      * {@link #start()} and {@link #stop()} are ignored.
      */
-    public VisualTimer(boolean isEnabled) {
-        
+    public VisualTimer(boolean isEnabled, Writer out) {
+
+        this.out = out;
         if (isEnabled) {
             
             setEnabled(isEnabled);
@@ -107,9 +114,9 @@ public class VisualTimer {
      * Creates a visual timer. By default the timer is disabled and calls to
      * {@link #start()} and {@link #stop()} are ignored.
      */
-    public VisualTimer() {
+    public VisualTimer(Writer out) {
         
-        this(false);
+        this(false, out);
     }
     
     /**
@@ -333,36 +340,30 @@ public class VisualTimer {
         /*
          * Variables used to remember the state of the screen for safe drawing.
          */
-        private boolean isDisplaying = false; // Is the timer on the screen?
-        private int     nback = 0;            // How far to backspace to erase the current time
-        
-        /*
-         * Tools needed to render ansi console sequences to the screen
-         */
-        private PrintStream out = AnsiConsole.out();
+        private boolean       isDisplaying = false; // Is the timer on the screen?
+        private int           nback = 0;            // How far to backspace to erase the current time
         private StringBuilder sb = new StringBuilder();
-        private Ansi ansi = new Ansi(sb);
-        
+
         private void update (long duration) {
             
             String str = TimeUtils.millisToTimerString(duration);
-                                
+
             sb.setLength(0);
-            
+
             /*
              * If we are currently displaying the timer, then back the cursor
              * up to the start of the current timestamp.
              */
             if (isDisplaying) {
-                
-                ansi.cursorLeft(nback);
+
+                sb.append(Ansi.cursorLeft(nback));
             }
             else {
                 
                 /*
                  * The timer is now starting.
                  */
-                ansi.a("Elapsed time: ");
+                sb.append("Elapsed time: ");
                 isDisplaying = true;
             }
             
@@ -370,24 +371,36 @@ public class VisualTimer {
             nback = str.length();
             
             // Now, write the time out.
-            ansi.a(str);
+            sb.append(str);
             
             // And send it to the screen.
-            out.print(sb);
-            out.flush();
+            try {
+
+                out.append(sb);
+                out.flush();
+            }
+            catch (IOException e) {
+
+                // IGNORED
+            }
         }
                     
         private void clear () {
             
             if (isDisplaying) {
                 
-                sb.setLength(0);
-                
                 // 14 == "Elapsed time: ".length()
-                ansi.cursorLeft(14 + nback).eraseLine(Ansi.Erase.ALL);
-                out.print(sb);
-                out.flush();
-                
+                try {
+
+                    out.append(Ansi.cursorLeft(14 + nback));
+                    out.append(Ansi.eraseLine(Ansi.Erase.ALL));
+                    out.flush();
+                }
+                catch (IOException e) {
+
+                    // IGNORED
+                }
+
                 nback = 0;
                 isDisplaying = false;
             }

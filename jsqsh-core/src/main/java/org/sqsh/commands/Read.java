@@ -15,10 +15,12 @@
  */
 package org.sqsh.commands;
 
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.LineReader;
+import org.jline.reader.UserInterruptException;
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
-import org.sqsh.input.ConsoleLineReader;
 import org.sqsh.options.Argv;
 import org.sqsh.options.OptionProperty;
 
@@ -83,22 +85,16 @@ public class Read extends Command {
             }
         }
 
-        ConsoleLineReader in = session.getContext().getConsole();
+        LineReader in = session.getContext().getConsole();
         String str;
         try {
-            if (options.isSilent) {
-
-                str = in.readPassword(options.prompt);
-            }
-            else {
-
-                str = in.readline(options.prompt, false);
-            }
+            str = in.readLine(options.prompt, options.isSilent ? '*' : null);
         }
-        catch (Exception e) {
-
-            session.err.println("Error reading input: " + e.getMessage());
-            return 1;
+        catch (UserInterruptException e) {
+            str = null;
+        }
+        catch (EndOfFileException e) {
+            str = null;
         }
 
         String []words = splitIntoWords(str == null ? "" : str, options.arguments.size());

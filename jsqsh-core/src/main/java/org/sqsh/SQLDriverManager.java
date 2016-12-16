@@ -38,6 +38,9 @@ import java.util.Iterator;
 import java.util.logging.Logger;
 
 import org.apache.commons.digester.Digester;
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.LineReader;
+import org.jline.reader.UserInterruptException;
 
 
 /**
@@ -864,19 +867,21 @@ public class SQLDriverManager {
      * @return The input
      */
     private static String promptInput(Session session, String prompt, boolean isMasked) {
-        
-        if (isMasked == false) {
-            
-            String result = session.getContext().getConsole().readlineSafe(prompt + ": ", false);
-            return result;
+
+        try {
+
+            return session.getContext().getConsole().readLine(prompt, isMasked ? '*' : null);
         }
-        else {
-            
-            String pwd = session.getContext().getConsole().readPasswordSafe(prompt + ": ");
-            return pwd;
+        catch (UserInterruptException e) {
+
+            return null;
+        }
+        catch (EndOfFileException e) {
+
+            return null;
         }
     }
-    
+
     /**
      * Used to expand a URL of any variables that may be defined in the 
      *  user supplied properties, session, or SQLDriver variables (in that

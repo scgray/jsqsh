@@ -1,7 +1,0 @@
-This directory contains jars that are used to compile jsqsh, but
-are not distributed with it.
-
-This is used primarily for integration with products that may
-change over time and it is more desirable for jsqsh to pick up
-the latest version from a product installation rather than an
-old version that may be packaged with jsqsh.
