@@ -27,8 +27,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import org.fusesource.jansi.Ansi;
-import org.fusesource.jansi.AnsiConsole;
+import org.jline.reader.LineReader;
 import org.sqsh.Command;
 import org.sqsh.ConnectionDescriptor;
 import org.sqsh.ConnectionDescriptorManager;
@@ -44,12 +43,12 @@ import org.sqsh.analyzers.NullAnalyzer;
 import org.sqsh.analyzers.PLSQLAnalyzer;
 import org.sqsh.analyzers.SQLAnalyzer;
 import org.sqsh.analyzers.TSQLAnalyzer;
-import org.sqsh.input.ConsoleLineReader;
 import org.sqsh.normalizer.LowerCaseNormalizer;
 import org.sqsh.normalizer.NullNormalizer;
 import org.sqsh.normalizer.SQLNormalizer;
 import org.sqsh.normalizer.UpperCaseNormalizer;
 import org.sqsh.options.Argv;
+import org.sqsh.util.Ansi;
 
 public class Setup extends Command {
     
@@ -65,27 +64,24 @@ public class Setup extends Command {
         return new Options();
     }
 
+
     @Override
     public int execute(Session session, SqshOptions opts) throws Exception {
         
         Options options = (Options)opts;
-        ConsoleLineReader in = session.getContext().getConsole();
-        PrintStream out = AnsiConsole.out();
-        
-        Ansi cls = new Ansi();
-        cls.eraseScreen();
-        cls.cursor(0, 0);
-        
+        LineReader in = session.getContext().getConsole();
+        cls(in);
+
         if (options.arguments.size() > 0) {
             
             String path = options.arguments.get(0);
             if (path.equals("connections")) {
                 
-                doConnectionWizard(session, out, in, cls);
+                doConnectionWizard(session, session.out, in);
             }
             else if (path.equals("drivers")) {
                 
-                doDriverWizard(session, out, in, cls);
+                doDriverWizard(session, session.out, in);
             }
             else {
                 
@@ -94,19 +90,19 @@ public class Setup extends Command {
         }
         else {
             
-            doWelcome(session, out, in, cls);
+            doWelcome(session, session.out, in);
         }
             
         return 0;
     }
     
-    public void doWelcome(Session session, PrintStream out, ConsoleLineReader in, Ansi cls) throws Exception {
+    public void doWelcome(Session session, PrintStream out, LineReader in) throws Exception {
         
         boolean done = false;
         
         while (! done) {
-            
-            out.print(cls);
+
+            cls(in);
             out.println("JSQSH SETUP WIZARD");
             out.println();
             out.println("Welcome to the jsqsh setup wizard! This wizard provides a (crude) menu");
@@ -136,11 +132,11 @@ public class Setup extends Command {
             }
             else if ("d".equalsIgnoreCase(str)) {
                 
-                done = doDriverWizard(session, out, in, cls);
+                done = doDriverWizard(session, out, in);
             }
             else if ("c".equalsIgnoreCase(str)) {
                 
-                done = doConnectionWizard(session, out, in, cls);
+                done = doConnectionWizard(session, out, in);
             }
         }
         
@@ -150,15 +146,15 @@ public class Setup extends Command {
         out.println();
     }
     
-    public boolean doConnectionWizard(Session session, PrintStream out, ConsoleLineReader in, Ansi cls) throws Exception {
-        
+    public boolean doConnectionWizard(Session session, PrintStream out, LineReader in) throws Exception {
+
         SQLDriverManager driverMan = session.getDriverManager();
         boolean done = false;
         boolean doQuit = false;
         while (! done) {
-        
-            out.print(cls);
-            out.println("JSQSH CONNECTION WIZARD - (edits $HOME/.jsqsh/connections.xml");
+
+            cls(in);
+            session.out.println("JSQSH CONNECTION WIZARD - (edits $HOME/.jsqsh/connections.xml");
             
             ConnectionDescriptor []connDescs = 
                 session.getConnectionDescriptorManager().getAll();
@@ -167,7 +163,7 @@ public class Setup extends Command {
             
             if (connDescs == null || connDescs.length == 0) {
                 
-                done = doConnectionChooseDriver(session, out, in, cls);
+                done = doConnectionChooseDriver(session, out, in);
                 continue;
             }
             else {
@@ -248,7 +244,7 @@ public class Setup extends Command {
             }
             else if (str.equalsIgnoreCase("a")) {
                 
-                doQuit = doConnectionChooseDriver(session, out, in, cls);
+                doQuit = doConnectionChooseDriver(session, out, in);
                 done = doQuit;
             }
             else {
@@ -256,7 +252,7 @@ public class Setup extends Command {
                 int id = toInt(str);
                 if (id >= 1 && id <= connDescs.length) {
                     
-                    doQuit = doConfigConnection(session, out, in, cls, 
+                    doQuit = doConfigConnection(session, out, in,
                         connDescs[id-1], driverMan.getDriver(connDescs[id-1].getDriver()));
                     done = doQuit;
                 }
@@ -270,7 +266,7 @@ public class Setup extends Command {
      * Render the "add" screen
      * @throws Exception
      */
-    public boolean doConnectionChooseDriver(Session session, PrintStream out, ConsoleLineReader in, Ansi cls) throws Exception {
+    public boolean doConnectionChooseDriver(Session session, PrintStream out, LineReader in) throws Exception {
         
         SQLDriverManager driverMan = session.getDriverManager();
         boolean done = false;
@@ -296,7 +292,7 @@ public class Setup extends Command {
         
         while (!done) {
             
-            out.print(cls);
+            cls(in);
             
             out.println("JSQSH CONNECTION WIZARD - (edits $HOME/.jsqsh/connections.xml)");
             out.println();
@@ -335,7 +331,7 @@ public class Setup extends Command {
             }
             else if (str.equalsIgnoreCase("d")) {
                 
-                doQuit = doDriverWizard(session, out, in, cls);
+                doQuit = doDriverWizard(session, out, in);
                 if (doQuit) {
                     
                     done = true;
@@ -346,7 +342,7 @@ public class Setup extends Command {
                 int driver = toInt(str);
                 if (driver >= 1 && driver <= drivers.size()) {
                     
-                    doQuit = doConfigConnection(session, out, in, cls, null, drivers.get(driver-1));
+                    doQuit = doConfigConnection(session, out, in, null, drivers.get(driver-1));
                     done = true;
                 }
             }
@@ -355,7 +351,7 @@ public class Setup extends Command {
         return doQuit;
     }
     
-    public boolean doConfigConnection(Session session, PrintStream out, ConsoleLineReader in, Ansi cls, 
+    public boolean doConfigConnection(Session session, PrintStream out, LineReader in,
         ConnectionDescriptor conDesc, SQLDriver driver) throws Exception {
         
         boolean doQuit = false;
@@ -391,7 +387,7 @@ public class Setup extends Command {
         
         while (! done) {
             
-            out.print(cls);
+            cls(in);
             out.println("JSQSH CONNECTION WIZARD - (edits $HOME/.jsqsh/connections.xml)");
             out.println();
             out.println("The following configuration properties are supported by this driver.");
@@ -521,7 +517,7 @@ public class Setup extends Command {
                 // Hack to re-used the JDBC driver property screen
                 SQLDriver drv = session.getDriverManager().getDriver(conDesc.getDriver()).copy();
                 drv.getDriverProperties().clear();
-                newDriverProperty(session, out, in, cls, drv);
+                newDriverProperty(session, out, in, drv);
                 
                 for (Entry<String, String> e : drv.getDriverProperties().entrySet()) {
                     
@@ -540,7 +536,7 @@ public class Setup extends Command {
                     out.println("Please enter a new value:");
                     if (isPassword) {
                         
-                        str = in.readPassword(var.getName() + ": ");
+                        str = in.readLine(var.getName() + ": ", '*');
                     }
                     else {
                         
@@ -577,7 +573,7 @@ public class Setup extends Command {
         return doQuit;
     }
     
-    private static void doTest(Session session, PrintStream out, ConsoleLineReader in, ConnectionDescriptor connDesc) 
+    private static void doTest(Session session, PrintStream out, LineReader in, ConnectionDescriptor connDesc)
         throws Exception {
         
         SQLDriverManager driverMan = session.getDriverManager();
@@ -606,7 +602,7 @@ public class Setup extends Command {
         readline(in, "Hit enter to continue:");
     }
     
-    public boolean doDriverWizard(Session session, PrintStream out, ConsoleLineReader in, Ansi cls) 
+    public boolean doDriverWizard(Session session, PrintStream out, LineReader in)
         throws Exception {
         
         boolean done = false;
@@ -618,8 +614,8 @@ public class Setup extends Command {
             
             SQLDriver []drivers = driverMan.getDrivers();
             Arrays.sort(drivers);
-    
-            out.print(cls);
+
+            cls(in);
             out.println("JSQSH DRIVER WIZARD - (edits $HOME/.jsqsh/drivers.xml)");
             
             out.println();
@@ -658,7 +654,7 @@ public class Setup extends Command {
             }
             else if ("a".equalsIgnoreCase(str)) {
                 
-                doQuit = doEditDriver (session, out, in, cls, null);
+                doQuit = doEditDriver (session, out, in, null);
                 done = doQuit;
             }
             else {
@@ -666,7 +662,7 @@ public class Setup extends Command {
                 int id = toInt(str);
                 if (id >= 1 && id <= drivers.length) {
                     
-                    doQuit = doEditDriver (session, out, in, cls, drivers[id-1]);
+                    doQuit = doEditDriver (session, out, in, drivers[id-1]);
                     done = doQuit;
                 }
             }
@@ -675,7 +671,7 @@ public class Setup extends Command {
         return doQuit;
     }
     
-    private boolean doEditDriver (Session session, PrintStream out, ConsoleLineReader in, Ansi cls, SQLDriver origDriver) 
+    private boolean doEditDriver (Session session, PrintStream out, LineReader in, SQLDriver origDriver)
         throws Exception {
         
         boolean isNewDriver = (origDriver == null);
@@ -695,7 +691,7 @@ public class Setup extends Command {
         boolean doQuit = false;
         while (! done) {
             
-            out.print(cls);
+            cls(in);
             out.println("JDBC WIZARD DRIVER EDITOR - (edits $HOME/.jsqsh/drivers.xml)");
             out.println();
             out.println("The following are standard driver configuration variables for jsqsh JDBC URL's:");
@@ -823,7 +819,7 @@ public class Setup extends Command {
             }
             else if ("a".equalsIgnoreCase(str)) {
                 
-                ScreenReturn ret = doEditDriverAdvanced(session, out, in, cls, driver);
+                ScreenReturn ret = doEditDriverAdvanced(session, out, in, driver);
                 if (ret == ScreenReturn.SAVE) {
                     
                     done = true;
@@ -940,12 +936,12 @@ public class Setup extends Command {
     }
     
     private ScreenReturn doEditDriverAdvanced (Session session, PrintStream out, 
-            ConsoleLineReader in, Ansi cls, SQLDriver driver) 
+            LineReader in, SQLDriver driver)
         throws Exception {
         
         while (true) {
             
-            out.print(cls);
+            cls(in);
             out.println("JDBC DRIVER EDITOR - ADVANCED OPTIONS");
             out.println();
             out.println("Driver Information");
@@ -1033,7 +1029,7 @@ public class Setup extends Command {
             }
             else if ("p".equalsIgnoreCase(str)) {
                 
-                newDriverProperty(session, out, in, cls, driver);
+                newDriverProperty(session, out, in, driver);
             }
             else {
                 
@@ -1074,7 +1070,7 @@ public class Setup extends Command {
         }
     }
     
-    private SQLAnalyzer chooseAnalyzer(PrintStream out, ConsoleLineReader in) 
+    private SQLAnalyzer chooseAnalyzer(PrintStream out, LineReader in)
         throws Exception {
         
         out.println();
@@ -1089,12 +1085,8 @@ public class Setup extends Command {
             str = str.trim();
             int id = toInt(str);
             if (id < 1 || id > 4) {
-                
-                Ansi ansi = new Ansi();
-                ansi.cursorUp(1);
-                ansi.eraseLine();
-                ansi.cursorUp(1);
-                out.println(ansi);
+
+                killLine(in);
             }
             else
             {
@@ -1112,7 +1104,7 @@ public class Setup extends Command {
             
     }
     
-    private SQLNormalizer chooseNormalizer(PrintStream out, ConsoleLineReader in) 
+    private SQLNormalizer chooseNormalizer(PrintStream out, LineReader in)
         throws Exception {
         
         out.println();
@@ -1126,12 +1118,8 @@ public class Setup extends Command {
             str = str.trim();
             int id = toInt(str);
             if (id < 1 || id > 3) {
-                
-                Ansi ansi = new Ansi();
-                ansi.cursorUp(1);
-                ansi.eraseLine();
-                ansi.cursorUp(1);
-                out.println(ansi);
+
+                killLine(in);
             }
             else
             {
@@ -1148,7 +1136,7 @@ public class Setup extends Command {
     }
     
     private void newDriverProperty(Session session, PrintStream out, 
-            ConsoleLineReader in, Ansi cls, SQLDriver driver)  
+            LineReader in, SQLDriver driver)
         throws Exception {
         
         DriverPropertyInfo info[] = null;
@@ -1191,7 +1179,7 @@ public class Setup extends Command {
         
         while (! done) {
             
-            out.print(cls);
+            cls(in);
             out.println("DRIVER PROPERTIES");
             out.println();
             out.println("The following properties are published by the driver. Note that ");
@@ -1328,12 +1316,8 @@ public class Setup extends Command {
                             }
                             
                             if (! done) {
-                                
-                                Ansi ansi = new Ansi();
-                                ansi.cursorUp(1);
-                                ansi.eraseLine();
-                                ansi.cursorUp(1);
-                                out.println(ansi);
+
+                                killLine(in);
                             }
                         }
                     }
@@ -1356,7 +1340,7 @@ public class Setup extends Command {
        }
     }
     
-    private String getEntry(PrintStream out, ConsoleLineReader in, String prompt, boolean isRequired) throws Exception {
+    private String getEntry(PrintStream out, LineReader in, String prompt, boolean isRequired) throws Exception {
         
         String str = "";
         while (str.length() == 0) {
@@ -1372,12 +1356,7 @@ public class Setup extends Command {
                 break;
             }
             if (str.length() == 0) {
-                
-                Ansi ansi = new Ansi();
-                ansi.cursorUp(1);
-                ansi.eraseLine();
-                ansi.cursorUp(1);
-                out.println(ansi);
+
             }
         }
         
@@ -1436,17 +1415,32 @@ public class Setup extends Command {
         return str;
     }
     
-    private static String readline(ConsoleLineReader in, String prompt) {
-        
-        String str = in.readlineSafe(prompt, false);
-        if (str == null) {
-            
-            return "";
-        }
+    private static String readline(LineReader in, String prompt) {
 
-        return str;
+        try {
+            in.setVariable(LineReader.DISABLE_HISTORY, Boolean.TRUE);
+            return in.readLine(prompt);
+        }
+        finally {
+            in.setVariable(LineReader.DISABLE_HISTORY, Boolean.FALSE);
+        }
     }
-    
+
+    private void cls(LineReader in) {
+
+        // Clear screen, cursor to 0,0
+        in.getTerminal().writer().write(Ansi.clearScreen());
+        in.getTerminal().writer().write(Ansi.cursorMove(0,0));
+    }
+
+    private void killLine(LineReader in) {
+
+        // Cursor up 1, erase line, cursor up 1
+        in.getTerminal().writer().write(Ansi.cursorUp(1));
+        in.getTerminal().writer().write(Ansi.clearToEnd());
+        in.getTerminal().writer().write(Ansi.cursorUp(1));
+    }
+
     private static enum ScreenReturn {
         
         BACK,
