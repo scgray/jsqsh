@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2012 Scott C. Gray
+ * Copyright 2007-2017 Scott C. Gray
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.sqsh.input;
+package org.sqsh.jline;
 
 import java.util.List;
 
@@ -23,14 +23,14 @@ import org.jline.reader.ParsedLine;
 import org.sqsh.ConnectionContext;
 import org.sqsh.Session;
 import org.sqsh.SqshContext;
-import org.sqsh.input.completion.Completer;
+import org.sqsh.completion.Completer;
 
-public class JLineTabCompleter 
+public class JLineCompleter
     implements org.jline.reader.Completer {
     
     SqshContext ctx;
     
-    public JLineTabCompleter (SqshContext ctx) {
+    public JLineCompleter(SqshContext ctx) {
         
         this.ctx = ctx;
     }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.sqsh.input.completion;
+package org.sqsh.completion;
 
 import java.sql.Connection;
 import java.util.Set;
