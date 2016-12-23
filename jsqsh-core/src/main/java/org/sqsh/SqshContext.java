@@ -25,18 +25,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.sql.Driver;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
+import org.jline.keymap.KeyMap;
+import org.jline.reader.Binding;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
-import org.sqsh.input.JLineTabCompleter;
+import org.sqsh.jline.JLineCompleter;
+import org.sqsh.jline.JLineParser;
 import org.sqsh.jni.ShellManager;
 
 /**
@@ -499,6 +499,57 @@ public class SqshContext {
         return this.extensionManager;
     }
 
+    public void setEditingMode(String name) {
+
+        Map<String, KeyMap<Binding>> keyMaps = getConsole().getKeyMaps();
+        if ("vi".equals(name)) {
+
+            keyMaps.put(LineReader.MAIN, keyMaps.get(LineReader.VIINS));
+        }
+        else if ("emacs".equals(name)) {
+
+            keyMaps.put(LineReader.MAIN, keyMaps.get(LineReader.EMACS));
+        }
+        else {
+
+            if (keyMaps.containsKey(name)) {
+
+                keyMaps.put(LineReader.MAIN, keyMaps.get(name));
+            }
+        }
+    }
+
+    /**
+     * @return The current line editing mode. This should be one of "vi" or "emacs"
+     */
+    public String getEditingMode() {
+
+        Map<String, KeyMap<Binding>> keyMaps = getConsole().getKeyMaps();
+        KeyMap<Binding> currentKeyMap = keyMaps.get(LineReader.MAIN);
+        if (currentKeyMap == keyMaps.get(LineReader.VICMD)
+            || currentKeyMap == keyMaps.get(LineReader.VIINS)
+                || currentKeyMap == keyMaps.get(LineReader.VIOPP)) {
+
+            return "vi";
+        }
+        else if (currentKeyMap == keyMaps.get(LineReader.EMACS)) {
+
+            return "emacs";
+        }
+        else {
+
+            for (Map.Entry<String, KeyMap<Binding>> e : keyMaps.entrySet()) {
+
+                if (e.getValue() == currentKeyMap) {
+
+                    return e.getKey();
+                }
+            }
+        }
+
+        return "unknown";
+    }
+
     /**
      * @return The visual timer handle
      */
@@ -839,7 +890,8 @@ public class SqshContext {
             console = LineReaderBuilder.builder()
                     .appName("jsqsh")
                     .terminal(terminal)
-                    .completer(new JLineTabCompleter(this))
+                    .completer(new JLineCompleter(this))
+                    .parser(new JLineParser(this))
                     .variable(LineReader.HISTORY_FILE, readlineHistory.toString())
                     .build();
 

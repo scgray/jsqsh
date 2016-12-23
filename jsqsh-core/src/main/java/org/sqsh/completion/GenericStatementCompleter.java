@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.sqsh.input.completion;
+package org.sqsh.completion;
 
 import java.sql.Connection;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.naming.NameParser;
-
-import org.sqsh.parser.DatabaseObject;
 
 /**
  * This completer is used to perform completions when specific SQL statements

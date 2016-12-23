@@ -1,7 +1,21 @@
 # Release 2.3
 
+## Deprecated features / changes (PLEASE READ)
+
+* There are no other choices for line editors, JLine is it! That is,
+  I have removed support for Readline, Editline, and Getline.  To my
+  knowledge no one was using them anyway. This has the following 
+  implications:
+  * The --readline option has been removed
+  * The ${readline} environment variable is removed
+* Jsqsh now uses JLine3 for it's line editor. JLine3 has lots of really
+  useful features (described below), but it also no longer supports 
+  processing of $HOME/.inputrc.  Now, if you want to change the keys
+  you use to edit, you'll need to use ${editing_mode}.
+
 ## New Features
 
+* JLine3 support added, all other readline implementations removed (!)
 * Extension plugin framework: Extensions to jsqsh can be developed that 
   provide a way to load additional commands and variables into jsqsh at
   runtime (at jsqsh startup time, via the new `\import` command, or when

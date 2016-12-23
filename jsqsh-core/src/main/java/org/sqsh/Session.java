@@ -841,10 +841,35 @@ public class Session
                         done = true;
                     }
                     else {
-                    
+
+
                         if (sigHandler.isTriggered() == false) {
                                 
-                            evaluate(line);
+                            /*
+                             * If we were using JLine for the input it is possible that our line of input may
+                             * contain more than one physical line. If this is the case, we want to break it up
+                             * into individual lines for line-by-line evaluation
+                             */
+                            int eol = line.indexOf('\n');
+                            if (eol > 0) {
+
+                                int startOfLine = 0;
+                                while (eol > 0) {
+
+                                    evaluate(line.substring(startOfLine, eol));
+                                    startOfLine = eol + 1;
+                                    eol = line.indexOf('\n', startOfLine);
+                                }
+
+                                if (startOfLine < line.length()) {
+
+                                    evaluate(line.substring(startOfLine));
+                                }
+                            }
+                            else {
+
+                                evaluate(line);
+                            }
                         }
                         else if (!ioManager.isInteractive()) {
                                 
@@ -880,7 +905,90 @@ public class Session
             sigMan.pop();
         }
     }
-                
+
+    /**
+     * This method is ONLY to be used by the JlineParser and looks at the
+     * contents of the current SQL buffer plus a line that is about to be
+     * added to it and determines whether or not the buffer is complete --
+     * which means that the current line is a command or is terminated.
+     *
+     * @return true if the buffer is ready to execute (it is complete)
+     */
+    public boolean isInputComplete(String input, int cursor) {
+
+        final int len = input.length();
+        if (len == 0) {
+
+            return true;
+        }
+
+        // Is the last line a command?  We don't accept commands in the middle of the
+        // line (maybe someday there could be a command that is legit in the middle
+        // of a buffer?  Like buf-copy might be?  For this I could use a marker
+        // interface to determine commands that are allowed
+        int lastLineStart = len - 1;
+        while (lastLineStart > 0 && input.charAt(lastLineStart) != '\n') {
+
+            --lastLineStart;
+        }
+
+        String lastLine = input;
+        if (lastLineStart > 0) {
+
+            lastLine = input.substring(lastLineStart + 1);
+        }
+
+        lastLine = getAliasManager().process(lastLine);
+
+        // If we hit a new command, then the user input is complete
+        if (getCommand(lastLine) != null) {
+
+            return true;
+        }
+
+        if (! lastLine.startsWith("##")) {
+
+            if (getTerminatorPosition(input) >= 0) {
+
+                return true;
+            }
+        }
+
+        // Next, does the current line contain a buffer command?
+        int currentLineEnd = (cursor >= len ? len - 1 : cursor);
+        while (currentLineEnd < len && input.charAt(currentLineEnd) != '\n') {
+
+            ++currentLineEnd;
+        }
+
+        int currentLineStart = (cursor >= len ? len - 1 : cursor);
+        while (currentLineStart > 0 && input.charAt(currentLineStart) != '\n') {
+
+            --currentLineStart;
+        }
+
+        String currentLine;
+        if (currentLineStart > 0) {
+
+            currentLine = input.substring(currentLineStart+1, currentLineEnd);
+        }
+        else {
+
+            currentLine = input.substring(0, currentLineEnd);
+        }
+
+        // Is the current line a buffer command?
+        if (currentLine.startsWith("!")) {
+
+            if (getBufferManager().getBuffer(currentLine) != null) {
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Evaluates a single line of input in the context of the session.
      * @param line The line of context.
@@ -927,7 +1035,7 @@ public class Session
              * character. If it is, then we need to execute the "go" 
              * command on behalf of the user.
              */
-            String args = isTerminated(curBuf);
+            String args = isBufferTerminated(curBuf);
             if (args != null) {
                 
                 Command go = getCommandManager().getCommand("\\go");
@@ -1078,7 +1186,68 @@ public class Session
         
         ioManager.save();
     }
-    
+
+    /**
+     * Returns the position of the terminator character in a string.
+     * @param buffer The string to analyze
+     * @return The position of the terminator or -1 if the terminator does not
+     *   exists (or is not in a valid location to be a terminator as determined
+     *   by the connection parser).
+     */
+    private int getTerminatorPosition(CharSequence buffer) {
+
+        ConnectionContext conn = getConnectionContext();
+        int terminator = sqshContext.getTerminator();
+
+        /*
+         * The connection determines whether or not the buffer is terminated,
+         * so if there is no connection, then we cannot make that decision.
+         */
+        if (conn == null || terminator < 0) {
+
+            return -1;
+        }
+
+        /*
+         * Try to find the terminator
+         */
+        int idx = buffer.length() - 1;
+        while (idx >= 0 && buffer.charAt(idx) != terminator) {
+
+            --idx;
+        }
+
+        /*
+         * Either we didn't find the terminator, or the characters after
+         * the terminator don't appear to be valid input to the "go" command.
+         */
+        if (idx < 0 || ! looksLikeArgumentsOrWhitespace(buffer, idx+1)) {
+
+            return -1;
+        }
+
+        /*
+         * When asking the connection if this input is terminated, then
+         * make sure we trim off everything after the semicolon.
+         */
+        CharSequence trimmedSql = buffer;
+        if (idx < trimmedSql.length()-1) {
+
+            trimmedSql = trimmedSql.subSequence(0, idx+1);
+        }
+
+        /*
+         * We have a terminator at the end, its worth doing an in-depth
+         * analysis at this point.
+         */
+        if (! conn.isTerminated(trimmedSql, (char) terminator)) {
+
+            return -1;
+        }
+
+        return idx;
+    }
+
     /**
      * Used by evaluate to determine if the current buffer contains
      * our ${terminator} character and that the current statement
@@ -1088,57 +1257,20 @@ public class Session
      * @return If the buffer was not terminated then null is returned, 
      *   otherwise the arguments that follow the terminator are returned.
      */
-    private String isTerminated(Buffer buffer) {
-        
-        ConnectionContext conn = getConnectionContext();
-        int terminator = sqshContext.getTerminator();
-        
-        /*
-         * The connection determines whether or not the buffer is terminated,
-         * so if there is no connection, then we cannot make that decision.
-         */
-        if (conn == null || terminator < 0) {
-            
+    private String isBufferTerminated(Buffer buffer) {
+
+        int idx = getTerminatorPosition(buffer);
+        if (idx < 0) {
+
             return null;
         }
-        
-        /*
-         * Try to find the terminator
-         */
-        int idx = buffer.length() - 1;
-        while (idx >= 0 && buffer.charAt(idx) != terminator) {
-            
-            --idx;
-        }
-        
-        /*
-         * Either we didn't find the terminator, or the characters after
-         * the terminator don't appear to be valid input to the "go" command.
-         */
-        if (idx < 0 || ! looksLikeArgumentsOrWhitespace(buffer, idx+1)) {
-            
-            return null;
-        }
-        
-        /*
-         * When asking the connection if this input is terminated, then
-         * make sure we trim off everything after the semicolon.
-         */
+
         CharSequence trimmedSql = buffer;
         if (idx < trimmedSql.length()-1) {
-            
+
             trimmedSql = trimmedSql.subSequence(0, idx+1);
         }
-        
-        /*
-         * We have a terminator at the end, its worth doing an in-depth
-         * analysis at this point.
-         */
-        if (conn.isTerminated(trimmedSql, (char) terminator) == false) {
-            
-            return null;
-        }
-        
+
         /*
          * Pull off the contents after the semicolon as our residuals.
          */
@@ -1148,7 +1280,10 @@ public class Session
             residuals = buffer.substring(idx+1, buffer.length());
             buffer.setLength(idx+1);
         }
-        
+
+        ConnectionContext conn = getConnectionContext();
+        int terminator = sqshContext.getTerminator();
+
         /*
          * It is terminated, so we are going to trim up our buffer
          * a tad to remove the terminator.

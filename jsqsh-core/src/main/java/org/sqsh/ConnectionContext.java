@@ -18,8 +18,8 @@ package org.sqsh;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.sqsh.input.completion.Completer;
-import org.sqsh.input.completion.NullCompleter;
+import org.sqsh.completion.Completer;
+import org.sqsh.completion.NullCompleter;
 
 /**
  * "Connections" are theoretically abstract things, and this is the base

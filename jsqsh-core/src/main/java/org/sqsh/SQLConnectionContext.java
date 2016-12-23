@@ -22,12 +22,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Logger;
 
-import org.sqsh.ConnectionDescriptor;
-import org.sqsh.SQLDriver;
-import org.sqsh.SQLDriverManager;
 import org.sqsh.analyzers.SQLAnalyzer;
-import org.sqsh.input.completion.Completer;
-import org.sqsh.input.completion.DatabaseObjectCompleter;
+import org.sqsh.completion.Completer;
+import org.sqsh.completion.DatabaseObjectCompleter;
 import org.sqsh.normalizer.SQLNormalizer;
 
 public class SQLConnectionContext
