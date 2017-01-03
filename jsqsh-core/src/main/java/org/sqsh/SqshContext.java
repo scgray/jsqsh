@@ -108,6 +108,11 @@ public class SqshContext {
     private LineReader console = null;
 
     /**
+     * Enables or disables JLine's ability to do multi-line editing.
+     */
+    private boolean multiLineEnabled = true;
+
+    /**
      * This objects instantiates all commands and manages all of the
      * command aliases.
      */
@@ -397,6 +402,24 @@ public class SqshContext {
     public int getQueryTimeout() {
         
         return queryTimeout;
+    }
+
+    /**
+     * @return true if multi-line editing is enabled when JLine is in use
+     *   (during interactive mode)
+     */
+    public boolean isMultiLineEnabled() {
+        return multiLineEnabled;
+    }
+
+    /**
+     * Changes whether or not multi-line editing is enabled when JLine is in use.
+     *
+     * @param multiLineEnabled true if multi-line editing is enabled, false
+     *    otherwise.
+     */
+    public void setMultiLineEnabled(boolean multiLineEnabled) {
+        this.multiLineEnabled = multiLineEnabled;
     }
     
     /**
