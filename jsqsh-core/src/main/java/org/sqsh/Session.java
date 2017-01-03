@@ -131,7 +131,7 @@ public class Session
      * paged.
      */
     private boolean autoPager = true;
-    
+
     /**
      * The database connection used by the session and the URL that was
      * used to create it. This will never be null, but will contain a 
@@ -458,7 +458,7 @@ public class Session
     
         this.fetchSize = fetchSize;
     }
-    
+
     /**
      * Adds an object to the session.  This is intended primarily for use
      * by commands wishing to maintain some form of state between calls.
@@ -917,7 +917,7 @@ public class Session
     public boolean isInputComplete(String input, int cursor) {
 
         final int len = input.length();
-        if (len == 0) {
+        if (! sqshContext.isMultiLineEnabled() || len == 0) {
 
             return true;
         }
@@ -1133,7 +1133,18 @@ public class Session
                 prompt =  (prompt == null)  
                     ? ">" : getStringExpander().expand(this, prompt);
 
-                line = sqshContext.getConsole().readLine(prompt + " ");
+                String initialInput = null;
+                if (getContext().isMultiLineEnabled()) {
+
+                    Buffer buffer = getBufferManager().getCurrent();
+                    if (buffer.length() > 0) {
+
+                        initialInput = buffer.toString();
+                        buffer.clear();
+                    }
+                }
+
+                line = sqshContext.getConsole().readLine(prompt + " ", null, initialInput);
                 if (line == null) {
                         
                     line = "";
@@ -1355,8 +1366,12 @@ public class Session
      * Called when the current SQL buffer needs to be redrawn.
      */
     private void redrawBuffer() {
-        
-        if (ioManager.isInteractive() == false) {
+
+        /*
+         * Don't re-draw the buffer in non-interactive mode or if we are using multi-line
+         * line editing (in which case the line editor will draw it for us).
+         */
+        if (! ioManager.isInteractive() || getContext().isMultiLineEnabled()) {
             
             return;
         }
