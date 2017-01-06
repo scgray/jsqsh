@@ -1,4 +1,4 @@
-# Release 2.3
+# Release 3.0-SNAPSHOT
 
 ## Deprecated features / changes (PLEASE READ)
 
@@ -16,6 +16,18 @@
 ## New Features
 
 * JLine3 support added, all other readline implementations removed (!)
+* The ${prompt} variable may now include various display styles in it 
+  such as:
+
+        1> \set prompt='${style.blue}${style.bold}[$server]${style.default}[$user] $lineno>'
+
+* The ${multiline_editing} can be used to turn on and off multi-line line
+  exiting in JLine3.
+
+# Release 2.3
+
+## New Features
+
 * Extension plugin framework: Extensions to jsqsh can be developed that 
   provide a way to load additional commands and variables into jsqsh at
   runtime (at jsqsh startup time, via the new `\import` command, or when
