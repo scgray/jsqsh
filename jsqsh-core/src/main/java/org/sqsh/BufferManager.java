@@ -156,7 +156,7 @@ public class BufferManager
      *        to retrieve the N'th previous buffer.
      * </ol>
      * 
-     * @param  The name  of the buffer to fetch.
+     * @param  bufferName The name  of the buffer to fetch.
      * @return The buffer indicated or null.
      */
     public Buffer getBuffer(String bufferName) {
