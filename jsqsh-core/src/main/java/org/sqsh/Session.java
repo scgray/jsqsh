@@ -34,6 +34,8 @@ import java.util.logging.Logger;
 
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.UserInterruptException;
+import org.sqsh.jline.*;
+import org.sqsh.jline.Style;
 import org.sqsh.jni.Shell;
 import org.sqsh.jni.ShellException;
 import org.sqsh.jni.ShellManager;
@@ -110,7 +112,13 @@ public class Session
      */
     private Map<String, SessionObject> sessionObjects = 
         new HashMap<String, SessionObject>();
-    
+
+    private static Map<String, Object> promptObjects = new HashMap<>();
+    static {
+        promptObjects.put("style", Style.INSTANCE);
+        promptObjects.put("lineno", "%N");
+    }
+
     /**
      * The session has a local variable manager.
      */
@@ -145,8 +153,8 @@ public class Session
      * The last exception that was displayed. This is retained for the 
      * \stack command to use.
      */
-    private Throwable lastException = null;    
-    
+    private Throwable lastException = null;
+
     /**
      * Creates a new session.
      * 
@@ -166,7 +174,7 @@ public class Session
          */
         variableManager = new VariableManager(sqshContext.getVariableManager());
         variableManager.addBean("session", this);
-        
+
         InputStream in = getClass().getClassLoader().getResourceAsStream(
             SESSION_VARS);
         if (in == null) {
@@ -942,10 +950,14 @@ public class Session
      */
     public boolean isInputComplete(String input, int cursor) {
 
-        final int len = input.length();
-        if (! sqshContext.getConsole().isMultiLineEnabled() || len == 0) {
+        if (! sqshContext.getConsole().isMultiLineEnabled()) {
 
             return true;
+        }
+        final int len = input.length();
+        if (len == 0) {
+
+            return false;
         }
 
         /*
@@ -971,6 +983,14 @@ public class Session
         while (currentLineStart > 0 && input.charAt(currentLineStart) != '\n') {
 
             --currentLineStart;
+        }
+
+        /*
+         * We have "\n\n"
+         */
+        if (currentLineStart == currentLineEnd) {
+
+            return false;
         }
 
         String currentLine;
@@ -1167,9 +1187,10 @@ public class Session
                 SqshConsole console = sqshContext.getConsole();
                 String prompt = getVariableManager().get("prompt");
                 prompt =  (prompt == null)  
-                    ? ">" : getStringExpander().expand(this, prompt);
+                    ? ">" : getStringExpander().expand(this, promptObjects, prompt) + " ";
 
                 String initialInput = null;
+                int lineOffset = 1;
                 if (console.isMultiLineEnabled()) {
 
                     Buffer buffer = getBufferManager().getCurrent();
@@ -1179,8 +1200,12 @@ public class Session
                         buffer.clear();
                     }
                 }
+                else {
 
-                line = console.readLine(prompt + " ", null, initialInput);
+                    lineOffset = getBufferManager().getCurrent().getLineNumber();
+                }
+
+                line = console.readLine(lineOffset, prompt, prompt, null, initialInput);
                 if (line == null) {
                         
                     line = "";

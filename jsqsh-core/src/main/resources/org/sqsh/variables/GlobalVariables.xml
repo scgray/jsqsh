@@ -9,7 +9,7 @@
         <Description>Font used for gui displays</Description>
     </Dynamic> 
              
-    <String name="prompt" value="#if($connected==true)[$server][$user] #end$lineno>">
+    <String name="prompt" value="${style.green}${style.bold}#if($connected==true)[$server][$user]#end${style.default} $lineno>">
         <Description>Defines the query prompt</Description>
     </String>
     

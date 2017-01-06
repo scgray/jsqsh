@@ -119,6 +119,22 @@ public class SqshConsole {
         return reader.readLine(prompt, mask, initialInput);
     }
 
+    public String readLine(int lineOffset, String prompt, String prompt2, Character mask, String initialInput) {
+
+        reset();
+        reader.setVariable(LineReader.SECONDARY_PROMPT_PATTERN, prompt2);
+        reader.setVariable(LineReader.LINE_OFFSET, lineOffset);
+        try {
+
+            return reader.readLine(prompt, mask, initialInput);
+        }
+        finally {
+
+            reader.setVariable(LineReader.LINE_OFFSET, 0);
+            reader.setVariable(LineReader.SECONDARY_PROMPT_PATTERN, null);
+        }
+    }
+
     /**
      * Toggles whether or not readLine will save its read input to the history
      * @param isHistoryEnabled true if history saving is enabled.
