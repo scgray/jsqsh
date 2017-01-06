@@ -229,7 +229,7 @@ public class VisualTimer {
                 lock.wait();
             }
             catch (InterruptedException e) {
-                
+
                 /* IGNORED */
             }
             
@@ -326,7 +326,7 @@ public class VisualTimer {
                         }
                         catch (InterruptedException e) {
                             
-                            /* IGNORE D*/
+                            /* IGNORED */
                         }
                     }
                 }

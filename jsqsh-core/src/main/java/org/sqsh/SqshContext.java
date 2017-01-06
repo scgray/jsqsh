@@ -29,14 +29,6 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
-import org.jline.keymap.KeyMap;
-import org.jline.reader.Binding;
-import org.jline.reader.LineReader;
-import org.jline.reader.LineReaderBuilder;
-import org.jline.terminal.Terminal;
-import org.jline.terminal.TerminalBuilder;
-import org.sqsh.jline.JLineCompleter;
-import org.sqsh.jline.JLineParser;
 import org.sqsh.jni.ShellManager;
 
 /**
@@ -105,12 +97,7 @@ public class SqshContext {
     /**
      * The line reader to use during interactive sessions
      */
-    private LineReader console = null;
-
-    /**
-     * Enables or disables JLine's ability to do multi-line editing.
-     */
-    private boolean multiLineEnabled = true;
+    private SqshConsole console = null;
 
     /**
      * This objects instantiates all commands and manages all of the
@@ -405,24 +392,6 @@ public class SqshContext {
     }
 
     /**
-     * @return true if multi-line editing is enabled when JLine is in use
-     *   (during interactive mode)
-     */
-    public boolean isMultiLineEnabled() {
-        return multiLineEnabled;
-    }
-
-    /**
-     * Changes whether or not multi-line editing is enabled when JLine is in use.
-     *
-     * @param multiLineEnabled true if multi-line editing is enabled, false
-     *    otherwise.
-     */
-    public void setMultiLineEnabled(boolean multiLineEnabled) {
-        this.multiLineEnabled = multiLineEnabled;
-    }
-    
-    /**
      * Given a comma delimited list of command names, registers the commands to cause
      * the invoking session to exit in the event the command returns an error. The special
      * name "none" indicates that no command should cause jsqsh to exit (except, of course
@@ -522,57 +491,6 @@ public class SqshContext {
         return this.extensionManager;
     }
 
-    public void setEditingMode(String name) {
-
-        Map<String, KeyMap<Binding>> keyMaps = getConsole().getKeyMaps();
-        if ("vi".equals(name)) {
-
-            keyMaps.put(LineReader.MAIN, keyMaps.get(LineReader.VIINS));
-        }
-        else if ("emacs".equals(name)) {
-
-            keyMaps.put(LineReader.MAIN, keyMaps.get(LineReader.EMACS));
-        }
-        else {
-
-            if (keyMaps.containsKey(name)) {
-
-                keyMaps.put(LineReader.MAIN, keyMaps.get(name));
-            }
-        }
-    }
-
-    /**
-     * @return The current line editing mode. This should be one of "vi" or "emacs"
-     */
-    public String getEditingMode() {
-
-        Map<String, KeyMap<Binding>> keyMaps = getConsole().getKeyMaps();
-        KeyMap<Binding> currentKeyMap = keyMaps.get(LineReader.MAIN);
-        if (currentKeyMap == keyMaps.get(LineReader.VICMD)
-            || currentKeyMap == keyMaps.get(LineReader.VIINS)
-                || currentKeyMap == keyMaps.get(LineReader.VIOPP)) {
-
-            return "vi";
-        }
-        else if (currentKeyMap == keyMaps.get(LineReader.EMACS)) {
-
-            return "emacs";
-        }
-        else {
-
-            for (Map.Entry<String, KeyMap<Binding>> e : keyMaps.entrySet()) {
-
-                if (e.getValue() == currentKeyMap) {
-
-                    return e.getKey();
-                }
-            }
-        }
-
-        return "unknown";
-    }
-
     /**
      * @return The visual timer handle
      */
@@ -580,7 +498,7 @@ public class SqshContext {
 
         if (visualTimer == null) {
 
-            return new VisualTimer(true, getConsole().getTerminal().writer());
+            visualTimer = new VisualTimer(true, getConsole().getTerminal().writer());
         }
 
         return visualTimer;
@@ -881,49 +799,16 @@ public class SqshContext {
     /**
      * @return The console handle.
      */
-    public LineReader getConsole() {
+    public SqshConsole getConsole() {
 
         if (console == null) {
 
-            Terminal terminal;
-            try {
-
-                terminal = TerminalBuilder.builder()
-                        .nativeSignals(true)
-                        .build();
-            }
-            catch (IOException e) {
-
-                System.err.println("Unable to create terminal: " + e.getMessage()
-                        + ". Falling back to dumb terminal");
-                try {
-                    terminal = TerminalBuilder.builder()
-                            .dumb(true)
-                            .build();
-                }
-                catch (IOException e2) {
-
-                    System.err.println("Unable to create dumb terminal: " + e2.getMessage()
-                            + ". Giving up");
-                    throw new RuntimeException(e.getMessage(), e);
-                }
-            }
-
-            File readlineHistory = new File(getConfigDirectory(), "readline_history");
-            console = LineReaderBuilder.builder()
-                    .appName("jsqsh")
-                    .terminal(terminal)
-                    .completer(new JLineCompleter(this))
-                    .parser(new JLineParser(this))
-                    .variable(LineReader.HISTORY_FILE, readlineHistory.toString())
-                    .build();
-
-            console.setOpt(LineReader.Option.DISABLE_EVENT_EXPANSION);
+            console = new SqshConsole(this);
         }
 
         return console;
     }
-    
+
     /**
      * Returns the alias manager.
      * @return the alias manager.
@@ -1846,7 +1731,7 @@ public class SqshContext {
 
         if (console != null) {
 
-            console.getHistory().save();
+            console.saveHistory();
         }
     }
     

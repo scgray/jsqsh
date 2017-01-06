@@ -27,16 +27,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import org.jline.reader.LineReader;
-import org.sqsh.Command;
-import org.sqsh.ConnectionDescriptor;
-import org.sqsh.ConnectionDescriptorManager;
-import org.sqsh.SQLConnectionContext;
-import org.sqsh.SQLDriver;
-import org.sqsh.SQLDriverManager;
-import org.sqsh.SQLTools;
-import org.sqsh.Session;
-import org.sqsh.SqshOptions;
+import org.sqsh.*;
 import org.sqsh.SQLDriver.DriverVariable;
 import org.sqsh.analyzers.ANSIAnalyzer;
 import org.sqsh.analyzers.NullAnalyzer;
@@ -69,7 +60,7 @@ public class Setup extends Command {
     public int execute(Session session, SqshOptions opts) throws Exception {
         
         Options options = (Options)opts;
-        LineReader in = session.getContext().getConsole();
+        SqshConsole in = session.getContext().getConsole();
         cls(in);
 
         if (options.arguments.size() > 0) {
@@ -96,7 +87,7 @@ public class Setup extends Command {
         return 0;
     }
     
-    public void doWelcome(Session session, PrintStream out, LineReader in) throws Exception {
+    public void doWelcome(Session session, PrintStream out, SqshConsole in) throws Exception {
         
         boolean done = false;
         
@@ -146,7 +137,7 @@ public class Setup extends Command {
         out.println();
     }
     
-    public boolean doConnectionWizard(Session session, PrintStream out, LineReader in) throws Exception {
+    public boolean doConnectionWizard(Session session, PrintStream out, SqshConsole in) throws Exception {
 
         SQLDriverManager driverMan = session.getDriverManager();
         boolean done = false;
@@ -266,7 +257,7 @@ public class Setup extends Command {
      * Render the "add" screen
      * @throws Exception
      */
-    public boolean doConnectionChooseDriver(Session session, PrintStream out, LineReader in) throws Exception {
+    public boolean doConnectionChooseDriver(Session session, PrintStream out, SqshConsole in) throws Exception {
         
         SQLDriverManager driverMan = session.getDriverManager();
         boolean done = false;
@@ -351,7 +342,7 @@ public class Setup extends Command {
         return doQuit;
     }
     
-    public boolean doConfigConnection(Session session, PrintStream out, LineReader in,
+    public boolean doConfigConnection(Session session, PrintStream out, SqshConsole in,
         ConnectionDescriptor conDesc, SQLDriver driver) throws Exception {
         
         boolean doQuit = false;
@@ -573,7 +564,7 @@ public class Setup extends Command {
         return doQuit;
     }
     
-    private static void doTest(Session session, PrintStream out, LineReader in, ConnectionDescriptor connDesc)
+    private static void doTest(Session session, PrintStream out, SqshConsole in, ConnectionDescriptor connDesc)
         throws Exception {
         
         SQLDriverManager driverMan = session.getDriverManager();
@@ -602,7 +593,7 @@ public class Setup extends Command {
         readline(in, "Hit enter to continue:");
     }
     
-    public boolean doDriverWizard(Session session, PrintStream out, LineReader in)
+    public boolean doDriverWizard(Session session, PrintStream out, SqshConsole in)
         throws Exception {
         
         boolean done = false;
@@ -671,7 +662,7 @@ public class Setup extends Command {
         return doQuit;
     }
     
-    private boolean doEditDriver (Session session, PrintStream out, LineReader in, SQLDriver origDriver)
+    private boolean doEditDriver (Session session, PrintStream out, SqshConsole in, SQLDriver origDriver)
         throws Exception {
         
         boolean isNewDriver = (origDriver == null);
@@ -936,7 +927,7 @@ public class Setup extends Command {
     }
     
     private ScreenReturn doEditDriverAdvanced (Session session, PrintStream out, 
-            LineReader in, SQLDriver driver)
+            SqshConsole in, SQLDriver driver)
         throws Exception {
         
         while (true) {
@@ -1070,7 +1061,7 @@ public class Setup extends Command {
         }
     }
     
-    private SQLAnalyzer chooseAnalyzer(PrintStream out, LineReader in)
+    private SQLAnalyzer chooseAnalyzer(PrintStream out, SqshConsole in)
         throws Exception {
         
         out.println();
@@ -1104,7 +1095,7 @@ public class Setup extends Command {
             
     }
     
-    private SQLNormalizer chooseNormalizer(PrintStream out, LineReader in)
+    private SQLNormalizer chooseNormalizer(PrintStream out, SqshConsole in)
         throws Exception {
         
         out.println();
@@ -1136,7 +1127,7 @@ public class Setup extends Command {
     }
     
     private void newDriverProperty(Session session, PrintStream out, 
-            LineReader in, SQLDriver driver)
+            SqshConsole in, SQLDriver driver)
         throws Exception {
         
         DriverPropertyInfo info[] = null;
@@ -1340,7 +1331,7 @@ public class Setup extends Command {
        }
     }
     
-    private String getEntry(PrintStream out, LineReader in, String prompt, boolean isRequired) throws Exception {
+    private String getEntry(PrintStream out, SqshConsole in, String prompt, boolean isRequired) throws Exception {
         
         String str = "";
         while (str.length() == 0) {
@@ -1415,25 +1406,27 @@ public class Setup extends Command {
         return str;
     }
     
-    private static String readline(LineReader in, String prompt) {
+    private static String readline(SqshConsole in, String prompt) {
 
         try {
-            in.setVariable(LineReader.DISABLE_HISTORY, Boolean.TRUE);
+
+            in.setHistoryEnabled(false);
             return in.readLine(prompt);
         }
         finally {
-            in.setVariable(LineReader.DISABLE_HISTORY, Boolean.FALSE);
+
+            in.setHistoryEnabled(true);
         }
     }
 
-    private void cls(LineReader in) {
+    private void cls(SqshConsole in) {
 
         // Clear screen, cursor to 0,0
         in.getTerminal().writer().write(Ansi.clearScreen());
         in.getTerminal().writer().write(Ansi.cursorMove(0,0));
     }
 
-    private void killLine(LineReader in) {
+    private void killLine(SqshConsole in) {
 
         // Cursor up 1, erase line, cursor up 1
         in.getTerminal().writer().write(Ansi.cursorUp(1));

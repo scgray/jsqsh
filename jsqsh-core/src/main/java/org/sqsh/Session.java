@@ -40,6 +40,8 @@ import org.sqsh.jni.ShellManager;
 import org.sqsh.signals.FlaggingSignalHandler;
 import org.sqsh.signals.SignalManager;
 
+import static org.sqsh.SqshConsole.AcceptCause.*;
+
 /**
  * Represents an active session in sqsh. A session is the complete
  * context of the work that you are doing right now, such as the
@@ -784,7 +786,7 @@ public class Session
     public void startVisualTimer() {
         
         if (isInteractive()) {
-            
+
             sqshContext.startVisualTimer();
         }
     }
@@ -795,7 +797,7 @@ public class Session
     public void stopVisualTimer() {
         
         if (isInteractive()) {
-            
+
             sqshContext.stopVisualTimer();
         }
     }
@@ -825,16 +827,17 @@ public class Session
         FlaggingSignalHandler sigHandler = new FlaggingSignalHandler();
         SignalManager sigMan = SignalManager.getInstance();
         sigMan.push(sigHandler);
-        
+
         try {
             
             while (!done) {
                 
                 sigHandler.clear();
-                    
+
                 try {
 
                     line = readLine();
+                    SqshConsole.AcceptCause acceptCause = getReadLineAcceptCause();
 
                     if (line == null) {
                         
@@ -844,12 +847,13 @@ public class Session
 
 
                         if (sigHandler.isTriggered() == false) {
-                                
+
                             /*
                              * If we were using JLine for the input it is possible that our line of input may
                              * contain more than one physical line. If this is the case, we want to break it up
                              * into individual lines for line-by-line evaluation
                              */
+                            Command lastCommand = null;
                             int eol = line.indexOf('\n');
                             if (eol > 0) {
 
@@ -863,12 +867,24 @@ public class Session
 
                                 if (startOfLine < line.length()) {
 
-                                    evaluate(line.substring(startOfLine));
+                                    lastCommand = evaluate(line.substring(startOfLine));
                                 }
                             }
                             else {
 
-                                evaluate(line);
+                                lastCommand = evaluate(line);
+                            }
+
+                            /*
+                             * If we accepted the user's input because they requested the statement
+                             * be executed
+                             */
+                            if (acceptCause == EXECUTE
+                                    && lastCommand != getCommand("\\go")
+                                    && getBufferManager().getCurrent().length() > 0) {
+
+                                Command go = getCommand("\\go");
+                                runCommand(go, "\\go");
                             }
                         }
                         else if (!ioManager.isInteractive()) {
@@ -912,56 +928,46 @@ public class Session
      * added to it and determines whether or not the buffer is complete --
      * which means that the current line is a command or is terminated.
      *
+     * <p>Input is considered to be terminated if any of the following
+     * are met:
+     * <ul>
+     *     <li>If the input is terminated with a terminator character
+     *         and the cursor is sitting after the terminator</li>
+     *     <li>If the current line is a command</li>
+     *     <li>If the current line has a buffer command on it</li>
+     * </ul>
+     * </p>
+     *
      * @return true if the buffer is ready to execute (it is complete)
      */
     public boolean isInputComplete(String input, int cursor) {
 
         final int len = input.length();
-        if (! sqshContext.isMultiLineEnabled() || len == 0) {
+        if (! sqshContext.getConsole().isMultiLineEnabled() || len == 0) {
 
             return true;
         }
 
-        // Is the last line a command?  We don't accept commands in the middle of the
-        // line (maybe someday there could be a command that is legit in the middle
-        // of a buffer?  Like buf-copy might be?  For this I could use a marker
-        // interface to determine commands that are allowed
-        int lastLineStart = len - 1;
-        while (lastLineStart > 0 && input.charAt(lastLineStart) != '\n') {
-
-            --lastLineStart;
-        }
-
-        String lastLine = input;
-        if (lastLineStart > 0) {
-
-            lastLine = input.substring(lastLineStart + 1);
-        }
-
-        lastLine = getAliasManager().process(lastLine);
-
-        // If we hit a new command, then the user input is complete
-        if (getCommand(lastLine) != null) {
+        /*
+         * If there is a terminator on the text and the cursor is on, or following
+         * said terminator, then we are ready to rock and roll
+         */
+        final int terminator = getTerminatorPosition(input);
+        if (terminator >= 0 && terminator <= cursor) {
 
             return true;
         }
 
-        if (! lastLine.startsWith("##")) {
-
-            if (getTerminatorPosition(input) >= 0) {
-
-                return true;
-            }
-        }
-
-        // Next, does the current line contain a buffer command?
+        /*
+         * Extract the current line of input
+         */
         int currentLineEnd = (cursor >= len ? len - 1 : cursor);
         while (currentLineEnd < len && input.charAt(currentLineEnd) != '\n') {
 
             ++currentLineEnd;
         }
 
-        int currentLineStart = (cursor >= len ? len - 1 : cursor);
+        int currentLineStart = (cursor == 0 ? 0 : cursor-1);
         while (currentLineStart > 0 && input.charAt(currentLineStart) != '\n') {
 
             --currentLineStart;
@@ -977,7 +983,9 @@ public class Session
             currentLine = input.substring(0, currentLineEnd);
         }
 
-        // Is the current line a buffer command?
+        /*
+         * Is the user trying to do a buffer command?
+         */
         if (currentLine.startsWith("!")) {
 
             if (getBufferManager().getBuffer(currentLine) != null) {
@@ -986,16 +994,27 @@ public class Session
             }
         }
 
+        /*
+         * Expand any aliases and check to see if the user is trying to execute a command
+         */
+        String cmdLine = getAliasManager().process(currentLine);
+        if (getCommand(cmdLine) != null) {
+
+            return true;
+        }
+
         return false;
     }
 
     /**
      * Evaluates a single line of input in the context of the session.
      * @param line The line of context.
+     * @return Returns the command that was executed via the input line, or null if the
+     *   line did not cause a command to be executed
      * @throws SqshContextMessage Thrown if the line contained a command
      *    that wants to ask the SqshContext to do something.
      */
-    public void evaluate(String line)
+    public Command evaluate(String line)
         throws SqshContextMessage {
         
         /*
@@ -1038,18 +1057,20 @@ public class Session
             String args = isBufferTerminated(curBuf);
             if (args != null) {
                 
-                Command go = getCommandManager().getCommand("\\go");
+                cmd = getCommandManager().getCommand("\\go");
                 
                 if (args.length() > 0) {
                     
-                    runCommand(go, "\\go " + args);
+                    runCommand(cmd, "\\go " + args);
                 }
                 else {
                     
-                    runCommand(go, "\\go");
+                    runCommand(cmd, "\\go");
                 }
             }
         }
+
+        return cmd;
     }
     
     /**
@@ -1113,6 +1134,20 @@ public class Session
         
         return (((Session) o).getId() == this.getId());
     }
+
+    /**
+     * After calling readLine() returns the reason that the line was returned
+     * @return The reason the line was returned. See {@link org.sqsh.SqshConsole.AcceptCause} for details.
+     */
+    private SqshConsole.AcceptCause getReadLineAcceptCause() {
+
+        if (ioManager.isInteractive()) {
+
+            return sqshContext.getConsole().getAcceptCause();
+        }
+
+        return SqshConsole.AcceptCause.NORMAL;
+    }
     
     /**
      * Reads a line of input from the user.
@@ -1128,13 +1163,14 @@ public class Session
         try {
                 
             if (ioManager.isInteractive()) {
-                                
+
+                SqshConsole console = sqshContext.getConsole();
                 String prompt = getVariableManager().get("prompt");
                 prompt =  (prompt == null)  
                     ? ">" : getStringExpander().expand(this, prompt);
 
                 String initialInput = null;
-                if (getContext().isMultiLineEnabled()) {
+                if (console.isMultiLineEnabled()) {
 
                     Buffer buffer = getBufferManager().getCurrent();
                     if (buffer.length() > 0) {
@@ -1144,7 +1180,7 @@ public class Session
                     }
                 }
 
-                line = sqshContext.getConsole().readLine(prompt + " ", null, initialInput);
+                line = console.readLine(prompt + " ", null, initialInput);
                 if (line == null) {
                         
                     line = "";
@@ -1371,7 +1407,7 @@ public class Session
          * Don't re-draw the buffer in non-interactive mode or if we are using multi-line
          * line editing (in which case the line editor will draw it for us).
          */
-        if (! ioManager.isInteractive() || getContext().isMultiLineEnabled()) {
+        if (! ioManager.isInteractive() || getContext().getConsole().isMultiLineEnabled()) {
             
             return;
         }
@@ -1403,7 +1439,7 @@ public class Session
              */
             if (ioManager.isInteractive()) {
                 
-                sqshContext.getConsole().getHistory().add(str);
+                sqshContext.getConsole().addToHistory(str);
             }
             
             buf.addLine(str);
