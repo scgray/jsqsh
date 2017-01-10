@@ -11,89 +11,6 @@
              
     <String name="prompt" value="${attr.green}${attr.bold}#if($connected==true)[$server][$user] #end${attr.default}$lineno>">
         <Description>Defines the query prompt</Description>
-        <Help><![CDATA[
-## Variable
-
-  `prompt` - Defines the query prompt.
-
-## Description
-
-  The `${prompt}` variable defines the prompt that will be displayed before
-  each line of input. Unlike other variables, this variable may, itself,
-  contain variables that will be expanded prior to display.
-   
-  For example, the default value:
-   
-    #if($connected==true)[$server][$user] #end$lineno>
-      
-  will show:
-   
-    1>
-      
-  when not connected to a server and:
-   
-    [prod-db][sa] 1> 
-      
-  when connected (the `#if`/`#end` syntax is part of Velocity, the tool
-  that is used to expand variables. Documentation is available from
-  http://velocity.apache.org/engine/releases/velocity-1.5/user-guide.html).
-   
-  Care must be taken when setting this variable to ensure that the
-  varables are not expanded when it is being set. For example:
-   
-    1> \set prompt="$lineno>"
-      
-  will have the $lineno expanded at the time the prompt is set and
-  is exactly identical to:
-   
-    1> \set prompt="1>"
-      
-  which clearly isn't what you inteded. Instead use single quotes:
-   
-    1> \set prompt='$lineno>'
-
-## Colors and styles
-
-  In addition to the standard variables that jsqsh provides, the
-  jsqsh ${prompt} variable may refer to a special ${attr} variable
-  that allows you to control a number of text attributes, such as color,
-  bolding, underlining, etc. The following text attributes may be
-  referenced in the prompt variable:
-
-  * ${attr.bold} - Turns on bold styling
-  * ${attr.dim} - Turns on dim (basically turns off bold) styling
-  * ${attr.underline} - Turns on underline
-  * ${attr.blink} - Turns on blinking
-  * ${attr.inverse} - Reverses background and foreground colors
-  * ${attr.black} - Makes the foreground text color black
-  * ${attr.red} - Makes the foreground text color red
-  * ${attr.green} - Makes the foreground text color green
-  * ${attr.yellow} - Makes the foreground text color yellow
-  * ${attr.blue} - Makes the foreground text color blue
-  * ${attr.magenta} - Makes the foreground text color magenta
-  * ${attr.cyan} - Makes the foreground text color cyan
-  * ${attr.white} - Makes the foreground text color white
-  * ${attr.background.black} - Makes the background text color black
-  * ${attr.background.red} - Makes the background text color red
-  * ${attr.background.green} - Makes the background text color green
-  * ${attr.background.yellow} - Makes the background text color yellow
-  * ${attr.background.blue} - Makes the background text color blue
-  * ${attr.background.magenta} - Makes the background text color magenta
-  * ${attr.background.cyan} - Makes the background text color cyan
-  * ${attr.background.white} - Makes the background text color white
-  * ${attr.default} - Turns off all styling set via the above settings
-
-  Note that not all styles work on all terminals.
-
-  For example, if you want to make the server name in your prompt bold and
-  blue, you would do:
-
-        1> \set prompt='${attr.blue}${attr.bold}[$server]${attr.default}[$user] $lineno>
-
-## See also
-
-  [[\set]]
-        ]]></Help>
     </String>
     
     <Property bean="global" name="terminator" property="terminatorString">
@@ -121,7 +38,6 @@
         <Description>The screen display width</Description>
     </Property>
     
-    
     <Property bean="global" name="histsize" property="bufferManager.maxBuffers">
         <Description>Controls the number of SQL statements retained in history</Description>
     </Property>
@@ -142,7 +58,7 @@
     <Property bean="global" name="precision" property="dataFormatter.precision">
         <Description>Controls the decimal place precision of values</Description>
     </Property>
-
+   
     <Property bean="global" name="binstr_fmt" 
                   property="dataFormatter.byteStringFormat">
         <Description>Changes the manner in which binary values are displayed</Description>
@@ -281,24 +197,8 @@
         <Description>Controls how quotes are escaped by 'csv' display style</Description>
     </Property>
 
-	<Property bean="global" name="multiline_editing" property="console.multiLineEnabled">
-		<Description>Controls ability to perform multi-line line editing</Description>
-		<Help><![CDATA[
-## Variable
-
-  `multiline_editing` - Controls ability to perform multi-line line editing
-
-## Description
-
-  When JLine is in use (during an interactive jsqsh session), the `${multiline_editing}`
-  variable controls whether or not multi-line editing is in use. When enabled, the jsqsh
-  line editor treats an entire SQL statement as a single local line and allows editing
-  of the entire statement via the line editor.  When disabled the behavior falls back
-  to that of jsqsh prior to 3.0, which allows line editing of only the current line of
-  the statement.
-
-  Under most circumstances it is expected that you would want this feature enabled.
-        ]]></Help>
-	</Property>
+    <Property bean="global" name="multiline_editing" property="console.multiLineEnabled">
+        <Description>Controls ability to perform multi-line line editing</Description>
+    </Property>
 
 </Variables>

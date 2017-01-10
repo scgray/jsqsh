@@ -1236,7 +1236,7 @@ public class SqshContext {
             
             currentSession.out.println("Welcome to JSqsh " 
                 + Version.getVersion());
-            currentSession.out.println("Type \"\\help\" for help topics." );
+            currentSession.out.println("Type \"\\help\" for help topics, \"quit\" to exit." );
             doneBanner = true;
             
             doWelcome(session);
