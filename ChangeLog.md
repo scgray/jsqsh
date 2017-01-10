@@ -16,10 +16,10 @@
 ## New Features
 
 * JLine3 support added, all other readline implementations removed (!)
-* The ${prompt} variable may now include various display styles in it 
+* The ${prompt} variable may now include various display attributes in it 
   such as:
 
-        1> \set prompt='${style.blue}${style.bold}[$server]${style.default}[$user] $lineno>'
+        1> \set prompt='${attr.blue}${attr.bold}[$server]${attr.default}[$user] $lineno>'
 
 * The ${multiline_editing} can be used to turn on and off multi-line line
   exiting in JLine3.
