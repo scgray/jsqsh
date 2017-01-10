@@ -34,8 +34,7 @@ import java.util.logging.Logger;
 
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.UserInterruptException;
-import org.sqsh.jline.*;
-import org.sqsh.jline.Style;
+import org.sqsh.jline.TextAttribute;
 import org.sqsh.jni.Shell;
 import org.sqsh.jni.ShellException;
 import org.sqsh.jni.ShellManager;
@@ -113,9 +112,13 @@ public class Session
     private Map<String, SessionObject> sessionObjects = 
         new HashMap<String, SessionObject>();
 
+    /**
+     * Exposes extra objects that are available during expansion of the
+     * prompt.
+     */
     private static Map<String, Object> promptObjects = new HashMap<>();
     static {
-        promptObjects.put("style", Style.INSTANCE);
+        promptObjects.put("attr", TextAttribute.INSTANCE);
         promptObjects.put("lineno", "%N");
     }
 

@@ -16,26 +16,25 @@
 package org.sqsh.jline;
 
 import org.jline.utils.AttributedStringBuilder;
-import org.jline.utils.AttributedStyle;
 
-public class Style {
+public class TextAttribute {
 
-    public static Style INSTANCE = new Style();
-    public static Style FOREGROUND = INSTANCE;
-    public static BackgroundStyle BACKGROUND = new BackgroundStyle();
+    public static TextAttribute INSTANCE = new TextAttribute();
+    public static TextAttribute FOREGROUND = INSTANCE;
+    public static BackgroundTextAttribute BACKGROUND = new BackgroundTextAttribute();
 
     protected AttributedStringBuilder sb = new AttributedStringBuilder();
 
-    private Style() {
+    private TextAttribute() {
 
     }
 
-    public Style getForeground() {
+    public TextAttribute getForeground() {
 
         return FOREGROUND;
     }
 
-    public BackgroundStyle getBackground() {
+    public BackgroundTextAttribute getBackground() {
 
         return BACKGROUND;
     }
@@ -110,7 +109,7 @@ public class Style {
         return "\033[37m";
     }
 
-    public static class BackgroundStyle extends Style {
+    public static class BackgroundTextAttribute extends TextAttribute {
 
         @Override
         public String getBlack() {
