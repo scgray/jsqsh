@@ -213,6 +213,14 @@ public class SqshConsole {
 
             keyMaps.put(LineReader.MAIN, keyMaps.get(LineReader.VIINS));
         }
+        else if ("vi-move".equals(name)) {
+
+            keyMaps.put(LineReader.MAIN, keyMaps.get(LineReader.VICMD));
+        }
+        else if ("vi-insert".equals(name)) {
+
+            keyMaps.put(LineReader.MAIN, keyMaps.get(LineReader.VIINS));
+        }
         else if ("emacs".equals(name)) {
 
             keyMaps.put(LineReader.MAIN, keyMaps.get(LineReader.EMACS));
@@ -234,10 +242,13 @@ public class SqshConsole {
         Map<String, KeyMap<Binding>> keyMaps = reader.getKeyMaps();
         KeyMap<Binding> currentKeyMap = keyMaps.get(LineReader.MAIN);
         if (currentKeyMap == keyMaps.get(LineReader.VICMD)
-                || currentKeyMap == keyMaps.get(LineReader.VIINS)
                 || currentKeyMap == keyMaps.get(LineReader.VIOPP)) {
 
             return "vi";
+        }
+        else if (currentKeyMap == keyMaps.get(LineReader.VICMD)) {
+
+            return "vi-move";
         }
         else if (currentKeyMap == keyMaps.get(LineReader.EMACS)) {
 

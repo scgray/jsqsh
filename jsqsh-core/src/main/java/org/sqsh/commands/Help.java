@@ -229,8 +229,10 @@ public class Help
     private void displayHelpCategories(Session session) {
         
         session.out.println("Available help categories. Use "
-            + "\"\\help <category>\" to display topics within that category");
-        
+            + "\"\\help <category>\" to display topics within that category.");
+        session.out.println("For online help, getting started guide, and tutorials, visit "
+                + "https://github.com/scgray/jsqsh/wiki");
+
         ColumnDescription []columns = new ColumnDescription[2];
         columns[0] = new ColumnDescription("Category", -1, 
                 Alignment.LEFT, OverflowBehavior.WRAP, false);
