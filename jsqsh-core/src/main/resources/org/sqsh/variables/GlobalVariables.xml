@@ -198,7 +198,7 @@
         <Description>Controls how quotes are escaped by 'csv' display style</Description>
     </Property>
 
-	<Property bean="global" name="multiline_editing" property="multiLineEnabled">
+	<Property bean="global" name="multiline_editing" property="console.multiLineEnabled">
 		<Description>Controls ability to perform multi-line line editing</Description>
 		<Help><![CDATA[
 ## Variable
