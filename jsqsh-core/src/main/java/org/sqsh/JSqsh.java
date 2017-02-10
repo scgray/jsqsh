@@ -16,9 +16,7 @@
 package org.sqsh;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -29,10 +27,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.LogManager;
 
-import org.sqsh.Session;
-import org.sqsh.SqshContext;
 import org.sqsh.commands.Help;
-import org.sqsh.input.ConsoleLineReader;
 import org.sqsh.options.Argv;
 import org.sqsh.options.OptionProperty;
 import org.sqsh.options.OptionException;
@@ -78,12 +73,6 @@ public class JSqsh {
            description="Turn on debugging for a java class or package")
        public List<String> debug = new ArrayList<String>();
        
-       @OptionProperty(
-           option='r', longOption="readline", arg=REQUIRED, argName="method",
-           description="Readline method "
-                     + "(readline,editline,getline,jline,purejava)")
-       public String readline = null;
-
        @OptionProperty(
            option='C', longOption="config-dir", arg=REQUIRED, argName="dir",
            description="Configuration directory in addition to $HOME/.jsqsh.")
@@ -178,11 +167,7 @@ public class JSqsh {
          * come from the console.
          */
         boolean isInteractive = options.isInteractive;
-        if (! isInteractive) {
-            
-            options.readline = ConsoleLineReader.NONE;
-        }
-        
+
         /*
          * If the first input is a file, then we don't use a line reader
          */
@@ -236,7 +221,6 @@ public class JSqsh {
             
             if (options.doSetup) {
                 
-                sqsh.setReader(null);
                 Command command = session.getCommandManager().getCommand("\\setup");
                 command.execute(session, new String [] { });
             }
@@ -288,12 +272,10 @@ public class JSqsh {
                     if (in == System.in) {
                         
                         session.setInteractive(true);
-                        sqsh.setReader(options.readline);
                     }
                     else {
                         
                         session.setInteractive(false);
-                        sqsh.setReader(ConsoleLineReader.NONE);
                     }
                 }
                 
@@ -394,7 +376,7 @@ public class JSqsh {
     
     /**
      * Sets any variables that were assigned with the "-v" argument.
-     * @param ctx The sqsh context
+     * @param ctx The context to apply them to
      * @param vars The variables to set
      */
     private static void setVariables(SqshContext ctx, List<String> vars) {
