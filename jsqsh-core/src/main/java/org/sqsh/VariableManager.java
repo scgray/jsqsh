@@ -216,8 +216,12 @@ public class VariableManager
         throws CannotSetValueError {
         
         Variable var = variables.get(name);
+        if (var == null && parent != null) {
+
+            var = parent.getVariable(name);
+        }
+
         String oldValue = null;
-        
         if (var == null) {
             
             var = new StringVariable(name, value, isExported);
@@ -243,7 +247,36 @@ public class VariableManager
         var.setManager(this);
         variables.put(var.getName(), var);
     }
-    
+
+    /**
+     * Given a string of the form <code>name=value</code> set the variable of
+     * the specified name to the provided value. If the value is missing or there
+     * is no = then the value is set to null.
+     *
+     * @param nameValue A string of the form <code>name[=[value]]</code>
+     */
+    public void put(String nameValue) {
+
+        int idx = nameValue.indexOf('=');
+        String name;
+        String value = null;
+
+        if (idx < 0) {
+
+            name = nameValue;
+        }
+        else {
+
+            name  = nameValue.substring(0, idx);
+            if (idx < (nameValue.length() - 1)) {
+
+                value = nameValue.substring(idx+1);
+            }
+        }
+
+        put(name, value);
+    }
+
     /**
      * Adds a variable that can never be removed.
      * @param var

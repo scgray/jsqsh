@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2012 Scott C. Gray
+ * Copyright 2007-2017 Scott C. Gray
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,11 +71,13 @@ public class SqshContext {
     
     private static final Logger LOG = 
         Logger.getLogger(SqshContext.class.getName());
+
+    private static ThreadLocal<SqshContext> threadLocalInstance = new ThreadLocal<SqshContext>();
     
     /**
      * The levels of detail that are available when displaying stack traces.
      */
-    public static enum ExceptionDetail {
+    public enum ExceptionDetail {
         LOW,     /// Just the SQL state/code and exception class
         MEDIUM,  /// Default display level. Includes message text and nested message text
         HIGH,    /// Displays stack trace
@@ -85,7 +87,7 @@ public class SqshContext {
      * When a context exists, this indicates how any failures in the context
      * should be reported.
      */
-    public static enum ExitStatus {
+    public enum ExitStatus {
         TOTAL_FAILURES, /// The total number of commands that returned a non-zero exit code
         LAST_FAILURE    /// A 1 if the last command executed failed
     }
@@ -263,20 +265,8 @@ public class SqshContext {
     
     /**
      * Creates a new SqshContext. 
-     * 
-     * @param readerType The type of readline implementation to utilize. This
-     *   may be one of
-     *   <ul>
-     *     <li> readline
-     *     <li> editline
-     *     <li> getline
-     *     <li> jline
-     *     <li> purejava
-     *     <li> null - This will attempt to determine which API is available
-     *        on your platform.
-     *    </ul>
      */
-    public SqshContext() {
+    private SqshContext() {
         
         InputStream in = 
             getClass().getClassLoader().getResourceAsStream(CONTEXT_VARS);
@@ -356,6 +346,22 @@ public class SqshContext {
          */
         driverManager.addListener(
             new SqshContextDriverListener(this));
+    }
+
+    /**
+     * Retrieves an instance of a SqshContext for the currently running thread.
+     * @return An instance of SqshContext.
+     */
+    public static SqshContext getThreadLocal() {
+
+        SqshContext instance = threadLocalInstance.get();
+        if (instance == null) {
+
+            instance = new SqshContext();
+            threadLocalInstance.set(instance);
+        }
+
+        return instance;
     }
     
     /**
@@ -1046,7 +1052,7 @@ public class SqshContext {
     
     /**
      * Looks up a session according to its session id.
-     * @param sesionId. The id number for the session
+     * @param sessionId The id number for the session
      * @return  The matching session or null if the id does not
      *   refer to a valid session.
      */

@@ -27,15 +27,98 @@ import org.sqsh.Session;
  */
 public class CSVRenderer
     extends Renderer {
-    
-    private StringBuilder line = new StringBuilder(); 
+
+    private static String delimiter = ",";
+    private static String quote = "\"";
+    private static String quoteEsc = "";
+    private static String nullStr = "";
+
+    private StringBuilder line = new StringBuilder();
     
     public CSVRenderer(Session session, RendererManager renderMan) {
         
         super(session, renderMan);
     }
-    
-    public void header (ColumnDescription []columns) {
+
+    public String getDelimiter() {
+
+        return delimiter;
+    }
+
+    /**
+     * Sets the delimiter string for this and all future instances.
+     * @param delimiter The delimiter string to use.
+     */
+    public void setDelimiter(String delimiter) {
+
+        StringBuilder sb = new StringBuilder();
+        final int len = delimiter.length();
+        int idx = 0;
+        while (idx < len) {
+
+            char ch = delimiter.charAt(idx++);
+            if (ch == '\\' && idx < len) {
+
+                ch = delimiter.charAt(idx++);
+                switch (ch) {
+                    case 't':
+                        sb.append('\t');
+                        break;
+                    case '\\':
+                        sb.append('\\');
+                        break;
+                    case 'n':
+                        sb.append('\n');
+                        break;
+                    case 'r':
+                        sb.append('\r');
+                        break;
+                    default:
+                        sb.append('\\').append(ch);
+                        break;
+                }
+            }
+            else {
+
+                sb.append(ch);
+            }
+
+        }
+
+        CSVRenderer.delimiter = sb.toString();
+    }
+
+    public String getQuote() {
+
+        return quote;
+    }
+
+    public void setQuote(String quote) {
+
+        CSVRenderer.quote = quote;
+    }
+
+    public String getQuoteEsc() {
+
+        return quoteEsc;
+    }
+
+    public void setQuoteEsc(String quoteEsc) {
+
+        CSVRenderer.quoteEsc = quoteEsc;
+    }
+
+    public String getNull() {
+
+        return nullStr;
+    }
+
+    public void setNull(String nullStr) {
+
+        CSVRenderer.nullStr = nullStr;
+    }
+
+    public void header (ColumnDescription[] columns) {
         
         super.header(columns);
         
@@ -76,12 +159,30 @@ public class CSVRenderer
             
             return true;
         }
-        
+
+        final char quoteChar = quote.charAt(0);
+        final char delChar = delimiter.charAt(0);
         for (int i = 0; i < sz; i++) {
             
             char ch = str.charAt(i);
-            if (ch == '"' || ch == '\n' || ch == ',') {
-                
+            if (ch == quoteChar) {
+
+                if (quote.length() == 1
+                        || str.regionMatches(i, quote, 0, quote.length())) {
+
+                    return true;
+                }
+            }
+            else if (ch == delChar) {
+
+                if (delimiter.length() == 1
+                        || str.regionMatches(i, delimiter, 0, delimiter.length())) {
+
+                    return true;
+                }
+            }
+            else if (ch == '\n') {
+
                 return true;
             }
         }
@@ -98,7 +199,7 @@ public class CSVRenderer
             
             if (i > 0) {
                 
-                line.append(',');
+                line.append(delimiter);
             }
             
             String field = row[i];
@@ -111,20 +212,33 @@ public class CSVRenderer
                 }
                 else {
                     
-                    line.append('"');
+                    line.append(quote);
+                    final char quoteChar = quote.charAt(0);
                     for (int j = 0; j < field.length(); j++) {
                         
                         char ch = field.charAt(j);
-                        if (ch == '"') {
-                            
-                            line.append('"');
+                        if (ch == quoteChar
+                                && (quote.length() == 1
+                                    || field.regionMatches(j, quote, 0, quote.length()))) {
+
+                            if (quoteEsc == null || quoteEsc.length() == 0) {
+
+                                line.append(quote).append(quote);
+                            }
+                            else {
+
+                                line.append(quoteEsc);
+                            }
                         }
                         
                         line.append(ch);
                     }
                     
-                    line.append('"');
+                    line.append(quote);
                 }
+            }
+            else {
+                line.append(nullStr);
             }
         }
         

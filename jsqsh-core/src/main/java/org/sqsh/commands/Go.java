@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2012 Scott C. Gray
+ * Copyright 2007-2017 Scott C. Gray
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,22 @@ import static org.sqsh.options.ArgumentRequired.REQUIRED;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
-import org.sqsh.*;
+import org.sqsh.BufferManager;
+import org.sqsh.Command;
+import org.sqsh.ConnectionContext;
+import org.sqsh.Renderer;
+import org.sqsh.RendererFactory;
+import org.sqsh.RendererManager;
+import org.sqsh.SQLRenderer;
+import org.sqsh.SQLTools;
+import org.sqsh.Session;
+import org.sqsh.SqshOptions;
+import org.sqsh.VariableManager;
 import org.sqsh.options.Argv;
 import org.sqsh.options.OptionProperty;
 import org.sqsh.renderers.PivotRenderer;
@@ -69,6 +81,11 @@ public class Go
         public int queryTimeout = 0;
 
         @OptionProperty(
+                option='v', longOption="var", arg=REQUIRED, argName="name=value",
+                description="Sets a jsqsh variable for the duration of the command")
+        public List<String> vars = new ArrayList<>();
+
+        @OptionProperty(
                 option='c', longOption="crosstab", arg=REQUIRED, argName="vcol,hval,dcol",
                 description="Produces a crosstab of the final results")
         public String crosstab = null;
@@ -82,17 +99,17 @@ public class Go
         
         return new Options();
     }
-   
+
+
     public int execute (Session session, SqshOptions opts)
         throws Exception {
         
         Options options = (Options) opts;
         RendererManager renderMan = session.getRendererManager();
-        Style origStyle = null;
-        String origNull = null;
         int returnCode = 0;
         ConnectionContext conn = session.getConnectionContext();
-        
+        Map<String, String> origVariableValues = new HashMap<String, String>();
+
         if (conn == null) {
             
             session.err.println("You are not currently connected to a database "
@@ -100,55 +117,57 @@ public class Go
               + "details");
             return 1;
         }
-        
-        /*
-         * If we are being asked to generate INSERT statements then we need to
-         * switch the NULL display to be a form of NULL that works in SQL.
-         */
-        if (options.insertTable != null) {
-            
-            options.style = "insert";
-            session.setVariable("insert_table", options.insertTable);
-        }
-        
-        if (options.style != null) {
-            
-            if (options.style.equals("insert")) {
-                
-                origNull = session.getDataFormatter().getNull();
-                session.getDataFormatter().setNull("NULL");
-            }
-            
-            origStyle = conn.getStyle();
-            
-            try {
-                
-                conn.setStyle(options.style);
-            }
-            catch (CannotSetValueError e) {
-                
-                session.err.println(e.getMessage());
-                return 1;
-            }
-        }
 
+        VariableManager varMan = session.getVariableManager();
         BufferManager bufferMan = session.getBufferManager();
         SQLRenderer sqlRenderer = session.getSQLRenderer();
         String sql = bufferMan.getCurrent().toString();
         RendererFactory rendererFactory = null;
 
-
-        boolean origHeaders = renderMan.isShowHeaders();
-        boolean origFooters = renderMan.isShowFooters();
         int origTimeout = conn.getQueryTimeout();
-        
+
+        if (options.style != null) {
+
+            if (options.style.equals("insert")) {
+
+                set(varMan, origVariableValues, "null", "NULL");
+            }
+            set(varMan, origVariableValues, "style", options.style);
+        }
+
+        /*
+         * If we are being asked to generate INSERT statements then we need to
+         * switch the NULL display to be a form of NULL that works in SQL.
+         */
+        if (options.insertTable != null) {
+
+            set(varMan, origVariableValues, "style", "insert");
+            set(varMan, origVariableValues, "insert_table", options.insertTable);
+        }
+
         if (options.toggleFooters) {
-            
-            renderMan.setShowFooters(!origFooters);
+
+            set(varMan, origVariableValues, "footers", Boolean.toString(!renderMan.isShowFooters()));
         }
         if (options.toggleHeaders) {
-            
-            renderMan.setShowHeaders(!origHeaders);
+
+            set(varMan, origVariableValues, "headers", Boolean.toString(!renderMan.isShowHeaders()));
+        }
+
+        if (options.vars.size() > 0) {
+
+            for (String nameValue : options.vars) {
+
+                String name = nameValue;
+                int idx = nameValue.indexOf('=');
+                if (idx > 0) {
+
+                    name = nameValue.substring(0, idx);
+                }
+
+                origVariableValues.put(name, varMan.get(name));
+                varMan.put(nameValue);
+            }
         }
 
         long startTime = 0;
@@ -206,14 +225,6 @@ public class Go
                 };
 
                 renderMan.addFactory(rendererFactory);
-
-                // We musn't forget the original style that the user was running as we are going
-                // to override it with our "random" style.
-                if (origStyle == null) {
-
-                    origStyle = conn.getStyle();
-                }
-
                 conn.setStyle(rendererName);
             }
 
@@ -241,7 +252,18 @@ public class Go
             }
         }
         finally {
-            
+
+            /*
+             * Restore variables to their original state
+             */
+            if (origVariableValues.size() > 0) {
+
+                for (Map.Entry<String, String> e : origVariableValues.entrySet()) {
+
+                    varMan.put(e.getKey(), e.getValue());
+                }
+            }
+
             /*
              * If we set the connection's query timeout property, then reset 
              * it to zero when we are finished.
@@ -265,19 +287,6 @@ public class Go
                 bufferMan.getCurrent().clear();
             }
             
-            if (origNull != null) {
-                
-                session.getDataFormatter().setNull(origNull);
-            }
-            
-            if (origStyle != null) {
-                
-                conn.setStyle(origStyle);
-            }
-            
-            renderMan.setShowHeaders(origHeaders);
-            renderMan.setShowFooters(origFooters);
-
             if (rendererFactory != null) {
 
                 renderMan.removeFactory(rendererFactory);
@@ -294,5 +303,29 @@ public class Go
         }
         
         return returnCode;
+    }
+
+    private static void set(VariableManager varMan, Map<String, String> priorValues, String name, String value) {
+
+        if (! priorValues.containsKey(name)) {
+
+            priorValues.put(name, varMan.get(name));
+        }
+
+        varMan.put(name, value);
+    }
+
+    private static void set(VariableManager varMan, Map<String, String> priorValues, String nameValue) {
+
+        String name = nameValue;
+        String value = null;
+        int idx = nameValue.indexOf('=');
+        if (idx > 0) {
+
+            name = nameValue.substring(0, idx);
+            value = nameValue.substring(idx+1);
+        }
+
+        set(varMan, priorValues, name, value);
     }
 }

@@ -125,7 +125,42 @@ public class RendererManager {
         
         return getRenderer(session, defaultRenderer);
     }
-    
+
+    /**
+     * This method is not intended for "public" consumption and is used so that
+     * renderers may be exposed as beans for the purpose of allowing them to be
+     * configured via jsqsh properties. This method is exposed in the jsqsh variable
+     * configuration file(s) like so:
+     * <pre>
+     *     &lt;Property bean="global" name="csv_delimiter" property="rendererManager.rendererByName(csv).delimiter"&gt;
+     * </pre>
+     * Renderers exposing configuration properties in this fashion must provide
+     * instance level getters and setters for the properties, but must take care to
+     * store the value for those properties static variables, as renderers are created
+     * freshly for each query.
+     *
+     * @param name The name of the renderer
+     * @return An instance of the renderer
+     */
+    public Renderer getRendererByName(String name) {
+
+        SqshContext context = SqshContext.getThreadLocal();
+        Session session = context.getCurrentSession();
+        if (session == null) {
+            session = context.newSession(false);
+            try {
+
+                return getRenderer(session, name);
+            }
+            finally {
+
+                context.removeSession(session.getId());
+            }
+        }
+
+        return getRenderer(session, name);
+    }
+
     /**
      * Returns a renderer by name.
      * 

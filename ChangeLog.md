@@ -72,6 +72,12 @@
   parameters that JSqsh didn't natively recognize much simpler.
 * Added new `\read` command to allow you to set variables using input 
   provided by the user
+* The `csv` display style may now be configured via the new configuration
+  variables `${csv_delimiter}`, `${csv_quote}`, `${csv_quote_esc}`, and
+  `${csv_null}`
+* The `\go` command can now specify values for jsqsh configuration variables
+  the the new `--var` (`-v`) argument. Variables will only be set for the
+  duration of the command.
 
 ## Bug Fixes
 

@@ -535,7 +535,7 @@ when connecting to your session.
     <Help><![CDATA[
 ## Synopsis
 
-`\go [-i table] [-h] [-f] [-m style] [-n repeat] [-t sec]`
+`\go [-i table] [-vname=value] [-h] [-f] [-m style] [-n repeat] [-t sec]`
               
 ## Description
 
@@ -753,6 +753,23 @@ or
   be asked to do the timeout processing. If the driver does not support such 
   a feature then jsqsh will automatically cancel the query when the timeout 
   period has been reached.
+
+### --var=*name=value* (-v *name=value*)
+
+  Allows the setting of a jsqsh configuration variable for the duration of the
+  command. For example, to change the delimiter for the `csv` display style,
+  you can do the following:
+
+    1> values('a','b')
+    2> \go --no-headers -m csv --var csv_delimiter='|'
+    a|b
+
+  This option may be specified multiple times to provide the value for multiple
+  variables, such as:
+
+    1> values(',','b')
+    2> \go --no-headers -m csv --var csv_delimiter='|' --var csv_quote="'"
+    ','|b
 
 ## Statement terminator
 

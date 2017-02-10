@@ -1085,5 +1085,201 @@ The variable must contain the name of the shell, plus a comma-delimited
   [[\go]]
         ]]></Help>	
 	</Property>
-	
+
+	<Property bean="global" name="csv_delimiter" property="rendererManager.rendererByName(csv).delimiter">
+		<Description>Delimiter to be used by the 'csv' rendering style</Description>
+		<Help><![CDATA[
+## Variable
+
+  `csv_delimiter` - The delimiter to be used by the 'csv' rendering style
+
+## Description
+
+Controls the column delimiter that will be used by the 'csv' display style. The default
+delimiter is a comma (,), like so:
+
+    1> values('a', 'b')
+    2> go --no-headers -m csv
+    a,b
+
+however, may be changed like so:
+
+    1> \set csv_delimiter='|'
+    1> values('a', 'b')
+    2> go --no-headers -m csv
+    a|b
+
+The delimiter need not be just a single character:
+
+    1> \set csv_delimiter=XXX
+    1> values('a', 'b')
+    2> go --no-headers -m csv
+    aXXXb
+
+The following special escape sequences may also be used within a delimiter
+
+  * **\\t**
+    Specifies a literal tab character
+  * **\\n**
+    Specifies a literal newline character
+  * **\\r**
+    Specifies a literal carriage return
+  * **\\**
+    Specifies a literal '\\' character
+
+Care should be taken to use single quotes when specifying these escape sequences
+For example:
+
+    1> \set csv_delimiter='\t'
+    1> values('a', 'b')
+    2> go --no-headers -m csv
+    a       b
+
+## See also
+
+[[style]], [[csv_quote]], [[csv_quote_esc]], [[csv_null]]
+        ]]></Help>
+	</Property>
+
+	<Property bean="global" name="csv_quote" property="rendererManager.rendererByName(csv).quote">
+		<Description>The quoting character to be used during 'csv' display style</Description>
+		<Help><![CDATA[
+## Variable
+
+  `csv_quote` - The quoting character to be used during 'csv' display style
+
+## Description
+
+When output is produced by the 'csv' display style (see [[style]]), any column that meets
+the following criteria will be surrounded by the quotes specified by this variable:
+
+  * The value contains leading or trailing white-space
+  * The value contains the delimiter character
+  * The value contains a newline character
+
+The default quote is a double-quote, like so:
+
+    1> values('hi,there', 'a', ',', 'b')
+    2> go --no-headers -m csv
+    "hi,there",a,",",b
+
+The ${csv_quote} variable may be used to change which character is used for quoting, such as:
+
+    1> \set csv_quote=\'
+    1> values('hi,there', 'a', ',', 'b')
+    2> go --no-headers -m csv
+    'hi,there',a,',',b
+
+Note that the quote need not be a single character:
+
+    1> \set csv_quote=OH_NO
+    1> values('hi,there', 'a', ',', 'b')
+    2> go --no-headers -m csv
+    OH_NOhi,thereOH_NO,a,OH_NO,OH_NO,b
+
+For columns that contain the quoting character, the default behavior is to double the
+quoting character like so:
+
+    1> \set csv_quote=\"
+    1> values('hi "Scott"', 'a')
+    2> go --no-headers -m csv
+    "hi ""Scott""",a
+
+However this can be changed via the $[[csv_quote_esc]] variable.
+
+## See also
+
+[[style]], [[csv_delimiter]], [[csv_quote_esc]], [[csv_null]]
+        ]]></Help>
+	</Property>
+
+	<Property bean="global" name="csv_quote_esc" property="rendererManager.rendererByName(csv).quoteEsc">
+		<Description>Controls how quotes are escaped by 'csv' display style</Description>
+		<Help><![CDATA[
+## Variable
+
+  `csv_quote_esc` - Controls how quotes are escaped by 'csv' display style
+
+## Description
+
+When a field is output in the 'csv' display style and contains a quoting character or
+string (see $[[csv_quote]]), the value of this variable is used to "escape" the quote.
+When this variable is empty (the default), the default behavior is to double whatever
+the current quote is, for example:
+
+    1> values('Sally said, "Hello Scott!"', 10)
+    2> go --no-headers -m csv
+    "Sally said, ""Hello Scott!"",10
+
+However, you may override this behavior with:
+
+    1> \set csv_quote_esc=\\
+    2> go --no-headers -m csv
+    "Sally said, \"Hello Scott!\",10
+
+## See also
+
+[[style]], [[csv_delimiter]], [[csv_quote]], [[csv_null]]
+        ]]></Help>
+	</Property>
+
+	<Property bean="global" name="csv_null" property="rendererManager.rendererByName(csv).null">
+		<Description>Controls how NULL values are display by the 'csv' display style</Description>
+		<Help><![CDATA[
+## Variable
+
+`csv_null` - Controls how NULL values are display by the 'csv' display style
+
+## Description
+
+The contents of the ${csv_null} variable are used to display null values in the 'csv'
+display style.  The default value is an empty string (""), so null is displayed like so:
+
+    1> values('a',cast(null as varchar(2)),'b')
+    2> go --no-headers -m csv
+    a,,b
+
+However, you can change this like so:
+
+    1> \set csv_null=NULL
+    1> values('a',cast(null as varchar(2)),'b')
+    2> go --no-headers -m csv
+    a,NULL,b
+
+## See also
+
+[[style]], [[csv_delimiter]], [[csv_quote]], [[csv_quote_esc]]
+        ]]></Help>
+	</Property>
+
+	<Property bean="global" name="csv_quote_esc" property="rendererManager.rendererByName(csv).quoteEsc">
+		<Description>Controls how quotes are escaped by 'csv' display style</Description>
+		<Help><![CDATA[
+## Variable
+
+  `csv_quote_esc` - Controls how quotes are escaped by 'csv' display style
+
+## Description
+
+When a field is output in the 'csv' display style and contains a quoting character or
+string (see $[[csv_quote]]), the value of this variable is used to "escape" the quote.
+When this variable is empty (the default), the default behavior is to double whatever
+the current quote is, for example:
+
+    1> values('Sally said, "Hello Scott!"', 10)
+    2> go --no-headers -m csv
+    "Sally said, ""Hello Scott!"",10
+
+However, you may override this behavior with:
+
+    1> \set csv_quote_esc=\\
+    2> go --no-headers -m csv
+    "Sally said, \"Hello Scott!\",10
+
+## See also
+
+[[style]], [[csv_delimiter]], [[csv_quote]], [[csv_null]]
+        ]]></Help>
+	</Property>
+
 </Variables>

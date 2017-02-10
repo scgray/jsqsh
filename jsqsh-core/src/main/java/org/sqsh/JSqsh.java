@@ -186,7 +186,7 @@ public class JSqsh {
         /*
          * If the first input is a file, then we don't use a line reader
          */
-        SqshContext sqsh = new SqshContext();
+        SqshContext sqsh = SqshContext.getThreadLocal();
         
         int rc = 0;
         
@@ -394,7 +394,7 @@ public class JSqsh {
     
     /**
      * Sets any variables that were assigned with the "-v" argument.
-     * @param session The session to apply them to
+     * @param ctx The sqsh context
      * @param vars The variables to set
      */
     private static void setVariables(SqshContext ctx, List<String> vars) {
@@ -403,35 +403,18 @@ public class JSqsh {
             
             return;
         }
-        
+
         for (int i = 0; i < vars.size(); i++) {
-            
-            String v = vars.get(i);
-            int idx = v.indexOf('=');
-            String name;
-            String value = null;
-            
-            if (idx < 0) {
-                
-                name = v;
-            }
-            else {
-                
-                name  = v.substring(0, idx);
-                if (idx < (v.length() - 1)) {
-                    
-                    value = v.substring(idx+1);
-                }
-            }
-            
-            ctx.getVariableManager().put(name, value);
+
+            ctx.getVariableManager().put(vars.get(i));
         }
     }
     
     /**
      * Returns the input stream to be used by the session.
      * 
-     * @param options Configuration options.
+     * @param filename If the value is "-", then the System's stdin is returned,
+     *                 otherwise an input stream for the filename specified is returned.
      * @return The input stream or null if the requested one cannot be
      *    opened.
      */
