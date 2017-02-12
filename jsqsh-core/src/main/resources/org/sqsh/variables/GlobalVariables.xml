@@ -1124,6 +1124,15 @@ The following special escape sequences may also be used within a delimiter
     Specifies a literal newline character
   * **\\r**
     Specifies a literal carriage return
+  * **\\f**
+    Specifies a literal form feed return
+  * **\\ooo**
+    Where `ooo` is a valid octal value, expands to the character value of the number
+  * **\\xHH**
+    Where `HH` is a valid hexidecimal value, expands to the character value of the number
+  * **\\uHHHH**
+    Where `HHHH` is a valid hexidecimal value, expands to the unicode character
+    value provided
   * **\\**
     Specifies a literal '\\' character
 

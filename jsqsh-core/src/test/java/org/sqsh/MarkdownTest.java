@@ -48,7 +48,7 @@ public class MarkdownTest {
         Assert.assertTrue(line.next());
         Assert.assertEquals(Line.Type.HEADER, line.type);
         Assert.assertEquals("Header 1", line.getContent());
-        Assert.assertEquals(1, line.level);
+        Assert.assertEquals(1, line.headerLevel);
         Assert.assertEquals(0, line.indent);
 
         Assert.assertTrue(line.next());
@@ -433,7 +433,13 @@ public class MarkdownTest {
         
         runTest("numbers");
     }
-    
+
+    @Test
+    public void testDeepNesting() throws Exception {
+
+        runTest("deep_nesting");
+    }
+
     private void print(WrappingStream out, String str) {
         
         int len = str.length();

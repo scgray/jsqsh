@@ -68,23 +68,44 @@
         1,gray,struct_nested3
         81,gray,dist_inventory_fact
 
-     The results displayed attempts to conform to:
-
-     http://www.creativyst.com/Doc/Articles/CSV/CSV01.htm  
-
-     Here are some things you should be aware of, though:
+     When displaying the output:
         
      * Unless headers are suppressed with the `${headers}` variable or
        via the `--no-headers` (`-H`) option to `\go`, the first row in the
        file will contain the column headers.
-     * A NULL value is represented by a completely empty field.
-     * A zero-length string is represented by "" in order to differentiate 
-       it from NULL.
-     * A field will be quoted with double-quotes if the value contains:
-       * A double quote (which will be escaped with as "").
+     * A NULL value is represented by a completely empty field (this is
+       may be changed with the `${csv_null}` configuration variable)
+     * A zero-length string is quoted to differentate it from NULL (unless
+       a specific NULL representation has been set with $[[{csv_null}]])
+     * A value will be wrapped in quotes (which are double-quotes (") by default
+       but can be changed with `${csv_quote}`) if the value contains:
+       * The quoting character (in which case the quoting character will be 
+         escaped (see `${cvs_quote_esc}` for details)
        * Leading or trailing white space
-       * A comma
+       * The delimiter character
        * A newline
+
+     The following jsqsh configuration variables can be used to alter
+     the behavior of the `csv` display output:
+
+     * ${[[csv_delimiter]]}  
+       Controls the delimiter used between columns
+     * ${[[csv_quote]]}  
+       Controls which character or string is used to quote the value of a column
+     * ${[[csv_quote_esc]]}  
+       Controls how a column containing the quoting
+       character is escaped
+     * ${[[csv_null]]}  
+       Controls how NULL values are represented in the final output
+
+     Each of these variables has its own dedicated help page for more details.
+     The variables may either be explicitly set via the [[\set]] command, or
+     they can be specified at the time the query is executed via the [[\go]]
+     command, like so:
+
+          1> values('"Hello Scott!", she said', cast(null as varchar(3)), 'c')
+          2> \go -H -m csv --var csv_delimiter='|' --var csv_quote_esc=\\ --var csv_null=NULL
+          "\"Hello Scott!\", she said",NULL,c
 
    * `discard`  
       This causes all rows to be retrieved from the query but to

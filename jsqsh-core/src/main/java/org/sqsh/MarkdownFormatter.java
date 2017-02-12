@@ -98,6 +98,12 @@ public class MarkdownFormatter {
             this.indent = indent;
             this.num  = 1;
         }
+
+        @Override
+        public String toString() {
+
+            return "{type=" + type + ", indent=" + indent + ", num=" + num + "}";
+        }
     }
     
     /**
@@ -238,7 +244,7 @@ public class MarkdownFormatter {
      * Enables or disables decorations (bold, italics, underline, etc.).
      * If disabled no decorations will be displayed.
      * 
-     * @param isOn if true, then decorations will be displayed, otherwise
+     * @param onOff if true, then decorations will be displayed, otherwise
      *   they will not appear in the final output
      */
     public void setDecorationsEnabled (boolean onOff) {
@@ -406,10 +412,24 @@ public class MarkdownFormatter {
                         }
                         else if (! listStates.isEmpty()) {
                             
-                            // If we were in the middle of a bulleted list, then
-                            // blank line probably came from an inline code-block
-                            // or something like that, so we need to resume our
-                            // indent from the bullets.
+                            // If we were in the middle of a bulleted or numbered list and
+                            // had to insert a blank blank line, then probably what came before
+                            // was a code block or maybe a deeper nested list and we are now
+                            // resuming our bulleted list. However, in the case of:
+                            //
+                            //   * Level 1
+                            //      * Level 2
+                            //        Some text within level 2
+                            //          * Level 3
+                            //     And resuming level 1  <-- This line
+                            //
+                            // I need to look at the indent of this line of text to figure out
+                            // which list it falls into.
+                            while (! listStates.isEmpty() && line.indent <= listStates.peek().indent) {
+
+                                listStates.pop();
+                            }
+                            wrappingOut.setIndent(getListWrappingIndent());
                             out.append(SPACES, 0, wrappingOut.getIndent());
                         }
                         
@@ -552,7 +572,7 @@ public class MarkdownFormatter {
                 // For sex-appeal, levels 1 and 2 are always printed in
                 // UPPER case
                 String headerText = line.getContent();
-                if (line.level < 3) {
+                if (line.headerLevel < 3) {
                     
                     headerText = headerText.toUpperCase();
                     wrappingOut.setIndent(0);
@@ -1038,7 +1058,7 @@ public class MarkdownFormatter {
      */
     protected static class Line {
 
-        public static enum Type {
+        public enum Type {
             
             TEXT,
             ULIST,
@@ -1076,11 +1096,11 @@ public class MarkdownFormatter {
         /**
          * For headers this is the level
          */
-        public int      level;
+        public int      headerLevel;
 
-        public String   str;
-        public int      len;
-        public int      idx;
+        public String   str;  // The string to parse
+        public int      len;  // Length of the string to parse
+        public int      idx;  // The current index into the string being parsed
 
         public Line () {
             
@@ -1120,7 +1140,7 @@ public class MarkdownFormatter {
             into.contentStart = contentStart;
             into.contentEnd   = contentEnd;
             into.indent       = indent;
-            into.level        = level;
+            into.headerLevel  = headerLevel;
             into.str          = str;
             into.len          = len;
             into.idx          = idx;
@@ -1146,7 +1166,7 @@ public class MarkdownFormatter {
         public boolean next () {
             
             start = contentStart = idx;
-            level = indent = 0;
+            headerLevel = indent = 0;
             
             if (idx >= len) {
                 
@@ -1227,7 +1247,7 @@ public class MarkdownFormatter {
                 }
 
                 type = Type.HEADER;
-                level = (idx - start);
+                headerLevel = (idx - start);
                 contentStart = skipWhitespace(str, len, idx);
             }
             else if (ch == '\n') {
@@ -1389,7 +1409,6 @@ public class MarkdownFormatter {
          * Given a line that contains a '|' character, checks to see if it is part
          * of a table
          * 
-         * @param line The line containing a '|' character
          * @return true if there is a table here
          */
         private boolean isTableDivider(String str, int len, int idx) {
@@ -1458,15 +1477,20 @@ public class MarkdownFormatter {
         public String toString() {
             
             StringBuilder sb = new StringBuilder();
-            sb.append(">>");
-            sb.append(str, start, start + indent);
-            sb.append("^");
-            sb.append(str, start + indent, contentStart);
-            sb.append('[');
-            sb.append(str, contentStart, contentEnd);
-            sb.append(']');
-            sb.append("<<");
-            
+            sb.append(str, start, start + indent)
+                    .append("^")
+                    .append(str, start + indent, contentStart)
+                    .append('[')
+                    .append(str, contentStart, contentEnd)
+                    .append(']')
+                    .append(" {type=")
+                    .append(type)
+                    .append(", indent=")
+                    .append(indent)
+                    .append(", headerLevel=")
+                    .append(headerLevel)
+                    .append("}");
+
             return sb.toString();
         }
     }
@@ -1565,7 +1589,7 @@ public class MarkdownFormatter {
         /**
          * Enables or disables "code" display style
          * 
-         * @param onOff If true, then code mode is enabled
+         * @param isOn If true, then code mode is enabled
          */
         public void code (boolean isOn) {
             

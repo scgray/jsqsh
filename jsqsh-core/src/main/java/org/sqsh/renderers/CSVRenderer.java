@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2012 Scott C. Gray
+ * Copyright 2007-2017 Scott C. Gray
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import org.sqsh.ColumnDescription;
 import org.sqsh.Renderer;
 import org.sqsh.RendererManager;
 import org.sqsh.Session;
+import org.sqsh.util.StringUtils;
 
 /**
  * Outputs results as CSV (comma separated values). This class attempts to
@@ -51,41 +52,8 @@ public class CSVRenderer
      */
     public void setDelimiter(String delimiter) {
 
-        StringBuilder sb = new StringBuilder();
-        final int len = delimiter.length();
-        int idx = 0;
-        while (idx < len) {
-
-            char ch = delimiter.charAt(idx++);
-            if (ch == '\\' && idx < len) {
-
-                ch = delimiter.charAt(idx++);
-                switch (ch) {
-                    case 't':
-                        sb.append('\t');
-                        break;
-                    case '\\':
-                        sb.append('\\');
-                        break;
-                    case 'n':
-                        sb.append('\n');
-                        break;
-                    case 'r':
-                        sb.append('\r');
-                        break;
-                    default:
-                        sb.append('\\').append(ch);
-                        break;
-                }
-            }
-            else {
-
-                sb.append(ch);
-            }
-
-        }
-
-        CSVRenderer.delimiter = sb.toString();
+        CSVRenderer.delimiter = StringUtils.expandEscapes(delimiter,
+                StringUtils.BadEscapeHandling.LEAVE_ESCAPE_CHARACTER);
     }
 
     public String getQuote() {
@@ -150,8 +118,15 @@ public class CSVRenderer
         final int sz = str.length();
         
         if (sz == 0) {
-            
-            return true;
+
+            // If our NULL representation is a missing value, then force
+            // quoting to differentiate the empty string from NULL
+            if (nullStr == null || nullStr.length() == 0) {
+
+                return true;
+            }
+
+            return false;
         }
         
         if (Character.isWhitespace(str.charAt(0))
