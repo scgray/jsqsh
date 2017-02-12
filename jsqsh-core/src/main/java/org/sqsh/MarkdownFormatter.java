@@ -410,7 +410,7 @@ public class MarkdownFormatter {
                             out.append(SPACES, 0, TEXT_INDENT);
                             wrappingOut.setIndent(TEXT_INDENT);
                         }
-                        else if (! listStates.isEmpty()) {
+                        else if (! listStates.isEmpty()) { // We are in bulleted list
                             
                             // If we were in the middle of a bulleted or numbered list and
                             // had to insert a blank blank line, then probably what came before
@@ -429,7 +429,15 @@ public class MarkdownFormatter {
 
                                 listStates.pop();
                             }
-                            wrappingOut.setIndent(getListWrappingIndent());
+
+                            if (listStates.isEmpty()) {
+
+                                wrappingOut.setIndent(TEXT_INDENT);
+                            }
+                            else {
+
+                                wrappingOut.setIndent(getListWrappingIndent());
+                            }
                             out.append(SPACES, 0, wrappingOut.getIndent());
                         }
                         
