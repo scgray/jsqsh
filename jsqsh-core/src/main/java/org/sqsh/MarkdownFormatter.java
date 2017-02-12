@@ -62,6 +62,8 @@ public class MarkdownFormatter {
     
     private static final char[] BULLET_CHARS = { '*', '-', 'o' };
 
+    private static final boolean INVERT_CODE_BLOCKS = false;
+
     /*
      * Spaces used as a source of characters for indenting. Who could
      * ever want to indent more than this?? ;)
@@ -338,8 +340,23 @@ public class MarkdownFormatter {
                     else {
                         
                         out.append(SPACES, 0, displayIndentSize);
-                        out.append(line.str, line.start + codeBlockIndentSize, 
+
+                        if (INVERT_CODE_BLOCKS && hasDecorationsEnabled()) {
+
+                            out.append("\033[7m"); // Inverse
+                        }
+
+                        out.append(line.str, line.start + codeBlockIndentSize,
                                 line.contentEnd);
+
+                        if (INVERT_CODE_BLOCKS && hasDecorationsEnabled()) {
+
+                            int nPad = wrappingOut.screenWidth -
+                                    (displayIndentSize + (line.contentEnd - line.start + codeBlockIndentSize));
+                            out.append(SPACES, 0, nPad);
+                            out.append("\033[0m\033[39m\033[49m"); // Turn off inverse
+                        }
+
                         out.println();
                         needsBlankLine = false;
                     }
@@ -1511,7 +1528,6 @@ public class MarkdownFormatter {
      */
     protected static class WrappingStream {
 
-        
         private PrintStream out;
         private int indent;
         private int screenWidth;
