@@ -34,7 +34,7 @@
   jsqsh exit only when invoking the `go` command because a failure probably 
   means the statement executed failed.  JSqsh has no specific understanding
   of what a specific JDBC driver may consider a failure--meaning it cannot
-  classify one failure from another.  JSqsh simply deterines a failure if
+  classify one failure from another.  JSqsh simply determines a failure if
   the JDBC driver throws an exception of any type (note that typically 
   database warnings or informational messages do now throw an exception).
    
