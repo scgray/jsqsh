@@ -73,7 +73,7 @@ public class SqshConsole {
             }
         }
 
-        File readlineHistory = new File(context.getConfigDirectory(), "readline_history");
+        File readlineHistory = new File(context.getConfigDirectory(), "jline_history");
         reader = LineReaderBuilder.builder()
                 .appName("jsqsh")
                 .terminal(terminal)
