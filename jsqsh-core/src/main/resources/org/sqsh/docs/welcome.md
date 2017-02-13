@@ -27,7 +27,7 @@ should be aware of:
   the place where you can set variables and configure sqsh
   to your likings.
                
-JSqsh is intended to be self-documenting. If you would like
-to see this information again, then type '\help welcome' at 
-the jsqsh prompt, or run '\help' to see a list of all help
-topics that are available.
+JSqsh is self-documenting. If you would like to see this
+information again, then type '\help welcome' at the jsqsh
+prompt, or run '\help' to see a list of all help topics that
+are available.

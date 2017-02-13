@@ -21,7 +21,6 @@ jsqsh [options] [connection-name]
    -P, --password=pass        Password utilized for connection
    -p, --port=port            Listen port for the server to connect to
    -O, --prop=name=val        Set a driver connection property. Can be used more than once
-   -r, --readline=method      Readline method (readline,editline,getline,jline,purejava)
    -S, --server=server        Name of the database server to connect to
    -z, --setup                Enters jsqsh connection setup wizard
    -t, --topic=topic          Displays detailed help on specific topics
