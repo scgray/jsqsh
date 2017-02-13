@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2012 Scott C. Gray
+ * Copyright 2007-2017 Scott C. Gray
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,17 @@ package org.sqsh;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class HelpTopic
     implements Comparable<HelpTopic> {
+
+    public static final String DEFAULT_HELP_LOCATION = "org/sqsh/docs";
     
     private String topic;
     private String description;
-    private String helpText;
+    private String helpLocation;
     
     public HelpTopic() {
         
@@ -34,13 +37,17 @@ public class HelpTopic
      * Base constructor for a help topic.
      * @param topic The topic of the topic.
      * @param description A brief description of the topic
-     * @param helpText The full help text for the topic.
+     * @param helpLocation The location of the full Markdown help text for the topic.
+     *     The location specified must be readable using the default jsqsh classloader
+     *     (i.e. it should be contained in a jar somewhere).  If this value is null, then
+     *     <i>org/sqsh/docs/topicName.md</i> is assumed. If the topic name started with a
+     *     a backslash, then the backslash is removed.
      */
-    public HelpTopic (String topic, String description, String helpText) {
+    public HelpTopic (String topic, String description, String helpLocation) {
         
         this.topic = topic;
         this.description = description;
-        this.helpText = helpText;
+        this.helpLocation = helpLocation;
     }
     
     /**
@@ -49,93 +56,51 @@ public class HelpTopic
      * @return The help text for the topic, or null if none is available.
      */
     public String getHelp() {
-        
-        return helpText;
-    }
-    
-    /**
-     * Sets the help text. Note that this method does a little
-     * extra processing that "cleans up" the text that is passed it. That is,
-     * if the text has leading spaces or leading or trailing blank lines,
-     * they are removed.
-     * 
-     * @param help The help text to be set.
-     */
-    @SuppressWarnings("unused")
-    public void setHelp(String help) {
-        
-        this.helpText = help;
-        
-        if (false) {
-        StringBuilder buffer = new StringBuilder();
-        String lineSep = System.getProperty("line.separator");
-        
+
+        String resourcePath = helpLocation == null
+                ? DEFAULT_HELP_LOCATION + "/" + (topic.charAt(0) == '\\' ? topic.substring(1) : topic) + ".md"
+                : helpLocation;
+
+        InputStream helpStream = this.getClass().getClassLoader().getResourceAsStream(resourcePath);
+        if (helpStream == null) {
+
+            return "Help resource \"" + resourcePath + "\" could not be found!";
+        }
+
         try {
-            
-            BufferedReader reader = new BufferedReader(new StringReader(help));
-            
-            /*
-             * The first line always already has its white-space removed
-             * due to the XML parser
-             */
-            reader.readLine();
-            
-            /*
-             * First, we'll take a pass through the help text to see if we need
-             * to trim off leading spaces. We skip the first line because
-             * we alreader trimmed leading spaces from the help text as a whole,
-             * above.
-             */
-            int leadingSpaces = 999;
-            String line = reader.readLine();
-            while (line != null) {
-                
-                int nSpaces = 0;
-                for (; nSpaces < line.length()
-                    && Character.isWhitespace(line.charAt(nSpaces)); ++nSpaces);
-                
-                if (nSpaces != line.length()
-                        && nSpaces < leadingSpaces) {
-                    
-                    leadingSpaces = nSpaces;
-                }
-                
-                line = reader.readLine();
+
+            BufferedReader buf = new BufferedReader(new InputStreamReader(helpStream));
+            StringBuilder sb = new StringBuilder();
+            String lineSep = System.getProperty("line.separator");
+            String line;
+
+            while ((line = buf.readLine()) != null) {
+
+                sb.append(line).append(lineSep);
             }
-            
-            /*
-             * Now, start over and remove the leading spaces.
-             */
-            reader = new BufferedReader(new StringReader(help));
-            
-            line = reader.readLine();
-            while (line != null) {
-                
-                int nSpaces = 0;
-                for (; nSpaces < line.length()
-                    && Character.isWhitespace(line.charAt(nSpaces)); ++nSpaces);
-                
-                if (nSpaces >= leadingSpaces) {
-                        
-                    buffer.append(line, leadingSpaces, line.length());
-                }
-                else {
-                        
-                    buffer.append(line);
-                }
-                    
-                buffer.append(lineSep);
-                    
-                line = reader.readLine();
-            }
+
+            return sb.toString();
         }
         catch (IOException e) {
-            
-            /* CANNOT REALLY HAPPEN */
+
+            return "Error reading help resource \"" + resourcePath + "\": " + e.getMessage();
         }
-        
-        helpText = buffer.toString();
+        finally {
+
+            try { helpStream.close(); } catch (IOException e2) { /* IGNORED */ }
         }
+    }
+
+    /**
+     * Sets where the help text for the topic can be found. The location specified must be
+     * readable using the default jsqsh classloader (i.e. it should be contained in a
+     * jar somewhere).  If this value is null, then  <i>org/sqsh/docs/topicName.md</i> is
+     * assumed. If the topic name started with a backslash, then the backslash is removed.
+     * @param helpLocation The help location or null to use the default location for the topic
+     */
+    public void setHelpLocation(String helpLocation) {
+
+        this.helpLocation = helpLocation;
     }
     
     /**
@@ -180,7 +145,7 @@ public class HelpTopic
      * Compares the names of two topics. This method is provided primarily
      * to allow for easy sorting of topics on display.
      * 
-     * @param o The object to compare to.
+     * @param that The object to compare to.
      * @return The results of the comparison.
      */
     public int compareTo(HelpTopic that) {

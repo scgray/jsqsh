@@ -1,20 +1,6 @@
 <Commands>
     <Command name="\hello" class="org.sqsh.exttest.Hello">
-        <Description><![CDATA[
-           Hello world!
-        ]]></Description>
-            <Help><![CDATA[
-## Synopsis
-
-`\hello`
-              
-## Description
-
-Hello command, to test import of command extensons
-           
-## Options
-
-None
-      ]]></Help>
+        <Description>Hello world!</Description>
+        <HelpLocation>org/sqsh/exttest/hello.md</HelpLocation>
     </Command>
 </Commands>

@@ -78,11 +78,11 @@ public abstract class Command
      * Base constructor for a command.
      * @param name The name of the command.
      * @param description A brief description of what the command does.
-     * @param helpText The full help text for the command.
+     * @param helpLocation The location of the help text
      */
-    public Command (String name, String description, String helpText) {
+    public Command (String name, String description, String helpLocation) {
         
-        super(name, description, helpText);
+        super(name, description, helpLocation);
         this.name = name;
     }
     

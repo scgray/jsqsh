@@ -38,10 +38,9 @@ public class Wiki extends Command {
     private static class Options
     extends SqshOptions {
     
-    @Argv(program="\\wiki", min=0, max=1,
-        usage="[dest_dir]")
-    public List<String> arguments = new ArrayList<String>();
-}
+        @Argv(program="\\wiki", min=0, max=1, usage="[dest_dir]")
+        public List<String> arguments = new ArrayList<String>();
+    }
 
     @Override
     public SqshOptions getOptions() {

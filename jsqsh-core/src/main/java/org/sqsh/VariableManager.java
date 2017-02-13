@@ -591,9 +591,9 @@ public class VariableManager
         digester.addCallMethod(path, 
             "setDescription", 1, new Class[] { java.lang.String.class });
             digester.addCallParam(path, 0);
-        path = "*/Help";
+        path = "*/HelpLocation";
         digester.addCallMethod(path, 
-            "setHelp", 1, new Class[] { java.lang.String.class });
+            "setHelpLocation", 1, new Class[] { java.lang.String.class });
             digester.addCallParam(path, 0);
             
         digester.push(this); 

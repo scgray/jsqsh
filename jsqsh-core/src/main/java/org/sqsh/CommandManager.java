@@ -203,9 +203,9 @@ public class CommandManager {
             "setDescription", 1, new Class[] { java.lang.String.class });
             digester.addCallParam(path, 0);
             
-        path = "Commands/Command/Help";
+        path = "Commands/Command/HelpLocation";
         digester.addCallMethod(path, 
-            "setHelp", 1, new Class[] { java.lang.String.class });
+            "setHelpLocation", 1, new Class[] { java.lang.String.class });
             digester.addCallParam(path, 0);
             
         digester.push(this); 
