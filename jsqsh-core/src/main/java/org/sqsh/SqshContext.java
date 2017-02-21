@@ -29,6 +29,10 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
 import org.sqsh.jni.ShellManager;
 
 /**
@@ -98,6 +102,11 @@ public class SqshContext {
      * The line reader to use during interactive sessions
      */
     private SqshConsole console = null;
+
+    /**
+     * A line reader to use when simply prompting the user for, say, a Y/N question
+     */
+    private LineReader simplePromptReader = null;
 
     /**
      * This objects instantiates all commands and manages all of the
@@ -807,6 +816,46 @@ public class SqshContext {
         }
 
         return console;
+    }
+
+    /**
+     * @return A minimally configured line reader that is suitable for basic Y/N
+     *   sorts of prompting input from the user
+     */
+    public LineReader getSimplePromptReader() {
+
+        if (simplePromptReader == null) {
+
+            Terminal terminal;
+            try {
+
+                terminal = TerminalBuilder.builder()
+                        .nativeSignals(true)
+                        .build();
+            }
+            catch (IOException e) {
+
+                try {
+
+                    terminal = TerminalBuilder.builder()
+                            .dumb(true)
+                            .build();
+                }
+                catch (IOException e2) {
+
+                    System.err.println("Unable to create dumb terminal: " + e2.getMessage()
+                            + ". Giving up");
+                    throw new RuntimeException(e.getMessage(), e);
+                }
+            }
+
+            simplePromptReader = LineReaderBuilder.builder()
+                    .appName("jsqsh_dumb")
+                    .terminal(terminal)
+                    .build();
+        }
+
+        return simplePromptReader;
     }
 
     /**

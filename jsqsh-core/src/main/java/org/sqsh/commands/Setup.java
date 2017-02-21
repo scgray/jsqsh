@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import org.jline.reader.LineReader;
+import org.jline.reader.UserInterruptException;
 import org.sqsh.*;
 import org.sqsh.SQLDriver.DriverVariable;
 import org.sqsh.analyzers.ANSIAnalyzer;
@@ -60,34 +62,40 @@ public class Setup extends Command {
     public int execute(Session session, SqshOptions opts) throws Exception {
         
         Options options = (Options)opts;
-        SqshConsole in = session.getContext().getConsole();
-        cls(in);
+        LineReader in = session.getContext().getSimplePromptReader();
 
-        if (options.arguments.size() > 0) {
-            
-            String path = options.arguments.get(0);
-            if (path.equals("connections")) {
-                
-                doConnectionWizard(session, session.out, in);
-            }
-            else if (path.equals("drivers")) {
-                
-                doDriverWizard(session, session.out, in);
-            }
-            else {
-                
-                session.err.println("Unrecognized setup type \"" + path + "\"");
+        try {
+
+            if (options.arguments.size() > 0) {
+
+                String path = options.arguments.get(0);
+                if (path.equals("connections")) {
+
+                    doConnectionWizard(session, session.out, in);
+                }
+                else if (path.equals("drivers")) {
+
+                    doDriverWizard(session, session.out, in);
+                }
+                else {
+
+                    session.err.println("Unrecognized setup type \"" + path + "\"");
+                }
+            } else {
+
+                doWelcome(session, session.out, in);
             }
         }
-        else {
-            
-            doWelcome(session, session.out, in);
+        catch (UserInterruptException e) {
+
+            session.err.println("Aborting setup");
+            return 1;
         }
             
         return 0;
     }
     
-    public void doWelcome(Session session, PrintStream out, SqshConsole in) throws Exception {
+    public void doWelcome(Session session, PrintStream out, LineReader in) throws Exception {
         
         boolean done = false;
         
@@ -137,7 +145,7 @@ public class Setup extends Command {
         out.println();
     }
     
-    public boolean doConnectionWizard(Session session, PrintStream out, SqshConsole in) throws Exception {
+    public boolean doConnectionWizard(Session session, PrintStream out, LineReader in) throws Exception {
 
         SQLDriverManager driverMan = session.getDriverManager();
         boolean done = false;
@@ -257,7 +265,7 @@ public class Setup extends Command {
      * Render the "add" screen
      * @throws Exception
      */
-    public boolean doConnectionChooseDriver(Session session, PrintStream out, SqshConsole in) throws Exception {
+    public boolean doConnectionChooseDriver(Session session, PrintStream out, LineReader in) throws Exception {
         
         SQLDriverManager driverMan = session.getDriverManager();
         boolean done = false;
@@ -342,7 +350,7 @@ public class Setup extends Command {
         return doQuit;
     }
     
-    public boolean doConfigConnection(Session session, PrintStream out, SqshConsole in,
+    public boolean doConfigConnection(Session session, PrintStream out, LineReader in,
         ConnectionDescriptor conDesc, SQLDriver driver) throws Exception {
         
         boolean doQuit = false;
@@ -564,7 +572,7 @@ public class Setup extends Command {
         return doQuit;
     }
     
-    private static void doTest(Session session, PrintStream out, SqshConsole in, ConnectionDescriptor connDesc)
+    private static void doTest(Session session, PrintStream out, LineReader in, ConnectionDescriptor connDesc)
         throws Exception {
         
         SQLDriverManager driverMan = session.getDriverManager();
@@ -593,7 +601,7 @@ public class Setup extends Command {
         readline(in, "Hit enter to continue:");
     }
     
-    public boolean doDriverWizard(Session session, PrintStream out, SqshConsole in)
+    public boolean doDriverWizard(Session session, PrintStream out, LineReader in)
         throws Exception {
         
         boolean done = false;
@@ -662,7 +670,7 @@ public class Setup extends Command {
         return doQuit;
     }
     
-    private boolean doEditDriver (Session session, PrintStream out, SqshConsole in, SQLDriver origDriver)
+    private boolean doEditDriver (Session session, PrintStream out, LineReader in, SQLDriver origDriver)
         throws Exception {
         
         boolean isNewDriver = (origDriver == null);
@@ -927,7 +935,7 @@ public class Setup extends Command {
     }
     
     private ScreenReturn doEditDriverAdvanced (Session session, PrintStream out, 
-            SqshConsole in, SQLDriver driver)
+            LineReader in, SQLDriver driver)
         throws Exception {
         
         while (true) {
@@ -1061,7 +1069,7 @@ public class Setup extends Command {
         }
     }
     
-    private SQLAnalyzer chooseAnalyzer(PrintStream out, SqshConsole in)
+    private SQLAnalyzer chooseAnalyzer(PrintStream out, LineReader in)
         throws Exception {
         
         out.println();
@@ -1095,7 +1103,7 @@ public class Setup extends Command {
             
     }
     
-    private SQLNormalizer chooseNormalizer(PrintStream out, SqshConsole in)
+    private SQLNormalizer chooseNormalizer(PrintStream out, LineReader in)
         throws Exception {
         
         out.println();
@@ -1127,7 +1135,7 @@ public class Setup extends Command {
     }
     
     private void newDriverProperty(Session session, PrintStream out, 
-            SqshConsole in, SQLDriver driver)
+            LineReader in, SQLDriver driver)
         throws Exception {
         
         DriverPropertyInfo info[] = null;
@@ -1331,7 +1339,7 @@ public class Setup extends Command {
        }
     }
     
-    private String getEntry(PrintStream out, SqshConsole in, String prompt, boolean isRequired) throws Exception {
+    private String getEntry(PrintStream out, LineReader in, String prompt, boolean isRequired) throws Exception {
         
         String str = "";
         while (str.length() == 0) {
@@ -1406,32 +1414,26 @@ public class Setup extends Command {
         return str;
     }
     
-    private static String readline(SqshConsole in, String prompt) {
+    private static String readline(LineReader in, String prompt) {
 
-        try {
-
-            in.setHistoryEnabled(false);
-            return in.readLine(prompt);
-        }
-        finally {
-
-            in.setHistoryEnabled(true);
-        }
+        return in.readLine(prompt);
     }
 
-    private void cls(SqshConsole in) {
+    private void cls(LineReader in) {
 
         // Clear screen, cursor to 0,0
         in.getTerminal().writer().write(Ansi.clearScreen());
         in.getTerminal().writer().write(Ansi.cursorMove(0,0));
+        in.getTerminal().writer().flush();;
     }
 
-    private void killLine(SqshConsole in) {
+    private void killLine(LineReader in) {
 
         // Cursor up 1, erase line, cursor up 1
         in.getTerminal().writer().write(Ansi.cursorUp(1));
         in.getTerminal().writer().write(Ansi.clearToEnd());
         in.getTerminal().writer().write(Ansi.cursorUp(1));
+        in.getTerminal().writer().flush();
     }
 
     private static enum ScreenReturn {
