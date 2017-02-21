@@ -141,6 +141,10 @@
         <Internal>True</Internal>
         <Description>Compares results from multiple sessions</Description>
     </Command>
+
+    <Command name="\drivers" class="org.sqsh.commands.Drivers">
+        <Description>Lists available JDBC driver definitions</Description>
+    </Command>
     
     <Command name="\insert" class="org.sqsh.commands.Insert">
         <Description>Generates INSERT statements from a query</Description>
