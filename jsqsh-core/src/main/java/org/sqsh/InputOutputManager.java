@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2012 Scott C. Gray
+ * Copyright 2007-2017 Scott C. Gray
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,9 @@
  */
 package org.sqsh;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.Stack;
 import java.util.logging.Level;
@@ -186,14 +187,14 @@ public class InputOutputManager {
      * Assigns a new error stream for the manager. The prior
      * error stream is closed if necessary.
      * 
-     * @param err The new error stream
+     * @param in The new input stream
      * @param autoClose A flag to indicate if this error stream
      *   should be closed when it is no longer being referenced.
      * @param isInteractive If true, then the input stream is assumed
      *   to be an interactive stream (i.e. comes from a terminal).
      */
-    public void setIn(InputStream in, boolean autoClose,
-            boolean isInteractive) {
+    public void setIn(BufferedReader in, boolean autoClose,
+                      boolean isInteractive) {
         
         if (LOG.isLoggable(Level.FINE)) {
 
@@ -202,7 +203,7 @@ public class InputOutputManager {
         
         InputOutputState curState = ioStack.peek();
         
-        InputStream oldIn = curState.in;
+        BufferedReader oldIn = curState.in;
         boolean oldAutoClose = curState.autoCloseIn;
         
         curState.in = in;
@@ -212,41 +213,6 @@ public class InputOutputManager {
         if (oldAutoClose) {
             
             close(oldIn);
-        }
-    }
-    
-    /**
-     * Closes an input stream if it is no longer in use.
-     * 
-     * @param in The stream to close.
-     */
-    private void close(InputStream in) {
-        
-        boolean doClose = true;
-        for (InputOutputState ioState : ioStack) {
-                
-            if (ioState.in == in) {
-                    
-                doClose = false;
-                break;
-            }
-        }
-        
-        if (doClose) {
-            
-            LOG.fine("Closing input handle");
-            try {
-                    
-                in.close();
-            }
-            catch (IOException e) {
-                    
-                /* IGNORED */
-            }
-        }
-        else {
-            
-            LOG.fine("Old input handle still in use. Not closing");
         }
     }
     
@@ -278,13 +244,47 @@ public class InputOutputManager {
             LOG.fine("Old " + name + " handle still in use. Not closing");
         }
     }
-    
+
+    /**
+     * Closes an input stream if it is no longer in use.
+     *
+     * @param in The stream to close.
+     */
+    public void close(BufferedReader in) {
+
+        boolean doClose = true;
+        for (InputOutputState ioState : ioStack) {
+
+            if (ioState.in == in) {
+
+                doClose = false;
+                break;
+            }
+        }
+
+        if (doClose) {
+
+            LOG.fine("Closing input handle");
+            try {
+                in.close();
+            }
+            catch (IOException e) {
+
+                /* IGNORED */
+            }
+        }
+        else {
+
+            LOG.fine("Old input handle still in use. Not closing");
+        }
+    }
+
     /**
      * Returns the current input stream.
      * 
      * @return The current input stream.
      */
-    public InputStream getIn() {
+    public BufferedReader getIn() {
         
         return ioStack.peek().in;
     }
@@ -333,7 +333,7 @@ public class InputOutputManager {
     private static class InputOutputState
         implements Cloneable {
         
-        public InputStream in = System.in;
+        public BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
         public boolean autoCloseIn = false;
         public boolean isInteractive = true;
         public PrintStream out = System.out;

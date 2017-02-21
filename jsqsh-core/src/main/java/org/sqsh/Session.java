@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2012 Scott C. Gray
+ * Copyright 2007-2017 Scott C. Gray
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,14 @@
  */
 package org.sqsh;
 
+import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -88,7 +90,7 @@ public class Session
      * Effectively equivalent of {@link System#in}, however the context
      *   is strictly local to this session.
      */
-    public InputStream in = ioManager.getIn();
+    public BufferedReader in = ioManager.getIn();
     
     /**
      * Effectively equivalent of {@link System#out}, however the context
@@ -195,7 +197,7 @@ public class Session
      * @param err The error handle.
      */
     protected Session(SqshContext sqshContext, int sessionId,
-            InputStream in, PrintStream out, PrintStream err) {
+            BufferedReader in, PrintStream out, PrintStream err) {
         
         this(sqshContext, sessionId);
         
@@ -238,7 +240,7 @@ public class Session
     /**
      * Changes the error stream.
      * 
-     * @param out The new error stream.
+     * @param err The new error stream.
      * @param autoClose If true, then the error stream will automatically
      *   be closed when it is no longer used by the session.
      */
@@ -251,19 +253,34 @@ public class Session
     /**
      * Changes the input stream.
      * 
-     * @param out The new input stream.
+     * @param in The new input stream.
+     * @param autoClose If true, then the input stream will automatically
+     *   be closed when it is no longer used by the session.
+     * @param isInteractive If true, then the input stream is assumed to
+     *   be interactive and a prompt will be displayed for input.
+     */
+    public void setIn(BufferedReader in, boolean autoClose,
+            boolean isInteractive) {
+        
+        ioManager.setIn(in, autoClose, isInteractive);
+        this.in = in;
+    }
+
+    /**
+     * Changes the input stream.
+     *
+     * @param in The new input stream.
      * @param autoClose If true, then the input stream will automatically
      *   be closed when it is no longer used by the session.
      * @param isInteractive If true, then the input stream is assumed to
      *   be interactive and a prompt will be displayed for input.
      */
     public void setIn(InputStream in, boolean autoClose,
-            boolean isInteractive) {
-        
-        ioManager.setIn(in, autoClose, isInteractive);
-        this.in = in;
+                      boolean isInteractive) {
+
+        setIn(new BufferedReader(new InputStreamReader(in)), autoClose, isInteractive);
     }
-    
+
     
     /**
      * Returns the SQL renderer that is to be used by the session.
@@ -993,7 +1010,6 @@ public class Session
     /**
      * Reads a line of input from the user.
      * 
-     * @param input Where to read input.
      * @return The line read or null upon EOF.
      * @throws ConsoleException If the user hits ^C ({@link ConsoleInterruptedException}),
      *   or an error is encountered on input.
@@ -1017,23 +1033,8 @@ public class Session
                 }
             }
             else {
-                        
-                StringBuilder sb = new StringBuilder();
-                int ch = in.read();
-                while (ch >= 0 && ch != '\n') {
-                        
-                    sb.append((char) ch);
-                    ch = in.read();
-                }
-                    
-                if (ch == -1 && sb.length() == 0) {
-                        
-                    line = null;
-                }
-                else {
-                        
-                    line = sb.toString();
-                }
+
+                line = in.readLine();
             }
         }
         catch (ConsoleInterruptedException e) {
@@ -1060,7 +1061,7 @@ public class Session
             
         return line;
     }
-    
+
     /**
      * Internally this should be used instead of directly calling 
      * ioManager.restore() because we need to make sure that the
@@ -1353,8 +1354,7 @@ public class Session
      * Used internally to execute a command.
      * 
      * @param command The command that is to be executed.
-     * @param tokenizer The command line tokenizer. This is expected to
-     *    have already processed the first token (the command name itself).
+     * @param commandLine The full command line, including the command name itself
      */
     private void runCommand(Command command, String commandLine)
         throws SqshContextMessage {
@@ -1731,10 +1731,11 @@ public class Session
                 + targetSession.getId());
         }
         
-        InputStream in = null;
+        BufferedReader in = null;
         try {
             
-            in = new FileInputStream(source);
+            in = new BufferedReader(new InputStreamReader(
+                    new FileInputStream(source)));
         }
         catch (IOException e) {
             

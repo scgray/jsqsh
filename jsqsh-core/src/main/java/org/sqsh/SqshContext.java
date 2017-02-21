@@ -1026,9 +1026,9 @@ public class SqshContext {
      * @param err The error stream to utilize.
      * @return The newly created session.
      */
-    public Session newSession(InputStream in, 
+    public Session newSession(BufferedReader in,
             PrintStream out, PrintStream err, boolean isInteractive) {
-        
+
         Session session =
             new Session(this, nextSessionId, in, out, err);
         session.setInteractive(isInteractive);
@@ -1395,7 +1395,7 @@ public class SqshContext {
      * that this one is executed first.
      */
     private void runInitializationScript() {
-        
+
         InputStream in = getClass().getClassLoader().getResourceAsStream(
             "org/sqsh/InitScript.txt");
             
@@ -1404,8 +1404,9 @@ public class SqshContext {
             System.err.println("WARNING: Unable to located internal"
                 + "initialization script.");
         }
-        
-        executeStream(in);
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+        executeStream(reader);
         
         try {
             
@@ -1641,8 +1642,8 @@ public class SqshContext {
             
             try {
                 
-                InputStream in = new BufferedInputStream(
-                    new FileInputStream(sqshrc));
+                BufferedReader in = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(sqshrc)));
                 
                 executeStream(in);
                 
@@ -1721,7 +1722,7 @@ public class SqshContext {
      * 
      * @param input The stream to execute.
      */
-    private void executeStream(InputStream input) {
+    private void executeStream(BufferedReader input) {
         
         Session session = null;
         
