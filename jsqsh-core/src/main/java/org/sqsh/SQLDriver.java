@@ -187,7 +187,7 @@ public class SQLDriver
      * Sets the name of the class that will be utilized for analyzing the
      * SQL statements to be executed.
      * 
-     * @param clazz The name of the class.
+     * @param sqlAnalyzer The name of the class.
      */
     public void setAnalyzer(String sqlAnalyzer) {
         

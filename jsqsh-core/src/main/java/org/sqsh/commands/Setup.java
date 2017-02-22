@@ -1172,7 +1172,9 @@ public class Setup extends Command {
         if (info == null) {
             
             out.println("Available driver properties could not be retrieved (this may happen");
-            out.println("if the JDBC driver cannot be loaded), you may manually enter properties:");
+            out.println("if the JDBC driver cannot be loaded), you may manually enter properties.");
+            out.println("Note: property values may refer to environment variables or jsqsh");
+            out.println("variable values:");
             
             String name = readline(in, "Property name: ");
             String value = readline(in, "Property value: ");
@@ -1246,6 +1248,8 @@ public class Setup extends Command {
             else if (str.equalsIgnoreCase("m")) {
                 
                 done = true;
+                out.println();
+                out.println("Note: Property values may refer to environment variables or jsqsh variable values");
                 out.println();
                 String name = readline(in, "Property name: ");
                 String value = readline(in, "Property value: ");

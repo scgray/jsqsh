@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2016 Scott C. Gray
+ * Copyright 2007-2017 Scott C. Gray
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -285,7 +285,7 @@ public class SQLDriverManager {
     
     /**
      * Sets the default JDBC driver name to be used for new connections
-     * @param defaultDriver The default driver name
+     * @param driver The default driver name
      */
     public void setDefaultDriver(String driver) {
         
@@ -610,7 +610,7 @@ public class SQLDriverManager {
              */
             for (String name : sqlDriver.getPropertyNames()) {
                     
-                props.put(name, sqlDriver.getProperty(name));
+                props.put(name, session.expand(sqlDriver.getProperty(name)));
             }
             
             /*
@@ -744,10 +744,10 @@ public class SQLDriverManager {
     
     /**
      * Given the connection settings that the user provided, creates a map of
-     * properties that are required by {@link SQLDriverManager#connect(String,
-     * Session, Map)} in order to establish a connection. For a given 
-     * property, such as {@link SQLDriver#SERVER_PROPERTY}, the value is
-     * established by the first of the following that is available:
+     * properties that are required by {@link SQLDriverManager#connect(Session, ConnectionDescriptor)}
+     * in order to establish a connection. For a given property, such
+     * as {@link SQLDriver#SERVER_PROPERTY}, the value is established by
+     * the first of the following that is available:
      * 
      * <ol>
      *   <li> Using the option provided in the {@link ConnectionDescriptor}
@@ -1107,7 +1107,7 @@ public class SQLDriverManager {
     /**
      * Writes out information about the driver classpaths to an XML file
      * that is readable with loadDriverClasspath()
-     * @param filename The file to write to
+     * @param file The file to write to
      */
     public void save(File file) {
         

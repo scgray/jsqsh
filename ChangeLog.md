@@ -78,10 +78,13 @@
 * The `\go` command can now specify values for jsqsh configuration variables
   the the new `--var` (`-v`) argument. Variables will only be set for the
   duration of the command.
+* JDBC driver properties can now include environment variables in their values.
 
 ## Bug Fixes
 
-# Fixed a loooong standing bug with jsqsh's inability to connect to Oracle.
+* Fixed a loooong standing bug with jsqsh's inability to connect to Oracle.
+* When reading input from a file (-i) jsqsh was not handling multi-byte 
+  unicode characters properly.
 
 # Release 2.2
 
