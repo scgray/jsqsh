@@ -1,4 +1,4 @@
-# Release 2.3-SNAPSHOT
+# Release 2.3
 
 ## New Features
 
