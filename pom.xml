@@ -20,6 +20,7 @@
     <lang.version>2.6</lang.version>
     <velocity.version>1.7</velocity.version>
     <jline.version>2.13</jline.version>
+    <maven.release.version>2.5.3</maven.release.version>
   </properties>
 
   <build>
@@ -27,7 +28,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
-        <version>2.5.3</version>
+        <version>${maven.release.version}</version>
         <configuration>
           <tagNameFormat>jsqsh-@{project.version}</tagNameFormat>
         </configuration>
