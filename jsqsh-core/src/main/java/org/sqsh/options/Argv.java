@@ -54,7 +54,7 @@ public @interface Argv {
     /**
      * If provided, specifies the maximum number of non-option
      * arguments that the program requires for operation. A value
-     * < 0 indicates unbounded arguments.
+     * &lt; 0 indicates unbounded arguments.
      */
     int max() default -1;
 }

@@ -90,7 +90,6 @@ public class VariableManager
     
     /**
      * Creates a variable manager.
-     * @param session The session that owns the manager.
      */
     public VariableManager () {
         

@@ -21,7 +21,8 @@ import java.util.logging.Logger;
  * Used by {@link Tokenizer} to indicate that a file redirection
  * has been encountered. A file redirection is one of:
  * <pre>
- *      [m]>[n]
+ *      [m]&gt;[n]
+ * </pre>
  * @author gray
  *
  */

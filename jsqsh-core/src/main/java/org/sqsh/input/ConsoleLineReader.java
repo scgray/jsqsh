@@ -351,7 +351,6 @@ public abstract class ConsoleLineReader {
     /**
      * Write the readline history file.
      * 
-     * @param filename Filename to write to.
      * @throws ConsoleException If the file cannot be written.
      */
     public abstract void writeHistory ()

@@ -24,7 +24,7 @@ import org.sqsh.input.completion.NullCompleter;
 /**
  * "Connections" are theoretically abstract things, and this is the base
  * representation of a connection.  For most of jsqsh, a connection is a 
- * {@link SQLConnection}, however it is possible that you could have
+ * {@link SQLConnectionContext}, however it is possible that you could have
  * other types of "connections"--to wrap jsqsh around a scripting language
  * where the current batch is "evaled" in the language, then an
  * implementation of this object would contain a handle to the scripting
@@ -38,7 +38,7 @@ public abstract class ConnectionContext {
     protected Session session;
     
     /**
-     * If set to a value > 0, then the eval() method should time out after
+     * If set to a value &gt; 0, then the eval() method should time out after
      * the specified number of seconds.  Not call connections need support
      * this. If the context does not support it 
      */
@@ -80,7 +80,7 @@ public abstract class ConnectionContext {
     
     /**
      * @return The number of seconds before a query should timeout. A 
-     *   value <= 0 indicates that the query should run indefinitely
+     *   value &lt;= 0 indicates that the query should run indefinitely
      */
     public int getQueryTimeout() {
     
@@ -90,7 +90,7 @@ public abstract class ConnectionContext {
     /**
      * @param truefalse If true, then jsqsh will launch a thread to cancel
      *   the current query when the timeout period has been reached (see
-     *   {@link #setQueryTimeout(long)}) rather than asking the underlying
+     *   {@link #setQueryTimeout(int)}) rather than asking the underlying
      *   connection implementation to do the cancel.
      */
     public void setForceAssistedTimeout(boolean truefalse) {
@@ -109,7 +109,7 @@ public abstract class ConnectionContext {
     /**
      * Sets the query timeout period (in seconds). 
      * @param timeout The number of seconds to wait before timeout.
-     *   A value <= 0 indicates to wait indefinitely.
+     *   A value &lt;= 0 indicates to wait indefinitely.
      */
     public void setQueryTimeout(int timeout) {
     

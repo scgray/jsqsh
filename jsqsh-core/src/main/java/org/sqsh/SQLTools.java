@@ -116,7 +116,7 @@ public class SQLTools {
      * Display SQLExceptions (and any nested exceptions) to an output stream
      * in a nicely formatted style.
      * 
-     * @param out The stream to write to.
+     * @param session The session to use for writing the output
      * @param e The exception.
      */
     public static void printException(Session session, SQLException e) {
@@ -408,9 +408,9 @@ public class SQLTools {
     
     
     /**
-     * This method is used to convert a {@link java.sql.Type} datatype
+     * This method is used to convert a {@link java.sql.Types} datatype
      * value to a displayable string. This conversion is done by reflecting
-     * the {@link java.sql.Type} class.  The reason this method exists
+     * the {@link java.sql.Types} class.  The reason this method exists
      * is that the actual string returned by 
      * {@link java.sql.ResultSetMetaData#getColumnTypeName(int)} is dependant
      * upon the driver and does not reflect the actual JDBC datatype.

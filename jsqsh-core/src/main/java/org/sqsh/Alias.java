@@ -75,7 +75,7 @@ public class Alias
     }
     
     /**
-     * @param Sets whether or not the alias is global
+     * @param isGlobal Sets whether or not the alias is global
      */
     public void setGlobal (boolean isGlobal) {
     
@@ -103,7 +103,7 @@ public class Alias
      * Compares the names of two aliases. This method is provided primarily
      * to allow for easy sorting of aliases on display.
      * 
-     * @param o The object to compare to.
+     * @param that The object to compare to.
      * @return The results of the comparison.
      */
     public int compareTo(Alias that) {

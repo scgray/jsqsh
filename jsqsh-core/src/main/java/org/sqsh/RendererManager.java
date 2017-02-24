@@ -286,7 +286,7 @@ public class RendererManager {
     
     /**
      * @return the number of rows that will be sampled before performing
-     *    "perfect" rendering. A value <= 0 indicates that all rows will
+     *    "perfect" rendering. A value &lt;= 0 indicates that all rows will
      *    be sampled before rendering.
      */
     public int getPerfectSampleSize() {
@@ -296,7 +296,7 @@ public class RendererManager {
     
     /**
      * @param perfectSampleSize Indicates the number of rows that will be
-     *    sampled before performing "perfect" rendering. A value <= 0 indicates 
+     *    sampled before performing "perfect" rendering. A value &lt;= 0 indicates
      *    that all rows will be sampled before rendering.
      */
     public void setPerfectSampleSize(int perfectSampleSize) {

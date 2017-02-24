@@ -153,7 +153,7 @@ public class SQLRenderer {
     }
     
     /**
-     * @return The current maximum update count.  A value <= 0 indicates that
+     * @return The current maximum update count.  A value &lt;= 0 indicates that
      *  there is no limit
      */
     public int getMaxUpdateCount() {
@@ -203,7 +203,7 @@ public class SQLRenderer {
 
     /**
      * Returns the maximum number of rows that will be displayed. A value
-     * <= indicates unlimited results.
+     * &lt;= indicates unlimited results.
      * 
      * @return the maximum number of rows that will be displayed.
      */
@@ -214,7 +214,7 @@ public class SQLRenderer {
 
     /**
      * Returns the maximum number of rows that will be displayed. A value
-     * <= indicates unlimited results.
+     * &lt;= indicates unlimited results.
      * @param maxRows the maximum number of rows that will be displayed.
      */
     public void setMaxRows (int maxRows) {
@@ -742,9 +742,9 @@ public class SQLRenderer {
      * Executes and displays the results from a callable statement.
      * 
      * @param session The session that will be used for output.
-     * @param statement A prepared statement that has had all of its
-     *    SQL and parameters provided.
-     * 
+     * @param sql A statement to be prepared and call with the parameters
+     *   provided
+     *
      * @return true if the SQL executed without error (warnings do not
      *   count towards errors), false if there was at least one error
      *   raised during the execution of the SQL.
@@ -838,9 +838,9 @@ public class SQLRenderer {
      * Executes and displays the results from a parpared statement.
      * 
      * @param session The session that will be used for output.
-     * @param statement A prepared statement that has had all of its
-     *    SQL and parameters provided.
-     * 
+     * @param sql A sql statement to be prepared and called with the
+     *    parameters provided
+     *
      * @return true if the SQL executed without error (warnings do not
      *   count towards errors), false if there was at least one error
      *   raised during the execution of the SQL.
@@ -1571,7 +1571,7 @@ public class SQLRenderer {
      * primarily for debugging purposes.
      * 
      * @param session The session.
-     * @param resultSet The result set.
+     * @param meta Metadata for the result set
      */
     public void displayMetadata(Session session, ResultSetMetaData meta) {
         
@@ -1642,7 +1642,7 @@ public class SQLRenderer {
      * primarily for debugging purposes.
      * 
      * @param session The session.
-     * @param resultSet The result set.
+     * @param meta Metadata for the result set
      */
     public void displayParameterMetadata(Session session, ParameterMetaData meta) {
         

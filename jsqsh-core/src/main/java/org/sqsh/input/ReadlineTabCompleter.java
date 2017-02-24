@@ -43,7 +43,7 @@ public class ReadlineTabCompleter
      * method is induced.
      * 
      * @param word The text up to the word break character.
-     * @param state 0=initial search request, >1 the request for the N'th
+     * @param state 0=initial search request, &gt;1 the request for the N'th
      *    completion entry.
      */
     public String completer (String word, int state) {

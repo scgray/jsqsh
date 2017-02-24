@@ -246,7 +246,7 @@ public class ShellManager {
     /**
      * Spawns a command string as a sub-process that expects
      * to receive its input from the JVM. The input to the sub-process can
-     * be retrieved via {@link Shell#getStdin). The stdout and stderr of the
+     * be retrieved via {@link Shell#getStdin()}. The stdout and stderr of the
      * sub-process is send to the calling terminal.
      * 
      * @param cmd The command to be executed in the sub-shell
@@ -285,7 +285,7 @@ public class ShellManager {
     /**
      * Spawns a shell to execute a command string as a sub-process that expects
      * to receive its input from the JVM. The input to the sub-process can
-     * be retrieved via {@link Shell#getStdin). The stdout and stderr of the
+     * be retrieved via {@link Shell#getStdin()}. The stdout and stderr of the
      * sub-process is send to the calling terminal.
      * 
      * @param cmd The command to be executed in the sub-shell

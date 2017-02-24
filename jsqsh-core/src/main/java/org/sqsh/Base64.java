@@ -551,7 +551,7 @@ public class Base64 {
 
     /**
      * Attempts to decode Base64 data and deserialize a Java Object within.
-     * Returns <tt>null if there was an error.
+     * Returns null if there was an error.
      *
      * @param encodedObject The Base64 data to decode
      * @return The decoded and deserialized object
@@ -652,7 +652,7 @@ public class Base64 {
     /* ******** I N N E R C L A S S I N P U T S T R E A M ******** */
 
     /**
-     * A {@link Base64#InputStream} will read data from another
+     * A <code>InputStream</code> will read data from another
      * {@link java.io.InputStream}, given in the constructor, and encode/decode
      * to/from Base64 notation on the fly.
      * 
@@ -678,7 +678,7 @@ public class Base64 {
         private boolean breakLines; // Break lines at less than 80 characters
 
         /**
-         * Constructs a {@link Base64#InputStream} in DECODE mode.
+         * Constructs an InputStream in DECODE mode.
          * 
          * @param in
          *            the {@link java.io.InputStream} from which to read data.
@@ -690,7 +690,7 @@ public class Base64 {
         } // end constructor
 
         /**
-         * Constructs a {@link Base64#InputStream} in either ENCODE or DECODE
+         * Constructs an InputStream in either ENCODE or DECODE
          * mode.
          * 
          * @param in
@@ -707,7 +707,7 @@ public class Base64 {
         } // end constructor
 
         /**
-         * Constructs a {@link Base64#InputStream} in either ENCODE or DECODE
+         * Constructs an InputStream in either ENCODE or DECODE
          * mode.
          * 
          * @param in
@@ -882,7 +882,7 @@ public class Base64 {
     /* ******** I N N E R C L A S S O U T P U T S T R E A M ******** */
 
     /**
-     * A {@link Base64#OutputStream} will write data to another
+     * A OutputStream will write data to another
      * {@link java.io.OutputStream}, given in the constructor, and
      * encode/decode to/from Base64 notation on the fly.
      * 
@@ -906,7 +906,7 @@ public class Base64 {
         private boolean breakLines;
 
         /**
-         * Constructs a {@link Base64#OutputStream} in ENCODE mode.
+         * Constructs a OutputStream in ENCODE mode.
          * 
          * @param out
          *            the {@link java.io.OutputStream} to which data will be
@@ -919,7 +919,7 @@ public class Base64 {
         } // end constructor
 
         /**
-         * Constructs a {@link Base64#OutputStream} in either ENCODE or DECODE
+         * Constructs a OutputStream in either ENCODE or DECODE
          * mode.
          * 
          * @param out
@@ -937,7 +937,7 @@ public class Base64 {
         } // end constructor
 
         /**
-         * Constructs a {@link Base64#OutputStream} in either ENCODE or DECODE
+         * Constructs a OutputStream in either ENCODE or DECODE
          * mode.
          * 
          * @param out

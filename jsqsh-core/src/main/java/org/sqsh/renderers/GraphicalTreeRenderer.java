@@ -93,7 +93,6 @@ public class GraphicalTreeRenderer
     /**
      * Sets the Columns to order for a specific run.  The col order is set
      * to null after footer is called.
-     * @return the colOrder
      */
     public void setColOrder(int[] colOrder) {
         

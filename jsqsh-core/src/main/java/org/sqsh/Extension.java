@@ -35,7 +35,7 @@ import java.util.Properties;
  * That is, the jars may not yet have been loaded, the commands may not yet
  * be defined, etc.   The extension's {@link #isLoaded()} method may be
  * used to determine if it has been loaded and the {@link #load(SqshContext, ClassLoader)}
- * method will cause it to be loaded (note that only the {@link ExtensionsManager}
+ * method will cause it to be loaded (note that only the {@link ExtensionManager}
  * is allowed to load an extension
  */
 public class Extension {

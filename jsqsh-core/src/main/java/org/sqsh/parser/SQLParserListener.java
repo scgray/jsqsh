@@ -38,7 +38,7 @@ public interface SQLParserListener {
      * 
      * @param parser The state of the parser immediately after the point
      *   at which the clause token was found.
-     * @param clause The name of the clause.
+     * @param statement the statement type that was found
      */
     void foundStatement(SQLParser parser, String statement);
     

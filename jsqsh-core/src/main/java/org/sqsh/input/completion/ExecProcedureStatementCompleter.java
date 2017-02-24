@@ -35,11 +35,6 @@ public class ExecProcedureStatementCompleter
     
     /**
      * Creates a completer.
-     * 
-     * @param statement The name of the statement for which it will complete
-     * @param clause The clause that it will complete for (null if no clause
-     *   applies).
-     * @param completionFlags The set of completions it should perform.
      */
     public ExecProcedureStatementCompleter () {
         

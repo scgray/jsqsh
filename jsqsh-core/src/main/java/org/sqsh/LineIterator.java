@@ -71,7 +71,7 @@ public abstract class LineIterator
     }
     
     /**
-     * @param Specifies the number of spaces that will be utilized when
+     * @param tabExpansion Specifies the number of spaces that will be utilized when
      *   displaying tabs.
      */
     public void setTabExpansion (int tabExpansion) {

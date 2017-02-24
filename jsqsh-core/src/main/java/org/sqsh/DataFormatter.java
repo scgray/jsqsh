@@ -145,7 +145,7 @@ public class DataFormatter {
     }
     
     /**
-     * @param dateFormat the dateFormat to set
+     * @param timeFormat the time format to set
      */
     public void setTimeFormat (String timeFormat) {
     
@@ -178,7 +178,7 @@ public class DataFormatter {
     }
     
     /**
-     * @param dateFormat the dateFormat to set
+     * @param datetimeFormat the format string to use for datetime
      */
     public void setDatetimeFormat (String datetimeFormat) {
     

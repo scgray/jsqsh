@@ -91,8 +91,6 @@ public abstract class SQLStatementCompleter {
      *   "name.name", etc.
      * @param parseState This represents the information that was gleaned by
      *   parsing the current SQL statement.
-     *   
-     * @return An iterator containing the possible completions.
      */
     public abstract void getCompletions(Set<String> completions,
             Connection conn, String []nameParts,
@@ -478,7 +476,7 @@ public abstract class SQLStatementCompleter {
      * that are referenced within the current SQL statement.  That is,
      * if the user does:
      * <pre>
-     *   select count(*) from master..sysobjects as o where o.i<tab>
+     *   select count(*) from master..sysobjects as o where o.i&lt;tab&gt;
      * </pre>
      * this logic will see the 'o.' as a reference to the alias to 
      * master..sysobjects and will attempt to look for all columns 

@@ -16,7 +16,7 @@
 package org.sqsh;
 
 /**
- * This token is returned in response to a >+[n] token on the command
+ * This token is returned in response to a &gt;+[n] token on the command
  * line and is used to indicate that the user wishes the output of the
  * current session to be processed in the context of another session.
  */
@@ -29,7 +29,7 @@ public class SessionRedirectToken
     /**
      * Creates a session redirect token.
      * 
-     * @param sessionId The sessionId of the target session. An id <= 0
+     * @param sessionId The sessionId of the target session. An id &lt;= 0
      *    indicates that the current session is to be used (a loopback).
      * @param line 
      * @param position

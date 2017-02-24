@@ -76,7 +76,7 @@ public class PropertyVariable
     
     /**
      * Set to true if the property can be set.
-     * @param allowSet True if the property can be set.
+     * @param isSettable True if the property can be set.
      */
     public void setSettable (boolean isSettable) {
     

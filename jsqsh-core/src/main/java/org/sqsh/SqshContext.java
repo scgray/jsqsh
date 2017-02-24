@@ -384,7 +384,7 @@ public class SqshContext {
      * Sets the default query timeout for all queries on all sessions (only
      * takes effect for new sessions, not already existing sessions).
      * 
-     * @param secs The number of seconds before query timeout. A value <= 0
+     * @param secs The number of seconds before query timeout. A value &lt;= 0
      *   indicates that there is an indefinite timeout period.
      */
     public void setQueryTimeout(int secs) {
@@ -639,7 +639,7 @@ public class SqshContext {
     
     /**
      * Sets the screen width to use when displaying output. Setting this
-     * to a value <= 0 indicates that jsqsh should automatically attempt to
+     * to a value &lt;= 0 indicates that jsqsh should automatically attempt to
      * determine the width of the screen
      * 
      * @param screenWidth The new screen width.

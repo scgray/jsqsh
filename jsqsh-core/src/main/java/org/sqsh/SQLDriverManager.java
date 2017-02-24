@@ -357,8 +357,7 @@ public class SQLDriverManager {
     /**
      * Given a classpath, parse it and return the individual entries
      * @param classpath The classpath
-     * @return The parsed classpath
-     * @throws IOException 
+     * @throws IOException
      */
     public void addClasspath (List<URL> classpath, String element) 
         throws IOException {

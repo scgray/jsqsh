@@ -53,8 +53,6 @@ public class Buffer
     
     /**
      * Creates an empty buffer.
-     * 
-     * @param id The id to assign to the buffer.
      */
     public Buffer() {
         

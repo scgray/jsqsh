@@ -102,7 +102,6 @@ public class CommandManager {
      * </ul>
      * 
      * @param directory The directory that contains the commands to be imported.
-     * @return Returns the classloader that was used to load the commands
      * @throws CommandImportException if the command cannot be imported
      */
     public void importCommands (ClassLoader loader, String directory) 

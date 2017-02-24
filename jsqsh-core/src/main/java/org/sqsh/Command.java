@@ -48,6 +48,7 @@ import org.sqsh.options.OptionProcessor;
  *   <li> If all of the above pass muster, then the commands
  *        {@link #execute(Session, SqshOptions)} is called with the 
  *        command line options the user has passed.
+ * </ol>
  * That's pretty much it!
  */
 public abstract class Command

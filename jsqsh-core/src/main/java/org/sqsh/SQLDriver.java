@@ -241,7 +241,7 @@ public class SQLDriver
     /**
      * Sets the name of the class that will be utilized for normalizing identifier names
      * 
-     * @param clazz The name of the class.
+     * @param sqlNormalizer The name of the class.
      */
     public void setNormalizer(String sqlNormalizer) {
         
