@@ -31,7 +31,7 @@
       <outputDirectory>/</outputDirectory>
       <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
       <includes>
-         <include>org.sqsh:jsqsh-exttest</include>
+         <include>org.jsqsh:jsqsh-exttest</include>
       </includes>
     </dependencySet>
   </dependencySets>

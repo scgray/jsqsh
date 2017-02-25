@@ -29,24 +29,27 @@
   </fileSets>
   <dependencySets>
     <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
       <outputDirectory>share/jsqsh</outputDirectory>
       <excludes>
-         <exclude>org.sqsh:jsqsh</exclude>
-         <exclude>org.sqsh:jsqsh-exttest</exclude>
+         <exclude>org.jsqsh:jsqsh</exclude>
+         <exclude>org.jsqsh:jsqsh-exttest</exclude>
       </excludes>
     </dependencySet>
     <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
       <outputDirectory>share/jsqsh</outputDirectory>
       <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
       <includes>
-         <include>org.sqsh:jsqsh</include>
+         <include>org.jsqsh:jsqsh</include>
       </includes>
     </dependencySet>
     <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
       <outputDirectory>extensions/test</outputDirectory>
       <unpack>true</unpack>
       <includes>
-         <include>org.sqsh:jsqsh-exttest:tar.gz</include>
+         <include>org.jsqsh:jsqsh-exttest:tar.gz</include>
       </includes>
     </dependencySet>
   </dependencySets>

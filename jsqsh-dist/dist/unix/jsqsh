@@ -12,9 +12,6 @@
 PROG=$(basename $0)
 PROG_DIR=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 
-ACTUAL_PATH=$(readlink -f "$PROG_DIR/$PROG")
-PROG_DIR=$(dirname $ACTUAL_PATH)
-
 #
 # The parent directory of where this script was found
 #
