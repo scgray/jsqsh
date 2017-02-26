@@ -1,4 +1,4 @@
-Package: [[name]]
+Package: jsqsh
 Version: [[version]]
 Section: utils 
 Priority: optional

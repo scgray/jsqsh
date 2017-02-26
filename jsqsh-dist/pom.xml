@@ -131,7 +131,7 @@
           <plugin>
             <groupId>org.vafer</groupId>
             <artifactId>jdeb</artifactId>
-            <version>1.0.1</version>
+            <version>1.5</version>
             <executions>
               <execution>
                 <id>pkg</id>
@@ -143,6 +143,7 @@
             </executions>
             <configuration>
               <deb>${basedir}/target/${project.artifactId}-${project.version}-${build.arch}.deb</deb>
+              <controlDir>${basedir}/dist/archive/deb</controlDir>
               <installDir>/usr</installDir>
               <dataSet>
                 <data>
