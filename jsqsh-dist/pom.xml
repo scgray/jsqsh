@@ -5,20 +5,20 @@
   <groupId>org.jsqsh</groupId>
   <artifactId>jsqsh-dist</artifactId>
   <packaging>pom</packaging>
-  <version>2.3-SNAPSHOT</version>
+  <version>2.3</version>
   <name>JSqsh Packaging</name>
 
   <scm>
     <connection>scm:git:git@github.com:scgray/jsqsh.git</connection>
     <url>scm:git:git@github.com:scgray/jsqsh.git</url>
     <developerConnection>scm:git:git@github.com:scgray/jsqsh.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>jsqsh-2.3</tag>
   </scm>
 
   <parent>
     <groupId>org.jsqsh</groupId>
     <artifactId>jsqsh-root</artifactId>
-    <version>2.3-SNAPSHOT</version>
+    <version>2.3</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -186,12 +186,12 @@
     <dependency>
       <groupId>org.jsqsh</groupId>
       <artifactId>jsqsh</artifactId>
-      <version>2.3-SNAPSHOT</version>
+      <version>2.3</version>
     </dependency>
     <dependency>
       <groupId>org.jsqsh</groupId>
       <artifactId>jsqsh-exttest</artifactId>
-      <version>2.3-SNAPSHOT</version>
+      <version>2.3</version>
       <classifier>ext</classifier>
       <type>tar.gz</type>
     </dependency>
