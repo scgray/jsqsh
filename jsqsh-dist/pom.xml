@@ -144,6 +144,7 @@
             <configuration>
               <deb>${basedir}/target/${project.artifactId}-${project.version}-${build.arch}.deb</deb>
               <controlDir>${basedir}/dist/archive/deb</controlDir>
+              <skipPOMs>false</skipPOMs>
               <installDir>/usr</installDir>
               <dataSet>
                 <data>
