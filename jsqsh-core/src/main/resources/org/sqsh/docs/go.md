@@ -131,7 +131,7 @@ the specified table name. This flag causes the value provided by
 ### --no-footers (-F)
 
 Toggles the display of result footer information (row count and timing
-information). This flag effectively flips the  value of ${[[footer]]} for
+information). This flag effectively flips the  value of ${[[footers]]} for
 the duration of the query execution.
 
 For example, given the result below:
@@ -160,7 +160,7 @@ turning off footers would produce:
 ### --no-headers (-H)
 
 Toggles the display of column header information. This flag effectively 
-flips the value of ${[[header]]} for the duration of the query execution.
+flips the value of ${[[headers]]} for the duration of the query execution.
 
 For example, given the result below:
 
@@ -313,4 +313,4 @@ terminator character to be changed via the `\set` command:
 
 ## See also
 
-[[style]], [[header]], [[footer]], [[timer]]
+[[style]], [[headers]], [[footers]], [[timer]]

@@ -97,17 +97,22 @@ public class Wiki extends Command {
             if (! command.isHidden()) {
                 
                 String commandFile = command.getName();
+                if (commandFile.charAt(0) == '\\') {
+
+                    commandFile = commandFile.substring(1);
+                }
+
                 session.out.println("  " + command.getName());
                 
                 masterPage.print("[[");
                 masterPage.print(command.getName());
-                if (command.getName().indexOf('-') >= 0) {
-                    
-                    commandFile = command.getName().replace("-", "_");
+                if (commandFile.indexOf('-') >= 0) {
 
-                    masterPage.print('|');
-                    masterPage.print(commandFile);
+                    commandFile = commandFile.replace("-", "_");
                 }
+
+                masterPage.print('|');
+                masterPage.print(commandFile);
                 masterPage.print("]] | ");
                 
                 int cnt = 0;
