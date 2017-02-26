@@ -18,11 +18,21 @@ the jsqsh wiki:
 * [Installing](https://github.com/scgray/jsqsh/wiki/Installing)
 * [Getting Started](https://github.com/scgray/jsqsh/wiki/Getting-Started)
 * [User's Guide](https://github.com/scgray/jsqsh/wiki/User%27s-Guide)
+* [Reference](https://github.com/scgray/jsqsh/wiki/Reference)
 * [Tips and Trick](https://github.com/scgray/jsqsh/wiki/Tips-and-Tricks)
-* [Change History](https://github.com/scgray/jsqsh/wiki/Change-History)
 
 I totally welcome contributions, questions, and feedback. Feel free to
 contact me at scottgray1-at-gmail.com.
+
+## Binaries
+
+The latest release is [version 2.3](https://github.com/scgray/jsqsh/releases/tag/jsqsh-2.3).
+Pre-packaged binaries are available for:
+
+* Debian (DEB) - [jsqsh-2.3-noarch.deb](https://github.com/scgray/jsqsh/releases/download/jsqsh-2.3/jsqsh-2.3-noarch.deb)
+* RedHat (RPM) - [jsqsh-2.3-1.noarch.rpm](https://github.com/scgray/jsqsh/releases/download/jsqsh-2.3/jsqsh-2.3-1.noarch.rpm)
+* Tar file - [jsqsh-2.3-bin.tar.gz](https://github.com/scgray/jsqsh/releases/download/jsqsh-2.3/jsqsh-2.3-bin.tar.gz)
+* Zip file - [jsqsh-2.3-bin.zip](https://github.com/scgray/jsqsh/releases/download/jsqsh-2.3/jsqsh-2.3-bin.zip)
 
 ## Licensing
 
