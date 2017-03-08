@@ -15,6 +15,11 @@
  */
 package org.sqsh;
 
+import org.apache.commons.digester.Digester;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.UserInterruptException;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -30,17 +35,12 @@ import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Iterator;
 import java.util.logging.Logger;
-
-import org.apache.commons.digester.Digester;
-import org.jline.reader.EndOfFileException;
-import org.jline.reader.LineReader;
-import org.jline.reader.UserInterruptException;
 
 
 /**
@@ -1127,9 +1127,9 @@ public class SQLDriverManager {
                 if (! driver.isInternal()) {
                     
                     out.println("   <Driver name=\""     + driver.getName() + "\"");
-                    out.println("           url=\""      + driver.getUrl() + "\"");
+                    out.println("           url=\""      + StringEscapeUtils.escapeXml(driver.getUrl()) + "\"");
                     out.println("           class=\""    + driver.getDriverClass() + "\"");
-                    out.println("           target=\""   + driver.getTarget() + "\"");
+                    out.println("           target=\""   + StringEscapeUtils.escapeXml(driver.getTarget()) + "\"");
                     out.println("           analyzer=\"" + driver.getAnalyzer().getClass().getName() + "\"");
                     out.println("           normalizer=\"" + driver.getNormalizer().getClass().getName() + "\">");
                     String classpath[] = driver.getClasspathArray();
