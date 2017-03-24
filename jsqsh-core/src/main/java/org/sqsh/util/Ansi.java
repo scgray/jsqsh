@@ -7,11 +7,6 @@ public class Ansi {
 
     private static final String TERM_ESC = "\033[";
 
-    public static enum Erase {
-        ALL,
-        TO_END
-    }
-
     public static String cursorUp(int nUp) {
 
         return TERM_ESC + nUp + "A";
@@ -47,8 +42,8 @@ public class Ansi {
         return TERM_ESC + "K";
     }
 
-    public static String eraseLine(Erase erase) {
+    public static String eraseLine() {
 
-        throw new RuntimeException("IMPLEMENT ME");
+        return TERM_ESC + "2K";
     }
 }

@@ -15,16 +15,16 @@
  */
 package org.sqsh;
 
+import org.sqsh.util.Ansi;
+import org.sqsh.util.TimeUtils;
+
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.Writer;
 import java.util.logging.Logger;
 
 /*
  * NOTE: These classes are available because they are embedded in jline.
  */
-import org.sqsh.util.Ansi;
-import org.sqsh.util.TimeUtils;
 
 /**
  * Simple thread designed to show a visual query timer on the screen.  By
@@ -393,7 +393,7 @@ public class VisualTimer {
                 try {
 
                     out.append(Ansi.cursorLeft(14 + nback));
-                    out.append(Ansi.eraseLine(Ansi.Erase.ALL));
+                    out.append(Ansi.eraseLine());
                     out.flush();
                 }
                 catch (IOException e) {
