@@ -224,4 +224,16 @@
            Reads input from user into variables
         ]]></Description>
     </Command>
+
+    <Command name="\commit" class="org.sqsh.commands.Commit">
+        <Description><![CDATA[
+           Commits the current transaction
+        ]]></Description>
+    </Command>
+
+    <Command name="\rollback" class="org.sqsh.commands.Rollback">
+        <Description><![CDATA[
+           Rolls back the current transaction
+        ]]></Description>
+    </Command>
 </Commands>

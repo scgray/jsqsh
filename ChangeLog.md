@@ -23,6 +23,7 @@
 
 * The ${multiline_editing} can be used to turn on and off multi-line line
   exiting in JLine3.
+* Added `\commit` and `\rollback` commands
 
 # Release 2.3
 
