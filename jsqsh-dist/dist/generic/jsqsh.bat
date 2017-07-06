@@ -1,2 +1,2 @@
 @echo off
-java -cp "..\share\jsqsh\*" org.sqsh.JSqsh %*
+java  -Dlog4j.configuration=file://../conf/log4j.properties -cp "..\share\jsqsh\*" org.sqsh.JSqsh %*

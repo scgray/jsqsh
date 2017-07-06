@@ -15,6 +15,10 @@
  */
 package org.sqsh;
 
+import org.sqsh.signals.CancelingSignalHandler;
+import org.sqsh.signals.SignalManager;
+import org.sqsh.util.TimeUtils;
+
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ParameterMetaData;
@@ -29,11 +33,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
-
-import org.sqsh.signals.CancelingSignalHandler;
-import org.sqsh.signals.SignalManager;
-import org.sqsh.SqshTypes;
-import org.sqsh.util.TimeUtils;
 
 public class SQLRenderer {
     
@@ -1219,7 +1218,7 @@ public class SQLRenderer {
                     
                     if (renderer.isDiscard()) {
                         
-                        nRows = discardResults(session, resultSet);
+                        nRows = discardResults(session, resultSet, renderer);
                     }
                     else {
                         
@@ -1390,22 +1389,32 @@ public class SQLRenderer {
      * 
      * @param session The session discarding
      * @param resultSet The result to discard
+     * @param renderer THe discarding renderer
      * @return the number of rows discarded
      * @throws SQLException You know...
      */
-    private int discardResults(Session session, ResultSet resultSet)
+    private int discardResults(Session session, ResultSet resultSet, Renderer renderer)
         throws SQLException {
-        
+
         SQLTools.printWarnings(session, resultSet);
-        
+
+        DataFormatter formatter = sqshContext.getDataFormatter();
+        ColumnDescription []columns = getDescription(resultSet, null);
+        String[] row = new String[columns.length];
+        for (int i = 0; i < columns.length; i++) {
+
+            row[i] = formatter.getNull();
+        }
+
+        renderer.header(columns);
+
         int rowCount = 0;
         while (resultSet.next()) {
             
             SQLTools.printWarnings(session, resultSet);
             ++rowCount;
             if (firstRowTime == 0L && rowCount == 1) {
-                
-                
+
                 firstRowTime = System.currentTimeMillis();
             }
             
@@ -1425,6 +1434,16 @@ public class SQLRenderer {
                     continue;
                 }
             }
+
+            if (!renderer.row(row)) {
+
+                return -1;
+            }
+        }
+
+        if (!renderer.flush()) {
+
+            return -1;
         }
         
         return rowCount;

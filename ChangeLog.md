@@ -24,6 +24,8 @@
 * The ${multiline_editing} can be used to turn on and off multi-line line
   exiting in JLine3.
 * Added `\commit` and `\rollback` commands
+* Added new `count` display style
+* Now uses slf4j+log4j configuration to shut up drivers that use the library.
 
 # Release 2.3
 

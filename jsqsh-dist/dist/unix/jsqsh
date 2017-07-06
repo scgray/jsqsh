@@ -35,5 +35,6 @@ export CLASSPATH JSQSH_HOME
 # echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH"
 # echo "CLASSPATH = $CLASSPATH"
 
-exec java $JSQSH_JAVA_OPTS org.sqsh.JSqsh "$@"
+exec java -Dlog4j.configuration=file://${JSQSH_HOME}/conf/log4j.properties $JSQSH_JAVA_OPTS org.sqsh.JSqsh "$@"
+
 

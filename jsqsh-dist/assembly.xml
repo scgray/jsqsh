@@ -19,6 +19,14 @@
       </includes>
     </fileSet>
     <fileSet>
+      <outputDirectory>conf</outputDirectory>
+      <directory>dist</directory>
+      <fileMode>644</fileMode>
+      <includes>
+        <include>log4j.properties</include>
+      </includes>
+    </fileSet>
+    <fileSet>
       <outputDirectory>bin</outputDirectory>
       <directory>dist/generic</directory>
       <fileMode>755</fileMode>

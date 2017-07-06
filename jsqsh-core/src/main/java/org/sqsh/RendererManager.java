@@ -15,14 +15,14 @@
  */
 package org.sqsh;
 
+import org.sqsh.renderers.PerfectPrettyRenderer;
+
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import org.sqsh.renderers.PerfectPrettyRenderer;
 
 /**
  * The renderer manager is responsible for doling out renderers as needed.
@@ -82,6 +82,8 @@ public class RendererManager {
             org.sqsh.renderers.VerticalRenderer.class);
         renderers.put("json",
             org.sqsh.renderers.JsonRenderer.class);
+        renderers.put("count",
+                org.sqsh.renderers.CountRenderer.class);
     }
 
     /**

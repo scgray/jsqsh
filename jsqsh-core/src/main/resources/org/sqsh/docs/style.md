@@ -13,6 +13,20 @@
    The following styles may be set for a SQL (JDBC) session established
    using `\connect`, or may be set when no session has been started.
    
+   * `count`  
+     The `count` display style is used primarily for performance testing. It
+     acts like the `discard` output style in that it fetches all rows, but does
+     not format or display them, however it periodically reports the rate of
+     row retrievals.  The update interval can be controlled by the ${[[count_report]])
+     configuration variable (by default, every 10,000) rows. For example:
+
+        1> select * from some_big_table
+        2> go -m count
+        Result set #1 returned 10000 rows (10.195s, 980.87 rows/sec), 10000 total (10.195s, 980.872977 rows/sec)
+        Result set #1 returned 10000 rows (12.369s, 808.47 rows/sec), 20000 total (22.566s, 886.289108 rows/sec)
+        Result set #1 returned 10000 rows (11.567s, 864.53 rows/sec), 30000 total (34.133s, 878.914833 rows/sec)
+        ...
+
    * `csv`  
      Displays the output as a set of comma separated values suitable for 
      loading into, say, Excel. For example:

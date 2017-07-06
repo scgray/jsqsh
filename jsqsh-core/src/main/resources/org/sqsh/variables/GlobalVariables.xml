@@ -197,6 +197,10 @@
         <Description>Controls how quotes are escaped by 'csv' display style</Description>
     </Property>
 
+    <Property bean="global" name="count_report" property="rendererManager.rendererByName(count).updateInterval">
+        <Description>Controls how often the "count" display style reports statistics</Description>
+    </Property>
+
     <Property bean="global" name="multiline_editing" property="console.multiLineEnabled">
         <Description>Controls ability to perform multi-line line editing</Description>
     </Property>
