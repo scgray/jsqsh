@@ -1206,8 +1206,6 @@ public class SQLRenderer {
                  */
                 if (hasResults) {
                     
-                    int nRows = -1;
-                    
                     resultSet = statement.getResultSet();
                     SQLTools.printWarnings(session, statement);
                     
@@ -1216,15 +1214,8 @@ public class SQLRenderer {
                         displayMetadata(session, resultSet.getMetaData());
                     }
                     
-                    if (renderer.isDiscard()) {
-                        
-                        nRows = discardResults(session, resultSet, renderer);
-                    }
-                    else {
-                        
-                        nRows = displayResults(renderer, session, resultSet, null);
-                    }
-                    
+                    int nRows = displayResults(renderer, session, resultSet, null);
+
                     /*
                      * A negative value here indicates that the results
                      * were not properly displayed to the caller, so we
@@ -1382,73 +1373,7 @@ public class SQLRenderer {
         
         return ok;
     }
-    
-    /**
-     * Used when collecting timing information to fetch all rows, but never
-     * look at them (discard)
-     * 
-     * @param session The session discarding
-     * @param resultSet The result to discard
-     * @param renderer THe discarding renderer
-     * @return the number of rows discarded
-     * @throws SQLException You know...
-     */
-    private int discardResults(Session session, ResultSet resultSet, Renderer renderer)
-        throws SQLException {
 
-        SQLTools.printWarnings(session, resultSet);
-
-        DataFormatter formatter = sqshContext.getDataFormatter();
-        ColumnDescription []columns = getDescription(resultSet, null);
-        String[] row = new String[columns.length];
-        for (int i = 0; i < columns.length; i++) {
-
-            row[i] = formatter.getNull();
-        }
-
-        renderer.header(columns);
-
-        int rowCount = 0;
-        while (resultSet.next()) {
-            
-            SQLTools.printWarnings(session, resultSet);
-            ++rowCount;
-            if (firstRowTime == 0L && rowCount == 1) {
-
-                firstRowTime = System.currentTimeMillis();
-            }
-            
-            /*
-             * Check to see if we have hit the limit on the number of
-             * rows we are to process.
-             */
-            if (maxRows > 0 && rowCount > maxRows) {
-                
-                if (rowLimitMethod == LIMIT_CANCEL) {
-                    
-                    resultSet.getStatement().cancel();
-                    break;
-                }
-                else if (rowLimitMethod == LIMIT_DISCARD) {
-                    
-                    continue;
-                }
-            }
-
-            if (!renderer.row(row)) {
-
-                return -1;
-            }
-        }
-
-        if (!renderer.flush()) {
-
-            return -1;
-        }
-        
-        return rowCount;
-    }
-    
     /**
      * Displays a result set.
      * @param session The session used for output.
@@ -1468,7 +1393,25 @@ public class SQLRenderer {
         ColumnDescription []columns = getDescription(resultSet, displayCols);
         int nCols = resultSet.getMetaData().getColumnCount();
         int rowCount = 0;
-        
+
+        /*
+         * If this is a discarding renderer, then create a synthetic row to
+         * represent the results to be discarded.
+         */
+        final String[] discardRow;
+        if (renderer.isDiscard()) {
+
+            discardRow = new String[columns.length];
+            for (int i = 0; i < discardRow.length; i++) {
+
+                discardRow[i] = formatter.getNull();
+            }
+        }
+        else {
+
+            discardRow = null;
+        }
+
         /*
          * Display the header
          */
@@ -1500,84 +1443,93 @@ public class SQLRenderer {
                     continue;
                 }
             }
-            
-            String row[] = new String[columns.length];
-            int idx = 0;
-            for (int i = 1; i <= nCols; i++) {
-                
-                if (displayCols == null || displayCols.contains(i)) {
+
+
+            final String[] row;
+            if (discardRow != null) {
+
+                row = discardRow;
+            }
+            else {
+
+                row = new String[columns.length];
+                int idx = 0;
+                for (int i = 1; i <= nCols; i++) {
+
+                    if (displayCols == null || displayCols.contains(i)) {
+
+                        Object value = null;
+                        boolean wasNull = false;
+                        boolean wasError = false;
                     
-                    Object value = null;
-                    boolean wasNull = false;
-                    boolean wasError = false;
-                    
-                    /*
-                     * With certain drivers I've had problems with resultSet.getObject()
-                     * so for those data types that I run into this issue I am
-                     * calling the "correct" getter method.
-                     */
-                    try {
-                        
-                        switch (columns[idx].getNativeType()) {
-                    
-                        case Types.TIMESTAMP:
-                            value = resultSet.getTimestamp(i);
-                            break;
-                        case Types.VARCHAR:
-                        case Types.CHAR:
-                        case Types.LONGVARCHAR:
-                            value = resultSet.getString(i);
-                            break;
-                        default:
-                            value = resultSet.getObject(i);
+                        /*
+                         * With certain drivers I've had problems with resultSet.getObject()
+                         * so for those data types that I run into this issue I am
+                         * calling the "correct" getter method.
+                         */
+                        try {
+
+                            switch (columns[idx].getNativeType()) {
+
+                                case Types.TIMESTAMP:
+                                    value = resultSet.getTimestamp(i);
+                                    break;
+                                case Types.VARCHAR:
+                                case Types.CHAR:
+                                case Types.LONGVARCHAR:
+                                    value = resultSet.getString(i);
+                                    break;
+                                default:
+                                    value = resultSet.getObject(i);
+                            }
+
+                            wasNull = resultSet.wasNull();
                         }
-                        
-                        wasNull = resultSet.wasNull();
-                    }
-                    catch (SQLException e) {
-                        
-                        LOG.fine("Row #" + rowCount + ", column " + i 
-                                + ", driver error decoding value: " + e.getMessage());
-                        
-                        session.setException(e);
-                        wasError = true;
-                        wasNull = false;
-                    }
-                    
-                    if (wasNull) {
-                        
-                        row[idx] = formatter.getNull();
-                    }
-                    else {
-                        
-                        if (wasError) {
-                            
-                            row[idx] = "*ERROR*";
+                        catch (SQLException e) {
+
+                            LOG.fine("Row #" + rowCount + ", column " + i
+                                    + ", driver error decoding value: " + e.getMessage());
+
+                            session.setException(e);
+                            wasError = true;
+                            wasNull = false;
                         }
-                        else if (value == null) {
-                            
-                            session.err.println("WARNING: Row #" 
-                                + rowCount + ", column " + i + ", driver indicated "
-                                + "a value present, but returned NULL");
+
+                        if (wasNull) {
+
                             row[idx] = formatter.getNull();
                         }
                         else {
-                            
-                            row[idx] = columns[idx].getFormatter().format(value);
+
+                            if (wasError) {
+
+                                row[idx] = "*ERROR*";
+                            }
+                            else if (value == null) {
+
+                                session.err.println("WARNING: Row #"
+                                        + rowCount + ", column " + i + ", driver indicated "
+                                        + "a value present, but returned NULL");
+                                row[idx] = formatter.getNull();
+                            }
+                            else {
+
+                                row[idx] = columns[idx].getFormatter().format(value);
+                            }
                         }
+
+                        ++idx;
                     }
-                    
-                    ++idx;
                 }
             }
             
-            if (renderer.row(row) == false) {
+            if (!renderer.row(row)) {
                 
                 return -1;
             }
         }
         
-        if (renderer.flush() == false) {
+        if (!renderer.flush()) {
             
             return -1;
         }

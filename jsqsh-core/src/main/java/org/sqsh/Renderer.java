@@ -88,7 +88,11 @@ public abstract class Renderer {
     
     /**
      * True if this is a renderer that simply discards data rather than 
-     * displaying it. When a renderer is a discarding renderer it is effectively
+     * displaying it. When a renderer is a discarding renderer, the
+     * <code>SQLRenderer</code> will avoid the overhead of converting each row
+     * and column into the desired display format and, instead, call the
+     * <code>row()</code> method with a set of NULL values.
+     *
      * just a marker for jsqsh to throw rows away, which it does without ever
      * calling any methods on the renderer to do any work.
      * 
