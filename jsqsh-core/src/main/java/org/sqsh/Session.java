@@ -15,6 +15,15 @@
  */
 package org.sqsh;
 
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.UserInterruptException;
+import org.sqsh.jline.TextAttribute;
+import org.sqsh.jni.Shell;
+import org.sqsh.jni.ShellException;
+import org.sqsh.jni.ShellManager;
+import org.sqsh.signals.FlaggingSignalHandler;
+import org.sqsh.signals.SignalManager;
+
 import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.File;
@@ -32,16 +41,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.jline.reader.EndOfFileException;
-import org.jline.reader.UserInterruptException;
-import org.sqsh.jline.TextAttribute;
-import org.sqsh.jni.Shell;
-import org.sqsh.jni.ShellException;
-import org.sqsh.jni.ShellManager;
-import org.sqsh.signals.FlaggingSignalHandler;
-import org.sqsh.signals.SignalManager;
-
-import static org.sqsh.SqshConsole.AcceptCause.*;
+import static org.sqsh.SqshConsole.AcceptCause.EXECUTE;
 
 /**
  * Represents an active session in sqsh. A session is the complete
@@ -1159,7 +1159,7 @@ public class Session
     }
 
     /**
-     * After calling readLine() returns the reason that the line was returned
+     * After calling readSingleLine() returns the reason that the line was returned
      * @return The reason the line was returned. See {@link org.sqsh.SqshConsole.AcceptCause} for details.
      */
     private SqshConsole.AcceptCause getReadLineAcceptCause() {

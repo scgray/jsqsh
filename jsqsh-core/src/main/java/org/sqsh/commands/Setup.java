@@ -15,22 +15,18 @@
  */
 package org.sqsh.commands;
 
-import java.io.File;
-import java.io.PrintStream;
-import java.net.URL;
-import java.sql.Driver;
-import java.sql.DriverPropertyInfo;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Properties;
-
 import org.jline.reader.LineReader;
 import org.jline.reader.UserInterruptException;
-import org.sqsh.*;
+import org.sqsh.Command;
+import org.sqsh.ConnectionDescriptor;
+import org.sqsh.ConnectionDescriptorManager;
+import org.sqsh.SQLConnectionContext;
+import org.sqsh.SQLDriver;
 import org.sqsh.SQLDriver.DriverVariable;
+import org.sqsh.SQLDriverManager;
+import org.sqsh.SQLTools;
+import org.sqsh.Session;
+import org.sqsh.SqshOptions;
 import org.sqsh.analyzers.ANSIAnalyzer;
 import org.sqsh.analyzers.NullAnalyzer;
 import org.sqsh.analyzers.PLSQLAnalyzer;
@@ -42,6 +38,18 @@ import org.sqsh.normalizer.SQLNormalizer;
 import org.sqsh.normalizer.UpperCaseNormalizer;
 import org.sqsh.options.Argv;
 import org.sqsh.util.Ansi;
+
+import java.io.File;
+import java.io.PrintStream;
+import java.net.URL;
+import java.sql.Driver;
+import java.sql.DriverPropertyInfo;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 public class Setup extends Command {
     
@@ -62,7 +70,7 @@ public class Setup extends Command {
     public int execute(Session session, SqshOptions opts) throws Exception {
         
         Options options = (Options)opts;
-        LineReader in = session.getContext().getSimplePromptReader();
+        LineReader in = session.getContext().getConsole().getSimpleLineReader();
 
         try {
 

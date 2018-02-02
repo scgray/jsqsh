@@ -1,8 +1,12 @@
 package org.sqsh;
 
 import org.jline.keymap.KeyMap;
-import org.jline.reader.*;
-import org.jline.reader.impl.BufferImpl;
+import org.jline.reader.Binding;
+import org.jline.reader.Buffer;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.Reference;
+import org.jline.reader.Widget;
 import org.jline.reader.impl.DefaultParser;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
@@ -22,7 +26,7 @@ public class SqshConsole {
      * Enumerates the reason that a call to readLine accepted its input and returned
      * to the caller
      */
-    public static enum AcceptCause {
+    public enum AcceptCause {
 
         /**
          * Means that the user's input "normally" was complete.  That is, they
@@ -39,6 +43,7 @@ public class SqshConsole {
 
     private SqshContext context;
     private LineReader reader;
+    private LineReader simpleLineReader = null;
     private AcceptCause acceptCause = AcceptCause.NORMAL;
 
     /**
@@ -49,34 +54,10 @@ public class SqshConsole {
     public SqshConsole(SqshContext context) {
 
         this.context = context;
-        Terminal terminal;
-        try {
-
-            terminal = TerminalBuilder.builder()
-                    .nativeSignals(true)
-                    .build();
-        }
-        catch (IOException e) {
-
-            System.err.println("Unable to create terminal: " + e.getMessage()
-                    + ". Falling back to dumb terminal");
-            try {
-                terminal = TerminalBuilder.builder()
-                        .dumb(true)
-                        .build();
-            }
-            catch (IOException e2) {
-
-                System.err.println("Unable to create dumb terminal: " + e2.getMessage()
-                        + ". Giving up");
-                throw new RuntimeException(e.getMessage(), e);
-            }
-        }
-
         File readlineHistory = new File(context.getConfigDirectory(), "jline_history");
         reader = LineReaderBuilder.builder()
                 .appName("jsqsh")
-                .terminal(terminal)
+                .terminal(newTerminal())
                 .completer(new JLineCompleter(context))
                 .parser(new DefaultParser())
                 .variable(LineReader.HISTORY_FILE, readlineHistory.toString())
@@ -101,22 +82,52 @@ public class SqshConsole {
         reader.setOpt(LineReader.Option.DISABLE_EVENT_EXPANSION);
     }
 
-    public String readLine(String prompt) {
+    public String readSingleLine(String prompt, Character mask) {
 
-        reset();
-        return reader.readLine(prompt, null);
+        return getSimpleLineReader().readLine(prompt, mask);
     }
 
-    public String readLine(String prompt, Character mask) {
+    public LineReader getSimpleLineReader() {
 
-        reset();
-        return reader.readLine(prompt, mask);
+        if (simpleLineReader == null) {
+
+            simpleLineReader = LineReaderBuilder.builder()
+                    .appName("jsqsh")
+                    .terminal(newTerminal())
+                    .build();
+        }
+
+        return simpleLineReader;
     }
 
-    public String readLine(String prompt, Character mask, String initialInput) {
+    private Terminal newTerminal() {
 
-        reset();
-        return reader.readLine(prompt, mask, initialInput);
+        Terminal terminal;
+        try {
+
+            terminal = TerminalBuilder.builder()
+                    .nativeSignals(true)
+                    .build();
+        }
+        catch (IOException e) {
+
+            System.err.println("Unable to create terminal: " + e.getMessage()
+                    + ". Falling back to dumb terminal");
+            try {
+
+                terminal = TerminalBuilder.builder()
+                        .dumb(true)
+                        .build();
+            }
+            catch (IOException e2) {
+
+                System.err.println("Unable to create dumb terminal: " + e2.getMessage()
+                        + ". Giving up");
+                throw new RuntimeException(e.getMessage(), e);
+            }
+        }
+
+        return terminal;
     }
 
     public String readLine(int lineOffset, String prompt, String prompt2, Character mask, String initialInput) {
@@ -134,6 +145,7 @@ public class SqshConsole {
             reader.setVariable(LineReader.SECONDARY_PROMPT_PATTERN, null);
         }
     }
+
 
     /**
      * Toggles whether or not readLine will save its read input to the history
@@ -167,7 +179,7 @@ public class SqshConsole {
         reader.getHistory().add(input);
     }
 
-    public void saveHistory() {
+    public void saveHistory() throws IOException {
 
         reader.getHistory().save();
     }
@@ -289,7 +301,7 @@ public class SqshConsole {
         @Override
         public boolean apply() {
 
-            final BufferImpl buffer = reader.getBuffer();
+            final Buffer buffer = reader.getBuffer();
 
             if (context.getCurrentSession().isInputComplete(buffer.toString(), buffer.cursor())) {
 

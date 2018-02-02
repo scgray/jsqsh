@@ -16,7 +16,6 @@
 package org.sqsh.commands;
 
 import org.jline.reader.EndOfFileException;
-import org.jline.reader.LineReader;
 import org.jline.reader.UserInterruptException;
 import org.sqsh.Command;
 import org.sqsh.Session;
@@ -89,7 +88,7 @@ public class Read extends Command {
         SqshConsole in = session.getContext().getConsole();
         String str;
         try {
-            str = in.readLine(options.prompt, options.isSilent ? '*' : null);
+            str = in.readSingleLine(options.prompt, options.isSilent ? '*' : null);
         }
         catch (UserInterruptException e) {
             str = null;

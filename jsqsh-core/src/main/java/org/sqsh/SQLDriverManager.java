@@ -869,7 +869,7 @@ public class SQLDriverManager {
 
         try {
 
-            return session.getContext().getConsole().readLine(prompt, isMasked ? '*' : null);
+            return session.getContext().getConsole().readSingleLine(prompt, isMasked ? '*' : null);
         }
         catch (UserInterruptException e) {
 

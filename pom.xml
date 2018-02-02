@@ -57,7 +57,7 @@
     <digester.version>1.8.1</digester.version>
     <lang.version>2.6</lang.version>
     <velocity.version>1.7</velocity.version>
-    <jline.version>3.1.3</jline.version>
+    <jline.version>3.5.2</jline.version>
     <slf4j.version>1.7.14</slf4j.version>
   </properties>
 

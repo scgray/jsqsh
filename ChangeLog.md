@@ -25,6 +25,10 @@
   exiting in JLine3.
 * Added `\commit` and `\rollback` commands
 * Added new `count` display style
+* If $JSQSH_HOME is set (which it will be by the shell script that launches 
+  it) and $JSQSH_HOME/config exists, then the directory will be loaded in
+  the same fashion as $HOME/.jsqsh, allowing the binary to be packaged up
+  with custom connection and driver definitions if desired.
 * Now uses slf4j+log4j configuration to shut up drivers that use the library.
 
 # Release 2.3

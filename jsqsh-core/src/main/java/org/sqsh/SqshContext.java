@@ -15,7 +15,8 @@
  */
 package org.sqsh;
 
-import java.io.BufferedInputStream;
+import org.sqsh.jni.ShellManager;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,15 +26,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.sql.Driver;
-import java.util.*;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
-
-import org.jline.reader.LineReader;
-import org.jline.reader.LineReaderBuilder;
-import org.jline.terminal.Terminal;
-import org.jline.terminal.TerminalBuilder;
-import org.sqsh.jni.ShellManager;
+import java.util.logging.Logger;
 
 /**
  * The SqshContext is the master container of all things jsqsh. Its primary
@@ -102,11 +100,6 @@ public class SqshContext {
      * The line reader to use during interactive sessions
      */
     private SqshConsole console = null;
-
-    /**
-     * A line reader to use when simply prompting the user for, say, a Y/N question
-     */
-    private LineReader simplePromptReader = null;
 
     /**
      * This objects instantiates all commands and manages all of the
@@ -311,6 +304,11 @@ public class SqshContext {
          * Run the internal initializations cript.
          */
         runInitializationScript();
+
+        /*
+         * If $JSQSH_HOME/config exists, load it.
+         */
+        loadGlobalConfigDirectoryIfExists();
         
         /*
          * Create a configuration directory for the user if necessary.
@@ -362,6 +360,26 @@ public class SqshContext {
         }
 
         return instance;
+    }
+
+    /**
+     * If the directory <code>$JSQSH_HOME/conf</code> it is loaded.
+     */
+    private void loadGlobalConfigDirectoryIfExists() {
+
+        final String jsqshHome = System.getenv("JSQSH_HOME");
+        if (jsqshHome == null) {
+
+            return;
+        }
+
+        File homeConfig = new File(jsqshHome, "conf");
+        if (! homeConfig.isDirectory()) {
+
+            return;
+        }
+
+        loadConfigDirectory(homeConfig, false);
     }
     
     /**
@@ -816,46 +834,6 @@ public class SqshContext {
         }
 
         return console;
-    }
-
-    /**
-     * @return A minimally configured line reader that is suitable for basic Y/N
-     *   sorts of prompting input from the user
-     */
-    public LineReader getSimplePromptReader() {
-
-        if (simplePromptReader == null) {
-
-            Terminal terminal;
-            try {
-
-                terminal = TerminalBuilder.builder()
-                        .nativeSignals(true)
-                        .build();
-            }
-            catch (IOException e) {
-
-                try {
-
-                    terminal = TerminalBuilder.builder()
-                            .dumb(true)
-                            .build();
-                }
-                catch (IOException e2) {
-
-                    System.err.println("Unable to create dumb terminal: " + e2.getMessage()
-                            + ". Giving up");
-                    throw new RuntimeException(e.getMessage(), e);
-                }
-            }
-
-            simplePromptReader = LineReaderBuilder.builder()
-                    .appName("jsqsh_dumb")
-                    .terminal(terminal)
-                    .build();
-        }
-
-        return simplePromptReader;
     }
 
     /**
@@ -1543,7 +1521,7 @@ public class SqshContext {
         try {
             
             // getConsole().readline("Hit enter to continue: ", false);
-            getConsole().readLine("Hit enter to continue: ", ' ');
+            getConsole().readSingleLine("Hit enter to continue: ", ' ');
             Command command = session.getCommandManager().getCommand("\\setup");
             command.execute(session, new String [] { });
         }
@@ -1780,7 +1758,14 @@ public class SqshContext {
 
         if (console != null) {
 
-            console.saveHistory();
+            try {
+
+                console.saveHistory();
+            }
+            catch (IOException e) {
+
+                System.err.println("WARNING: Failed to save console history: " + e.getMessage());
+            }
         }
     }
     
