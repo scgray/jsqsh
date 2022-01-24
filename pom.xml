@@ -17,15 +17,6 @@
     </license>
   </licenses>
 
-
-  <!-- Needed for pty4j -->
-  <repositories>
-    <repository>
-      <id>jetbrains-intellij-dependencies</id>
-      <url>https://packages.jetbrains.team/maven/p/ij/intellij-dependencies</url>
-    </repository>
-  </repositories>
-
   <scm>
     <connection>scm:git:git@github.com:scgray/jsqsh.git</connection>
     <url>scm:git:git@github.com:scgray/jsqsh.git</url>
@@ -70,7 +61,7 @@
     <velocity.version>2.3</velocity.version>
     <jline.version>3.21.0</jline.version>
     <slf4j.version>1.7.33</slf4j.version>
-    <pty4j.version>0.12.3</pty4j.version>
+    <junit.version>4.13.2</junit.version>
   </properties>
 
   <build>
