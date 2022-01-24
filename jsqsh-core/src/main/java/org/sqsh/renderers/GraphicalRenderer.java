@@ -15,32 +15,26 @@
  */
 package org.sqsh.renderers;
 
-import java.awt.BorderLayout;
-import java.awt.Font;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Vector;
-
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.event.TableModelEvent;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
-
 import org.sqsh.ColumnDescription;
 import org.sqsh.Renderer;
 import org.sqsh.RendererManager;
 import org.sqsh.Session;
 import org.sqsh.variables.DimensionVariable;
 import org.sqsh.variables.FontVariable;
+
+import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Vector;
 
 /**
  * The GraphicalRenderer displays row results using a swing graphical
@@ -238,10 +232,8 @@ public class GraphicalRenderer
                 table.getTableHeader().repaint();
 
                 ColumnDescription des = columns[modelIndex];
-                
-                Collections.sort(getDataVector(), 
-                        new ColumnComparator(modelIndex,
-                    isAscending,  des, nullRepresentation));
+
+                Collections.sort(getDataVector(), new ColumnComparator(modelIndex, isAscending,  des, nullRepresentation));
                 
                 table.tableChanged(new TableModelEvent(
                     SortableTableModel.this));
@@ -251,7 +243,7 @@ public class GraphicalRenderer
     }
     
     private static class ColumnComparator
-        implements Comparator<Vector<String>> {
+        implements Comparator<Vector> {
         
         private int idx;
         private boolean isAscending;
@@ -269,10 +261,11 @@ public class GraphicalRenderer
             this.nullRepresentation = nullRepresentation;
         }
 
-        public int compare (Vector<String> o1, Vector<String> o2) {
+        @SuppressWarnings("unchecked")
+        public int compare (Vector o1, Vector o2) {
             
-            Vector<String> row1 = o1;
-            Vector<String> row2 = o2;
+            List<String> row1 = (List<String>) o1;
+            List<String> row2 = (List<String>) o2;
             int r = 0;
             
             /*

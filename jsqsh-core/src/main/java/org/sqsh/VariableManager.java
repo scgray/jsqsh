@@ -15,18 +15,12 @@
  */
 package org.sqsh;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Logger;
-
-import org.apache.commons.digester.Digester;
+import org.apache.commons.digester3.Digester;
 import org.sqsh.variables.StringVariable;
+
+import java.io.InputStream;
+import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Provides an interface to manipulating session variables. This class
@@ -35,12 +29,12 @@ import org.sqsh.variables.StringVariable;
  * were not necessary for my purposes.
  */
 public class VariableManager
-    implements Map<String, String> {
+    implements Map<String, Object> {
     
     private static final Logger LOG = 
         Logger.getLogger(VariableManager.class.getName());
     
-    private VariableManager parent = null;
+    private final VariableManager parent;
     
     private Map<String, Variable>variables = 
         new HashMap<String, Variable>();
@@ -51,7 +45,7 @@ public class VariableManager
     private Map<String, Object>beans = new HashMap<String, Object>();
     
     private static class VarEntry
-        implements Entry<String, String> {
+        implements Entry<String, Object> {
         
         private Variable var;
         
@@ -63,6 +57,7 @@ public class VariableManager
         /**
          * @see java.util.Map.Entry#getKey()
          */
+        @Override
         public String getKey () {
 
             return var.getName();
@@ -71,7 +66,8 @@ public class VariableManager
         /**
          * @see java.util.Map.Entry#getValue()
          */
-        public String getValue () {
+        @Override
+        public Object getValue () {
 
             return var.toString();
         }
@@ -79,10 +75,11 @@ public class VariableManager
         /**
          * @see java.util.Map.Entry#setValue(java.lang.Object)
          */
-        public String setValue (String value) {
+        @Override
+        public Object setValue (Object value) {
 
             String oldValue = var.toString();
-            var.setValue(value);
+            var.setValue(value == null ? null : value.toString());
             
             return oldValue;
         }
@@ -92,7 +89,8 @@ public class VariableManager
      * Creates a variable manager.
      */
     public VariableManager () {
-        
+
+        this.parent = null;
     }
     
     /**
@@ -182,23 +180,18 @@ public class VariableManager
      * @return The old value of the variable.
      */
     @Override
-    public String put(String name, String value) {
+    public String put(String name, Object value) {
         
         return put(name, value, false);
     }
-    
-    /**
-     * @see java.util.Map#putAll(java.util.Map)
-     */
+
     @Override
-    public void putAll (Map<? extends String, ? extends String> map) {
-        
-        for (Entry<? extends String, ? extends String>e : map.entrySet()) {
-            
-            put(e.getKey(), e.getValue());
+    public void putAll(Map<? extends String, ?> map) {
+        for (Entry<?, ?> e : map.entrySet()) {
+            put(e.getKey().toString(), e.getValue());
         }
     }
-    
+
     /**
      * Sets the value of a session variable.
      * 
@@ -211,9 +204,10 @@ public class VariableManager
      * @throws CannotSetValueError if the value of the variable cannot be
      * changed for one reason or another.
      */
-    public String put(String name, String value, boolean isExported)
+    public String put(String name, Object value, boolean isExported)
         throws CannotSetValueError {
-        
+
+        final String valueStr = value == null ? null : value.toString();
         Variable var = variables.get(name);
         if (var == null && parent != null) {
 
@@ -223,7 +217,7 @@ public class VariableManager
         String oldValue = null;
         if (var == null) {
             
-            var = new StringVariable(name, value, isExported);
+            var = new StringVariable(name, valueStr, isExported);
             var.setExported(isExported);
             
             put(var);
@@ -231,7 +225,7 @@ public class VariableManager
         else {
             
             oldValue = var.toString();
-            var.setValue(value);
+            var.setValue(valueStr);
         }
         
         return oldValue;
@@ -347,9 +341,9 @@ public class VariableManager
      * Returns the entry set for the map.
      */
     @Override
-    public Set<Entry<String, String>> entrySet() {
+    public Set<Entry<String, Object>> entrySet() {
         
-        Set<Entry<String, String>> set = new HashSet<Entry<String, String>>();
+        Set<Entry<String, Object>> set = new HashSet<>();
         
         for (Variable var : variables.values()) {
             
@@ -491,9 +485,9 @@ public class VariableManager
      * Returns the values o the map.
      */
     @Override
-    public Collection<String> values() {
+    public Collection<Object> values() {
         
-        List <String>values = new ArrayList<String>();
+        List<Object> values = new ArrayList<>();
         for (Variable var : variables.values()) {
             
             values.add(var.toString());

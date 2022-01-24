@@ -21,8 +21,6 @@ import org.sqsh.jline.TextAttribute;
 import org.sqsh.jni.Shell;
 import org.sqsh.jni.ShellException;
 import org.sqsh.jni.ShellManager;
-import org.sqsh.signals.FlaggingSignalHandler;
-import org.sqsh.signals.SignalManager;
 
 import java.io.BufferedReader;
 import java.io.EOFException;
@@ -831,105 +829,76 @@ public class Session
             getBufferManager().newBuffer();
         }
         
-        /*
-         * Create our signal handler. This will send this thread an
-         * interrupt when a signal is received.
-         */
-        FlaggingSignalHandler sigHandler = new FlaggingSignalHandler();
-        SignalManager sigMan = SignalManager.getInstance();
-        sigMan.push(sigHandler);
+        while (!done) {
 
-        try {
-            
-            while (!done) {
-                
-                sigHandler.clear();
+            try {
 
-                try {
+                line = readLine();
+                SqshConsole.AcceptCause acceptCause = getReadLineAcceptCause();
 
-                    line = readLine();
-                    SqshConsole.AcceptCause acceptCause = getReadLineAcceptCause();
+                if (line == null) {
 
-                    if (line == null) {
-                        
-                        done = true;
+                    done = true;
+                }
+                else {
+
+                    /*
+                     * If we were using JLine for the input it is possible that our line of input may
+                     * contain more than one physical line. If this is the case, we want to break it up
+                     * into individual lines for line-by-line evaluation
+                     */
+                    Command lastCommand = null;
+                    int eol = line.indexOf('\n');
+                    if (eol > 0) {
+
+                        int startOfLine = 0;
+                        while (eol > 0) {
+
+                            evaluate(line.substring(startOfLine, eol));
+                            startOfLine = eol + 1;
+                            eol = line.indexOf('\n', startOfLine);
+                        }
+
+                        if (startOfLine < line.length()) {
+
+                            lastCommand = evaluate(line.substring(startOfLine));
+                        }
                     }
                     else {
 
-
-                        if (sigHandler.isTriggered() == false) {
-
-                            /*
-                             * If we were using JLine for the input it is possible that our line of input may
-                             * contain more than one physical line. If this is the case, we want to break it up
-                             * into individual lines for line-by-line evaluation
-                             */
-                            Command lastCommand = null;
-                            int eol = line.indexOf('\n');
-                            if (eol > 0) {
-
-                                int startOfLine = 0;
-                                while (eol > 0) {
-
-                                    evaluate(line.substring(startOfLine, eol));
-                                    startOfLine = eol + 1;
-                                    eol = line.indexOf('\n', startOfLine);
-                                }
-
-                                if (startOfLine < line.length()) {
-
-                                    lastCommand = evaluate(line.substring(startOfLine));
-                                }
-                            }
-                            else {
-
-                                lastCommand = evaluate(line);
-                            }
-
-                            /*
-                             * If we accepted the user's input because they requested the statement
-                             * be executed
-                             */
-                            if (acceptCause == EXECUTE
-                                    && lastCommand != getCommand("\\go")
-                                    && getBufferManager().getCurrent().length() > 0) {
-
-                                Command go = getCommand("\\go");
-                                runCommand(go, "\\go");
-                            }
-                        }
-                        else if (!ioManager.isInteractive()) {
-                                
-                            /*
-                             * If the user hit CTRL-C and we aren't interactive
-                             * then we are finished and can return.
-                             */
-                            done = true;
-                        }
+                        lastCommand = evaluate(line);
                     }
-                }
-                catch (UserInterruptException e) {
-                    
+
                     /*
-                     * If the user hit ^C, then we abort the current buffer, saving it
-                     * away, and start a new one all a-fresh-like:
+                     * If we accepted the user's input because they requested the statement
+                     * be executed
                      */
-                    if (getBufferManager().getCurrent().length() > 0) {
+                    if (acceptCause == EXECUTE
+                            && lastCommand != getCommand("\\go")
+                            && getBufferManager().getCurrent().length() > 0) {
 
-                        getBufferManager().newBuffer();
+                        Command go = getCommand("\\go");
+                        runCommand(go, "\\go");
                     }
-                }
-                catch (IOException e) {
-                    
-                    err.println("Error reading input: " + e.getMessage());
-                    e.printStackTrace(err);
-                    done = true;
                 }
             }
-        }
-        finally {
-            
-            sigMan.pop();
+            catch (UserInterruptException e) {
+
+                /*
+                 * If the user hit ^C, then we abort the current buffer, saving it
+                 * away, and start a new one all a-fresh-like:
+                 */
+                if (getBufferManager().getCurrent().length() > 0) {
+
+                    getBufferManager().newBuffer();
+                }
+            }
+            catch (IOException e) {
+
+                err.println("Error reading input: " + e.getMessage());
+                e.printStackTrace(err);
+                done = true;
+            }
         }
     }
 

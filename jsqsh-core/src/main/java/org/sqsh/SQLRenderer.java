@@ -15,19 +15,9 @@
  */
 package org.sqsh;
 
-import org.sqsh.signals.CancelingSignalHandler;
-import org.sqsh.signals.SignalManager;
 import org.sqsh.util.TimeUtils;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.ParameterMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -358,8 +348,6 @@ public class SQLRenderer {
         CallableStatement statement = null;
         
         Connection conn = session.getConnection();
-        CancelingSignalHandler sigHandler = null;
-        SignalManager sigMan = SignalManager.getInstance();
         DataFormatter formatter = session.getDataFormatter();
         
         if (conn == null) {
@@ -486,9 +474,6 @@ public class SQLRenderer {
                 }
             }
             
-            sigHandler = new CancelingSignalHandler(statement);
-            sigMan.push(sigHandler);
-            
             startTime = System.currentTimeMillis();
             
             boolean hasResults = statement.execute();
@@ -570,11 +555,6 @@ public class SQLRenderer {
         finally {
             
             session.stopVisualTimer();
-            
-            if (sigHandler != null) {
-                
-                sigMan.pop();
-            }
             
             SQLTools.close(statement);
         }
@@ -760,9 +740,7 @@ public class SQLRenderer {
         
         CallableStatement statement = null;
         Connection conn = session.getConnection();
-        CancelingSignalHandler sigHandler = null;
-        SignalManager sigMan = SignalManager.getInstance();
-        
+
         if (conn == null) {
             
             throw new SQLException("No database connection has been established");
@@ -779,9 +757,6 @@ public class SQLRenderer {
             
             statement = conn.prepareCall(sql);
             bindParameters(statement, params);
-            
-            sigHandler = new CancelingSignalHandler(statement);
-            sigMan.push(sigHandler);
             
             startTime = System.currentTimeMillis();
             
@@ -822,11 +797,6 @@ public class SQLRenderer {
             
             session.stopVisualTimer();
             
-            if (sigHandler != null) {
-                
-                sigMan.pop();
-            }
-            
             SQLTools.close(statement);
         }
         
@@ -856,9 +826,7 @@ public class SQLRenderer {
         
         PreparedStatement statement = null;
         Connection conn = session.getConnection();
-        CancelingSignalHandler sigHandler = null;
-        SignalManager sigMan = SignalManager.getInstance();
-        
+
         if (conn == null) {
             
             throw new SQLException("No database connection has been established");
@@ -871,9 +839,6 @@ public class SQLRenderer {
             statement = conn.prepareStatement(sql);
             bindParameters(statement, params);
             
-            sigHandler = new CancelingSignalHandler(statement);
-            sigMan.push(sigHandler);
-            
             startTime = System.currentTimeMillis();
             
             boolean hasResults = statement.execute();
@@ -885,11 +850,6 @@ public class SQLRenderer {
         finally {
             
             session.stopVisualTimer();
-            
-            if (sigHandler != null) {
-                
-                sigMan.pop();
-            }
             
             SQLTools.close(statement);
         }
@@ -925,9 +885,7 @@ public class SQLRenderer {
         
         Statement statement = null;
         Connection conn = session.getConnection();
-        CancelingSignalHandler sigHandler = null;
-        SignalManager sigMan = SignalManager.getInstance();
-        
+
         if (conn == null) {
             
             throw new SQLException("No database connection has been established");
@@ -950,9 +908,6 @@ public class SQLRenderer {
                 
                 initStatement(ctx, session, statement);
                 
-                sigHandler = new CancelingSignalHandler(statement);
-                sigMan.push(sigHandler);
-                
                 startTime = System.currentTimeMillis();
                 
                 boolean hasResults = ((PreparedStatement) statement).execute();
@@ -966,9 +921,6 @@ public class SQLRenderer {
                 statement = conn.createStatement();
                 
                 initStatement(ctx, session, statement);
-                
-                sigHandler = new CancelingSignalHandler(statement);
-                sigMan.push(sigHandler);
                 
                 startTime = System.currentTimeMillis();
                 
@@ -987,11 +939,6 @@ public class SQLRenderer {
              * Take the statement away from the SQLConnectionContext.
              */
             ctx.clearStatement();
-            
-            if (sigHandler != null) {
-                
-                sigMan.pop();
-            }
             
             SQLTools.close(statement);
         }

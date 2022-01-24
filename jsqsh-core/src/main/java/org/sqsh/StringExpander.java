@@ -15,31 +15,24 @@
  */
 package org.sqsh;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
-import java.io.Writer;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.sqsh.jni.Shell;
+import org.sqsh.jni.ShellException;
+
+import java.io.*;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
-import org.apache.velocity.runtime.RuntimeServices;
-import org.apache.velocity.runtime.log.LogChute;
-import org.sqsh.jline.*;
-import org.sqsh.jni.Shell;
-import org.sqsh.jni.ShellException;
+import java.util.stream.Collectors;
 
 /**
  * The string expander is responsible for doing variable (well, technically
  * velocity) expansion for sqsh. The expansion can take place in one of two
  * modes: following quoting rules or ignoring quoting rules.
  */
-public class StringExpander
-    implements LogChute {
-    
+public class StringExpander {
+
     private static final Logger LOG = 
         Logger.getLogger(StringExpander.class.getName()); 
     
@@ -74,15 +67,17 @@ public class StringExpander
         try {
             
             velocity = new VelocityEngine();
-            velocity.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM, this);
             velocity.init();
         }
         catch (Exception e) {
             
             LOG.log(Level.SEVERE, "Unable to initialize velocity", e);
         }
-        
-        context = new VelocityContext(System.getenv());
+
+        final Map<String, Object> env = System.getenv().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        context = new VelocityContext(env);
     }
     
     /**
@@ -633,65 +628,5 @@ public class StringExpander
         }
         
         return sb.toString();
-    }
-    
-    /**
-     * This is required by LogChute.
-     */
-    @Override
-    public void init (RuntimeServices service)
-        throws Exception {
-
-        /* Do nothing. */
-    }
-
-    /**
-     * Used by LogChute to determine if a logging level is current
-     * enabled.
-     * 
-     * @param level The level we are testing.
-     */
-    @Override
-    public boolean isLevelEnabled (int level) {
-        
-        return (level >= LogChute.WARN_ID);
-    }
-
-    /**
-     * Used by LogChute to log a stack trace.
-     */
-    @Override
-    public void log (int level, String message, Throwable cause) {
-        
-        log(level, message);
-        cause.printStackTrace(session.err);
-    }
-
-    /**
-     * Used to log a message.
-     */
-    @Override
-    public void log (int level, String message) {
-
-        if (level >= LogChute.WARN_ID) {
-            
-            System.err.println(logPrefix(level)
-                + ": Failed while performing variable expansion processing: "
-                + message);
-        }
-    }
-    
-    private String logPrefix(int level) {
-        
-        switch (level) {
-            
-            case LogChute.TRACE_ID: return "TRACE";
-            case LogChute.DEBUG_ID: return "DEBUG";
-            case LogChute.INFO_ID: return "INOF";
-            case LogChute.WARN_ID: return "WARN";
-            case LogChute.ERROR_ID: return "ERROR";
-            default:
-                return "UNKNOWN";
-        }
     }
 }
