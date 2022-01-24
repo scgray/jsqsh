@@ -15,25 +15,15 @@
  */
 package org.sqsh;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
-import org.apache.velocity.runtime.RuntimeServices;
-import org.apache.velocity.runtime.log.LogChute;
 import org.sqsh.util.ProcessUtils;
+
+import java.io.*;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Manages jsqsh extensions. A jsqsh extension consists of a directory
@@ -129,8 +119,6 @@ public class ExtensionManager {
         try {
             
             velocity = new VelocityEngine();
-            velocity.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM, 
-                new ExtensionVelocityLogger());
             velocity.init();
         }
         catch (Exception e) {
@@ -138,8 +126,9 @@ public class ExtensionManager {
             LOG.log(Level.SEVERE, "Unable to initialize velocity", e);
         }
         
-        velocityContext = new VelocityContext(System.getenv());
-        
+        velocityContext = new VelocityContext(System.getenv().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+
         // First load all global extensions
         String jsqshHome = System.getenv("JSQSH_HOME");
         if (jsqshHome != null) {
@@ -425,69 +414,6 @@ public class ExtensionManager {
         }
     }
     
-    private static class ExtensionVelocityLogger implements LogChute {
-        
-        /**
-         * This is required by LogChute.
-         */
-        @Override
-        public void init (RuntimeServices service)
-            throws Exception {
-
-            /* Do nothing. */
-        }
-
-        /**
-         * Used by LogChute to determine if a logging level is current
-         * enabled.
-         * 
-         * @param level The level we are testing.
-         */
-        @Override
-        public boolean isLevelEnabled (int level) {
-            
-            return (level >= LogChute.WARN_ID);
-        }
-
-        /**
-         * Used by LogChute to log a stack trace.
-         */
-        @Override
-        public void log (int level, String message, Throwable cause) {
-            
-            log(level, message);
-            cause.printStackTrace(System.err);
-        }
-
-        /**
-         * Used to log a message.
-         */
-        @Override
-        public void log (int level, String message) {
-
-            if (level >= LogChute.WARN_ID) {
-                
-                System.err.println(logPrefix(level)
-                    + ": Failed while performing variable expansion processing: "
-                    + message);
-            }
-        }
-        
-        private String logPrefix(int level) {
-            
-            switch (level) {
-                
-                case LogChute.TRACE_ID: return "TRACE";
-                case LogChute.DEBUG_ID: return "DEBUG";
-                case LogChute.INFO_ID: return "INOF";
-                case LogChute.WARN_ID: return "WARN";
-                case LogChute.ERROR_ID: return "ERROR";
-                default:
-                    return "UNKNOWN";
-            }
-        }
-    }
-
     /**
      * Given a directory known to contain extension subdirectories, iterates
      * through each subdirectory, loading the extension definition from the

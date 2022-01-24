@@ -16,7 +16,7 @@
 package org.sqsh;
 
 /**
- * Defines an interface for a class wishing to be notified by the {@link SQLDriverManager}
+ * Defines an interface for a class wishing to be notified by the {@link org.sqsh.SQLDriverManager}
  * when a driver becomes fully available (that is, when it successfully is
  * loaded by a class loader).  The primary purpose of this interface is to
  * notify the {@link ExtensionManager} so that it can automatically load
@@ -30,5 +30,5 @@ public interface SQLDriverListener {
      * @param dm The SQLDriverManager for which the driver has become available
      * @param driver The driver that has become available
      */
-    public void driverAvailable (SQLDriverManager dm, SQLDriver driver);
+    void driverAvailable (SQLDriverManager dm, SQLDriver driver);
 }

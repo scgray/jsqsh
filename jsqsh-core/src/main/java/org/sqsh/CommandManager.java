@@ -15,6 +15,8 @@
  */
 package org.sqsh;
 
+import org.apache.commons.digester3.Digester;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,8 +26,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import org.apache.commons.digester.Digester;
 
 /**
  * This class is used to manage and look up commands. Upon instantiation

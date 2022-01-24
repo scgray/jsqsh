@@ -202,23 +202,28 @@
       <version>${beanutils.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-collections</groupId>
-      <artifactId>commons-collections</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
       <version>${collections.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-digester</groupId>
-      <artifactId>commons-digester</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-digester3</artifactId>
       <version>${digester.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
       <version>${lang.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-text</artifactId>
+      <version>${text.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.velocity</groupId>
-      <artifactId>velocity</artifactId>
+      <artifactId>velocity-engine-core</artifactId>
       <version>${velocity.version}</version>
     </dependency>
     <dependency>

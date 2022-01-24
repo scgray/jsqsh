@@ -15,31 +15,18 @@
  */
 package org.sqsh;
 
-import org.apache.commons.digester.Digester;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.digester3.Digester;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.UserInterruptException;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.DriverPropertyInfo;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.sql.*;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 
@@ -1127,9 +1114,9 @@ public class SQLDriverManager {
                 if (! driver.isInternal()) {
                     
                     out.println("   <Driver name=\""     + driver.getName() + "\"");
-                    out.println("           url=\""      + StringEscapeUtils.escapeXml(driver.getUrl()) + "\"");
+                    out.println("           url=\""      + StringEscapeUtils.escapeXml11(driver.getUrl()) + "\"");
                     out.println("           class=\""    + driver.getDriverClass() + "\"");
-                    out.println("           target=\""   + StringEscapeUtils.escapeXml(driver.getTarget()) + "\"");
+                    out.println("           target=\""   + StringEscapeUtils.escapeXml11(driver.getTarget()) + "\"");
                     out.println("           analyzer=\"" + driver.getAnalyzer().getClass().getName() + "\"");
                     out.println("           normalizer=\"" + driver.getNormalizer().getClass().getName() + "\">");
                     String classpath[] = driver.getClasspathArray();

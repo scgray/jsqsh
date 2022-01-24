@@ -15,6 +15,8 @@
  */
 package org.sqsh;
 
+import org.apache.commons.digester3.Digester;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -22,8 +24,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
-import org.apache.commons.digester.Digester;
 
 /**
  * The buffer manager manages SQL buffers for sqsh. This object is a
