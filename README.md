@@ -38,17 +38,3 @@ Pre-packaged binaries are available for:
 
 JSqsh is held under the Apache License Version 2.0. The details
 of the license are available in the LICENSE file included herein.
-
-## 99.9% Pure
-
-The core of jsqsh is Java, meaning that it should compile on virtually
-any platform that Java runs on.  However, there are two features of jsqsh
-that are provided via an additional (optional) layer that is written in C.
-These features are:
-
-  - Command line editing (a.k.a "readline")
-  - Execution of external programs that require terminal control
-
-The second bullet means that without the C layer, programs that jsqsh spawns
-that need to control the terminal (such as a text editor) or query the 
-terminal's size (such as 'more') will not function properly.

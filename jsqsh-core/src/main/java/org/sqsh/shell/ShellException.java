@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.sqsh.jni;
+package org.sqsh.shell;
 
 /**
  * Thrown by most {@link ShellManager} methods.
@@ -22,7 +22,6 @@ public class ShellException
     extends Exception {
     
     public ShellException (String msg) {
-        
         super(msg);
     }
 }

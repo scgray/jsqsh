@@ -17,10 +17,13 @@ package org.sqsh;
 
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
-import org.sqsh.jni.Shell;
-import org.sqsh.jni.ShellException;
+import org.sqsh.shell.ShellException;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -575,11 +578,11 @@ public class StringExpander {
         
         StringBuilder sb = new StringBuilder();
         
-        Shell shell = session.getShellManager().readShell(command,
+        Process shell = session.getShellManager().readShell(command,
             session.err == session.out);
         
         BufferedReader in =
-             new BufferedReader(new InputStreamReader(shell.getStdout()));
+             new BufferedReader(new InputStreamReader(shell.getInputStream()));
         
         try {
             

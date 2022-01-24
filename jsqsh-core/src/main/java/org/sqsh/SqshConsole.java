@@ -10,6 +10,7 @@ import org.jline.reader.Widget;
 import org.jline.reader.impl.DefaultParser;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
+import org.jline.terminal.impl.DumbTerminal;
 import org.sqsh.jline.JLineCompleter;
 
 import java.io.File;
@@ -41,8 +42,9 @@ public class SqshConsole {
         EXECUTE
     }
 
-    private SqshContext context;
-    private LineReader reader;
+    private final SqshContext context;
+    private final Terminal terminal;
+    private final LineReader reader;
     private LineReader simpleLineReader = null;
     private AcceptCause acceptCause = AcceptCause.NORMAL;
 
@@ -53,11 +55,13 @@ public class SqshConsole {
 
     public SqshConsole(SqshContext context) {
 
+        final File readlineHistory = new File(context.getConfigDirectory(), "jline_history");
+
         this.context = context;
-        File readlineHistory = new File(context.getConfigDirectory(), "jline_history");
-        reader = LineReaderBuilder.builder()
+        this.terminal = newTerminal();
+        this.reader = LineReaderBuilder.builder()
                 .appName("jsqsh")
-                .terminal(newTerminal())
+                .terminal(terminal)
                 .completer(new JLineCompleter(context))
                 .parser(new DefaultParser())
                 .variable(LineReader.HISTORY_FILE, readlineHistory.toString())
@@ -85,6 +89,24 @@ public class SqshConsole {
     public String readSingleLine(String prompt, Character mask) {
 
         return getSimpleLineReader().readLine(prompt, mask);
+    }
+
+    /**
+     * Return true if the terminal is a dumb terminal.
+     *
+     * @return if the terminal is a dumb terminal
+     */
+    public boolean isDumbTerminal() {
+        return terminal instanceof DumbTerminal;
+    }
+
+    /**
+     * Return the width of the terminal.
+     *
+     * @return the width of the terminal
+     */
+    public int getWidth() {
+        return terminal.getWidth();
     }
 
     public LineReader getSimpleLineReader() {

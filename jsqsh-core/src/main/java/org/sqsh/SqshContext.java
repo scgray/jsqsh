@@ -15,7 +15,7 @@
  */
 package org.sqsh;
 
-import org.sqsh.jni.ShellManager;
+import org.sqsh.shell.ShellManager;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -634,8 +634,8 @@ public class SqshContext {
     public int getScreenWidth() {
     
         if (screenWidth < 1) {
-            
-            return shellManager.getConsoleWidth();
+
+            return getConsole().getWidth();
         }
         
         return screenWidth;
@@ -1246,14 +1246,6 @@ public class SqshContext {
          */
         if (!doneBanner && currentSession.isInteractive()) {
 
-            if (!shellManager.isJNI()) {
-
-                currentSession.err.println(
-                    "WARNING: Sqsh JNI layer not available ("
-                    + shellManager.getJNIFailureReason() 
-                    + "). Run '\\help jni' for details");
-            }
-            
             /*
              * End year in the copyright will always be right. I'm a sneaky
              * bastard.

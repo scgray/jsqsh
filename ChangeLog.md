@@ -30,6 +30,9 @@
   the same fashion as $HOME/.jsqsh, allowing the binary to be packaged up
   with custom connection and driver definitions if desired.
 * Now uses slf4j+log4j configuration to shut up drivers that use the library.
+* Removed all JNI code embedded in JSqsh itself. These have been replaced
+  with native Java API's that have been introduced in later years which
+  obveate the need for native code.
 
 # Release 2.3
 

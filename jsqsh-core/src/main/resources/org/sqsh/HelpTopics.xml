@@ -3,10 +3,6 @@
         <Description>JSqsh command line options</Description>
     </Topic>
 
-    <Topic name="jni">
-        <Description>Features provided by the jsqsh JNI layer</Description>
-    </Topic>
-
     <Topic name="welcome">
         <Description>The jsqsh welcome message</Description>
     </Topic>

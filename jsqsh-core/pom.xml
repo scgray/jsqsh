@@ -46,8 +46,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${compiler.plugin.version}</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <release>11</release>
         </configuration>
       </plugin>
 
@@ -149,6 +148,11 @@
       <artifactId>slf4j-api</artifactId>
       <version>${slf4j.version}</version>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.pty4j</groupId>
+      <artifactId>pty4j</artifactId>
+      <version>${pty4j.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

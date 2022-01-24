@@ -18,9 +18,8 @@ package org.sqsh;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.UserInterruptException;
 import org.sqsh.jline.TextAttribute;
-import org.sqsh.jni.Shell;
-import org.sqsh.jni.ShellException;
-import org.sqsh.jni.ShellManager;
+import org.sqsh.shell.ShellException;
+import org.sqsh.shell.ShellManager;
 
 import java.io.BufferedReader;
 import java.io.EOFException;
@@ -1538,7 +1537,7 @@ public class Session
         throws SqshContextMessage {
         
         Token token = null;
-        Shell pipeShell = null;
+        Process pipeShell = null;
            
         SessionRedirectToken sessionRedirect = null;
         File sessionOutput = null;
@@ -1721,16 +1720,14 @@ public class Session
      * pager command, such as "more" or "less". 
      * @return The piped shell or null if one could not be created.
      */
-    private Shell getPager() {
-        
-        ShellManager shellMan = sqshContext.getShellManager();
+    private Process getPager() {
         
         /*
          * No auto-paging in non-interactive mode. Also if the shell
          * manager cannot do JNI, then it can't open a proper pipe anyway
          * so we can't page.
          */
-        if (!isInteractive() || !shellMan.isJNI()) {
+        if (!isInteractive() || getContext().getConsole().isDumbTerminal()) {
             
             return null;
         }
@@ -1752,9 +1749,9 @@ public class Session
         
         try {
             
-            Shell shell = sqshContext.getShellManager().pipeShell(pager);
-            setOut(new PrintStream(shell.getStdin()), true);
-            return shell;
+            Process process = sqshContext.getShellManager().pipeShell(pager);
+            setOut(new PrintStream(process.getOutputStream()), true);
+            return process;
         }
         catch (ShellException e) {
             
@@ -1776,12 +1773,12 @@ public class Session
      * @throws CommandLineSyntaxException Thrown if there is a problem
      *   creating the pipeline.
      */
-    private Shell doPipe(PipeToken token, boolean doRead)
+    private Process doPipe(PipeToken token, boolean doRead)
         throws CommandLineSyntaxException {
         
         try {
             
-            Shell shell;
+            Process shell;
             
             if (doRead) {
                 
@@ -1793,8 +1790,8 @@ public class Session
                 shell = sqshContext.getShellManager().pipeShell(
                     token.getPipeCommand());
             }
-            
-            setOut(new PrintStream(shell.getStdin()), true);
+
+            setOut(new PrintStream(shell.getOutputStream()), true);
             
             return shell;
         }
@@ -1822,7 +1819,7 @@ public class Session
      * @throws CommandLineSyntaxException Thrown if the session to 
      *   be redirected to doesn't exist.
      */
-    private File doSessionRedirect(SessionRedirectToken token, Shell pipeShell)
+    private File doSessionRedirect(SessionRedirectToken token, Process pipeShell)
         throws CommandLineSyntaxException {
         
         if (sessionId > 0 && sqshContext.getSession(sessionId) == null) {
@@ -1854,7 +1851,7 @@ public class Session
              */
             if (pipeShell != null) {
                 
-                InputStream in = pipeShell.getStdout();
+                InputStream in = pipeShell.getInputStream();
                 IORelayThread relay = new IORelayThread(in, out);
                 relay.start();
             }

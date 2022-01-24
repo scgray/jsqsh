@@ -231,5 +231,10 @@
       <artifactId>jline</artifactId>
       <version>${jline.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.jetbrains.pty4j</groupId>
+      <artifactId>pty4j</artifactId>
+      <version>${pty4j.version}</version>
+    </dependency>
   </dependencies>
 </project>

@@ -15,19 +15,18 @@
  */
 package org.sqsh.commands;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.sqsh.Buffer;
 import org.sqsh.BufferManager;
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SessionRedrawBufferMessage;
 import org.sqsh.SqshOptions;
-import org.sqsh.jni.Shell;
 import org.sqsh.options.Argv;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Implements the \buf-edit command.
@@ -109,7 +108,7 @@ public class Edit
         
         String editor = getEditor(session);
         File tmpFile = null;
-        Shell s = null;
+        Process s;
         
         try {
             
