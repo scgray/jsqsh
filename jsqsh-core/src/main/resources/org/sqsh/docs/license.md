@@ -1,4 +1,4 @@
-Copyright 2007-2017 Scott C. Gray and Others (see AUTHORS)
+Copyright 2007-2022 Scott C. Gray and Others (see AUTHORS)
   
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

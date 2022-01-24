@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2015 Scott C. Gray
+ * Copyright 2007-2022 Scott C. Gray
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
