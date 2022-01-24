@@ -15,38 +15,28 @@
  */
 package org.sqsh.commands;
 
-import static org.sqsh.options.ArgumentRequired.REQUIRED;
+import org.sqsh.*;
+import org.sqsh.options.Argv;
+import org.sqsh.options.OptionProperty;
+import org.sqsh.renderers.GraphicalTreeRenderer;
+import org.sqsh.renderers.GraphicalTreeRenderer.JSqshNode;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.TreeSet;
-
-import javax.swing.JTree;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.ExpandVetoException;
-import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeNode;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
-import org.sqsh.Command;
-import org.sqsh.DatabaseCommand;
-import org.sqsh.Renderer;
-import org.sqsh.SQLRenderer;
-import org.sqsh.Session;
-import org.sqsh.SqshOptions;
-import org.sqsh.options.Argv;
-import org.sqsh.options.OptionProperty;
-import org.sqsh.renderers.GraphicalTreeRenderer;
-import org.sqsh.renderers.GraphicalTreeRenderer.JSqshNode;
+import static org.sqsh.options.ArgumentRequired.REQUIRED;
 
 /**
  * Implements the \tree command. A clone of the table command
@@ -198,18 +188,16 @@ public class Tree extends Command implements DatabaseCommand,
             final JSqshNode node = (JSqshNode) event
                     .getPath().getLastPathComponent();
 
-            final Enumeration<JSqshNode> kids = node.children();
+            final Enumeration<TreeNode> kids = node.children();
 
             while (kids.hasMoreElements()) {
 
-                final JSqshNode kid = kids.nextElement();
+                final JSqshNode kid = (JSqshNode) kids.nextElement();
 
                 if (kid.isLeaf()) {
                 
                     kid.forceHasChildren(true);
-                    
                 }
-                
             }
         }
         else if (event.getPath().getPathCount() == 4) {
