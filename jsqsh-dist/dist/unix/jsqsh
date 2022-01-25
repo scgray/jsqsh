@@ -9,8 +9,11 @@
 #
 # This determines the location of this shell script.
 #
-PROG=$(basename $0)
-PROG_DIR=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
+PROG=$(readlink "$0")
+while [ -L "$PROG" ]; do
+    PROG=$(readlink "$PROG")
+done
+PROG_DIR=$(dirname "$PROG")
 
 #
 # The parent directory of where this script was found
