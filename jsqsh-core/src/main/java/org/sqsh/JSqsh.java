@@ -15,6 +15,12 @@
  */
 package org.sqsh;
 
+import org.sqsh.commands.Help;
+import org.sqsh.options.Argv;
+import org.sqsh.options.OptionException;
+import org.sqsh.options.OptionProcessor;
+import org.sqsh.options.OptionProperty;
+
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -24,21 +30,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
-import org.sqsh.commands.Help;
-import org.sqsh.options.Argv;
-import org.sqsh.options.OptionProperty;
-import org.sqsh.options.OptionException;
-import org.sqsh.options.OptionProcessor;
-
-import static org.sqsh.options.ArgumentRequired.REQUIRED;
 import static org.sqsh.options.ArgumentRequired.NONE;
+import static org.sqsh.options.ArgumentRequired.REQUIRED;
 
 /**
- * This implements the public command line interface to kicking off
- * sqsh.
+ * This implements the public command line interface to kicking off jsqsh.
  */
 public class JSqsh {
 
@@ -112,21 +111,18 @@ public class JSqsh {
        public List<String> arguments = new ArrayList<String>();
     }
    
-    public static void main (String argv[]) {
+    public static void main (final String[] argv) {
         
         Options options = new Options();
         OptionProcessor optParser = new OptionProcessor(options);
         
         try {
-            
             optParser.parseOptions(argv);
         }
         catch (OptionException e) {
-            
             System.err.println(e.getMessage());
             System.err.println(optParser.getUsage());
-            System.err.println("Type \"help jsqsh\" at the jsqsh prompt for "
-                + "additional information");
+            System.err.println("Type \"help jsqsh\" at the jsqsh prompt for additional information");
             
             System.exit(1);
         }
@@ -135,21 +131,15 @@ public class JSqsh {
          * Display help if requested.
          */
         if (options.doHelp) {
-            
             System.out.println(optParser.getUsage());
-            System.out.println("Type \"help jsqsh\" at the jsqsh prompt for "
-                + "additional information");
+            System.out.println("Type \"help jsqsh\" at the jsqsh prompt for additional information");
             System.exit(0);
         }
-        
-        
+
         configureLogging(options.debug);
         
-        /*
-         * No input files, then add a "null" input file.
-         */
+        // No input files, then add a "null" input file.
         if (options.inputFiles.size() == 0) {
-            
             options.inputFiles.add(null);
         }
         
@@ -157,56 +147,41 @@ public class JSqsh {
         PrintStream err = System.err;
         
         if (out == null || err == null) {
-            
             System.exit(1);
         }
         
-        /*
-         * In non-interative mode, we force pure-java input. I have found
-         * all sorts of conflicts when using jline against input that doesn't
-         * come from the console.
-         */
+        // In non-interactive mode, we force pure-java input. I have found all sorts of conflicts when using
+        // jline against input that doesn't come from the console.
         boolean isInteractive = options.isInteractive;
 
-        /*
-         * If the first input is a file, then we don't use a line reader
-         */
+        // If the first input is a file, then we don't use a line reader
         SqshContext sqsh = SqshContext.getThreadLocal();
         
         int rc = 0;
         
         if (options.width > 0) {
-            
             sqsh.setScreenWidth(options.width);
         }
         
-        /*
-         * Configure how errors are reported.
-         */
+        // Configure how errors are reported.
         if (options.exitType != null) {
-            
             if (options.exitType.equalsIgnoreCase("total")) {
-                
                 sqsh.setExitStatus(SqshContext.ExitStatus.TOTAL_FAILURES);
             }
             else if (options.exitType.equalsIgnoreCase("last")) {
-                
                 sqsh.setExitStatus(SqshContext.ExitStatus.LAST_FAILURE);
             }
             else {
-                
                 System.err.println("--exit (-X): Legal values are \"total\" or \"last\"");
                 System.exit(1);
             }
         }
         
         for (String dir : options.configDirectories) {
-
             sqsh.addConfigurationDirectory(dir);
         }
 
         for (String file : options.driverFiles) {
-
             sqsh.addDriverFile(file);
         }
         
@@ -216,109 +191,77 @@ public class JSqsh {
         
         InputStream in = null;
         try {
-            
             Session session = sqsh.newSession(isInteractive);
             
             if (options.doSetup) {
-                
                 Command command = session.getCommandManager().getCommand("\\setup");
                 command.execute(session, new String [] { });
             }
             
             if (options.topic != null) {
-            
                 System.exit(Help.displayHelpText(session, options.topic));
             }
             
             if (!doConnect(session, options)) {
-                
                 rc = 1;
             }
             
             if (rc != 0) {
-                
                 System.exit(rc);
             }
             
             for (int i = 0; i < options.inputFiles.size(); i++) {
                 
                 if (i > 0) {
-                    
                     session.getBufferManager().getCurrent().clear();
                 }
                 
                 in = getInputStream(options.inputFiles.get(i));
                 if (in == null) {
-                    
                     break;
                 }
                 
-                session.setIn(in, (options.inputFiles != null), 
-                    isInteractive && (in == System.in));
+                session.setIn(in, (options.inputFiles != null), isInteractive && (in == System.in));
                 session.setOut(out, options.outputFile != null);
                 
-                /*
-                 * If we are forcibly non-interactive then just leave the context
-                 * untouched--it is that way by default.
-                 */
+                // If we are forcibly non-interactive then just leave the context untouched--it is that way by default.
                 if (isInteractive) {
-                    
-                    /*
-                     * It is possible that we will implicitly switch between 
-                     * non-interactive and active mode when there is more than 
-                     * one input.  The use of stdin is our trigger for 
-                     * interactive mode.
-                     */
-                    if (in == System.in) {
-                        
-                        session.setInteractive(true);
-                    }
-                    else {
-                        
-                        session.setInteractive(false);
-                    }
+                    // It is possible that we will implicitly switch between non-interactive and active mode
+                    // when there is more than one input.  The use of stdin is our trigger for interactive mode.
+                    session.setInteractive(in == System.in);
                 }
                 
                 int curRc = sqsh.run(session);
                 if (curRc != 0) {
-                    
                     rc = curRc;
                 }
                 
                 if (in != System.in) {
-                    
                     in.close();
                     in = null;
                 }
             }
         }
         catch (Throwable e) {
-            
             e.printStackTrace(System.err);
             rc = 1;
         }
         finally {
-            
             out.flush();
             err.flush();
             
             if (out != System.out && out != System.err) {
-                
                 out.close();
             }
             if (err != System.err && err != System.out) {
-                
                 err.close();
             }
             
             if (in != null && in != System.in) {
-                
                 try {
-                    
                     in.close();
                 }
                 catch (IOException e) {
-                    
                     /* IGNORED */
                 }
             }
@@ -330,45 +273,31 @@ public class JSqsh {
     }
 
     static private void configureLogging(List<String> loggers) {
-        
-        InputStream in = 
-            JSqsh.class.getClassLoader().getResourceAsStream(LOGGING_CONFIG);
+        InputStream in = JSqsh.class.getClassLoader().getResourceAsStream(LOGGING_CONFIG);
+
         if (in == null) {
-            
-            System.err.println("WARNING: Cannot find resource " 
-                + LOGGING_CONFIG);
+            System.err.println("WARNING: Cannot find resource " + LOGGING_CONFIG);
             return;
         }
         
         try {
-            
             LogManager logMan = LogManager.getLogManager();
             logMan.readConfiguration(in);
             in.close();
         }
         catch (IOException e) {
-            
-            System.err.println("WARNING: Unable to read logging "
-                + "properties " + LOGGING_CONFIG + ": " + e.getMessage());
+            System.err.println("WARNING: Unable to read logging properties " + LOGGING_CONFIG + ": " + e.getMessage());
         }
 
-        /*
-         * Turn on debugging if requested.
-         */
+        // Turn on debugging if requested.
         for (String logger : loggers) {
-            
             Logger log = Logger.getLogger(logger);
             if (log != null) {
-                
                 log.setLevel(Level.FINE);
-                System.out.println("Debugging level for '"
-                    + log.getName() + "' is now '"
-                    + log.getLevel().getName() + "'");
+                System.out.println("Debugging level for '" + log.getName() + "' is now '" + log.getLevel().getName() + "'");
             }
             else {
-                
-                System.err.println("--debug: Unable to find logger '"
-                    + logger + "'");
+                System.err.println("--debug: Unable to find logger '" + logger + "'");
                 System.exit(1);
             }
         }
@@ -376,47 +305,34 @@ public class JSqsh {
     
     /**
      * Sets any variables that were assigned with the "-v" argument.
+     *
      * @param ctx The context to apply them to
      * @param vars The variables to set
      */
     private static void setVariables(SqshContext ctx, List<String> vars) {
-        
         if (vars == null || vars.size() == 0) {
-            
             return;
         }
 
-        for (int i = 0; i < vars.size(); i++) {
-
-            ctx.getVariableManager().put(vars.get(i));
+        for (String var : vars) {
+            ctx.getVariableManager().put(var);
         }
     }
     
     /**
      * Returns the input stream to be used by the session.
      * 
-     * @param filename If the value is "-", then the System's stdin is returned,
-     *                 otherwise an input stream for the filename specified is returned.
-     * @return The input stream or null if the requested one cannot be
-     *    opened.
+     * @param filename If the value is "-", then the System's stdin is returned, otherwise an input stream for
+     *    the filename specified is returned.
+     * @return The input stream or null if the requested one cannot be opened.
      */
     private static InputStream getInputStream(String filename) {
-        
         if (filename != null && !"-".equals(filename)) {
-            
             try {
-                
-                InputStream in = new BufferedInputStream(
-                    new FileInputStream(filename));
-                
-                return in;
+                return new BufferedInputStream(new FileInputStream(filename));
             }
             catch (IOException e) {
-                
-                System.err.println("Unable to open input file '" 
-                    + filename + "' for read: "
-                    + e.getMessage());
-                
+                System.err.println("Unable to open input file '" + filename + "' for read: " + e.getMessage());
                 return null;
             }
         }
@@ -428,24 +344,15 @@ public class JSqsh {
      * Returns the output stream to be used by the session.
      * 
      * @param options Configuration options.
-     * @return The input stream or null if the requested one cannot be
-     *    opened.
+     * @return The input stream or null if the requested one cannot be opened.
      */
     private static PrintStream getOutputStream(Options options) {
-        
         if (options.outputFile != null) {
-            
             try {
-                
-                PrintStream out = new PrintStream(options.outputFile);
-                return out;
+                return new PrintStream(options.outputFile);
             }
             catch (IOException e) {
-                
-                System.err.println("Unable to open output file '" 
-                    + options.outputFile + "' for write: "
-                    + e.getMessage());
-                
+                System.err.println("Unable to open output file '" + options.outputFile + "' for write: " + e.getMessage());
                 return null;
             }
         }
@@ -454,19 +361,15 @@ public class JSqsh {
     }
 
     /**
-     * 
-     * Ok, I'm lazy. Since most of the command line options are there
-     * to allow the caller to pre-connect sqsh, I am actually just
-     * going to build a connect command and execute it rather than
-     * messing with API calls to do the dirty work for me.
+     * Ok, I'm lazy. Since most of the command line options are there to allow the caller to pre-connect sqsh, I
+     * am actually just going to build a connect command and execute it rather than messing with API calls to do
+     * the dirty work for me.
      * 
      * @param options The command line options that were passed it.
-     * @return A string containing a connect command, or null if no
-     *   connection is necessary.
+     * @return A string containing a connect command, or null if no connection is necessary.
      */
     private static boolean doConnect(Session session, Options options) {
-        
-        ConnectionDescriptor connDesc = (ConnectionDescriptor)options;
+        ConnectionDescriptor connDesc = options;
         
         boolean ok = true;
         
@@ -486,61 +389,43 @@ public class JSqsh {
             
             String connName = null;
             if (options.arguments.size() > 0) {
-                
                 connName = options.arguments.get(0);
             }
             
             if (connName != null) {
-                
-                ConnectionDescriptorManager connDescMan = 
-                    session.getConnectionDescriptorManager();
+                ConnectionDescriptorManager connDescMan = session.getConnectionDescriptorManager();
                 
                 ConnectionDescriptor savedOptions = connDescMan.get(connName);
                 if (savedOptions == null) {
-                    
-                    session.err.println("There is no saved connection "
-                        + "information named '" + connName + "'.");
-                    
+                    session.err.println("There is no saved connection " + "information named '" + connName + "'.");
                     ok = false;
                 }
                 else {
-                
                     connDesc = connDescMan.merge(savedOptions, connDesc);
                 }
             }
             
             if (ok) {
-                
                 try {
-                    
-                    ConnectionContext ctx = 
-                        session.getDriverManager().connect(session, connDesc);
+                    ConnectionContext ctx = session.getDriverManager().connect(session, connDesc);
                     session.setConnectionContext(ctx);
                 }
                 catch (SQLException e) {
-                    
                     SQLTools.printException(session, e);
                     ok = false;
                 }
             }
         }
         else {
-            
-            connDesc = 
-                session.getConnectionDescriptorManager().getAutoconnectDescriptor();
+            connDesc = session.getConnectionDescriptorManager().getAutoconnectDescriptor();
             if (connDesc != null) {
-                
-                session.out.println("Automatically connecting with connection \"" 
+                session.out.println("Automatically connecting with connection \""
                     + connDesc.getName() + "\". Run with --setup to disable autoconnect if necessary.");
-                
                 try {
-                    
-                    ConnectionContext ctx = 
-                        session.getDriverManager().connect(session, connDesc);
+                    ConnectionContext ctx = session.getDriverManager().connect(session, connDesc);
                     session.setConnectionContext(ctx);
                 }
                 catch (SQLException e) {
-                    
                     SQLTools.printException(session, e);
                     ok = false;
                 }
