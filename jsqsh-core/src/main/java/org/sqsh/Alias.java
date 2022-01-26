@@ -32,9 +32,8 @@ public class Alias implements Comparable<Alias> {
     private final String text;
     
     /**
-     * A global alias can be replaced anywhere within a line of text, if
-     * an alias is not global, then it will only be replaced if it is the
-     * first word on the line.
+     * A global alias can be replaced anywhere within a line of text, if an alias is not global, then it will only
+     * be replaced if it is the first word on the line.
      */
     private final boolean isGlobal;
 
