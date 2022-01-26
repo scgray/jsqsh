@@ -27,19 +27,17 @@ import java.io.StringReader;
 /**
  * Represents SQL block that is being worked on.
  */
-public class Buffer 
-    implements CharSequence {
+public class Buffer implements CharSequence {
     
     /**
-     * Every buffer is assigned a unique ID by the {@link BufferManager}
-     * when it is created.
+     * Every buffer is assigned a unique ID by the {@link BufferManager} when it is created.
      */
-    private int id = -1;
+    private int id;
     
     /**
      * The actual buffer of SQL.
      */
-    private StringBuilder buffer = null;
+    private final StringBuilder buffer;
     
     /**
      * The number of lines of text that are contained in the buffer.
@@ -55,8 +53,7 @@ public class Buffer
      * Creates an empty buffer.
      */
     public Buffer() {
-        
-        buffer = new StringBuilder();
+        this(-1);
     }
     
     /**
@@ -65,9 +62,8 @@ public class Buffer
      * @param id The id to assign to the buffer.
      */
     public Buffer(int id) {
-        
-        this();
         this.id = id;
+        this.buffer = new StringBuilder();
     }
     
     /**
@@ -76,8 +72,7 @@ public class Buffer
      * @param sql The SQL statement.
      */
     public Buffer(String sql) {
-        
-        set(sql);
+        this(-1, sql);
     }
     
     /**
@@ -87,33 +82,30 @@ public class Buffer
      * @param sql The SQL statement.
      */
     public Buffer(int id, String sql) {
-        
+        this(id);
+
         set(sql);
-        this.id = id;
     }
     
     /**
-     * Checks whether or not a buffer is empty.
+     * Checks if a buffer is empty.
      * 
-     * @param ignoreWhitespace If true, then a buffer that is full of nothing
-     *    but whitespace (as determined by {@link Character#isWhitespace(char)})
-     *    is considered empty.
+     * @param ignoreWhitespace If true, then a buffer that is full of nothing but whitespace (as determined
+     *    by {@link Character#isWhitespace(char)}) is considered empty.
+     *
      * @return true if the buffer is empty.
      */
     public boolean isEmpty (boolean ignoreWhitespace) {
-        
-        int len = buffer.length();
-        boolean isEmpty = false;
+        final int len = buffer.length();
+        final boolean isEmpty;
         
         if (len == 0)
             isEmpty = true;
         else if (!ignoreWhitespace)
             isEmpty = false;
         else {
-            
             int idx = 0;
             while (idx < len && Character.isWhitespace(buffer.charAt(idx))) {
-                
                 ++idx;
             }
             
@@ -124,11 +116,9 @@ public class Buffer
     }
     
     /**
-     * @return The id of the buffer. An id of -1 indicates that the
-     * buffer has not yet been assigned an id.
+     * @return The id of the buffer. An id of -1 indicates that the buffer has not yet been assigned an id.
      */
     public int getId () {
-    
         return id;
     }
     
@@ -136,7 +126,6 @@ public class Buffer
      * @param id Assigns an id to the buffer.
      */
     public void setId (int id) {
-    
         this.id = id;
     }
 
@@ -144,8 +133,7 @@ public class Buffer
      * Save the contents of the buffer to the specified file.
      * @param file The file to save to.
      */
-    public void save (File file)
-        throws IOException {
+    public void save (File file) throws IOException {
         
         PrintStream out = new PrintStream(file);
         out.println(buffer.toString());
@@ -155,67 +143,42 @@ public class Buffer
     
     /**
      * Loads the buffer from a file.
+     *
      * @param file The file to read.
      */
-    public void load (File file)
-        throws IOException {
+    public void load (File file) throws IOException {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
+            clear();
         
-        BufferedReader in = new BufferedReader(
-            new InputStreamReader(new FileInputStream(file)));
-        
-        clear();
-        
-        try {
-            
             String line = in.readLine();
             while (line != null) {
-                
                 addLine(line);
                 line = in.readLine();
-            }
-        }
-        finally {
-            
-            try {
-                
-                in.close();
-            }
-            catch (IOException e) {
-                
-                /* IGNORED */
             }
         }
     }
     
     /**
-     * Adds a single line of text to the current buffer. The line is
-     * expected to not include any newlines.
+     * Adds a single line of text to the current buffer. The line is expected to not include any newlines.
      * 
      * @param line The line of text.
      */
     public void addLine(String line) {
-        
         ++lineCount;
         buffer.append(line);
         buffer.append(LINE_SEP);
     }
     
     /**
-     * Adds sql to the current buffer that may or may not contain
-     * multiple lines of code.
+     * Adds sql to the current buffer that may or may not contain multiple lines of code.
      * 
      * @param sql The sql to be added.
      */
     public void add(String sql) {
-        
-        BufferedReader reader = new BufferedReader(
-            new StringReader(sql));
-        
+        BufferedReader reader = new BufferedReader(new StringReader(sql));
         try {
-            
             String line = reader.readLine();
             while (line != null) {
-                
                 ++lineCount;
                 buffer.append(line);
                 buffer.append(LINE_SEP);
@@ -235,7 +198,6 @@ public class Buffer
      * @return current line number of the buffer.
      */
     public int getLineNumber() {
-        
         return lineCount + 1;
     }
     
@@ -245,8 +207,7 @@ public class Buffer
      * @param sql String of SQL that is being set.
      */
     public void set(String sql) {
-        
-        buffer = new StringBuilder();
+        buffer.setLength(0);
         add(sql);
     }
     
@@ -254,28 +215,22 @@ public class Buffer
      * Clears the buffer.
      */
     public void clear() {
-        
         lineCount = 0;
         buffer.setLength(0);
     }
     
     /**
-     * Changes the length of the contents of the buffer. This
-     * may only be used to shrink the buffer.
+     * Changes the length of the contents of the buffer. This may only be used to shrink the buffer.
      * 
      * @param length The new length
      */
     public void setLength(int length) {
-        
         if (length >= buffer.length()) {
-            
             return;
         }
         
         for (int i = length; i < buffer.length(); i++) {
-            
             if (buffer.charAt(i) == '\n') {
-                
                 --lineCount;
             }
         }
@@ -288,30 +243,25 @@ public class Buffer
      */
     @Override
     public String toString() {
-        
         return buffer.toString();
     }
     
     public String substring(int start, int end) {
-        
         return buffer.substring(start, end);
     }
 
     @Override
     public char charAt(int idx) {
-
         return buffer.charAt(idx);
     }
 
     @Override
     public int length() {
-
         return buffer.length();
     }
 
     @Override
     public CharSequence subSequence(int arg0, int arg1) {
-
         return buffer.subSequence(arg0, arg1);
     }
 }
