@@ -839,10 +839,18 @@ public class Session implements Cloneable {
     public Command evaluate(String line) throws SqshContextMessage {
         // Process the user's input to see if it had any aliases in it.
         line = getAliasManager().process(line);
-        Command cmd = getCommand(line);
+
+        final Command cmd = getCommand(line);
         if (cmd != null) {
             runCommand(cmd, line);
-        } else if (line.startsWith("!")) {
+            return cmd;
+        }
+
+        if (line.startsWith("##")) {
+            return null;
+        }
+
+        if (line.startsWith("!")) {
             BufferManager bufMan = getBufferManager();
             Buffer buf = bufMan.getBuffer(line);
             if (buf == null) {
@@ -851,25 +859,27 @@ public class Session implements Cloneable {
                 bufMan.getCurrent().add(buf.toString());
                 redrawBuffer();
             }
-        } else if (!line.startsWith("##")) {
-
-            // Add the current line to the buffer.
-            Buffer curBuf = getBufferManager().getCurrent();
-            curBuf.addLine(line);
-
-            // Check to see if the buffer is terminated with our terminator character. If it is, then we need to
-            // execute the "go" command on behalf of the user.
-            String args = isBufferTerminated(curBuf);
-            if (args != null) {
-                cmd = getCommandManager().getCommand("\\go");
-                if (args.length() > 0) {
-                    runCommand(cmd, "\\go " + args);
-                } else {
-                    runCommand(cmd, "\\go");
-                }
-            }
+            return null;
         }
-        return cmd;
+
+        // Add the current line to the buffer.
+        Buffer curBuf = getBufferManager().getCurrent();
+        curBuf.addLine(line);
+
+        // Check to see if the buffer is terminated with our terminator character. If it is, then we need to
+        // execute the "go" command on behalf of the user.
+        String args = isBufferTerminated(curBuf);
+        if (args != null) {
+            Command go = getCommandManager().getCommand("\\go");
+            if (args.length() > 0) {
+                runCommand(go, "\\go " + args);
+            } else {
+                runCommand(go, "\\go");
+            }
+            return go;
+        }
+
+        return null;
     }
 
     /**
@@ -1180,7 +1190,7 @@ public class Session implements Cloneable {
      * @param commandLine The full command line, including the command name itself
      */
     private void runCommand(Command command, String commandLine) throws SqshContextMessage {
-        Token token = null;
+        Token token;;
         Process pipeShell = null;
         SessionRedirectToken sessionRedirect = null;
         File sessionOutput = null;
@@ -1196,7 +1206,7 @@ public class Session implements Cloneable {
             // We can safely skip the first word in the command line because we have already determined that it is
             // the name of the command itself.
             tokenizer.next();
-            List<String> argv = new ArrayList<String>();
+            List<String> argv = new ArrayList<>();
             boolean haveTerminator = false;
             token = tokenizer.next();
             while (token != null) {
