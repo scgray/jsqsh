@@ -714,17 +714,15 @@ public class Session implements Cloneable {
 
         while (!done) {
             try {
-
                 line = readLine();
                 SqshConsole.AcceptCause acceptCause = getReadLineAcceptCause();
 
                 if (line == null) {
                     done = true;
                 } else {
-
-                    // If we were using JLine for the input it is possible that our line of input may
-                    // contain more than one physical line. If this is the case, we want to break it up
-                    // into individual lines for line-by-line evaluation
+                    // If we were using JLine for the input it is possible that our line of input may contain more
+                    // than one physical lines. If this is the case, we want to break it up into individual lines for
+                    // line-by-line evaluation
                     Command lastCommand = null;
                     int eol = line.indexOf('\n');
                     if (eol > 0) {
