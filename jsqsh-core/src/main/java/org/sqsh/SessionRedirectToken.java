@@ -16,60 +16,58 @@
 package org.sqsh;
 
 /**
- * This token is returned in response to a &gt;+[n] token on the command
- * line and is used to indicate that the user wishes the output of the
- * current session to be processed in the context of another session.
+ * This token is returned in response to a &gt;+[n] token on the command line and is used to indicate that the user
+ * wishes the output of the current session to be processed in the context of another session.
  */
-public class SessionRedirectToken
-    extends Token {
-    
-    private int sessionId = -1;
-    private boolean append = false;
+public class SessionRedirectToken extends Token {
+    private final int sessionId;
+    private final boolean append;
 
     /**
      * Creates a session redirect token.
-     * 
-     * @param sessionId The sessionId of the target session. An id &lt;= 0
-     *    indicates that the current session is to be used (a loopback).
-     * @param line 
+     *
+     * @param sessionId The sessionId of the target session. An id &lt;= 0 indicates that the current session is
+     *         to be used (a loopback).
+     * @param line
      * @param position
      */
-    public SessionRedirectToken(String line, int position, int sessionId,
-            boolean append) {
-
+    public SessionRedirectToken(String line, int position, int sessionId, boolean append) {
         super(line, position);
         this.sessionId = sessionId;
         this.append = append;
     }
-    
-    
-    public int getSessionId () {
-    
+
+    public int getSessionId() {
         return sessionId;
     }
 
-    public boolean isAppend () {
-    
+    public boolean isAppend() {
         return append;
     }
 
-
     @Override
-    public String toString () {
-        
+    public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append('>');
         if (append) {
-            
             sb.append('>');
         }
         sb.append('+');
-        
         if (sessionId > 0) {
-            
             sb.append(sessionId);
         }
-        
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SessionRedirectToken that = (SessionRedirectToken) o;
+        return sessionId == that.sessionId && append == that.append;
     }
 }

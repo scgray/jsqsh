@@ -15,55 +15,55 @@
  */
 package org.sqsh;
 
+import java.util.Objects;
+
 /**
- * The PipeToken represents a pipline command following
- * the building sqsh command. That is, given the string:
- * 
+ * The PipeToken represents a pipline command following the building sqsh command. That is, given the string:
  * <pre>
  *    hello how are you | blah blah
  * </pre>
- * 
- * The "blah blah" is the portion of the command line that
- * is considered the pipe.
+ *
+ * <p>
+ * The "blah blah" is the portion of the command line that is considered the pipe.
  */
-public class PipeToken
-    extends Token {
-    
-    private String pipeCommand;
-    
+public class PipeToken extends Token {
+    private final String pipeCommand;
+
     /**
      * Creates a command line pipe token.
-     * 
+     *
      * @param line The line from which the token came.
      * @param position The position on the line from which the token came.
      * @param pipeCommand The command that is to be piped to.
      */
     public PipeToken(String line, int position, String pipeCommand) {
-        
         super(line, position);
-        this.pipeCommand = pipeCommand;;
+        this.pipeCommand = pipeCommand;
     }
 
     /**
      * Returns the command that is to be piped to.
+     *
      * @return the command that is to be piped to.
      */
-    public String getPipeCommand () {
-    
+    public String getPipeCommand() {
         return pipeCommand;
     }
 
-    /**
-     * Sets the command that is to be piped to.
-     * @param pipeCommand the command that is to be piped to.
-     */
-    public void setPipeCommand (String pipeCommand) {
-    
-        this.pipeCommand = pipeCommand;
-    }
-    
+    @Override
     public String toString() {
-        
         return pipeCommand;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        PipeToken pipeToken = (PipeToken) o;
+        return Objects.equals(pipeCommand, pipeToken.pipeCommand);
     }
 }

@@ -110,12 +110,17 @@ public class Session implements Cloneable {
      * The session has a local variable manager.
      */
     private final VariableManager variableManager;
-    
+
     /**
-     * Command line tokenizer.
+     * String expander that can utilize variables defined in the session.
      */
-    private final Tokenizer tokenizer = new Tokenizer();
-    
+    private final StringExpander stringExpander;
+
+    /**
+     * String expander that also includes objects available to the prompt.
+     */
+    private final StringExpander promptExpander;
+
     /**
      * This is the number of rows-per-fetch to ask the driver (Statement object) to use when fetching data.
      */
@@ -132,6 +137,11 @@ public class Session implements Cloneable {
      * but will contain a DisconnectedConnectionContext when there is no connection.
      */
     private ConnectionContext connection;
+
+    /**
+     * During backtick processing, how to separate the fields returned.
+     */
+    private String fieldSeparators = Tokenizer.WHITESPACE;
     
     /**
      * The last exception that was displayed. This is retained for the \stack command to use.
@@ -162,6 +172,9 @@ public class Session implements Cloneable {
         } catch (IOException e) {
             err.println("Error loading internal variable definitions: " + e.getMessage());
         }
+
+        this.stringExpander = new StringExpander(this);
+        this.promptExpander = new StringExpander(promptObjects, this);
     }
     
     /**
@@ -367,6 +380,21 @@ public class Session implements Cloneable {
     }
 
     /**
+     * Sets the field separators that are used to break the output of a backtick command (e.g. {@code `echo hello`}) into
+     * individual tokens on the command line (similar to the {@code IFS} variable in bash). This may contain
+     * multiple characters, any of which will cause a token to break.
+     *
+     * @param fieldSeparators the set of field separator characters.
+     */
+    public void setIFS(String fieldSeparators) {
+        this.fieldSeparators = Tokenizer.toFieldSeparator(fieldSeparators);
+    }
+
+    public String getIFS() {
+        return Tokenizer.fromFieldSeparator(fieldSeparators);
+    }
+
+    /**
      * @return whether or not commands that are tagged for auto-paging (see {@link PagedCommand}) are honored.
      */
     public boolean isAutoPager() {
@@ -449,7 +477,7 @@ public class Session implements Cloneable {
      * @return The string expander for the session.
      */
     public StringExpander getStringExpander() {
-        return sqshContext.getStringExpander();
+        return stringExpander;
     }
 
     /**
@@ -639,7 +667,7 @@ public class Session implements Cloneable {
      * @return The expanded string.
      */
     public String expand(String str) {
-        return getStringExpander().expand(this, str);
+        return getStringExpander().expand(str);
     }
 
     /**
@@ -649,8 +677,8 @@ public class Session implements Cloneable {
      * @param str The string to expand.
      * @return The expanded string.
      */
-    public String expand(Map<String, String> variables, String str) {
-        return getStringExpander().expand(this, variables, str);
+    public String expand(Map<String, Object> variables, String str) {
+        return new StringExpander(variables, this).expand(str);
     }
 
     /**
@@ -947,7 +975,9 @@ public class Session implements Cloneable {
             if (ioManager.isInteractive()) {
                 SqshConsole console = sqshContext.getConsole();
                 String prompt = getVariableManager().get("prompt");
-                prompt = (prompt == null) ? ">" : getStringExpander().expand(this, promptObjects, prompt) + " ";
+                prompt = (prompt == null)
+                        ? ">"
+                        : promptExpander.expand(prompt) + " ";
                 String initialInput = null;
                 int lineOffset = 1;
                 if (console.isMultiLineEnabled()) {
@@ -1144,11 +1174,10 @@ public class Session implements Cloneable {
      */
     private Command getCommand(String str) {
         // Next we will attempt to parse the line.
-        tokenizer.reset(str, sqshContext.getTerminator(), false);
+        Tokenizer tokenizer = newCommandTokenizer(str);
         Token token;
 
-        // We snag the first token from the tokenizer to see if it
-        // is a command or an alias.
+        // We snag the first token from the tokenizer to see if it is a command or an alias.
         try {
             token = tokenizer.next();
         } catch (CommandLineSyntaxException e) {
@@ -1165,10 +1194,10 @@ public class Session implements Cloneable {
 
             // If the command appears to contain a '$', then we will try to expand it.
             if (cmd.indexOf('$') >= 0) {
-                cmd = getStringExpander().expand(this, str);
+                cmd = getStringExpander().expand(str);
 
                 // And re-parse it because the expansion may have produced more than one token.
-                tokenizer.reset(cmd, sqshContext.getTerminator(), false);
+                tokenizer = newCommandTokenizer(cmd);
                 try {
                     token = tokenizer.next();
                 } catch (CommandLineSyntaxException e) {
@@ -1183,6 +1212,15 @@ public class Session implements Cloneable {
         return null;
     }
 
+    private Tokenizer newCommandTokenizer(String str) {
+        return Tokenizer.newBuilder(str)
+                .setExpander(getStringExpander())
+                .setShellManager(getShellManager())
+                .setTerminator(sqshContext.getTerminator())
+                .setFieldSeparator(fieldSeparators)
+                .build();
+    }
+
     /**
      * Used internally to execute a command.
      *
@@ -1195,18 +1233,26 @@ public class Session implements Cloneable {
         SessionRedirectToken sessionRedirect = null;
         File sessionOutput = null;
 
+        final StringExpander expander = getStringExpander();
+
         // Because our commandline may redirect I/O via >file, 1>&2, or a pipe, we want to save away the state of
         // our file descriptors prior to doing this redirection, so that we can restore the state of the world when
         // we are done...
         saveInputOutput();
         try {
-            commandLine = getStringExpander().expandWithQuotes(this, commandLine);
-            tokenizer.reset(commandLine, sqshContext.getTerminator(), command.keepDoubleQuotes());
+            Tokenizer tokenizer = Tokenizer.newBuilder(commandLine)
+                    .setExpander(getStringExpander())
+                    .setRetainDoubleQuotes(command.keepDoubleQuotes())
+                    .setShellManager(getShellManager())
+                    .setTerminator(sqshContext.getTerminator())
+                    .setFieldSeparator(fieldSeparators)
+                    .build();
 
             // We can safely skip the first word in the command line because we have already determined that it is
             // the name of the command itself.
             tokenizer.next();
-            List<String> argv = new ArrayList<>();
+            final List<String> argv = new ArrayList<>();
+
             boolean haveTerminator = false;
             token = tokenizer.next();
             while (token != null) {
@@ -1214,6 +1260,7 @@ public class Session implements Cloneable {
                     throw new CommandLineSyntaxException("Input is not allowed after the command terminator "
                             + "\"" + sqshContext.getTerminatorString() + "\"", token.getPosition(), token.getLine());
                 }
+
                 if (token instanceof TerminatorToken) {
                     haveTerminator = true;
                 } else if (token instanceof RedirectOutToken) {
@@ -1223,7 +1270,6 @@ public class Session implements Cloneable {
                 } else if (token instanceof FileDescriptorDupToken) {
                     doDup((FileDescriptorDupToken) token);
                 } else if (token instanceof PipeToken) {
-
                     // If the output of this session is being redirected to another session, then we don't want to give the
                     // pipe program control over the terminal. Instead we  want to read its output so we can send it to the
                     // re-direct file.

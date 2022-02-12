@@ -16,55 +16,46 @@
 package org.sqsh;
 
 /**
- * Represents an tokenized of a command line. A token can be a string
- * literal.
+ * A token of a parsed command line.
  */
 abstract class Token {
-    
-    private int position = -1;
-    private String line = null;
-    
-    /**
-     * Noarg constructor.
-     */
-    public Token() {
-        
-    }
-    
+    protected final int position;
+    protected final String line;
+
     /**
      * Create a token.
-     * 
+     *
      * @param line Line from which the token came.
      * @param position Position on the line the taken began at.
      */
-    public Token (String line, int position) {
-        
+    public Token(String line, int position) {
         this.line = line;
         this.position = position;
     }
-    
+
     /**
      * The line from which the token came.
+     *
      * @return The line from which the token came.
      */
-    public String getLine () {
-    
+    public String getLine() {
         return line;
     }
-    
+
     /**
      * The position in the line at which the token began.
+     *
      * @return position in the line at which the token began.
      */
-    public int getPosition () {
-    
+    public int getPosition() {
         return position;
     }
-    
+
     /**
      * Every token must be able to convert itself back into a string.
-     * 
-     * @return The string version of the token 
+     *
+     * @return The string version of the token
      */
+    @Override
     public abstract String toString();
 }

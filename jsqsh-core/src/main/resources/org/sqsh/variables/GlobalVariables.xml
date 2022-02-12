@@ -46,11 +46,6 @@
         <Description>The history id of the current buffer</Description>
     </Property>
     
-    <Property bean="global" name="readline" property="console.name">
-        <Description>Displays the readline implementation in use</Description>
-    </Property>
-    
-    
     <Property bean="global" name="scale" property="dataFormatter.scale">
         <Description>Controls the decimal place precision of values</Description>
     </Property>

@@ -167,11 +167,6 @@ public class SqshContext {
     private HelpManager helpManager = new HelpManager();
     
     /**
-     * Our string expander.
-     */
-    private StringExpander stringExpander = new StringExpander();
-    
-    /**
      * Handle to the current active session.
      */
     private Session currentSession = null;
@@ -260,6 +255,8 @@ public class SqshContext {
      * How the exit status of the context is determined
      */
     private ExitStatus exitStatus = ExitStatus.TOTAL_FAILURES;
+
+    private String fieldSeparator = Tokenizer.WHITESPACE;
     
     /**
      * Creates a new SqshContext. 
@@ -931,15 +928,6 @@ public class SqshContext {
     public ConnectionDescriptorManager getConnectionDescriptorManager() {
         
         return connDescMan;
-    }
-    
-    /**
-     * Returns the string expander for sqsh.
-     * @return the string expander for sqsh.
-     */
-    public StringExpander getStringExpander() {
-        
-        return stringExpander;
     }
     
     /**

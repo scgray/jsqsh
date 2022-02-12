@@ -15,22 +15,37 @@
  */
 package org.sqsh;
 
+import java.util.Objects;
+
 /**
  * Command line token to represent the terminator character.
  */
 public class TerminatorToken extends Token {
-    
-    String terminator;
-    
+    private final String terminator;
+
     public TerminatorToken(String line, int pos, char terminator) {
-        
         super(line, pos);
         this.terminator = Character.toString(terminator);
     }
 
+    public String getTerminator() {
+        return terminator;
+    }
+
     @Override
     public String toString() {
-
         return terminator;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        TerminatorToken that = (TerminatorToken) o;
+        return Objects.equals(terminator, that.terminator);
     }
 }

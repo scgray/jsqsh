@@ -703,7 +703,7 @@ public class SQLDriverManager {
      * @return The URL expanded of all variables.
      */
     private String getUrl(Session session, Map<String, String>properties, Map<String, String>vars, String url) {
-        final Map<String, String> connProperties = new HashMap<>(properties);
+        final Map<String, Object> connProperties = new HashMap<>(properties);
 
         if (vars != null) {
             for (String name : vars.keySet()) {

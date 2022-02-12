@@ -22,8 +22,10 @@
         <Description>The number of commands that have exited in error</Description>
     </Property>
     
-    <Property bean="session" name="IFS" property="stringExpander.IFS"/>
-    
+    <Property bean="session" name="IFS" property="IFS">
+        <Description>Field separator for output from backtick command execution</Description>
+    </Property>
+
     <Property bean="session" name="database" property="connection.catalog" 
               settable="true" quiet="true">
         <Description>Contains the connection's current database</Description>

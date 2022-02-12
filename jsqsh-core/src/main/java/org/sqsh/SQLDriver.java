@@ -15,6 +15,12 @@
  */
 package org.sqsh;
 
+import org.sqsh.analyzers.ANSIAnalyzer;
+import org.sqsh.analyzers.NullAnalyzer;
+import org.sqsh.analyzers.SQLAnalyzer;
+import org.sqsh.normalizer.NullNormalizer;
+import org.sqsh.normalizer.SQLNormalizer;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -28,12 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import org.sqsh.analyzers.ANSIAnalyzer;
-import org.sqsh.analyzers.SQLAnalyzer;
-import org.sqsh.analyzers.NullAnalyzer;
-import org.sqsh.normalizer.SQLNormalizer;
-import org.sqsh.normalizer.NullNormalizer;
 
 public class SQLDriver 
     implements Comparable<SQLDriver> {
@@ -422,7 +422,7 @@ public class SQLDriver
             return urls;
         }
         
-        StringExpander expander = StringExpander.getEnvironmentExpander();
+        StringExpander expander = StringExpander.ENVIRONMENT_EXPANDER;
         for (String path : classpath) {
             
             try {

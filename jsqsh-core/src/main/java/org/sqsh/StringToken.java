@@ -15,52 +15,52 @@
  */
 package org.sqsh;
 
+import java.util.Objects;
 import java.util.logging.Logger;
 
 /**
  * Represents an arbitrary string that was parsed from the command line.
  */
-public class StringToken
-    extends Token {
-    
-    private static final Logger LOG =
-        Logger.getLogger(RedirectOutToken.class.getName());
-    
-    private String str;
-    
+public class StringToken extends Token {
+    private static final Logger LOG = Logger.getLogger(RedirectOutToken.class.getName());
+
+    private final String str;
+
     /**
      * Creates a string token.
-     * 
+     *
      * @param line The line from which the token came.
      * @param position The position on the line from which the token came.
      * @param str The string represented by the token.
      */
     public StringToken(String line, int position, String str) {
-        
         super(line, position);
         this.str = str;
     }
-    
+
     /**
      * Returns the string that was parsed.
+     *
      * @return the string that was parsed.
      */
     public String getString() {
-        
         return str;
     }
-    
-    /**
-     * Sets the string that was parsed.
-     * @param str the string that was parsed.
-     */
-    public void setString(String str) {
-        
-        this.str = str;
-    }
-    
+
+    @Override
     public String toString() {
-        
         return str;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        StringToken that = (StringToken) o;
+        return Objects.equals(str, that.str);
     }
 }

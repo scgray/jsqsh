@@ -19,88 +19,69 @@ import java.util.logging.Logger;
 
 
 /**
- * Token that represents a file descriptor duplication (dup2()) operation. This are
- * of the form of N&amp;&gt;M where N is the file descriptor to be duplicated 
- * and M is the file descriptor to be closed and duplicated into.
+ * Token that represents a file descriptor duplication (dup2()) operation. This are of the form of N&amp;&gt;M where N
+ * is the file descriptor to be duplicated and M is the file descriptor to be closed and duplicated into.
  */
-public class FileDescriptorDupToken
-    extends Token {
+public class FileDescriptorDupToken extends Token {
+    private static final Logger LOG = Logger.getLogger(FileDescriptorDupToken.class.getName());
 
-    private static final Logger LOG = Logger
-            .getLogger(FileDescriptorDupToken.class.getName());
-    
     /**
      * The file descriptor that we are duplicating.
      */
-    private int oldFd;
-    
+    private final int oldFd;
+
     /**
      * The file descriptor that we are copying into.
      */
-    private int newFd;
-    
+    private final int newFd;
+
     /**
-     * Creates a token representing a file descriptor duplication
-     * operation.
-     * 
+     * Creates a token representing a file descriptor duplication operation.
+     *
      * @param line The line from which the token came.
      * @param position The position on the line from which the token came.
      * @param oldFd The original file descriptor.
-     * @param newFd The new descriptor that is being created (and closed
-     *    if necessary).
+     * @param newFd The new descriptor that is being created (and closed if necessary).
      */
-    public FileDescriptorDupToken(String line, int position, 
-            int oldFd, int newFd) {
-        
+    public FileDescriptorDupToken(String line, int position, int oldFd, int newFd) {
         super(line, position);
-        
         this.oldFd = oldFd;
         this.newFd = newFd;
     }
-    
+
     /**
      * @return the newFd
      */
-    public int getNewFd () {
-    
+    public int getNewFd() {
         return newFd;
     }
 
-    
-    /**
-     * @param newFd the newFd to set
-     */
-    public void setNewFd (int newFd) {
-    
-        this.newFd = newFd;
-    }
-
-    
     /**
      * @return the oldFd
      */
-    public int getOldFd () {
-    
+    public int getOldFd() {
         return oldFd;
     }
-    
-    /**
-     * @param oldFd the oldFd to set
-     */
-    public void setOldFd (int oldFd) {
-    
-        this.oldFd = oldFd;
-    }
-    
+
     /**
      * Returns the redirection operation as a string.
      */
+    @Override
     public String toString() {
-        
-        StringBuffer sb = new StringBuffer(10);
-        
-        sb.append(oldFd).append(">&").append(newFd);
-        
-        return sb.toString();
+        return oldFd + ">&" + newFd;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        FileDescriptorDupToken that = (FileDescriptorDupToken) o;
+        return oldFd == that.oldFd && newFd == that.newFd;
     }
 }
