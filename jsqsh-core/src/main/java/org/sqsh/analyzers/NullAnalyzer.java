@@ -17,21 +17,17 @@ package org.sqsh.analyzers;
 
 
 /**
- * The NullAnalyzer does no analysis whatsoever. It will always refuse
- * to identify a SQL terminator.
+ * The NullAnalyzer does no analysis whatsoever. It will always refuse to identify a SQL terminator.
  */
-public class NullAnalyzer
-    implements SQLAnalyzer {
+public class NullAnalyzer implements SQLAnalyzer {
 
     @Override
     public String getName() {
-
         return "None";
     }
 
     @Override
-    public boolean isTerminated (CharSequence sql, char terminator) {
-
+    public boolean isTerminated(CharSequence sql, char terminator) {
         return false;
     }
 }

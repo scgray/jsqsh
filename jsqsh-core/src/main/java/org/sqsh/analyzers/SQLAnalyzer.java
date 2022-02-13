@@ -16,23 +16,20 @@
 package org.sqsh.analyzers;
 
 /**
- * A SQLAnalyzer is responsible for analyzing the current 
- * input batch so that jsqsh can ask various questions of it. The expectation 
- * here is that there may be different implementations for different database
- * vendors.
+ * A SQLAnalyzer is responsible for analyzing the current input batch so that jsqsh can ask various questions of it. The
+ * expectation here is that there may be different implementations for different database vendors.
  */
 public interface SQLAnalyzer {
-    
+
     /**
      * @return The name of this analyzer
      */
     public String getName();
-    
+
     /**
-     * Analyzes a SQL of text to see if it is terminated with the provided
-     * terminator character (presumably the character is a semicolon most of
-     * the time). 
-     * 
+     * Analyzes a SQL of text to see if it is terminated with the provided terminator character (presumably the
+     * character is a semicolon most of the time).
+     *
      * @param batch The batch to analyze
      * @param terminator The terminator character
      * @return True if the batch is terminated.

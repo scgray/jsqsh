@@ -19,42 +19,30 @@ import org.sqsh.SimpleKeywordTokenizer;
 
 
 /**
- * A rather generic analyzer that is used to analyze ANSI sql statements.
- * This is used as the default analyzer when no other is available or the
- * necessary type of analyzer is not known.
+ * A rather generic analyzer that is used to analyze ANSI sql statements. This is used as the default analyzer when no
+ * other is available or the necessary type of analyzer is not known.
  */
-public class ANSIAnalyzer
-    implements SQLAnalyzer {
-    
+public class ANSIAnalyzer implements SQLAnalyzer {
+
     @Override
     public String getName() {
-
         return "ANSI SQL";
     }
 
     /**
-     * Analyzes a chunk of ANSI SQL to determine if the provided terminator
-     * character is located at the end of the block. This analyzer only
-     * ensures that the terminator is not located within a string,
-     * a variable name, or an object name.
+     * Analyzes a chunk of ANSI SQL to determine if the provided terminator character is located at the end of the
+     * block. This analyzer only ensures that the terminator is not located within a string, a variable name, or an
+     * object name.
      */
     @Override
-    public boolean isTerminated (CharSequence sql, char terminator) {
-        
-        SimpleKeywordTokenizer tokenizer =
-            new SimpleKeywordTokenizer(sql, terminator);
-        
+    public boolean isTerminated(CharSequence sql, char terminator) {
+        SimpleKeywordTokenizer tokenizer = new SimpleKeywordTokenizer(sql, terminator);
         String prevToken = null;
         String token = tokenizer.next();
-        
         while (token != null) {
-            
             prevToken = token;
             token = tokenizer.next();
         }
-        
-        return (prevToken != null 
-                    && prevToken.length() == 1 
-                    && prevToken.charAt(0) == terminator);
+        return (prevToken != null && prevToken.length() == 1 && prevToken.charAt(0) == terminator);
     }
 }

@@ -256,5 +256,7 @@
             target="Snowflake"
             analyzer="org.sqsh.analyzers.ANSIAnalyzer"
             normalizer="org.sqsh.normalizer.NullNormalizer">
+       <SessionVariable name="terminator"></SessionVariable>
+       <SessionVariable name="expand">false</SessionVariable>
     </Driver>
 </Drivers>
