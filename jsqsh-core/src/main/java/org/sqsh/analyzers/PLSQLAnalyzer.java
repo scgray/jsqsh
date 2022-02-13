@@ -211,10 +211,8 @@ public class PLSQLAnalyzer implements SQLAnalyzer {
             }
         }
 
-        /*
-         * A function can be: CREATE FUNCTION ... RETURN <expression> or: CREATE FUNCTION .. BEGIN .. END. Try to
-         * figure out which
-         */
+        // A function can be: CREATE FUNCTION ... RETURN <expression> or: CREATE FUNCTION .. BEGIN .. END. Try to
+        // figure out which
         if ("FUNCTION".equals(tok)) {
             tok = tokenizer.next();
             while (tok != null) {
@@ -226,7 +224,6 @@ public class PLSQLAnalyzer implements SQLAnalyzer {
                 tok = tokenizer.next();
             }
         } else if ("PROCEDURE".equals(tok) || "TRIGGER".equals(tok)) {
-
             // Procedures must have a BEGIN
             return seekBegin(tokenizer);
         }
