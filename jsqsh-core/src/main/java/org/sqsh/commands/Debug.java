@@ -15,27 +15,24 @@
  */
 package org.sqsh.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
 import org.sqsh.options.Argv;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * Implements the debug command.
  */
-public class Debug
-    extends Command {
-    
-    private static class Options
-        extends SqshOptions {
-    
-        @Argv(program="\\debug", min=1, max=1)
-        public List<String> arguments = new ArrayList<String>();
+public class Debug extends Command {
+
+    private static class Options extends SqshOptions {
+        @Argv(program = "\\debug", min = 1, max = 1)
+        public List<String> arguments = new ArrayList<>();
     }
 
     /**
@@ -43,34 +40,23 @@ public class Debug
      */
     @Override
     public SqshOptions getOptions() {
-        
         return new Options();
     }
 
     @Override
-    public int execute (Session session, SqshOptions opts)
-        throws Exception {
-        
-        Options options = (Options)opts;
+    public int execute(Session session, SqshOptions opts) throws Exception {
+        Options options = (Options) opts;
         boolean ok = true;
-
         for (int i = 0; i < options.arguments.size(); i++) {
-            
             String name = options.arguments.get(i);
             Logger log = Logger.getLogger(name);
-            
             if (log != null) {
-                
                 log.setLevel(Level.FINE);
-            }
-            else {
-                
-                session.err.println("Unable to find logger '"
-                    + name + "'");
+            } else {
+                session.err.println("Unable to find logger '" + name + "'");
                 ok = false;
             }
         }
-        
         return (ok ? 0 : 1);
     }
 }

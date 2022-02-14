@@ -15,6 +15,13 @@
  */
 package org.sqsh.commands;
 
+import org.sqsh.Command;
+import org.sqsh.Renderer;
+import org.sqsh.SQLRenderer;
+import org.sqsh.Session;
+import org.sqsh.SqshOptions;
+import org.sqsh.options.Argv;
+
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -22,25 +29,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.sqsh.Command;
-import org.sqsh.Renderer;
-import org.sqsh.ConnectionContext;
-import org.sqsh.SQLRenderer;
-import org.sqsh.Session;
-import org.sqsh.SqshOptions;
-import org.sqsh.options.Argv;
-
 /**
  * Implements the \databases command.
  */
-public class Databases
-    extends Command {
-    
-    private static class Options
-    extends SqshOptions {
-    
-        @Argv(program="\\databases", min=0, max=0)
-        public List<String> arguments = new ArrayList<String>();
+public class Databases extends Command {
+
+    private static class Options extends SqshOptions {
+        @Argv(program = "\\databases", min = 0, max = 0)
+        public List<String> arguments = new ArrayList<>();
     }
 
     /**
@@ -48,58 +44,26 @@ public class Databases
      */
     @Override
     public SqshOptions getOptions() {
-        
         return new Options();
     }
 
     @Override
-    public int execute (Session session, SqshOptions options)
-        throws Exception {
-        
+    public int execute(Session session, SqshOptions options) throws Exception {
         Connection con = session.getConnection();
         if (con == null) {
-            
-            session.err.println("No database connection has been established."
-                + " Use the \\connect command to create a connection.");
+            session.err.println("No database connection has been established." + " Use the \\connect command to create a connection.");
             return 1;
         }
-        
-        ResultSet result = null;
-        try {
-            
-            DatabaseMetaData meta = con.getMetaData();
-            
-            result = meta.getCatalogs();
-            
+
+        DatabaseMetaData meta = con.getMetaData();
+        try (ResultSet result = meta.getCatalogs()) {
             SQLRenderer sqlRenderer = session.getSQLRenderer();
-            Renderer renderer = session.getRendererManager()
-                .getCommandRenderer(session);
-            
+            Renderer renderer = session.getRendererManager().getCommandRenderer(session);
             sqlRenderer.displayResults(renderer, session, result, null);
-        }
-        catch (SQLException e) {
-            
-            session.err.println("Failed to retrieve database metadata: "
-                + e.getMessage());
-            
+        } catch (SQLException e) {
+            session.err.println("Failed to retrieve database metadata: " + e.getMessage());
             return 1;
         }
-        finally {
-            
-            if (result != null) {
-                
-                try {
-                    
-                    result.close();
-                }
-                catch (SQLException e) {
-                    
-                    /* IGNORED */
-                }
-            }
-            
-        }
-        
         return 0;
     }
 }

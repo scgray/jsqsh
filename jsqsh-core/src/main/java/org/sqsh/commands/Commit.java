@@ -16,36 +16,26 @@ import java.util.List;
 /**
  * Command to execute the <code>Connection.commit()</code> method
  */
-public class Commit
-        extends Command
-        implements DatabaseCommand {
+public class Commit extends Command implements DatabaseCommand {
 
-    private static class Options
-            extends SqshOptions {
-
-        @Argv(program="\\commit", usage="", min=0, max=0)
-        public List<String> arguments = new ArrayList<String>();
+    private static class Options extends SqshOptions {
+        @Argv(program = "\\commit", usage = "", min = 0, max = 0)
+        public List<String> arguments = new ArrayList<>();
     }
 
     @Override
     public SqshOptions getOptions() {
-
         return new Options();
     }
 
     @Override
-    public int execute (Session session, SqshOptions opts)
-            throws Exception {
-
+    public int execute(Session session, SqshOptions opts) throws Exception {
         ConnectionContext connectionContext = session.getConnectionContext();
+
         if (connectionContext instanceof SQLConnectionContext) {
-
             try {
-
                 (((SQLConnectionContext) connectionContext).getConnection()).commit();
-            }
-            catch (SQLException e) {
-
+            } catch (SQLException e) {
                 SQLTools.printException(session, e);
                 return 1;
             }
