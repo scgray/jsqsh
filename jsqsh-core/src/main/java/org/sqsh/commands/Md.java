@@ -15,11 +15,6 @@
  */
 package org.sqsh.commands;
 
-import static org.sqsh.options.ArgumentRequired.REQUIRED;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.sqsh.BufferManager;
 import org.sqsh.Command;
 import org.sqsh.MarkdownFormatter;
@@ -27,6 +22,11 @@ import org.sqsh.Session;
 import org.sqsh.SqshOptions;
 import org.sqsh.options.Argv;
 import org.sqsh.options.OptionProperty;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.sqsh.options.ArgumentRequired.REQUIRED;
 
 /*
 This is some sample text that will wrap some and 
@@ -40,48 +40,38 @@ going to wrap and wrap
  */
 
 /**
- * Comamnd to test the markdown formatter.
+ * Command to test the markdown formatter.
  */
 public class Md extends Command {
-    
+
     /**
-     * Used to contain the command line options that were passed in by
-     * the caller.
+     * Used to contain the command line options that were passed in by the caller.
      */
-    private static class Options
-        extends SqshOptions {
-        
-        @OptionProperty(option='w', longOption="width", 
-            arg=REQUIRED, argName="width", description="Sets the screen width for display")
+    private static class Options extends SqshOptions {
+        @OptionProperty(option = 'w', longOption = "width", arg = REQUIRED, argName = "width",
+                description = "Sets the screen width for display")
         public int width = 80;
-        
-        
-        @Argv(program="\\md", min=0, max=0)
-        public List<String> arguments = new ArrayList<String>();
+
+        @Argv(program = "\\md", min = 0, max = 0)
+        public List<String> arguments = new ArrayList<>();
     }
-    
+
     public SqshOptions getOptions() {
-        
         return new Options();
     }
-    
-    public int execute (Session session, SqshOptions opts) throws Exception {
-                    
+
+    public int execute(Session session, SqshOptions opts) throws Exception {
         Options options = (Options) opts;
         BufferManager bufferMan = session.getBufferManager();
         String text = bufferMan.getCurrent().toString();
-        
+
         if (session.isInteractive()) {
-            
             bufferMan.newBuffer();
-        }
-        else {
-            
+        } else {
             bufferMan.getCurrent().clear();
         }
-        
-        MarkdownFormatter formatter = new MarkdownFormatter(options.width,
-            session.out);
+
+        MarkdownFormatter formatter = new MarkdownFormatter(options.width, session.out);
         formatter.format(text);
 
         return 0;

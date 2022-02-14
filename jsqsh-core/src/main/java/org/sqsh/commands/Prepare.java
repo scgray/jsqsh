@@ -15,14 +15,6 @@
  */
 package org.sqsh.commands;
 
-import java.sql.Connection;
-import java.sql.ParameterMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.sqsh.BufferManager;
 import org.sqsh.Command;
 import org.sqsh.DatabaseCommand;
@@ -32,87 +24,67 @@ import org.sqsh.Session;
 import org.sqsh.SqshOptions;
 import org.sqsh.options.Argv;
 
-public class Prepare 
-    extends Command
-    implements DatabaseCommand {
-    
-    private static class Options
-        extends SqshOptions {
-    
-        @Argv(program="\\prepare", min=0, max=0, usage="")
+import java.sql.Connection;
+import java.sql.ParameterMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Prepare extends Command implements DatabaseCommand {
+
+    private static class Options extends SqshOptions {
+
+        @Argv(program = "\\prepare", min = 0, max = 0, usage = "")
         public List<String> arguments = new ArrayList<String>();
     }
 
     @Override
     public SqshOptions getOptions() {
-
         return new Options();
     }
 
     @Override
     public int execute(Session session, SqshOptions options) throws Exception {
-        
         Connection conn = session.getConnection();
-        
         BufferManager bufferMan = session.getBufferManager();
         SQLRenderer sqlRenderer = session.getSQLRenderer();
+
         String sql = bufferMan.getCurrent().toString();
-        
-        PreparedStatement stmt = null;
+
         int returnCode = 0;
-        
-        try {
-            stmt = conn.prepareStatement(sql);
+        try (PreparedStatement stmt = conn.prepareStatement(sql)){
             ResultSetMetaData columns = stmt.getMetaData();
-            
+
             // Display result columns
             if (columns != null) {
-                
                 session.out.println("Result columns");
                 sqlRenderer.displayMetadata(session, columns);
-            
                 session.out.println();
             }
-            
+
             ParameterMetaData params = stmt.getParameterMetaData();
-            
             if (params != null) {
-                
                 session.out.println("Parameters");
                 sqlRenderer.displayParameterMetadata(session, params);
             }
-        }
-        catch (SQLException e) {
-            
+        } catch (SQLException e) {
             SQLTools.printException(session, e);
             returnCode = 1;
-        }
-        catch (Throwable e) {
-            
+        } catch (Throwable e) {
             session.printException(e);
             returnCode = 1;
-        }
-        finally {
-            if (stmt != null) {
-                
-                SQLTools.close(stmt);
-            }
-            
-            /*
-             * If this is an interactive session, then we create a new
-             * buffer to work with, otherwise we just re-use the current
-             * buffer.
-             */
+        } finally {
+            // If this is an interactive session, then we create a new buffer to work with, otherwise we just
+            // re-use the current buffer.
             if (session.isInteractive()) {
-                
                 bufferMan.newBuffer();
-            }
-            else {
-                
+            } else {
                 bufferMan.getCurrent().clear();
             }
         }
-        
+
         return returnCode;
     }
 

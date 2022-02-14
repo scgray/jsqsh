@@ -15,14 +15,6 @@
  */
 package org.sqsh.commands;
 
-import static org.sqsh.options.ArgumentRequired.REQUIRED;
-import static org.sqsh.options.ArgumentRequired.NONE;
-
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.sqsh.BufferManager;
 import org.sqsh.Command;
 import org.sqsh.DatabaseCommand;
@@ -35,135 +27,98 @@ import org.sqsh.options.Argv;
 import org.sqsh.options.OptionProperty;
 import org.sqsh.renderers.InsertRenderer;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Insert 
-    extends Command
-    implements DatabaseCommand {
-    
-    private static class Options
-        extends SqshOptions {
-        
-        @OptionProperty(
-            option='s', longOption="target-session", arg=REQUIRED, argName="id",
-            description="Target session in which inserts are executed")
+import static org.sqsh.options.ArgumentRequired.NONE;
+import static org.sqsh.options.ArgumentRequired.REQUIRED;
+
+
+public class Insert extends Command implements DatabaseCommand {
+
+    private static class Options extends SqshOptions {
+        @OptionProperty(option = 's', longOption = "target-session", arg = REQUIRED, argName = "id",
+                description = "Target session in which inserts are executed")
         public int sessionId = -1;
-        
-        @OptionProperty(
-            option='b', longOption="batch-size", arg=REQUIRED, argName="rows",
-            description="Number of rows per batch")
-         public int batchSize = 50;
 
-        @OptionProperty(
-            option='t', longOption="terminator", arg=REQUIRED, 
-            argName="terminator", 
-            description="Command used to terminator a batch")
-         public String batchTerminator = "go";
+        @OptionProperty(option = 'b', longOption = "batch-size", arg = REQUIRED, argName = "rows",
+                description = "Number of rows per batch")
+        public int batchSize = 50;
 
-        @OptionProperty(
-            option='m', longOption="multi-row", arg=NONE, 
-            argName="multi-row", 
-            description="Allow multiple rows per insert")
-         public boolean multiRowInsert = false;
-        
-        @Argv(program="\\insert", min=1, max=1,
-            usage="[-s target-session] [-b batch-size] [-t terminator] "
-                  + "table_name")
-        public List<String> arguments = new ArrayList<String>();
+        @OptionProperty(option = 't', longOption = "terminator", arg = REQUIRED, argName = "terminator",
+                description = "Command used to terminator a batch")
+        public String batchTerminator = "go";
+
+        @OptionProperty(option = 'm', longOption = "multi-row", arg = NONE, argName = "multi-row",
+                description = "Allow multiple rows per insert")
+        public boolean multiRowInsert = false;
+
+        @Argv(program = "\\insert", min = 1, max = 1, usage = "[-s target-session] [-b batch-size] [-t terminator] " + "table_name")
+        public List<String> arguments = new ArrayList<>();
     }
-    
+
     @Override
     public SqshOptions getOptions() {
-        
         return new Options();
     }
-    
+
     @Override
-    public int execute (Session session, SqshOptions opts)
-        throws Exception {
-        
+    public int execute(Session session, SqshOptions opts) throws Exception {
         RendererManager renderMan = session.getRendererManager();
         Options options = (Options) opts;
-        
-        /*
-         * Make sure the user provided at least a table name.
-         */
+
+        // Make sure the user provided at least a table name.
         if (options.arguments.size() != 1) {
-            
             session.err.println("use: \\insert [options] table_name");
             return 1;
         }
-        
         String table = options.arguments.get(0);
         Connection targetConnection = null;
-        
-        /*
-         * If a session Id was provided, then try to get its connection.
-         */
+
+        // If a session Id was provided, then try to get its connection.
         if (options.sessionId > 0) {
-            
-            Session targetSession = session.getContext().getSession(
-                options.sessionId);
+            Session targetSession = session.getContext().getSession(options.sessionId);
             if (targetSession == null) {
-                
-                session.err.println("The provided session id '" 
-                    + options.sessionId + "' is not valid. Use \\session "
-                    + "to view valid session ids");
+                session.err.println("The provided session id '" + options.sessionId
+                        + "' is not valid. Use \\session to view valid session ids");
                 return 1;
             }
-            
             targetConnection = targetSession.getConnection();
             if (targetConnection == null) {
-                
-                session.err.println("Session " + options.sessionId + 
-                    " is not currently connected to a server.");
+                session.err.println("Session " + options.sessionId + " is not currently connected to a server.");
                 return 1;
             }
         }
-        
-        
-        /*
-         * Set up the insert renderer based upon the provided input
-         * parameters.
-         */
-        InsertRenderer renderer = (InsertRenderer) 
-            renderMan.getRenderer(session, "insert");
-        
+
+
+        // Set up the insert renderer based upon the provided input parameters.
+        InsertRenderer renderer = (InsertRenderer) renderMan.getRenderer(session, "insert");
         renderer.setTable(table);
         renderer.setBatchSize(options.batchSize);
         renderer.setConnection(targetConnection);
         renderer.setBatchTerminator(options.batchTerminator);
         renderer.setMultiRowInsert(options.multiRowInsert);
-        
-        /*
-         * Get the current SQL statement.
-         */
+
+        // Get the current SQL statement.
         BufferManager bufferMan = session.getBufferManager();
         SQLRenderer sqlRenderer = session.getSQLRenderer();
         String sql = bufferMan.getCurrent().toString();
-        
-        /*
-         * If this is an interactive session, then we create a new
-         * buffer to work with, otherwise we just re-use the current
-         * buffer.
-         */
+
+        // If this is an interactive session, then we create a new buffer to work with, otherwise we just re-use the
+        // current buffer.
         if (session.isInteractive()) {
-            
             bufferMan.newBuffer();
-        }
-        else {
-            
+        } else {
             bufferMan.getCurrent().clear();
         }
-        
+
         try {
-            
             sqlRenderer.execute(renderer, session, sql);
-        }
-        catch (SQLException e) {
-            
+        } catch (SQLException e) {
             SQLTools.printException(session, e);
         }
-        
         return 0;
     }
 

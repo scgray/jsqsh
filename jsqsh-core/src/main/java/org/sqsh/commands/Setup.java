@@ -54,48 +54,38 @@ import java.util.Properties;
 public class Setup extends Command {
     
     private static class Options extends SqshOptions {
-        
         @Argv(program="\\setup", min=0, max=1, usage=" [connections | drivers]")
-        public List<String> arguments = new ArrayList<String>();
+        public List<String> arguments = new ArrayList<>();
     }
 
     @Override
     public SqshOptions getOptions() {
-
         return new Options();
     }
 
 
     @Override
     public int execute(Session session, SqshOptions opts) throws Exception {
-        
         Options options = (Options)opts;
         LineReader in = session.getContext().getConsole().getSimpleLineReader();
 
         try {
-
             if (options.arguments.size() > 0) {
-
                 String path = options.arguments.get(0);
                 if (path.equals("connections")) {
-
                     doConnectionWizard(session, session.out, in);
                 }
                 else if (path.equals("drivers")) {
-
                     doDriverWizard(session, session.out, in);
                 }
                 else {
-
                     session.err.println("Unrecognized setup type \"" + path + "\"");
                 }
             } else {
-
                 doWelcome(session, session.out, in);
             }
         }
         catch (UserInterruptException e) {
-
             session.err.println("Aborting setup");
             return 1;
         }
@@ -104,11 +94,9 @@ public class Setup extends Command {
     }
     
     public void doWelcome(Session session, PrintStream out, LineReader in) throws Exception {
-        
         boolean done = false;
         
         while (! done) {
-
             cls(in);
             out.println("JSQSH SETUP WIZARD");
             out.println();
@@ -134,15 +122,12 @@ public class Setup extends Command {
             String str = readline(in, "Choose (Q)uit, (C)onnection wizard, or (D)river wizard: ");
             str = str.trim();
             if ("q".equalsIgnoreCase(str) || "b".equalsIgnoreCase(str)) {
-                
                 done = true;
             }
             else if ("d".equalsIgnoreCase(str)) {
-                
                 done = doDriverWizard(session, out, in);
             }
             else if ("c".equalsIgnoreCase(str)) {
-                
                 done = doConnectionWizard(session, out, in);
             }
         }
@@ -154,12 +139,11 @@ public class Setup extends Command {
     }
     
     public boolean doConnectionWizard(Session session, PrintStream out, LineReader in) throws Exception {
-
         SQLDriverManager driverMan = session.getDriverManager();
         boolean done = false;
         boolean doQuit = false;
-        while (! done) {
 
+        while (! done) {
             cls(in);
             session.out.println("JSQSH CONNECTION WIZARD - (edits $HOME/.jsqsh/connections.xml");
             
@@ -169,12 +153,10 @@ public class Setup extends Command {
             Arrays.sort(connDescs);
             
             if (connDescs == null || connDescs.length == 0) {
-                
                 done = doConnectionChooseDriver(session, out, in);
                 continue;
             }
             else {
-                
                 out.println("The following connections are currently defined:");
                 out.println();
                 out.println("     Name                 Driver     Host                           Port");
@@ -182,18 +164,15 @@ public class Setup extends Command {
                 
                 boolean hasStar = false;
                 for (int i = 0; i < connDescs.length; i++) {
-                    
                     ConnectionDescriptor desc = connDescs[i];
                     SQLDriver driver = driverMan.getDriver(desc.getDriver());
                     
                     if (desc.isAutoconnect()) {
-                        
                         hasStar = true;
                     }
                     
                     String server = desc.getServer();
                     if (server == null) {
-                        
                         server = driver.getVariable(SQLDriver.SERVER_PROPERTY);
                     }
                     
@@ -202,15 +181,12 @@ public class Setup extends Command {
                     int port = desc.getPort();
                     String portStr = null;
                     if (port < 0) {
-                        
                         portStr = driver.getVariable(SQLDriver.PORT_PROPERTY);
                         if (portStr == null) {
-                            
                             portStr = "-";
                         }
                     }
                     else {
-                        
                         portStr = Integer.toString(port);
                     }
                     
@@ -225,15 +201,14 @@ public class Setup extends Command {
                 }
                 
                 if (hasStar) {
-                    
                     out.println();
                     out.println("  * = Connection is set for autoconnect");
                 }
             }
+
             out.println();
             
             if (connDescs == null || connDescs.length > 0) {
-                
                 out.println("Enter a connection number above to edit the connection, or:");
             }
             out.flush();
@@ -242,23 +217,18 @@ public class Setup extends Command {
             str = str.trim();
             
             if (str.equalsIgnoreCase("b")) {
-                
                 done = true;
             }
             else if (str.equalsIgnoreCase("q")) {
-                
                 doQuit = done = true;
             }
             else if (str.equalsIgnoreCase("a")) {
-                
                 doQuit = doConnectionChooseDriver(session, out, in);
                 done = doQuit;
             }
             else {
-                
                 int id = toInt(str);
                 if (id >= 1 && id <= connDescs.length) {
-                    
                     doQuit = doConfigConnection(session, out, in,
                         connDescs[id-1], driverMan.getDriver(connDescs[id-1].getDriver()));
                     done = doQuit;
@@ -274,31 +244,26 @@ public class Setup extends Command {
      * @throws Exception
      */
     public boolean doConnectionChooseDriver(Session session, PrintStream out, LineReader in) throws Exception {
-        
         SQLDriverManager driverMan = session.getDriverManager();
         boolean done = false;
         boolean doQuit = false;
         
-        List<SQLDriver> drivers = new ArrayList<SQLDriver>();
-        List<SQLDriver> unavail = new ArrayList<SQLDriver>();
+        List<SQLDriver> drivers = new ArrayList<>();
+        List<SQLDriver> unavail = new ArrayList<>();
         
-        SQLDriver all[] = driverMan.getDrivers();
+        SQLDriver[] all = driverMan.getDrivers();
         Arrays.sort(all);
         for (int i = 0; i < all.length; i++) {
-            
             if (all[i].isAvailable()) {
-                
                 drivers.add(all[i]);
             }
             else {
-                
                 unavail.add(all[i]);
             }
         }
         drivers.addAll(unavail);
         
         while (!done) {
-            
             cls(in);
             
             out.println("JSQSH CONNECTION WIZARD - (edits $HOME/.jsqsh/connections.xml)");
@@ -310,7 +275,6 @@ public class Setup extends Command {
             out.println("---  ---------------- -------------------- --------------------------------------------------");
             
             for (int i = 0; i < drivers.size(); i++) {
-                
                 SQLDriver driver = drivers.get(i);
                 out.printf("%3d %s%-15s %-20s %-50s\n", 
                     i+1,
@@ -319,8 +283,9 @@ public class Setup extends Command {
                     crop(driver.getTarget(), 20),
                     limitFront(driver.getDriverClass(), 50));
             }
+
             out.println();
-            out.println("  * = Driver is availabe. If a driver is unavailable you may choose (D) below ");
+            out.println("  * = Driver is available. If a driver is unavailable you may choose (D) below ");
             out.println("      to jump to the driver wizard to provide a classpath");
             
             out.println();
@@ -328,27 +293,21 @@ public class Setup extends Command {
             String str = readline(in, "Enter the driver number, (D)river wizard, (B)ack or (Q)uit: ");
             str = str.trim();
             if (str.equalsIgnoreCase("b")) {
-                
                 done = true;
             }
             else if (str.equalsIgnoreCase("q")) {
-                
                 done = true;
                 doQuit = true;
             }
             else if (str.equalsIgnoreCase("d")) {
-                
                 doQuit = doDriverWizard(session, out, in);
                 if (doQuit) {
-                    
                     done = true;
                 }
             }
             else {
-                
                 int driver = toInt(str);
                 if (driver >= 1 && driver <= drivers.size()) {
-                    
                     doQuit = doConfigConnection(session, out, in, null, drivers.get(driver-1));
                     done = true;
                 }
@@ -366,34 +325,29 @@ public class Setup extends Command {
         boolean isNew = (conDesc == null);
         
         if (conDesc == null) {
-            
             conDesc = new ConnectionDescriptor("_temp_");
             conDesc.setDriver(driver.getName());
         }
         else {
-            
             conDesc = (ConnectionDescriptor) conDesc.clone();
         }
         
         List<DriverVariable> vars = driver.getVariableDescriptions();
         int longestName = 0;
-        for (int i = 0; i < vars.size(); i++) {
-            
-            String name = vars.get(i).getDisplayName();
+        for (DriverVariable driverVariable : vars) {
+            String name = driverVariable.getDisplayName();
             if (name.length() > longestName) {
-                
                 longestName = name.length();
             }
         }
+
         if (longestName < 15) {
-            
             longestName = 15;
         }
         
         String format = "%-3d %" + longestName + "s : %s\n";
         
         while (! done) {
-            
             cls(in);
             out.println("JSQSH CONNECTION WIZARD - (edits $HOME/.jsqsh/connections.xml)");
             out.println();
@@ -408,25 +362,20 @@ public class Setup extends Command {
             out.println("------------------------");
             
             if (vars.size() == 0) {
-                
                 out.println("None");
             }
             
             int idx = 0;
             for (; idx < vars.size(); idx++) {
-                
                 DriverVariable var = vars.get(idx);
                 String value = conDesc.getValueOf(var.getName());
                 if (value == null) {
-                    
                     value = var.getDefaultValue();
                 }
                 
                 if (value != null && var.getName().equals("password")) {
-                    
                     String stars = "";
                     for (int j = 0; j < value.length(); j++) {
-                        
                         stars = stars + "*";
                     }
                     value = stars;
@@ -441,15 +390,14 @@ public class Setup extends Command {
             out.println();
             out.println("JDBC Driver Properties");
             out.println("------------------------");
-            String props[] = conDesc.getPropertiesMap().keySet().toArray(new String[0]);
+            String[] props = conDesc.getPropertiesMap().keySet().toArray(new String[0]);
             if (props.length == 0) {
-                
                 out.println("None");
             }
+
             Arrays.sort(props);
             int propsStartAt = idx;
             for (int i = 0; i < props.length; i++) {
-                
                 out.printf(format, idx+1, props[i], conDesc.getPropertiesMap().get(props[i]));
                 ++idx;
             }
@@ -465,54 +413,45 @@ public class Setup extends Command {
             
             str = str.trim();
             if (str.equalsIgnoreCase("b")) {
-                
                 done = true;
             }
             if (str.equalsIgnoreCase("q")) {
-                
                 done = true;
                 doQuit = true;
             }
             if (str.equalsIgnoreCase("t")) {
-                
                 doTest(session, out, in, conDesc);
             }
             if (! isNew && str.equalsIgnoreCase("d")) {
-                
                 ConnectionDescriptorManager connMan = session.getConnectionDescriptorManager();
                 
                 out.println();
                 str = readline(in, "Are you sure (Y/N)? ");
                 if ("y".equalsIgnoreCase(str)) {
-                    
                     connMan.remove(conDesc.getName());
                     connMan.save();
                     done = true;
                 }
             }
             if (str.equalsIgnoreCase("s")) {
-                
                 out.println();
                 
                 boolean doSave = true;
                 if (conDesc.getName().equals("_temp_")) {
-                    
                     str = "";
+
                     while (str.length() == 0) {
-                        
                         str = readline(in, "Please provide a connection name: ");
                         str = str.trim();
                     }
                     conDesc.setName(str);
                 }
                 else {
-                
                     str = readline(in, "Are you sure (Y/N)? ");
                     doSave = "y".equalsIgnoreCase(str);
                 }
                 
                 if (doSave) {
-                    
                     ConnectionDescriptorManager connMan = session.getConnectionDescriptorManager();
                     connMan.put(conDesc);
                     connMan.save();
@@ -520,33 +459,27 @@ public class Setup extends Command {
                 }
             }
             if (str.equalsIgnoreCase("p")) {
-                
                 // Hack to re-used the JDBC driver property screen
                 SQLDriver drv = session.getDriverManager().getDriver(conDesc.getDriver()).copy();
                 drv.getDriverProperties().clear();
                 newDriverProperty(session, out, in, drv);
                 
                 for (Entry<String, String> e : drv.getDriverProperties().entrySet()) {
-                    
                     conDesc.setProperty(e.getKey(), e.getValue());
                 }
             }
             else {
-                
                 int val = toInt(str);
                 if (val >= 1 && val <= vars.size()) {
-                    
                     DriverVariable var = vars.get(val-1);
                     boolean isPassword = var.getName().equals(SQLDriver.PASSWORD_PROPERTY);
                     
                     out.println();
                     out.println("Please enter a new value:");
                     if (isPassword) {
-                        
                         str = in.readLine(var.getName() + ": ", '*');
                     }
                     else {
-                        
                         str = readline(in, var.getName() + ": ");
                     }
                     
@@ -554,7 +487,6 @@ public class Setup extends Command {
                     conDesc.setValueOf(var.getName(), str);
                 }
                 else if (val == autoConnectAt+1) {
-                        
                     conDesc.setAutoconnect(! conDesc.isAutoconnect());
                 }
                 else if (props.length > 0 && 
@@ -566,11 +498,9 @@ public class Setup extends Command {
                     str = readline(in, "Enter new value for \"" + prop + "\": ");
                     str = str.trim();
                     if (str.length() == 0) {
-                        
                         conDesc.removeProperty(prop);
                     }
                     else {
-                        
                         conDesc.setProperty(prop, str);
                     }
                 }
@@ -580,12 +510,9 @@ public class Setup extends Command {
         return doQuit;
     }
     
-    private static void doTest(Session session, PrintStream out, LineReader in, ConnectionDescriptor connDesc)
-        throws Exception {
-        
+    private static void doTest(Session session, PrintStream out, LineReader in, ConnectionDescriptor connDesc) {
         SQLDriverManager driverMan = session.getDriverManager();
         try {
-            
             out.println();
             out.println("Attempting connection...");
             
@@ -595,12 +522,10 @@ public class Setup extends Command {
             out.println("Succeeded!");
         }
         catch (SQLException e) {
-            
             out.println("Failed!");
             SQLTools.printException(session, e);
         }
         catch (Throwable e) {
-            
             out.println("Failed!");
             session.printException(e);
         }
@@ -609,16 +534,13 @@ public class Setup extends Command {
         readline(in, "Hit enter to continue:");
     }
     
-    public boolean doDriverWizard(Session session, PrintStream out, LineReader in)
-        throws Exception {
-        
+    public boolean doDriverWizard(Session session, PrintStream out, LineReader in) throws Exception {
         boolean done = false;
         boolean doQuit = false;
         
         SQLDriverManager driverMan = session.getDriverManager();
         
         while (!done) {
-            
             SQLDriver []drivers = driverMan.getDrivers();
             Arrays.sort(drivers);
 
@@ -632,7 +554,6 @@ public class Setup extends Command {
             out.println("---  --------------- -------------------- --------------------------------------------------");
             
             for (int i = 0; i < drivers.length; i++) {
-                
                 SQLDriver driver = drivers[i];
                 out.printf("%-3d %s%-15s %-20s %-50s\n", 
                     i+1,
@@ -651,21 +572,17 @@ public class Setup extends Command {
             String str = readline(in, "(B)ack, (Q)uit, or (A)dd new driver: ");
             str = str.trim();
             if ("q".equalsIgnoreCase(str)) {
-                
                 done = true;
                 doQuit = true;
             }
             else if ("b".equalsIgnoreCase(str)) {
-                
                 done = true;
             }
             else if ("a".equalsIgnoreCase(str)) {
-                
                 doQuit = doEditDriver (session, out, in, null);
                 done = doQuit;
             }
             else {
-                
                 int id = toInt(str);
                 if (id >= 1 && id <= drivers.length) {
                     
@@ -678,26 +595,22 @@ public class Setup extends Command {
         return doQuit;
     }
     
-    private boolean doEditDriver (Session session, PrintStream out, LineReader in, SQLDriver origDriver)
-        throws Exception {
+    private boolean doEditDriver (Session session, PrintStream out, LineReader in, SQLDriver origDriver) throws Exception {
         
         boolean isNewDriver = (origDriver == null);
-        SQLDriver driver = null;
         boolean doSave = false;
-        
+
+        final SQLDriver driver;
         if (origDriver == null) {
-            
             driver = new SQLDriver();
         }
         else {
-            
             driver = origDriver.copy();
         }
         
         boolean done = false;
         boolean doQuit = false;
         while (! done) {
-            
             cls(in);
             out.println("JDBC WIZARD DRIVER EDITOR - (edits $HOME/.jsqsh/drivers.xml)");
             out.println();
@@ -715,45 +628,37 @@ public class Setup extends Command {
             String promptFormat = "%-2d %s %15s : ";
             int nameIdx = ++idx;
             if (driver.getName() == null) {
-                
-                driver.setName(getEntry(out, in, 
+                driver.setName(getEntry(out, in,
                     String.format(promptFormat, nameIdx, "*", "Name"), true));
             }
             else {
-                
 	            out.format(format, nameIdx, "*", "Name", driver.getName());
             }
             
             int descriptionIdx = ++idx;
             if (driver.getTarget() == null) {
-                
-                driver.setTarget(getEntry(out, in, 
+                driver.setTarget(getEntry(out, in,
                     String.format(promptFormat, descriptionIdx, "*", "Description"), true));
             }
             else {
-                
 	            out.format(format, descriptionIdx, "*", "Description", driver.getTarget());
             }
             
             int classIdx = ++idx;
             if (driver.getDriverClass() == null) {
-                
-                driver.setDriverClass(getEntry(out, in, 
+                driver.setDriverClass(getEntry(out, in,
                     String.format(promptFormat, classIdx, "*", "Class"), true));
             }
             else {
-                
 	            out.format(format, classIdx, "*", "Class", driver.getDriverClass());
             }
             
             int urlIdx = ++idx;
             if (driver.getUrl() == null) {
-                
-                driver.setUrl(getEntry(out, in, 
+                driver.setUrl(getEntry(out, in,
                     String.format(promptFormat, urlIdx, "*", "URL"), true));
             }
             else {
-                
 	            out.format(format, urlIdx, "*", "URL", driver.getUrl());
             }
             
@@ -776,17 +681,17 @@ public class Setup extends Command {
             out.println();
             out.println("URL Variable Defaults");
             out.println("---------------------");
+
             List<DriverVariable> vars = driver.getVariableDescriptions(false);
             int variableStartIdx = 0;
             int variableEndIdx = 0;
+
             for (int i = 0; i < vars.size(); i++) {
-                
                 DriverVariable var = vars.get(i);
                 
                 ++idx;
                 variableEndIdx = idx;
-                if (i == 0)
-                {
+                if (i == 0) {
                     variableStartIdx = idx;
                 }
                 
@@ -804,20 +709,16 @@ public class Setup extends Command {
             String str = readline(in, prompt);
             str = str.trim();
             if ("q".equalsIgnoreCase(str)) {
-                
                 done = true;
                 doQuit = true;
             }
             else if ("b".equalsIgnoreCase(str)) {
-                
                 done = true;
             }
             else if ("c".equalsIgnoreCase(str)) {
-                
                 out.println("Driver computed classpath: ");
                 List<URL> urls = driver.getExpandedClasspath();
                 for (URL url : urls) {
-                    
                     out.println("  " + url);
                 }
                 
@@ -825,20 +726,16 @@ public class Setup extends Command {
                 readline(in, "Hit enter to continue: ");
             }
             else if ("a".equalsIgnoreCase(str)) {
-                
                 ScreenReturn ret = doEditDriverAdvanced(session, out, in, driver);
                 if (ret == ScreenReturn.SAVE) {
-                    
                     done = true;
                     doSave = true;
                 }
                 else if (ret == ScreenReturn.QUIT) {
-                    
                     done = doQuit = true;
                 }
             }
             else if (! isNewDriver && "d".equalsIgnoreCase(str)) {
-                
                 out.println();
                 str = readline(in, "Are you sure (Y/N)? ");
                 if ("y".equalsIgnoreCase(str)) {
@@ -851,57 +748,44 @@ public class Setup extends Command {
                 }
             }
             else if ("s".equalsIgnoreCase(str)) {
-                
                 done = true;
                 doSave = true;
             }
             else {
-                
-                
                 int opt = toInt(str);
                 if (opt >= 1 && opt <= idx) {
-                    
                     if (opt == nameIdx) {
-                        
                         out.println();
                         driver.setName(getEntry(out, in, "Enter new name: ", true));
                     }
                     else if (opt == descriptionIdx) {
-                        
                         out.println();
                         driver.setTarget(getEntry(out, in, "Enter new description: ", true));
                     }
                     else if (opt == classIdx) {
-                        
                         out.println();
                         driver.setDriverClass(getEntry(out, in, "Enter new class: ", true));
                     }
                     else if (opt == urlIdx) {
-                        
                         out.println();
                         driver.setUrl(getEntry(out, in, "Enter new URL: ", true));
                     }
                     else if (opt == analyzerIdx) {
-                        
                         driver.setAnalyzer(chooseAnalyzer(out, in));
                     }
                     else if (opt == classpathIdx) {
-                        
                         out.println();
                         driver.setClasspath(getEntry(out, in, "Enter new classpath: ", false));
                     }
                     else if (opt == normalizerIdx) {
-                        
                         out.println();
                         driver.setNormalizer(chooseNormalizer(out, in));
                     }
                     else if (opt == schemaQueryIdx) {
-                        
                         out.println();
                         driver.setCurrentSchemaQuery(getEntry(out, in, "Enter query to fetch current schema: ", false));
                     }
                     else if (opt >= variableStartIdx && opt <= variableEndIdx) {
-                        
                         DriverVariable var = vars.get(opt - variableStartIdx);
                         out.println();
                         str = readline(in, "Enter new value for \"" 
@@ -909,29 +793,21 @@ public class Setup extends Command {
                         str = str.trim();
                         
                         if (str.length() == 0) {
-                            
                             driver.removeVariable(var.getName());
                         }
                         else {
-                            
                             driver.setVariable(var.getName(), str);
                         }
                     }
                 }
-                
             }
         }
         
         if (doSave) {
-                
             SQLDriverManager driverMan = session.getDriverManager();
                 
-            /*
-             * Check for a driver rename. Note that renaming an internal driver
-             * cannot ever really get rid of it.
-             */
+            // Check for a driver rename. Note that renaming an internal driver cannot ever really get rid of it.
             if (! isNewDriver && ! origDriver.getName().equals(driver.getName())) {
-                
                 driverMan.removeDriver(origDriver.getName());
             }
             driverMan.addDriver(driver);
@@ -941,13 +817,11 @@ public class Setup extends Command {
         
         return doQuit;
     }
-    
-    private ScreenReturn doEditDriverAdvanced (Session session, PrintStream out, 
-            LineReader in, SQLDriver driver)
-        throws Exception {
+
+    private ScreenReturn doEditDriverAdvanced (Session session, PrintStream out, LineReader in, SQLDriver driver)
+            throws Exception {
         
         while (true) {
-            
             cls(in);
             out.println("JDBC DRIVER EDITOR - ADVANCED OPTIONS");
             out.println();
@@ -970,16 +844,13 @@ public class Setup extends Command {
             Arrays.sort(sessionVars);
             
             if (sessionVars.length == 0) {
-                
                 out.println("None");
             }
             
             int idx = 1;
             format = "%-2d %s %15s : %s\n";
-            for (int i = 0; i < sessionVars.length; i++) {
-                
-                out.format(format, idx++, "", sessionVars[i], 
-                    driver.getSessionVariable(sessionVars[i]));
+            for (String sessionVar : sessionVars) {
+                out.format(format, idx++, "", sessionVar, driver.getSessionVariable(sessionVar));
             }
             int driverPropsStartAt = idx;
             
@@ -989,19 +860,16 @@ public class Setup extends Command {
             out.println("The following are configuration properties specific to this JDBC driver");
             out.println();
             
-            String driverProps[] = driver.getDriverProperties().keySet().toArray(new String[0]);
+            String[] driverProps = driver.getDriverProperties().keySet().toArray(new String[0]);
             Arrays.sort(driverProps);
             
             if (driverProps.length == 0) {
-                
                 out.println("None");
             }
             
             format = "%-2d %s %15s : %s\n";
-            for (int i = 0; i < driverProps.length; i++) {
-                
-                out.format(format, idx++, "", driverProps[i], 
-                    driver.getProperty(driverProps[i]));
+            for (String driverProp : driverProps) {
+                out.format(format, idx++, "", driverProp, driver.getProperty(driverProp));
             }
             
             out.println();
@@ -1011,65 +879,53 @@ public class Setup extends Command {
             String str = readline(in, "(B)ack, (Q)uit, New (V)ariable, New (P)roperty, or (S)ave: ");
             str = str.trim();
             if ("q".equalsIgnoreCase(str)) {
-                
                 return ScreenReturn.QUIT;
             }
             else if ("b".equalsIgnoreCase(str)) {
-                
                 return ScreenReturn.BACK;
             }
             else if ("s".equalsIgnoreCase(str)) {
-                
                 return ScreenReturn.SAVE;
             }
             else if ("v".equalsIgnoreCase(str)) {
-                
                 out.println();
                 String name = readline(in, "Session variable name: ");
                 String value = readline(in, "Session variable value: ");
                 name = name.trim();
                 value = value.trim();
+
                 if (value.length() > 0) {
-                    
                     driver.setSessionVariable(name, value);
                 }
             }
             else if ("p".equalsIgnoreCase(str)) {
-                
                 newDriverProperty(session, out, in, driver);
             }
             else {
-                
                 int opt = toInt(str);
                 if (opt >= 1 && opt < driverPropsStartAt) {
-                    
                     String var = sessionVars[opt-1];
                     out.println();
                     out.println("An empty value removes the variable definition");
                     str = readline(in, "Enter new value for \"" + var + "\": ");
                     str = str.trim();
                     if (str.length() == 0) {
-                        
                         driver.removeSessionVariable(var);
                     }
                     else {
-                        
                         driver.setSessionVariable(var, str);
                     }
                 }
                 else if (opt >= driverPropsStartAt && opt < idx) {
-                    
                     String var = driverProps[opt - driverPropsStartAt];
                     out.println();
                     out.println("An empty value removes the property definition");
                     str = readline(in, "Enter new value for \"" + var + "\": ");
                     str = str.trim();
                     if (str.length() == 0) {
-                        
                         driver.removeProperty(var);
                     }
                     else {
-                        
                         driver.setProperty(var, str);
                     }
                 }
@@ -1077,9 +933,7 @@ public class Setup extends Command {
         }
     }
     
-    private SQLAnalyzer chooseAnalyzer(PrintStream out, LineReader in)
-        throws Exception {
-        
+    private SQLAnalyzer chooseAnalyzer(PrintStream out, LineReader in) {
         out.println();
         out.println("1.  None");
         out.println("2.  ANSI SQL");
@@ -1087,69 +941,55 @@ public class Setup extends Command {
         out.println("4.  T-SQL");
         
         while (true) {
-            
             String str = readline(in, "Choose a SQL analyzer: ");
             str = str.trim();
             int id = toInt(str);
             if (id < 1 || id > 4) {
-
                 killLine(in);
             }
-            else
-            {
+            else {
                 switch (id) {
-                
-                case 1: return new NullAnalyzer();
-                case 2: return new ANSIAnalyzer();
-                case 3: return new PLSQLAnalyzer();
-                case 4: return new TSQLAnalyzer();
-                default:
-                    break;
+                    case 1: return new NullAnalyzer();
+                    case 2: return new ANSIAnalyzer();
+                    case 3: return new PLSQLAnalyzer();
+                    case 4: return new TSQLAnalyzer();
+                    default:
+                        break;
                 }
             }
         }
             
     }
     
-    private SQLNormalizer chooseNormalizer(PrintStream out, LineReader in)
-        throws Exception {
-        
+    private SQLNormalizer chooseNormalizer(PrintStream out, LineReader in) {
         out.println();
         out.println("1.  NONE");
         out.println("2.  UPPER CASE");
         out.println("3.  LOWER CASE");
         
         while (true) {
-            
             String str = readline(in, "Select object name normalization for this database: ");
             str = str.trim();
             int id = toInt(str);
             if (id < 1 || id > 3) {
-
                 killLine(in);
             }
-            else
-            {
+            else {
                 switch (id) {
-                
-                case 1: return new NullNormalizer();
-                case 2: return new UpperCaseNormalizer();
-                case 3: return new LowerCaseNormalizer();
-                default:
-                    break;
+                    case 1: return new NullNormalizer();
+                    case 2: return new UpperCaseNormalizer();
+                    case 3: return new LowerCaseNormalizer();
+                    default:
+                        break;
                 }
             }
         }
     }
     
-    private void newDriverProperty(Session session, PrintStream out, 
-            LineReader in, SQLDriver driver)
-        throws Exception {
-        
-        DriverPropertyInfo info[] = null;
+    private void newDriverProperty(Session session, PrintStream out, LineReader in, SQLDriver driver) {
+        DriverPropertyInfo[] info = null;
         
         try {
-            
            ClassLoader loader = driver.getClassLoader(session.getDriverManager().getClassLoader());
            Class<? extends Driver> driverClass = 
                loader.loadClass(driver.getDriverClass()).asSubclass(Driver.class);
@@ -1159,13 +999,11 @@ public class Setup extends Command {
                new Properties());
         }
         catch (Throwable e) {
-            
-            /* SILENTLY IGNORED */
+            // IGNORED
             System.out.println(e.getMessage());
         }
         
         if (info == null) {
-            
             out.println("Available driver properties could not be retrieved (this may happen");
             out.println("if the JDBC driver cannot be loaded), you may manually enter properties.");
             out.println("Note: property values may refer to environment variables or jsqsh");
@@ -1176,7 +1014,6 @@ public class Setup extends Command {
             name = name.trim();
             value = value.trim();
             if (value.length() > 0) {
-                    
                 driver.setProperty(name, value);
             }
             return;
@@ -1185,7 +1022,6 @@ public class Setup extends Command {
         boolean done = false;
         
         while (! done) {
-            
             cls(in);
             out.println("DRIVER PROPERTIES");
             out.println();
@@ -1195,15 +1031,12 @@ public class Setup extends Command {
             out.println();
             int halfIdx = (info.length / 2);
             if ((info.length - halfIdx) > halfIdx) {
-                
                 ++halfIdx;
             }
             
             int longest = 0;
             for (int i = 0; i < halfIdx; i++) {
-                
                 if (info[i].name.length() > longest) {
-                    
                     longest = info[i].name.length();
                 }
             }
@@ -1214,18 +1047,13 @@ public class Setup extends Command {
             int rightIdx = halfIdx;
             
             while (leftIdx < halfIdx) {
-                
                 out.format(leftFormat,  leftIdx+1, info[leftIdx].name);
                 if (rightIdx < info.length) {
-                    
                     out.format(rightFormat, rightIdx+1, info[rightIdx].name);
                 }
                 else {
-                    
                     out.println();
                 }
-                
-                
                 ++leftIdx;
                 ++rightIdx;
             }
@@ -1237,11 +1065,9 @@ public class Setup extends Command {
             str = str.trim();
             
             if (str.equalsIgnoreCase("b")) {
-                
                 done = true;
             }
             else if (str.equalsIgnoreCase("m")) {
-                
                 done = true;
                 out.println();
                 out.println("Note: Property values may refer to environment variables or jsqsh variable values");
@@ -1251,25 +1077,19 @@ public class Setup extends Command {
                 name = name.trim();
                 value = value.trim();
                 if (value.length() > 0) {
-                        
                     driver.setProperty(name, value);
                 }
             }
             else {
-                
                 if (str.endsWith("?")) {
-                    
                     str = str.substring(0, str.length()-1);
                     int idx = toInt(str);
                     out.println();
                     if (idx >= 1 || idx <= info.length) {
-                        
                         if (info[idx-1].description != null && info[idx].description.length() > 0) {
-                            
                             out.println(info[idx-1].description);
                         }
                         else {
-                            
                             out.println("No help is avalable");
                         }
                         out.println();
@@ -1280,23 +1100,19 @@ public class Setup extends Command {
                 
                 int idx = toInt(str);
                 if (idx >= 1 && idx <= info.length) {
-                    
                     if (info[idx-1].choices == null || info[idx-1].choices.length == 0) {
-                        
-                        String value = readline(in, "New value for \"" 
+                        String value = readline(in, "New value for \""
                             + info[idx-1].name + "\": ");
                         value = value.trim();
                         if (value.length() > 0) {
-                        
                             driver.setProperty(info[idx-1].name, value);
                         }
                         done = true;
                     }
                     else {
-                        
                         out.println();
                         
-                        String choices[] = info[idx-1].choices;
+                        String[] choices = info[idx-1].choices;
                         String format  = "%-2d %s\n";
                         for (int i = 0; i < choices.length; i++) {
                             
@@ -1305,25 +1121,20 @@ public class Setup extends Command {
                         
                         out.println();
                         while (! done) {
-                            
                             str = readline(in, "Enter choice or (B)ack: ");
                             str = str.trim();
                             if ("b".equalsIgnoreCase(str)) {
-                                
                                 break;
                             }
                             else if (str.length() > 0) {
-                                
                                 int choice = toInt(str);
                                 if (choice >= 1 && choice < choices.length) {
-                                    
                                     done = true;
                                     driver.setProperty(info[idx-1].name, choices[choice-1]);
                                 }
                             }
                             
                             if (! done) {
-
                                 killLine(in);
                             }
                         }
@@ -1334,36 +1145,26 @@ public class Setup extends Command {
     }
         
     private String driverStatus(Session session, SQLDriver driver) {
-        
        try {
-           
            ClassLoader loader = driver.getClassLoader(session.getDriverManager().getClassLoader());
            loader.loadClass(driver.getDriverClass());
            return "Available";
        }
        catch (Throwable e) {
-           
            return "Cannot load driver class (" + e.getMessage() + ")";
        }
     }
     
-    private String getEntry(PrintStream out, LineReader in, String prompt, boolean isRequired) throws Exception {
-        
+    private String getEntry(PrintStream out, LineReader in, String prompt, boolean isRequired) {
         String str = "";
         while (str.length() == 0) {
-            
             str = readline(in, prompt);
             str = str.trim();
             if (! isRequired) {
-                
                 if (str.length() == 0) {
-                    
                     str = null;
                 }
                 break;
-            }
-            if (str.length() == 0) {
-
             }
         }
         
@@ -1371,31 +1172,20 @@ public class Setup extends Command {
     }
     
     public static String emptyIfNull(String str) {
-        
-        if (str == null) {
-            
-            return "";
-        }
-        
-        return str;
+        return str == null ? "" : str;
     }
     
     public static int toInt(String str) {
-        
         try {
-            
             return Integer.valueOf(str);
         }
         catch (NumberFormatException e) {
-            
             return -1;
         }
     }
     
     public static String crop(String str, int len) {
-        
         if (str != null && str.length() > len) {
-            
             str = str.substring(0, len);
         }
         
@@ -1403,9 +1193,7 @@ public class Setup extends Command {
     }
     
     public static String limit(String str, int len) {
-        
         if (str != null && str.length() > len) {
-            
             str = str.substring(0, len - 3) + "...";
         }
         
@@ -1413,9 +1201,7 @@ public class Setup extends Command {
     }
     
     public static String limitFront(String str, int len) {
-        
         if (str != null && str.length() > len) {
-            
             str = "..." + str.substring(0, len - 3);
         }
         
@@ -1423,12 +1209,10 @@ public class Setup extends Command {
     }
     
     private static String readline(LineReader in, String prompt) {
-
         return in.readLine(prompt);
     }
 
     private void cls(LineReader in) {
-
         // Clear screen, cursor to 0,0
         in.getTerminal().writer().write(Ansi.clearScreen());
         in.getTerminal().writer().write(Ansi.cursorMove(0,0));
@@ -1436,7 +1220,6 @@ public class Setup extends Command {
     }
 
     private void killLine(LineReader in) {
-
         // Cursor up 1, erase line, cursor up 1
         in.getTerminal().writer().write(Ansi.cursorUp(1));
         in.getTerminal().writer().write(Ansi.clearToEnd());
@@ -1445,7 +1228,6 @@ public class Setup extends Command {
     }
 
     private static enum ScreenReturn {
-        
         BACK,
         QUIT,
         SAVE

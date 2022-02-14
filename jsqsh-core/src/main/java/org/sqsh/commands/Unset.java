@@ -15,9 +15,6 @@
  */
 package org.sqsh.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
@@ -25,69 +22,57 @@ import org.sqsh.Variable;
 import org.sqsh.VariableManager;
 import org.sqsh.options.Argv;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * Implements the \\unset command.
  */
-public class Unset
-    extends Command {
-    
+public class Unset extends Command {
+
     /**
-     * Used to contain the command line options that were passed in by
-     * the caller.
+     * Used to contain the command line options that were passed in by the caller.
      */
-    private static class Options
-        extends SqshOptions {
-        
-        @Argv(program="\\unset", min=1, max=99, usage="variable")
-        public List<String> arguments = new ArrayList<String>();
+    private static class Options extends SqshOptions {
+        @Argv(program = "\\unset", min = 1, max = 99, usage = "variable")
+        public List<String> arguments = new ArrayList<>();
     }
-    
+
     /**
      * Return our overridden options.
      */
     @Override
     public SqshOptions getOptions() {
-        
         return new Options();
     }
 
     @Override
-    public int execute (Session session, SqshOptions opts)
-        throws Exception {
-        
-        Options options = (Options)opts;
-        
+    public int execute(Session session, SqshOptions opts) throws Exception {
+        Options options = (Options) opts;
         if (options.arguments.size() == 0) {
-            
             session.err.println("Use: \\unset var_name [var_name ...]");
             return 1;
         }
-        
+
         int ok = 0;
-        
         VariableManager varMan = session.getVariableManager();
         for (int i = 0; i < options.arguments.size(); i++) {
-            
             String varName = options.arguments.get(i);
             Variable var = varMan.getVariable(varName);
+
             if (var == null) {
-                
                 continue;
             }
-            
+
             if (!var.isRemoveable()) {
-                
-                session.err.println("Variable \"" + varName + "\" is a "
-                        + "configuration variable and cannot be unset");
+                session.err.println("Variable \"" + varName + "\" is a configuration variable and cannot be unset");
                 ok = 1;
-            }
-            else {
-                
+            } else {
                 varMan.remove(varName);
             }
         }
-        
+
         return ok;
     }
 }

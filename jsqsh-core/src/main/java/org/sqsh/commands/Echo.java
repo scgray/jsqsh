@@ -15,65 +15,49 @@
  */
 package org.sqsh.commands;
 
-import static org.sqsh.options.ArgumentRequired.NONE;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
 import org.sqsh.options.Argv;
 import org.sqsh.options.OptionProperty;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.sqsh.options.ArgumentRequired.NONE;
+
 /**
  * Implements the 'echo' command in sqsh.
  */
-public class Echo
-    extends Command {
-    
-     /*
-      * Used to contain the command line options that were passed in by
-      * the caller.
-      */
-    private static class Options
-       extends SqshOptions {
-        
-       @OptionProperty(
-            option='n', longOption="no-newline", arg=NONE,
-            description="Do not append a trailing new-line")
-       public boolean noNewline = false;
-       
-       @Argv(program="\\echo", usage="[text ...]")
-       public List<String> arguments = new ArrayList<String>();
+public class Echo extends Command {
+
+    // Used to contain the command line options that were passed in by the caller.
+    private static class Options extends SqshOptions {
+        @OptionProperty(option = 'n', longOption = "no-newline", arg = NONE,
+                description = "Do not append a trailing new-line")
+        public boolean noNewline = false;
+
+        @Argv(program = "\\echo", usage = "[text ...]")
+        public List<String> arguments = new ArrayList<>();
     }
-    
+
     @Override
     public SqshOptions getOptions() {
-        
         return new Options();
     }
-    
+
     @Override
-    public int execute (Session session, SqshOptions opts)
-        throws Exception {
-        
+    public int execute(Session session, SqshOptions opts) throws Exception {
         Options options = (Options) opts;
         for (int i = 0; i < options.arguments.size(); i++) {
-            
             if (i > 0) {
-                
                 session.out.print(' ');
             }
-            
             session.out.print(options.arguments.get(i));
         }
-        
-        if (options.noNewline == false) {
-            
+        if (!options.noNewline) {
             session.out.println();
         }
-        
         return 0;
     }
 }

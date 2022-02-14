@@ -16,10 +16,6 @@
 package org.sqsh.commands;
 
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.sqsh.ColumnDescription;
 import org.sqsh.Command;
 import org.sqsh.ConnectionContext;
@@ -28,54 +24,45 @@ import org.sqsh.Session;
 import org.sqsh.SqshOptions;
 import org.sqsh.options.Argv;
 
-/**
- * Implements the "\globals" command to display all global variables (or
- * anything else the driver says is "global").
- */
-public class Globals
-    extends Command {
-    
-    private static class Options
-        extends SqshOptions {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-        @Argv(program="\\globals", min=0, max=0)
+/**
+ * Implements the "\globals" command to display all global variables (or anything else the driver says is "global").
+ */
+public class Globals extends Command {
+
+    private static class Options extends SqshOptions {
+        @Argv(program = "\\globals", min = 0, max = 0)
         public List<String> arguments = new ArrayList<String>();
     }
 
     @Override
     public SqshOptions getOptions() {
-
         return new Options();
     }
 
     @Override
     public int execute(Session session, SqshOptions options) throws Exception {
-        
         ConnectionContext conn = session.getConnectionContext();
-        
         if (conn == null) {
-            
             session.err.println("No connection established");
             return 1;
         }
-        
+
         List<String> vars = conn.getGlobals();
         Collections.sort(vars);
-        
-        ColumnDescription []columns = new ColumnDescription[1];
+        ColumnDescription[] columns = new ColumnDescription[1];
         columns[0] = new ColumnDescription("Global", -1);
-        Renderer renderer = 
-            session.getRendererManager().getCommandRenderer(session);
+        Renderer renderer = session.getRendererManager().getCommandRenderer(session);
         renderer.header(columns);
-        
         for (String var : vars) {
-            
             String row[] = new String[1];
-            
             row[0] = var;
             renderer.row(row);
         }
-        
+
         renderer.flush();
         return 0;
     }

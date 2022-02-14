@@ -15,138 +15,101 @@
  */
 package org.sqsh.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.sqsh.ColumnDescription;
 import org.sqsh.Command;
-import org.sqsh.Renderer;
 import org.sqsh.ConnectionContext;
+import org.sqsh.Renderer;
 import org.sqsh.Session;
 import org.sqsh.SqshContext;
 import org.sqsh.SqshContextSwitchMessage;
 import org.sqsh.SqshOptions;
 import org.sqsh.options.Argv;
 
-public class SessionCmd
-    extends Command {
-    
+import java.util.ArrayList;
+import java.util.List;
+
+public class SessionCmd extends Command {
+
     /**
-     * Used to contain the command line options that were passed in by
-     * the caller.
+     * Used to contain the command line options that were passed in by the caller.
      */
-    private static class Options
-        extends SqshOptions {
-        
-        @Argv(program="\\session", min=0, max=1, usage="[session_id]")
+    private static class Options extends SqshOptions {
+        @Argv(program = "\\session", min = 0, max = 1, usage = "[session_id]")
         public List<String> arguments = new ArrayList<String>();
     }
-    
+
     /**
      * Return our overridden options.
      */
     @Override
     public SqshOptions getOptions() {
-        
         return new Options();
     }
 
     @Override
-    public int execute (Session session, SqshOptions opts)
-        throws Exception {
-        
-        Options options = (Options)opts;
-        
+    public int execute(Session session, SqshOptions opts) throws Exception {
+        Options options = (Options) opts;
         if (options.arguments.size() > 1) {
-            
             session.err.println("Use: \\session [session_id]");
             return 1;
         }
-        
         SqshContext ctx = session.getContext();
-        
-        /*
-         * If a context id is supplied, then try to switch to it.
-         */
+
+        // If a context id is supplied, then try to switch to it.
         if (options.arguments.size() == 1) {
-            
             boolean ok = true;
             Session newSession = null;
             int id;
-            
-            /*
-             * The special id of "-" will cause a null session id
-             * to be thrown back to the SqshContext which will request
-             * it to switch to the previous session.
-             */
+
+            // The special id of "-" will cause a null session id to be thrown back to the SqshContext which will request
+            // it to switch to the previous session.
             if (!options.arguments.get(0).equals("-")) {
-                
                 try {
-                    
                     id = Integer.parseInt(options.arguments.get(0));
                     newSession = ctx.getSession(id);
                     if (newSession == null) {
-                        
                         ok = false;
                     }
-                }
-                catch (Exception e) {
-                    
+                } catch (Exception e) {
                     ok = false;
                 }
-                
-                if (ok == false) {
-                    
-                    session.err.println("Invalid session number '" 
-                        + options.arguments.get(0) 
-                        + "'. Run \\session with no arguments to "
-                        + "see a list of available sessions.");
+
+                if (!ok) {
+                    session.err.println("Invalid session number '" + options.arguments.get(0) + "'. Run \\session with no arguments to " + "see a list of available sessions.");
                     return 1;
                 }
             }
-            
             throw new SqshContextSwitchMessage(session, newSession);
         }
-        
-        Session []sessions = ctx.getSessions();
-        
-        ColumnDescription []columns = new ColumnDescription[3];
+
+        Session[] sessions = ctx.getSessions();
+        ColumnDescription[] columns = new ColumnDescription[3];
+
         columns[0] = new ColumnDescription("Id", -1);
         columns[1] = new ColumnDescription("Username", -1);
         columns[2] = new ColumnDescription("URL", -1);
-        
-        Renderer renderer = 
-            session.getRendererManager().getCommandRenderer(session);
-        
+
+        Renderer renderer = session.getRendererManager().getCommandRenderer(session);
+
         renderer.header(columns);
-        
+
         for (int i = 0; i < sessions.length; i++) {
-            
-            String []row = new String[3];
+            String[] row = new String[3];
             if (sessions[i] == ctx.getCurrentSession()) {
-                
-                row[0] = "* " + Integer.toString(sessions[i].getId());
+                row[0] = "* " + sessions[i].getId();
+            } else {
+                row[0] = "  " + sessions[i].getId();
             }
-            else {
-                
-                row[0] = "  " + Integer.toString(sessions[i].getId());
-            }
-            
             ConnectionContext connection = sessions[i].getConnectionContext();
             if (connection == null) {
-                
                 row[1] = "-";
                 row[2] = "-";
-            }
-            else {
-                
+            } else {
                 row[1] = sessions[i].getVariable("user");
                 row[2] = connection.toString();
             }
-            
             renderer.row(row);
         }
-        
         renderer.flush();
         return 0;
     }

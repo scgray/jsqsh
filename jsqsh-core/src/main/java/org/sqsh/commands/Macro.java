@@ -15,66 +15,54 @@
  */
 package org.sqsh.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.sqsh.Buffer;
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
 import org.sqsh.options.Argv;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Implements the \macro command.
  */
-public class Macro
-    extends Command {
-    
+public class Macro extends Command {
+
     /**
-     * Used to contain the command line options that were passed in by
-     * the caller.
+     * Used to contain the command line options that were passed in by the caller.
      */
-    private static class Options
-        extends SqshOptions {
-        
-        @Argv(program="\\macro", min=0, max=0)
-        public List<String> arguments = new ArrayList<String>();
+    private static class Options extends SqshOptions {
+        @Argv(program = "\\macro", min = 0, max = 0)
+        public List<String> arguments = new ArrayList<>();
     }
-    
+
     /**
      * Return our overridden options.
      */
     @Override
     public SqshOptions getOptions() {
-        
         return new Options();
     }
 
     @Override
-    public int execute (Session session, SqshOptions opts)
-        throws Exception {
-        
+    public int execute(Session session, SqshOptions opts) throws Exception {
         Buffer buf = session.getBufferManager().getCurrent();
         if (buf.getLineNumber() == 1) {
-            
             session.err.println("No macro definition has been supplied.");
             return 1;
         }
-        
+
         String macro = buf.toString();
         try {
-            
             session.expand(macro);
             session.out.println("Ok.");
             buf.clear();
-        }
-        catch (Exception e) {
-            
+        } catch (Exception e) {
             session.err.print("Failed to create macro: " + e.getMessage());
             return 1;
         }
-        
+
         return 0;
     }
-
 }

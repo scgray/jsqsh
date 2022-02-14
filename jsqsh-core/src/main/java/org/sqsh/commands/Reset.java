@@ -15,44 +15,37 @@
  */
 package org.sqsh.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
 import org.sqsh.options.Argv;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Implements the \reset command.
  */
-public class Reset
-    extends Command {
-    
+public class Reset extends Command {
+
     /**
-     * Used to contain the command line options that were passed in by
-     * the caller.
+     * Used to contain the command line options that were passed in by the caller.
      */
-    private static class Options
-        extends SqshOptions {
-        
-        @Argv(program="\\reset", min=0, max=0)
-        public List<String> arguments = new ArrayList<String>();
+    private static class Options extends SqshOptions {
+        @Argv(program = "\\reset", min = 0, max = 0)
+        public List<String> arguments = new ArrayList<>();
     }
-    
+
     /**
      * Return our overridden options.
      */
     @Override
     public SqshOptions getOptions() {
-        
         return new Options();
     }
 
     @Override
-    public int execute (Session session, SqshOptions opts)
-        throws Exception {
-        
+    public int execute(Session session, SqshOptions opts) throws Exception {
         session.getBufferManager().newBuffer();
         return 0;
     }

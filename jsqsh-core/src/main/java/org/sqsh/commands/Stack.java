@@ -15,49 +15,40 @@
  */
 package org.sqsh.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.sqsh.Command;
 import org.sqsh.Session;
 import org.sqsh.SqshOptions;
 import org.sqsh.options.Argv;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Displays the stack trace of the most recently displayed error message.
  */
 public class Stack extends Command {
-    
+
     /**
-     * Used to contain the command line options that were passed in by
-     * the caller.
+     * Used to contain the command line options that were passed in by the caller.
      */
-    private static class Options
-        extends SqshOptions {
-        
-        @Argv(program="\\help", min=0, max=0, usage="]")
-        public List<String> arguments = new ArrayList<String>();
+    private static class Options extends SqshOptions {
+        @Argv(program = "\\help", min = 0, max = 0, usage = "]")
+        public List<String> arguments = new ArrayList<>();
     }
 
     @Override
     public SqshOptions getOptions() {
-
         return new Options();
     }
 
     @Override
     public int execute(Session session, SqshOptions options) throws Exception {
-
         Throwable e = session.getLastException();
         if (e != null) {
-            
             e.printStackTrace(session.out);
-        }
-        else {
-            
+        } else {
             System.out.println("No exception to display");
         }
-        
         return 0;
     }
 
