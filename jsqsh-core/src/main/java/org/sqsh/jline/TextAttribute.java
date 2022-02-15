@@ -18,94 +18,76 @@ package org.sqsh.jline;
 import org.jline.utils.AttributedStringBuilder;
 
 public class TextAttribute {
-
-    public static TextAttribute INSTANCE = new TextAttribute();
-    public static TextAttribute FOREGROUND = INSTANCE;
-    public static BackgroundTextAttribute BACKGROUND = new BackgroundTextAttribute();
+    public static final TextAttribute INSTANCE = new TextAttribute();
+    public static final TextAttribute FOREGROUND = INSTANCE;
+    public static final BackgroundTextAttribute BACKGROUND = new BackgroundTextAttribute();
 
     protected AttributedStringBuilder sb = new AttributedStringBuilder();
 
     private TextAttribute() {
-
     }
 
     public TextAttribute getForeground() {
-
         return FOREGROUND;
     }
 
     public BackgroundTextAttribute getBackground() {
-
         return BACKGROUND;
     }
 
     public String getDefault() {
-
         return "\033[0m\033[39m\033[49m";
     }
 
     public String getBold() {
-
         return "\033[1m";
     }
 
     public String getDim() {
-
         return "\033[2m";
     }
 
     public String getUnderline() {
-
         return "\033[4m";
     }
 
     public String getBlink() {
-
         return "\033[5m";
     }
 
     public String getInverse() {
-
         return "\033[7m";
     }
 
     public String getBlack() {
-
         return "\033[30m";
     }
 
     public String getRed() {
-
         return "\033[31m";
     }
 
     public String getGreen() {
-
         return "\033[32m";
     }
 
     public String getYellow() {
-
         return "\033[33m";
     }
 
     public String getBlue() {
-
         return "\033[34m";
     }
 
     public String getMagenta() {
-
         return "\033[35m";
     }
 
     public String getCyan() {
-
         return "\033[36m";
     }
 
     public String getWhite() {
-
         return "\033[37m";
     }
 
@@ -113,49 +95,41 @@ public class TextAttribute {
 
         @Override
         public String getBlack() {
-
             return "\033[40m";
         }
 
         @Override
         public String getRed() {
-
             return "\033[41m";
         }
 
         @Override
         public String getGreen() {
-
             return "\033[42m";
         }
 
         @Override
         public String getYellow() {
-
             return "\033[43m";
         }
 
         @Override
         public String getBlue() {
-
             return "\033[44m";
         }
 
         @Override
         public String getMagenta() {
-
             return "\033[45m";
         }
 
         @Override
         public String getCyan() {
-
             return "\033[46m";
         }
 
         @Override
         public String getWhite() {
-
             return "\033[47m";
         }
     }

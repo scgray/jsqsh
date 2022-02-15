@@ -22,30 +22,24 @@ import org.jline.reader.impl.DefaultParser;
 import org.sqsh.SqshContext;
 
 /**
- * The <code>JLineParser</code> is called by Jline in various contexts to either determine when
- * the input from a user is "complete" (that is, they have finished their current statement, such
- * as by hitting a terminator or a command), or to determine the current "world" during a tab
- * completion, or when JLine wants to find out what character is missing in the secondary prompt
- * (see {@link ParseContext}
+ * The <code>JLineParser</code> is called by Jline in various contexts to either determine when the input from a user is
+ * "complete" (that is, they have finished their current statement, such as by hitting a terminator or a command), or to
+ * determine the current "world" during a tab completion, or when JLine wants to find out what character is missing in
+ * the secondary prompt (see {@link ParseContext}
  */
 public class JLineParser extends DefaultParser {
-
-    private SqshContext context;
-    private EOFError INPUT_NOT_COMPLETE = new EOFError(0, 0, "Foo");
+    private final SqshContext context;
+    private final EOFError INPUT_NOT_COMPLETE = new EOFError(0, 0, "Foo");
 
     public JLineParser(SqshContext context) {
-
         this.context = context;
     }
 
     @Override
     public ParsedLine parse(String s, int i, ParseContext parseContext) throws SyntaxError {
-
         switch (parseContext) {
-
             case ACCEPT_LINE:
-                if (! context.getCurrentSession().isInputComplete(s, i))
-                    throw INPUT_NOT_COMPLETE;
+                if (!context.getCurrentSession().isInputComplete(s, i)) throw INPUT_NOT_COMPLETE;
                 // FALL-THROUGH
             default:
                 return super.parse(s, i, parseContext);

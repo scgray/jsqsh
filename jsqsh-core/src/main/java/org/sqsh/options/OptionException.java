@@ -18,16 +18,14 @@ package org.sqsh.options;
 /**
  * Thrown when there is a problem processing command line options.
  */
-public class OptionException
-    extends Exception {
-    
+public class OptionException extends Exception {
+
     /**
      * Creates an option exception.
-     * 
+     *
      * @param msg Text of the exception.
      */
-    public OptionException (String msg) {
-        
+    public OptionException(String msg) {
         super(msg);
     }
 }

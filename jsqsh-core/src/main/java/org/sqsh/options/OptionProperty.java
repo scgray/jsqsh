@@ -22,56 +22,50 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Marker for defining a command line option that is used to set a 
- * member of an object when provided. This annotation can be provided
- * for a field of an object to indicate that the value of that field
- * can be set with a command line option.  It is important to ensure
- * that the field is public or that it is running in a security context
- * that allows the field to be set.
+ * Marker for defining a command line option that is used to set a member of an object when provided. This annotation
+ * can be provided for a field of an object to indicate that the value of that field can be set with a command line
+ * option.  It is important to ensure that the field is public or that it is running in a security context that allows
+ * the field to be set.
  */
 @Retention(RUNTIME)
 @Target({FIELD})
 public @interface OptionProperty {
-    
+
     /**
-     * Specifies the command line option character (e.g. 'e' indicates '-e'
-     * is the option)
+     * Specifies the command line option character (e.g. 'e' indicates '-e' is the option)
      */
     char option();
-    
+
     /**
-     * If non-null specifies the a long name for the option. This name should
-     * not include any leading dashes (e.g. it should be "long-name" not
-     * "--long-name")
+     * If non-null specifies the a long name for the option. This name should not include any leading dashes (e.g. it
+     * should be "long-name" not "--long-name")
      */
     String longOption() default "";
-    
+
     /**
      * String describing the meaning of this option.
      */
     String description() default "";
-    
+
     /**
      * Deprecated options won't show up in help
+     *
      * @return whether or not the option is deprecated
      */
     boolean deprecated() default false;
-    
+
     /**
-     * Specifies if an argument to the option is required, optional, or
-     * not required.
+     * Specifies if an argument to the option is required, optional, or not required.
      */
     ArgumentRequired arg() default ArgumentRequired.NONE;
-    
+
     /**
-     * Specifies a display name for the argument to the option that will
-     * be used when generating usage text. If not provided, the usage
-     * text will be:
+     * Specifies a display name for the argument to the option that will be used when generating usage text. If not
+     * provided, the usage text will be:
      * <pre>
      *   -x val  This is the usage for the option
      * </pre>
-     * If argName is provided then "val" will be replaced with the name
-     * provided.
+     * If argName is provided then "val" will be replaced with the name provided.
      */
     String argName() default "val";
 }

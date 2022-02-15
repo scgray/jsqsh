@@ -16,45 +16,37 @@
 package org.sqsh.options;
 
 import java.lang.annotation.ElementType;
-import java.lang.annotation.RetentionPolicy;
-
 import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * The @Argv annotation is used to mark an array of strings or 
- * vector of strings that represents the location to store the
- * arguments for a program that are not command line options.
- * In addition, attributes such as usage="" may be provided as
- * a description of the usage of the program as a whole.
+ * The @Argv annotation is used to mark an array of strings or vector of strings that represents the location to store
+ * the arguments for a program that are not command line options. In addition, attributes such as usage="" may be
+ * provided as a description of the usage of the program as a whole.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
 public @interface Argv {
-    
     /**
      * Specifies the usage of the program.
-     * @return
      */
     String usage() default "";
-    
+
     /**
-     * This specifies the program for which the option processing
-     * is taking place. This name will become part of
-     * the usage string and exceptions thrown during argument processing.
+     * This specifies the program for which the option processing is taking place. This name will become part of the
+     * usage string and exceptions thrown during argument processing.
      */
     String program();
-    
+
     /**
-     * If provided, specifies the minimum number of non-option
-     * arguments that the program requires for operation.
+     * If provided, specifies the minimum number of non-option arguments that the program requires for operation.
      */
     int min() default 0;
-    
+
     /**
-     * If provided, specifies the maximum number of non-option
-     * arguments that the program requires for operation. A value
-     * &lt; 0 indicates unbounded arguments.
+     * If provided, specifies the maximum number of non-option arguments that the program requires for operation. A
+     * value &lt; 0 indicates unbounded arguments.
      */
     int max() default -1;
 }

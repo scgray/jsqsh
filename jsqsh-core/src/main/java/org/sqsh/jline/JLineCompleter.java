@@ -15,8 +15,6 @@
  */
 package org.sqsh.jline;
 
-import java.util.List;
-
 import org.jline.reader.Candidate;
 import org.jline.reader.LineReader;
 import org.jline.reader.ParsedLine;
@@ -25,28 +23,23 @@ import org.sqsh.Session;
 import org.sqsh.SqshContext;
 import org.sqsh.completion.Completer;
 
-public class JLineCompleter
-    implements org.jline.reader.Completer {
-    
-    SqshContext ctx;
-    
+import java.util.List;
+
+public class JLineCompleter implements org.jline.reader.Completer {
+    final SqshContext ctx;
+
     public JLineCompleter(SqshContext ctx) {
-        
         this.ctx = ctx;
     }
 
     @Override
     public void complete(LineReader lineReader, ParsedLine parsedLine, List<Candidate> list) {
-
         Session session = ctx.getCurrentSession();
         ConnectionContext conn = session.getConnectionContext();
         if (conn != null) {
-            
-            Completer completer = conn.getTabCompleter(session,
-                parsedLine.line(), parsedLine.cursor(), parsedLine.word());
+            Completer completer = conn.getTabCompleter(session, parsedLine.line(), parsedLine.cursor(), parsedLine.word());
             String name = completer.next();
             while (name != null) {
-                
                 list.add(new Candidate(name));
                 name = completer.next();
             }

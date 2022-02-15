@@ -16,35 +16,25 @@
 package org.sqsh.normalizer;
 
 /**
- * Does no normalization of an identifier. If the identifier is surrounded
- * by double quotes, the quotes are stripped off, otherwise the identifier
- * is returned as it is received.
+ * Does no normalization of an identifier. If the identifier is surrounded by double quotes, the quotes are stripped
+ * off, otherwise the identifier is returned as it is received.
  */
 public class NullNormalizer implements SQLNormalizer {
-    
+
     @Override
     public String getName() {
-        
         return "NONE";
     }
-    
+
     @Override
-    public String normalize (String identifier) {
-        
+    public String normalize(String identifier) {
         if (identifier == null) {
-            
             return null;
         }
-        
         int len = identifier.length();
-        
-        if (len >= 2
-            && identifier.charAt(0) == '"'
-            && identifier.charAt(len-1) == '"') {
-            
-            return identifier.substring(1, len-1);
+        if (len >= 2 && identifier.charAt(0) == '"' && identifier.charAt(len - 1) == '"') {
+            return identifier.substring(1, len - 1);
         }
-        
         return identifier;
     }
 }

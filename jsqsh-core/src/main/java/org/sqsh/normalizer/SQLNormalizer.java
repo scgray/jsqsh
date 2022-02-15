@@ -16,31 +16,27 @@
 package org.sqsh.normalizer;
 
 /**
- * A normalizer is used by metadata commands, such as "\describe" to normalize
- * the names of objects according to database-specific rules.  For example, with
- * DB2 and Oracle, identifiers are normalized to upper case unless they are
+ * A normalizer is used by metadata commands, such as "\describe" to normalize the names of objects according to
+ * database-specific rules.  For example, with DB2 and Oracle, identifiers are normalized to upper case unless they are
  * surrounded by double quotes.
  */
 public interface SQLNormalizer {
-    
     /**
      * @return A unique logical name for the normalizer
      */
-    public String getName();
-    
+    String getName();
+
     /**
-     * Called to normalize an identifier.  The identifier will be passed in the
-     * fashion that it was received from the metadata command, which will typically
-     * be in the same fashion that the user provided it. For example:
+     * Called to normalize an identifier.  The identifier will be passed in the fashion that it was received from the
+     * metadata command, which will typically be in the same fashion that the user provided it. For example:
      * <pre>
      *    \describe "My Table".Foo
      * </pre>
-     * Would likely call this method twice, once with "My Table" (including double 
-     * quotes) and one with Foo (no double quotes), and this function should 
-     * normalize the identifier according to the implementations chosen rules.
-     * 
+     * Would likely call this method twice, once with "My Table" (including double quotes) and one with Foo (no double
+     * quotes), and this function should normalize the identifier according to the implementations chosen rules.
+     *
      * @param identifier The identifier to normalize
      * @return The normalized identifier.
      */
-    public String normalize (String identifier);
+    String normalize(String identifier);
 }

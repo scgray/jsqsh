@@ -16,114 +16,96 @@
 package org.sqsh.options;
 
 public class Option implements Comparable<Option> {
-    
+
     /**
      * The property/annotation that defined this option.
      */
     protected OptionProperty option;
-    
+
     /**
-     * This is the field in the object that is annotated with 
-     * the {@link OptionProperty} annotation.
+     * This is the field in the object that is annotated with the {@link OptionProperty} annotation.
      */
     protected String fieldName;
-    
+
     /**
-     * Creates an option that is associated with a field of a java bean. 
-     * @param option The option property that is associated with the field of
-     *   the java bean
+     * Creates an option that is associated with a field of a java bean.
+     *
+     * @param option The option property that is associated with the field of the java bean
      * @param fieldName The name of the field the property is associated with
      */
-    public Option (OptionProperty option, String fieldName) {
-        
-        this.option      = option;
-        this.fieldName   = fieldName;
+    public Option(OptionProperty option, String fieldName) {
+        this.option = option;
+        this.fieldName = fieldName;
     }
-    
+
     /**
      * @return true if the option is deprecated
      */
     public boolean isDeprecated() {
-        
         return option.deprecated();
     }
-    
+
     /**
-     * @return The name of the field of the option bean that should be set
-     *   with this property
+     * @return The name of the field of the option bean that should be set with this property
      */
     public String getFieldName() {
-        
         return fieldName;
     }
-    
+
     /**
      * @return The short form of the option
      */
     public char getShortOpt() {
-        
         return option.option();
     }
-    
+
     /**
      * @return The long form of the option, or null if there is no long form
      */
     public String getLongOpt() {
-        
         return option.longOption();
     }
-    
+
     /**
      * @return A description of the option.
      */
     public String getDescription() {
-        
         return option.description();
     }
-    
+
     /**
      * @return true if the option could possibly have an argument
      */
     public boolean hasArg() {
-        
         return option.arg() != ArgumentRequired.NONE;
     }
-    
+
     /**
      * @return Whether or not the option requires an argument
      */
     public ArgumentRequired getOptRequired() {
-        
         return option.arg();
     }
-    
+
     /**
-     * @return If the option requires and argument, this is a logic name to
-     *   use when displaying the argument name.
+     * @return If the option requires and argument, this is a logic name to use when displaying the argument name.
      */
     public String getArgName() {
-        
         return option.argName();
     }
-    
+
     @Override
     public int compareTo(Option o) {
-
         return this.getLongOpt().compareTo(o.getLongOpt());
     }
 
     @Override
     public String toString() {
-        
         StringBuilder sb = new StringBuilder();
         sb.append('-').append(option.option());
         if (option.longOption() != null) {
-            
-            sb.append(" (")
-                .append("--").append(option.longOption())
-                .append(")");
+            sb.append(" (").append("--").append(option.longOption()).append(")");
         }
-        
         return sb.toString();
     }
 }

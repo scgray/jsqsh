@@ -17,45 +17,31 @@ package org.sqsh.normalizer;
 
 
 /**
- * Normalizes unquoted identifiers to upper case. Quoted identifiers are
- * left as was provided.
+ * Normalizes unquoted identifiers to upper case. Quoted identifiers are left as was provided.
  */
 public class LowerCaseNormalizer implements SQLNormalizer {
-    
+
     @Override
     public String getName() {
-        
         return "LOWER CASE";
     }
-    
+
     @Override
-    public String normalize (String identifier) {
-        
+    public String normalize(String identifier) {
         if (identifier == null) {
-            
             return null;
         }
-        
         int len = identifier.length();
-        
-        /*
-         * Identifier was surrounded by double quotes, so strip them off and
-         * return the contents as was provided by the user.
-         */
-        if (len >= 2
-            && identifier.charAt(0) == '"'
-            && identifier.charAt(len-1) == '"') {
-            
-            return identifier.substring(1, len-1);
+
+        // Identifier was surrounded by double quotes, so strip them off and return the contents as was provided
+        // by the user.
+        if (len >= 2 && identifier.charAt(0) == '"' && identifier.charAt(len - 1) == '"') {
+            return identifier.substring(1, len - 1);
         }
-        
-        
         StringBuilder sb = new StringBuilder(len);
         for (int i = 0; i < len; i++) {
-            
             sb.append(Character.toLowerCase(identifier.charAt(i)));
         }
-        
         return sb.toString();
     }
 }
