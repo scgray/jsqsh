@@ -15,122 +15,91 @@
  */
 package org.sqsh.completion;
 
+import org.sqsh.parser.DatabaseObject;
+
 import java.sql.Connection;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.sqsh.parser.DatabaseObject;
-
 /**
- * For an EXE[CUTE] PROC[EDURE] statement, it will attempt to complete
- * the name of the procedure that will be executed and, following that,
- * to complete any parameters required for the procedure.
+ * For an EXE[CUTE] PROC[EDURE] statement, it will attempt to complete the name of the procedure that will be executed
+ * and, following that, to complete any parameters required for the procedure.
  */
-public class ExecProcedureStatementCompleter
-    extends SQLStatementCompleter {
-    
-    private static final Logger LOG = 
-        Logger.getLogger("org.sqsh.completion.ExecProcedureCompleter");
-    
+public class ExecProcedureStatementCompleter extends SQLStatementCompleter {
+
+    private static final Logger LOG = Logger.getLogger("org.sqsh.completion.ExecProcedureCompleter");
+
     /**
      * Creates a completer.
      */
-    public ExecProcedureStatementCompleter () {
-        
+    public ExecProcedureStatementCompleter() {
         super("EXECUTE", null);
     }
 
     @Override
-    public void getCompletions (Set<String> completions, Connection conn,
-            String[] nameParts, SQLParseState parseState) {
-        
-        DatabaseObject []refs = parseState.getObjectReferences();
-        
+    public void getCompletions(Set<String> completions, Connection conn, String[] nameParts, SQLParseState parseState) {
+        DatabaseObject[] refs = parseState.getObjectReferences();
         if (LOG.isLoggable(Level.FINE)) {
-
-            LOG.fine("EXECUTE PROC: Completing for "
-                + getNameString(nameParts));
+            LOG.fine("EXECUTE PROC: Completing for " + getNameString(nameParts));
         }
-        
-        /*
-         * If there are references, then we probably want to complete 
-         * the parameter that the user is typing...
-         */
+
+        // If there are references, then we probably want to complete the parameter that the user is typing...
         if (refs.length > 0) {
-            
-            /*
-              * ...but, we have a small issue. We can't tell the 
-              * different between:
-              *    INSERT proc<tab>
-              * and:
-              *    EXEC proc (<tab>)
-              * To tell the difference we check to see if the name the user is
-              * typing matches the name of the proc that is being referenced.
-              */
+
+            // ...but, we have a small issue. We can't tell the
+            // different between:
+            //    INSERT proc<tab>
+            // and:
+            //    EXEC proc (<tab>)
+            // To tell the difference we check to see if the name the user is typing matches the name of the proc
+            // that is being referenced.
             if (nameParts.length > 0) {
-                
                 DatabaseObject currentObject = new DatabaseObject(nameParts);
                 for (DatabaseObject referencedObject : refs) {
-                    
                     if (referencedObject.equals(currentObject)) {
-                        
                         if (LOG.isLoggable(Level.FINE)) {
-    
-                            LOG.fine("Attempting to complete procedure user is "
-                                + "currently editing ("
-                                + currentObject.toString() + ")");
+                            LOG.fine("Attempting to complete procedure user is currently editing ("
+                                    + currentObject + ")");
                         }
-                        
-                        /*
-                         * Ok, so the object being referenced following the
-                         * EXECUTE call is the same name as what the cursor
-                         * is sitting on right now. This means we want to
-                         * complete procedure calls.
-                         */
-                        getProcedures(completions, conn, 
-                            (currentObject.getCatalog() == null
-                                    ? getCurrentCatalog(conn)
-                                    : currentObject.getCatalog()),
-                            currentObject.getSchema(),
-                            currentObject.getName());
-                        
+
+                        // Ok, so the object being referenced following the EXECUTE call is the same name as what
+                        // the cursor is sitting on right now. This means we want to complete procedure calls.
+                        getProcedures(
+                                completions,
+                                conn,
+                                (currentObject.getCatalog() == null
+                                        ? getCurrentCatalog(conn)
+                                        : currentObject.getCatalog()),
+                                currentObject.getSchema(),
+                                currentObject.getName());
                         return;
                     }
                 }
             }
-            
             if (LOG.isLoggable(Level.FINE)) {
-
-                LOG.fine("Attempting to complete parameters for "
-                    + refs[0].toString() + " using user input "
-                    + getNameString(nameParts));
+                LOG.fine("Attempting to complete parameters for " + refs[0].toString()
+                        + " using user input " + getNameString(nameParts));
             }
-            
-            /*
-             * If we got here, then we are not editing a referenced object,
-             * so we want to complete procedure parameters instead.
-             */
-            getProcedureParameters(completions, conn, 
-                (refs[0].getCatalog() == null ? getCurrentCatalog(conn)
-                        : refs[0].getCatalog()),
-                refs[0].getSchema(), refs[0].getName(),
-                (nameParts.length == 0 ? null : nameParts[0]));
-            
+
+            // If we got here, then we are not editing a referenced object, so we want to complete procedure
+            // parameters instead.
+            getProcedureParameters(
+                    completions,
+                    conn,
+                    (refs[0].getCatalog() == null
+                            ? getCurrentCatalog(conn)
+                            : refs[0].getCatalog()),
+                    refs[0].getSchema(),
+                    refs[0].getName(),
+                    (nameParts.length == 0 ? null : nameParts[0]));
             return;
         }
-        
         if (LOG.isLoggable(Level.FINE)) {
-
-            LOG.fine("Looking for procedures matching user input: " 
-                + getNameString(nameParts));
+            LOG.fine("Looking for procedures matching user input: " + getNameString(nameParts));
         }
-        
-        /*
-         * If we got here, have no object references, so we want to supply
-         * the user a list of procedures.
-         */
-        getProcedures(completions, conn,
-            getCurrentCatalog(conn), null, null);
+
+        // If we got here, have no object references, so we want to supply the user a list of procedures.
+        getProcedures(completions, conn, getCurrentCatalog(conn), null, null);
     }
 }

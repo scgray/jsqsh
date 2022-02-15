@@ -18,79 +18,66 @@ package org.sqsh.completion;
 import org.sqsh.Session;
 
 /**
- * A completer is capable of coming up with a set of words that server
- * has suitable completions for the word that the user is currently 
- * sitting on.
+ * A completer is capable of coming up with a set of words that server has suitable completions for the word that the
+ * user is currently sitting on.
  */
 public abstract class Completer {
-    
-    protected Session session;
-    
+
+    protected final Session session;
+
     /**
      * The entire line of input that the user was working on
      */
-    protected String line;
-    
+    protected final String line;
+
     /**
-     * The position in the line of input at which the user hit the
-     * completion key.
+     * The position in the line of input at which the user hit the completion key.
      */
-    protected int position;
-    
+    protected final int position;
+
     /**
      * The "word" that the cursor was sitting on when the tab was completed.
      */
-    protected String word;
-    
-    public Completer (Session session,
-            String line, int position, String word) {
-        
+    protected final String word;
+
+    public Completer(Session session, String line, int position, String word) {
         this.session = session;
         this.line = line;
         this.position = position;
         this.word = word;
     }
-    
+
     /**
-     * Returns the line of input the user was entering when they hit the
-     * completion key.
-     * 
-     * @return The line of input the user was entering when they hit the
-     *   completion key.
+     * Returns the line of input the user was entering when they hit the completion key.
+     *
+     * @return The line of input the user was entering when they hit the completion key.
      */
     public String getLine() {
-        
         return line;
     }
-    
+
     /**
-     * Returns the position in the input line at which the user hit the
-     * completion key.
-     * 
+     * Returns the position in the input line at which the user hit the completion key.
+     *
      * @return The position.
      */
     public int getPosition() {
-        
         return position;
     }
-    
+
     /**
-     * Returns the word that the user was sitting on when they hit the
-     * tab key.
-     * 
+     * Returns the word that the user was sitting on when they hit the tab key.
+     *
      * @return the word that the user was sitting on when they hit the
      */
     public String getWord() {
-        
         return word;
     }
-    
+
     /**
-     * Called to return the next word that can be used to complete the
-     * users current input.
-     * 
-     * @return The next available completion word or null if no more
-     *   words are to be found.
+     * Called to return the next word that can be used to complete the users current input.
+     *
+     * @return The next available completion word or null if no more words are to be found.
      */
     public abstract String next();
 }
