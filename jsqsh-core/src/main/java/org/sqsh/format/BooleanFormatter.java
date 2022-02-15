@@ -20,24 +20,18 @@ import org.sqsh.Formatter;
 /**
  * Formats a boolean for display.
  */
-public class BooleanFormatter
-    implements Formatter {
+public class BooleanFormatter implements Formatter {
 
-    public String format (Object value) {
-
+    public String format(Object value) {
         if (value instanceof Boolean) {
-            
-            if (((Boolean) value).booleanValue()) {
-                
+            if (((Boolean) value)) {
                 return "true";
             }
         }
-        
         return "false";
     }
 
-    public int getMaxWidth () {
-
+    public int getMaxWidth() {
         return 5;
     }
 }

@@ -17,35 +17,24 @@ package org.sqsh.format;
 
 import org.sqsh.Formatter;
 
-public class BitFormatter
-    implements Formatter {
-
+public class BitFormatter implements Formatter {
     @Override
-    public String format (Object value) {
-
+    public String format(Object value) {
         if (value instanceof Number) {
-            
             if (((Number) value).intValue() == 0) {
-                
                 return "0";
             }
-        }
-        else if (value instanceof Boolean) {
-            
-            if (((Boolean) value).booleanValue()) {
-                
+        } else if (value instanceof Boolean) {
+            if (((Boolean) value)) {
                 return "1";
             }
-            
             return "0";
         }
-        
         return "1";
     }
 
     @Override
-    public int getMaxWidth () {
-        
+    public int getMaxWidth() {
         return 1;
     }
 }

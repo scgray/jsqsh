@@ -20,81 +20,56 @@ import org.sqsh.Formatter;
 /**
  * Formats a byte or a byte array.
  */
-public class ByteFormatter
-    implements Formatter {
-    
-    private byte[] b = new byte[1];
-    private int maxBytes;
-    private boolean useStringFormat;
-    
+public class ByteFormatter implements Formatter {
+
+    private static final String[] HEX_DIGITS =
+            {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"};
+
+    private final byte[] b = new byte[1];
+    private final int maxBytes;
+    private final boolean useStringFormat;
+
     public ByteFormatter(int maxBytes, boolean useStringFormat) {
-        
         this.maxBytes = maxBytes;
         this.useStringFormat = useStringFormat;
     }
 
     public ByteFormatter(int maxBytes) {
-        
         this(maxBytes, false);
     }
-    
-    public String format (Object value) {
-        
+
+    public String format(Object value) {
         return format(value, -1);
     }
 
-    public String format (Object value, int len) {
-        
-        byte []bytes;
-        
+    public String format(Object value, int len) {
+        byte[] bytes;
         if (value instanceof Byte) {
-            
-            b[0] = ((Byte) value).byteValue();
+            b[0] = ((Byte) value);
             bytes = b;
-        }
-        else {
-            
+        } else {
             bytes = ((byte[]) value);
         }
-        
         StringBuilder sb = new StringBuilder(2 + (bytes.length * 2));
         byte ch;
-        
-        if (useStringFormat)
-            sb.append("X'");
-        else
-            sb.append("0x");
-        
-        String hexDigits[] = {
-            "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
-            "a", "b", "c", "d", "e", "f"
-        };
-        
+        if (useStringFormat) sb.append("X'");
+        else sb.append("0x");
         if (len < 0) {
-            
             len = bytes.length;
         }
-        
         for (int i = 0; i < len; i++) {
-
             ch = (byte) (bytes[i] & 0xF0);
             ch = (byte) (ch >>> 4);
             ch = (byte) (ch & 0x0F);
-            
-            sb.append(hexDigits[(int) ch]);
+            sb.append(HEX_DIGITS[ch]);
             ch = (byte) (bytes[i] & 0x0F);
-
-            sb.append(hexDigits[(int) ch]);
+            sb.append(HEX_DIGITS[ch]);
         }
-
-        if (useStringFormat)
-            sb.append("'");
-        
+        if (useStringFormat) sb.append("'");
         return sb.toString();
     }
 
-    public int getMaxWidth () {
-
+    public int getMaxWidth() {
         return 2 + (maxBytes * 2);
     }
 }

@@ -15,30 +15,25 @@
  */
 package org.sqsh.format;
 
-import java.util.Date;
-
 import org.sqsh.Formatter;
 import org.sqsh.util.TimestampFormatter;
 
-public class DateFormatter
-    implements Formatter {
-    
-    private TimestampFormatter format;
-    private int maxWidth;
-    
-    public DateFormatter (String format, int maxWidth) {
-        
+import java.util.Date;
+
+public class DateFormatter implements Formatter {
+    private final TimestampFormatter format;
+    private final int maxWidth;
+
+    public DateFormatter(String format, int maxWidth) {
         this.format = new TimestampFormatter(format);
         this.maxWidth = maxWidth;
     }
 
-    public String format (Object value) {
-        
+    public String format(Object value) {
         return format.format((Date) value);
     }
 
-    public int getMaxWidth () {
-
+    public int getMaxWidth() {
         return maxWidth;
     }
 }

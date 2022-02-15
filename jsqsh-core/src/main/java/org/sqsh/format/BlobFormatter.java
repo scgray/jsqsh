@@ -17,28 +17,20 @@ package org.sqsh.format;
 
 import java.sql.Blob;
 
-public class BlobFormatter
-    extends ByteFormatter {
-    
+public class BlobFormatter extends ByteFormatter {
+
     public BlobFormatter() {
-        
         super(Integer.MAX_VALUE);
     }
 
-    public String format (Object value) {
-
+    public String format(Object value) {
         Blob blob = (Blob) value;
-        
         try {
-            
             byte bytes[] = blob.getBytes(1, (int) blob.length());
             return super.format(bytes);
+        } catch (Exception e) {
+            // IGNORED
         }
-        catch (Exception e) {
-            
-            /* IGNORED */
-        }
-        
         return "*ERROR*";
     }
 }

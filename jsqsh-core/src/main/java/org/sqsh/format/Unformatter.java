@@ -18,26 +18,21 @@ package org.sqsh.format;
 import org.sqsh.Formatter;
 
 /**
- * The Unformatter doesn't perform any manipulation of the object to 
- * be formatter.
+ * The Unformatter doesn't perform any manipulation of the object to be formatter.
  */
-public class Unformatter
-    implements Formatter {
-    
-    private int maxWidth;
-    
-    public Unformatter (int maxWidth) {
-        
+public class Unformatter implements Formatter {
+
+    private final int maxWidth;
+
+    public Unformatter(int maxWidth) {
         this.maxWidth = maxWidth;
     }
 
-    public String format (Object value) {
-
+    public String format(Object value) {
         return value.toString();
     }
 
-    public int getMaxWidth () {
-
+    public int getMaxWidth() {
         return maxWidth;
     }
 }
