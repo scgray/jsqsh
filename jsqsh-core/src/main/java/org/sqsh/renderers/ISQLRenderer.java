@@ -20,113 +20,82 @@ import org.sqsh.Renderer;
 import org.sqsh.RendererManager;
 import org.sqsh.Session;
 
-public class ISQLRenderer
-    extends Renderer {
-    
-    private int screenWidth;
-    
+public class ISQLRenderer extends Renderer {
+
+    private final int screenWidth;
+
     public ISQLRenderer(Session session, RendererManager renderMan) {
-        
         super(session, renderMan);
-        
-        /*
-         * We use this a lot so fetch it once.
-         */
+
+        // We use this a lot so fetch it once.
         screenWidth = session.getScreenWidth();
     }
-    
-    /** {@inheritDoc} */
-    public void header (ColumnDescription[] columns) {
-        
+
+    /**
+     * {@inheritDoc}
+     */
+    public void header(ColumnDescription[] columns) {
         super.header(columns);
         int totalWidth = 0;
-        
-        /*
-         * Print the column names.
-         */
+
+        // Print the column names.
         for (int i = 0; i < columns.length; i++) {
-            
-            /* 
-             * isql caps the display width of the column header at 512.
-             */
-            if (columns[i].getWidth() > 512)
+
+            // isql caps the display width of the column header at 512.
+            if (columns[i].getWidth() > 512) {
                 columns[i].setWidth(512);
-            
-            if (i > 0 
-                &&  (totalWidth + columns[i].getWidth() + 1) > screenWidth) {
-                
+            }
+            if (i > 0 && (totalWidth + columns[i].getWidth() + 1) > screenWidth) {
                 session.out.println();
                 session.out.print(" \t");
                 totalWidth = 9;
-            }
-            else {
-                
+            } else {
                 session.out.print(' ');
                 ++totalWidth;
             }
-            
             printColumnName(columns[i], columns[i].getName());
             totalWidth += columns[i].getWidth();
         }
         session.out.println();
-        
-        /*
-         * Now our dashes.
-         */
+
+        // Now our dashes.
         for (int i = 0; i < columns.length; i++) {
-            
-            if (i > 0 
-                &&  (totalWidth + columns[i].getWidth() + 1) > screenWidth) {
-                
+            if (i > 0 && (totalWidth + columns[i].getWidth() + 1) > screenWidth) {
                 session.out.println();
                 session.out.print(" \t");
                 totalWidth = 9;
-            }
-            else {
-                
+            } else {
                 session.out.print(' ');
                 ++totalWidth;
             }
-            
             dashes(columns[i].getWidth());
-            
             totalWidth += columns[i].getWidth();
         }
-        
         session.out.println();
     }
-    
-    /** {@inheritDoc} */
-    public boolean row (String[] row) {
-        
+
+    public boolean row(String[] row) {
         int totalWidth = 0;
-        
+
         for (int i = 0; i < columns.length; i++) {
-            
-            if (i > 0 
-                &&  (totalWidth + columns[i].getWidth() + 1) > screenWidth) {
-                
+            if (i > 0 && (totalWidth + columns[i].getWidth() + 1) > screenWidth) {
                 session.out.println();
                 session.out.print(" \t");
                 totalWidth = 9;
-            }
-            else {
-                
+            } else {
                 session.out.print(' ');
                 ++totalWidth;
             }
-            
             printColumnValue(columns[i], row[i]);
             totalWidth += columns[i].getWidth();
         }
         session.out.println();
-        
+
         return true;
     }
-    
+
     @Override
-    public boolean flush () {
-        
+    public boolean flush() {
         session.out.println();
         return true;
     }

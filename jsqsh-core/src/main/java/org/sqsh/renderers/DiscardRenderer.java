@@ -21,39 +21,32 @@ import org.sqsh.RendererManager;
 import org.sqsh.Session;
 
 /**
- * Renderer that doesn't actually do any rendering.  This is used
- * primarily for performance testing (so that you can avoid the
- * overhead involved with the display itself).
+ * Renderer that doesn't actually do any rendering.  This is used primarily for performance testing (so that you can
+ * avoid the overhead involved with the display itself).
  */
-public class DiscardRenderer
-    extends Renderer {
+public class DiscardRenderer extends Renderer {
 
     public DiscardRenderer(Session session, RendererManager manager) {
-
         super(session, manager);
     }
-    
+
     @Override
     public boolean isDiscard() {
-
         return true;
     }
 
     @Override
-    public void header (ColumnDescription[] columns) {
-
+    public void header(ColumnDescription[] columns) {
         super.header(columns);
     }
-    
+
     @Override
-    public boolean row (String[] row) {
-        
+    public boolean row(String[] row) {
         return true;
     }
 
     @Override
-    public boolean flush () {
-
+    public boolean flush() {
         return true;
     }
 }

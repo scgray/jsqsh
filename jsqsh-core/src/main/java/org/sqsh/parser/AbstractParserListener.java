@@ -16,45 +16,37 @@
 package org.sqsh.parser;
 
 /**
- * Implementation of SQLParserListener that provides NO-OP's for all of 
- * the methods dictated by the interface. 
+ * Implementation of SQLParserListener that provides NO-OP's for all of the methods dictated by the interface.
  */
-public class AbstractParserListener
-    implements SQLParserListener {
+public class AbstractParserListener implements SQLParserListener {
 
-    /** {@inheritDoc} */
-    public void foundClause (SQLParser parser, String clause) {
-
-        /* IGNORED */
+    @Override
+    public void foundClause(SQLParser parser, String clause) {
+        // IGNORED
     }
 
-    /** {@inheritDoc} */
-    public void foundStatement (SQLParser parser, String statement) {
-
-        /* IGNORED */
+    @Override
+    public void foundStatement(SQLParser parser, String statement) {
+        // IGNORED
     }
-    
-    /** {@inheritDoc} */
+
+    @Override
     public void enteredSubquery(SQLParser parser) {
-        
-        /* IGNORED */
+        // IGNORED
     }
-    
-    /** {@inheritDoc} */
+
+    @Override
     public void exitedSubquery(SQLParser parser) {
-        
-        /* IGNORED */
+        // IGNORED
     }
 
-    /** {@inheritDoc} */
-    public void foundTableReference (SQLParser parser, DatabaseObject tableRef) {
-
-        /* IGNORED */
+    @Override
+    public void foundTableReference(SQLParser parser, DatabaseObject tableRef) {
+        // IGNORED
     }
-    
-    public void foundProcedureExecution (SQLParser parser,
-            DatabaseObject procRef) {
 
-        /* IGNORED */
+    @Override
+    public void foundProcedureExecution(SQLParser parser, DatabaseObject procRef) {
+        // IGNORED
     }
 }

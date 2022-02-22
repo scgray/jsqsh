@@ -21,104 +21,82 @@ import org.sqsh.RendererManager;
 import org.sqsh.Session;
 import org.sqsh.WordWrapLineIterator;
 
-public class VerticalRenderer
-    extends Renderer {
-    
+public class VerticalRenderer extends Renderer {
+
     private int screenWidth;
     private int maxColumnNameWidth = 0;
     private WordWrapLineIterator lineIter = null;
     private boolean valueOnNewLine = false;
-    
+
     public VerticalRenderer(Session session, RendererManager renderMan) {
-        
         super(session, renderMan);
-        
-        /*
-         * We use this a lot so fetch it once.
-         */
+
+        // We use this a lot so fetch it once.
         screenWidth = session.getScreenWidth();
     }
-    
-    /** {@inheritDoc} */
-    public void header (ColumnDescription[] columns) {
-        
+
+    /**
+     * {@inheritDoc}
+     */
+    public void header(ColumnDescription[] columns) {
         super.header(columns);
-        
-        /*
-         * Print the column names.
-         */
-        for (int i = 0; i < columns.length; i++) {
-            
-            int nameLength = columns[i].getName().length();
-            if (nameLength > maxColumnNameWidth)
+
+        // Print the column names.
+        for (ColumnDescription column : columns) {
+            int nameLength = column.getName().length();
+            if (nameLength > maxColumnNameWidth) {
                 maxColumnNameWidth = nameLength;
+            }
         }
-        
         int valueWidth = screenWidth - (maxColumnNameWidth + 2);
         if (valueWidth <= 0) {
-            
             valueOnNewLine = true;
             lineIter = new WordWrapLineIterator("", screenWidth - 4);
-        }
-        else {
-            
+        } else {
             valueOnNewLine = false;
             lineIter = new WordWrapLineIterator("", valueWidth);
         }
     }
-    
-    /** {@inheritDoc} */
-    public boolean row (String[] row) {
-        
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean row(String[] row) {
         for (int i = 0; i < columns.length; i++) {
-            
             String colName = columns[i].getName();
-            int padding    = maxColumnNameWidth - colName.length();
-            
+            int padding = maxColumnNameWidth - colName.length();
             session.out.print(colName);
             session.out.print(": ");
-            
             for (int j = 0; j < padding; j++) {
-                
                 session.out.print(' ');
             }
-            
             if (valueOnNewLine) {
-                
                 session.out.println();
                 session.out.print("    ");
             }
-            
             lineIter.reset(row[i]);
             int segment = 0;
             while (lineIter.hasNext()) {
-                
                 String line = lineIter.next();
                 if (segment > 0) {
-                    
-                    if (valueOnNewLine)
+                    if (valueOnNewLine) {
                         session.out.print("    ");
-                    else {
-                        
+                    } else {
                         for (int j = 0; j < maxColumnNameWidth + 2; j++) {
-                            
                             session.out.print(' ');
                         }
                     }
                 }
-                
                 session.out.println(line);
                 ++segment;
             }
         }
         session.out.println();
-        
         return true;
     }
-    
+
     @Override
-    public boolean flush () {
-        
+    public boolean flush() {
         return true;
     }
 }

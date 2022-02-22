@@ -21,7 +21,6 @@ import org.sqsh.Session;
 public class PerfectSimpleRenderer extends PerfectPrettyRenderer {
 
     public PerfectSimpleRenderer(Session session, RendererManager renderMan) {
-
         super(session, renderMan, false);
     }
 }

@@ -6,8 +6,7 @@ import org.sqsh.RendererManager;
 import org.sqsh.Session;
 import org.sqsh.util.TimeUtils;
 
-public class CountRenderer
-        extends Renderer {
+public class CountRenderer extends Renderer {
 
     private static long updateInterval = 10_000L;
 
@@ -17,7 +16,6 @@ public class CountRenderer
     private long batchStartTime;
 
     public CountRenderer(Session session, RendererManager manager) {
-
         super(session, manager);
     }
 
@@ -30,9 +28,9 @@ public class CountRenderer
     }
 
     @Override
-    public void header (ColumnDescription[] columns) {
-
+    public void header(ColumnDescription[] columns) {
         super.header(columns);
+
         if (startTime == 0L) {
             startTime = System.currentTimeMillis();
             batchStartTime = startTime;
@@ -46,13 +44,11 @@ public class CountRenderer
 
     @Override
     public boolean isDiscard() {
-
         return true;
     }
 
     @Override
-    public boolean row (String[] row) {
-
+    public boolean row(String[] row) {
         ++rowCount;
         if (updateInterval > 0 && (rowCount % updateInterval) == 0) {
             batchStats();
@@ -61,7 +57,7 @@ public class CountRenderer
     }
 
     @Override
-    public boolean flush () {
+    public boolean flush() {
         batchStats();
         return true;
     }
@@ -70,15 +66,15 @@ public class CountRenderer
         final long now = System.currentTimeMillis();
         final long batchMillis = now - batchStartTime;
         final long overallMillis = now - startTime;
+
         session.out.format("Result set #%d returned %d rows (%s, %.2f rows/sec), %d total (%s, %2f rows/sec)",
-                resultCount,
-                updateInterval,
+                resultCount, updateInterval,
                 TimeUtils.millisToDurationString(batchMillis),
                 (updateInterval / (batchMillis / 1000.0)),
                 rowCount,
                 TimeUtils.millisToDurationString(overallMillis),
-                (rowCount / (overallMillis / 1000.0))
-                );
+                (rowCount / (overallMillis / 1000.0)));
+
         session.out.println();
         batchStartTime = System.currentTimeMillis();
     }
