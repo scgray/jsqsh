@@ -18,10 +18,9 @@ package org.sqsh.shell;
 /**
  * Thrown by most {@link ShellManager} methods.
  */
-public class ShellException
-    extends Exception {
-    
-    public ShellException (String msg) {
+public class ShellException extends Exception {
+
+    public ShellException(String msg) {
         super(msg);
     }
 }

@@ -91,7 +91,7 @@ public class Show extends Command implements DatabaseCommand {
     static Set<Integer> essentialTypesCols = Set.of(
         1,  // TYPE_NAME
         3,  // PRECISION
-        3,  // PROCEDURE_NAME
+        4,  // PROCEDURE_NAME
         7,  // NULLABLE
         12);// AUTO_INCREMENT
 

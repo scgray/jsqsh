@@ -16,18 +16,15 @@
 package org.sqsh;
 
 /**
- * Exception thrown by CommandManager.importCommands() to indicate that 
- * the commands requested could not be imported.
+ * Exception thrown by CommandManager.importCommands() to indicate that the commands requested could not be imported.
  */
 public class CommandImportException extends Exception {
-    
-    public CommandImportException (String msg) {
-        
-        super (msg);
+
+    public CommandImportException(String msg) {
+        super(msg);
     }
 
-    public CommandImportException (String msg, Throwable cause) {
-        
-        super (msg, cause);
+    public CommandImportException(String msg, Throwable cause) {
+        super(msg, cause);
     }
 }

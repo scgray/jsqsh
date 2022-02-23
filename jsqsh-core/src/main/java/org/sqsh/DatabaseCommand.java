@@ -16,13 +16,9 @@
 package org.sqsh;
 
 /**
- * This interface is just a marker for commands that wish to declare that
- * they require a database connection in order to function. If a command
- * is executed that implements this interface and a connection is not
- * established, and error message will be displayed and the command will
- * not be executed.
+ * This interface is just a marker for commands that wish to declare that they require a database connection in order to
+ * function. If a command is executed that implements this interface and a connection is not established, and error
+ * message will be displayed and the command will not be executed.
  */
 public interface DatabaseCommand {
-    
-    /* EMPTY */
 }

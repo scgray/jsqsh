@@ -76,11 +76,9 @@ public class FileDescriptorDupToken extends Token {
         if (this == o) {
             return true;
         }
-
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         FileDescriptorDupToken that = (FileDescriptorDupToken) o;
         return oldFd == that.oldFd && newFd == that.newFd;
     }

@@ -88,11 +88,10 @@ public class MarkdownFormatter {
      * The state of the current list that is being worked on
      */
     protected static class ListState {
-        
         public SectionType type;   // Type of list (ULIST or OLIST)
         public int         indent; // How much 
         public int         num;    // For OLIST, what is the current number?
-        
+
         public ListState (SectionType type, int indent) {
             
             assert type == SectionType.OLIST || type == SectionType.ULIST;
@@ -103,7 +102,6 @@ public class MarkdownFormatter {
 
         @Override
         public String toString() {
-
             return "{type=" + type + ", indent=" + indent + ", num=" + num + "}";
         }
     }
@@ -150,16 +148,13 @@ public class MarkdownFormatter {
          * @return The string containing the ANSI escape code
          */
         public static String getEscape(int bits) {
-            
             if (bits == 0) {
-                
                 return OFF_ESC;
             }
             
             String code = codes.get(bits);
             if (code == null) {
-                
-                // The logic in this section is carefully designed so that 
+                // The logic in this section is carefully designed so that
                 // if two decorations are physically the same decoration 
                 // (e.g. italics are displayed as underline), then the 
                 // physical property is only set once.
@@ -167,15 +162,12 @@ public class MarkdownFormatter {
 
                 StringBuilder sb = new StringBuilder("\033[");
                 if ((bits & BOLD) != 0) {
-                    
                     beenSet |= (1 << BOLD_CODE);
                     sb.append(BOLD_CODE);
                 }
 
                 if ((bits & DIM) != 0) {
-                    
                     if ((beenSet & (1 << DIM_CODE)) == 0) {
-                        
                         if (sb.length() > 2)
                             sb.append(';');
                         beenSet |= (1 << DIM_CODE);
@@ -183,9 +175,7 @@ public class MarkdownFormatter {
                     }
                 }
                 if ((bits & ITALIC) != 0) {
-                    
                     if ((beenSet & (1 << ITALIC_CODE)) == 0) {
-                        
                         if (sb.length() > 2)
                             sb.append(';');
                         beenSet |= (1 << ITALIC_CODE);
@@ -193,9 +183,7 @@ public class MarkdownFormatter {
                     }
                 }
                 if ((bits & UNDERSCORE) != 0) {
-                    
                     if ((beenSet & (1 << UNDERSCORE_CODE)) == 0) {
-                        
                         if (sb.length() > 2)
                             sb.append(';');
                         beenSet |= (1 << UNDERSCORE_CODE);
@@ -203,9 +191,7 @@ public class MarkdownFormatter {
                     }
                 }
                 if ((bits & CODE) != 0) {
-
                     if ((beenSet & (1 << CODE_CODE)) == 0) {
-                        
                         if (sb.length() > 2)
                             sb.append(';');
                         beenSet |= (1 << CODE_CODE);
@@ -222,12 +208,12 @@ public class MarkdownFormatter {
         }
     }
     
-    private PrintStream out;
-    private WrappingStream wrappingOut;
-    private StringBuilder block = new StringBuilder();
-    private Line line = new Line();
+    private final PrintStream out;
+    private final WrappingStream wrappingOut;
+    private final StringBuilder block = new StringBuilder();
+    private final Line line = new Line();
     private Line nextLine;
-    private Stack<ListState> listStates = new Stack<ListState>();
+    private final Stack<ListState> listStates = new Stack<>();
 
     /**
      * Creates a new formatter
@@ -237,7 +223,6 @@ public class MarkdownFormatter {
      * @param out Where send the output
      */
     public MarkdownFormatter (int screenWidth, PrintStream out) {
-        
         this.out = out;
         this.wrappingOut = new WrappingStream(out, 0, screenWidth);
     }
@@ -250,7 +235,6 @@ public class MarkdownFormatter {
      *   they will not appear in the final output
      */
     public void setDecorationsEnabled (boolean onOff) {
-        
         wrappingOut.setDecorationsEnabled(onOff);
     }
     
@@ -258,7 +242,6 @@ public class MarkdownFormatter {
      * @return whether or not decorations are enabled.
      */
     public boolean hasDecorationsEnabled() {
-        
         return wrappingOut.hasDecorationsEnabled();
     }
     
@@ -269,7 +252,6 @@ public class MarkdownFormatter {
      * @param str A string full of markdown.
      */
     public void format (String str) {
-        
         SectionType currentSectionType = SectionType.TEXT;
         
         // For each section below (header, list, text, etc.) this indicates
@@ -284,18 +266,15 @@ public class MarkdownFormatter {
         wrappingOut.setIndent(TEXT_INDENT);
         
         while (line.next()) {
-            
             // For blank lines, we want to collapse them all together into a
             // single blank line
             if (line.isEmpty()) {
-
                 // A blank line always forces the current block to finish
                 printBlock();
                 
                 // Unless, we haven't hit the first usable line in our input
                 // then we just ignore it all together
                 if (! isFirstLine) {
-                    
                     needsBlankLine = true;
                 }
                 
@@ -309,40 +288,33 @@ public class MarkdownFormatter {
             //      list nesting level
             //   2. It was preceeded by an empty line
             // If we see this, then we process the whole code block here.
-            if ((needsBlankLine || isFirstLine) 
-                && line.indent >= codeBlockIndentSize) {
-                
-                // If the previous line was empty, then the previous block 
+            if ((needsBlankLine || isFirstLine) && line.indent >= codeBlockIndentSize) {
+                // If the previous line was empty, then the previous block
                 // must have been spewed forth.
                 assert block.length() == 0;
                 
-                boolean wasNext = false;
+                boolean wasNext;
                 
                 int displayIndentSize = 
                       (listStates.size() > 0) 
                           ? getListWrappingIndent() + CODE_INDENT
                           : TEXT_INDENT + CODE_INDENT;
-                                  
-                
+
                 // Dump all of the lines in the code block
                 do {
-                    
-                    if (needsBlankLine && ! isFirstLine) {
-                        
+                    if (needsBlankLine && !isFirstLine) {
                         out.println();
                     }
+
                     isFirstLine = false;
 
                     if (line.isEmpty()) {
-                        
                         needsBlankLine = true;
                     }
                     else {
-                        
                         out.append(SPACES, 0, displayIndentSize);
 
                         if (INVERT_CODE_BLOCKS && hasDecorationsEnabled()) {
-
                             out.append("\033[7m"); // Inverse
                         }
 
@@ -350,7 +322,6 @@ public class MarkdownFormatter {
                                 line.contentEnd);
 
                         if (INVERT_CODE_BLOCKS && hasDecorationsEnabled()) {
-
                             int nPad = wrappingOut.screenWidth -
                                     (displayIndentSize + (line.contentEnd - line.start + codeBlockIndentSize));
                             out.append(SPACES, 0, nPad);
@@ -364,7 +335,6 @@ public class MarkdownFormatter {
                 while ((wasNext = line.next()) && (line.isEmpty() || line.indent >= codeBlockIndentSize));
                 
                 if (! wasNext) {
-                    
                     break;
                 }
                 
@@ -379,23 +349,19 @@ public class MarkdownFormatter {
             
             // If we have been indicated that a blank line is needed, then 
             // the block buffer had best be dumped.
-            assert needsBlankLine == false || block.length() == 0;
+            assert !needsBlankLine || block.length() == 0;
             
             switch (line.type) {
             
             case TEXT:
-                
                 // Is this going to be a code block?
                 if (line.str.startsWith("```", line.contentStart)) {
-                    
                     if (! isFirstLine) {
-                        
                         printBlock();
                         out.println();
                     }
                     
-                    while (line.next() && 
-                        ! line.str.startsWith("```", line.contentStart)) {
+                    while (line.next() && !line.str.startsWith("```", line.contentStart)) {
                         
                         out.append(SPACES, 0, wrappingOut.getIndent());
                         out.append(line.str, line.start, line.contentEnd);
@@ -411,24 +377,19 @@ public class MarkdownFormatter {
                     // so it could be normal text, or it could be the continuation
                     // of, say, a bulleted list.
                     if (isFirstLine) {
-                        
                         currentSectionType = SectionType.TEXT;
                         out.append(SPACES, 0, TEXT_INDENT);
                         wrappingOut.setIndent(TEXT_INDENT);
                     }
                     else if (needsBlankLine) {
-
                         out.println();
-                        if (currentSectionType == SectionType.TEXT 
-                            || line.indent == 0) {
-
+                        if (currentSectionType == SectionType.TEXT || line.indent == 0) {
                             currentSectionType = SectionType.TEXT;
                             listStates.clear();
                             out.append(SPACES, 0, TEXT_INDENT);
                             wrappingOut.setIndent(TEXT_INDENT);
                         }
-                        else if (! listStates.isEmpty()) { // We are in bulleted list
-                            
+                        else if (!listStates.isEmpty()) { // We are in bulleted list
                             // If we were in the middle of a bulleted or numbered list and
                             // had to insert a blank blank line, then probably what came before
                             // was a code block or maybe a deeper nested list and we are now
@@ -443,16 +404,13 @@ public class MarkdownFormatter {
                             // I need to look at the indent of this line of text to figure out
                             // which list it falls into.
                             while (! listStates.isEmpty() && line.indent <= listStates.peek().indent) {
-
                                 listStates.pop();
                             }
 
                             if (listStates.isEmpty()) {
-
                                 wrappingOut.setIndent(TEXT_INDENT);
                             }
                             else {
-
                                 wrappingOut.setIndent(getListWrappingIndent());
                             }
                             out.append(SPACES, 0, wrappingOut.getIndent());
@@ -463,13 +421,11 @@ public class MarkdownFormatter {
                     
                     
                     if (block.length() > 0) {
-                        
                         block.append(' ');
                     }
 
                     block.append(line.str, line.contentStart, line.contentEnd);
                     if (line.forcesNewline()) {
-                            
                         block.append('\n');
                     }
                 }
@@ -483,7 +439,6 @@ public class MarkdownFormatter {
                 // If we weren't in a list to begin with, then put a blank line
                 // before the start of the list
                 if (needsBlankLine) {
-                    
                     out.println();
                     needsBlankLine = false;
                 }
@@ -508,12 +463,10 @@ public class MarkdownFormatter {
                 ListState state = null;
                 int toDelete = 0;
                 for (int i = 0; i < listStates.size(); i++) {
-                    
                     ListState cur = listStates.get(i);
                     
                     // An exact match for indent
                     if (line.indent <= cur.indent) {
-
                         state = cur;
                         toDelete = listStates.size() - (i+1);
                         break;
@@ -522,22 +475,18 @@ public class MarkdownFormatter {
                 
                 // No matching indent level, so this must be a new one!
                 if (state == null) {
-
-                    currentSectionType = (line.type == Line.Type.OLIST 
-                        ? SectionType.OLIST : SectionType.ULIST);
+                    currentSectionType = (line.type == Line.Type.OLIST ? SectionType.OLIST : SectionType.ULIST);
                     
                     state = new ListState(currentSectionType, line.indent);
                     listStates.push(state);
                 }
                 
                 while (toDelete > 0) {
-                    
                     listStates.pop();
                     --toDelete;
                 }
                 
-                out.append(SPACES, 0, 
-                    TEXT_INDENT + (LIST_INDENT * listStates.size())); 
+                out.append(SPACES, 0, TEXT_INDENT + (LIST_INDENT * listStates.size()));
                 
                 // Figure out how nested this entry is
                 int depth = 0;
@@ -550,22 +499,17 @@ public class MarkdownFormatter {
                 // System.out.println(line + ": Depth " + depth);
 
                 if (currentSectionType == SectionType.ULIST) {
-
                     out.print(BULLET_CHARS[depth % BULLET_CHARS.length]);
                     out.print(' ');
                 }
                 else {
-                    
                     if ((depth % 2) == 1) {
-                        
                         out.print(' ');
                         out.print((char) ('a' + (state.num-1)));
                         out.print(". ");
                     }
                     else {
-
                         if (state.num < 10) {
-                            
                             out.print(' ');
                         }
                         out.print(state.num);
@@ -578,7 +522,6 @@ public class MarkdownFormatter {
                 
                 block.append(line.str, line.contentStart, line.contentEnd);
                 if (line.forcesNewline()) {
-                        
                     block.append('\n');
                 }
                 break;
@@ -590,7 +533,6 @@ public class MarkdownFormatter {
                 printBlock();
                 
                 if (! isFirstLine) {
-
                     out.println();
                 }
                 
@@ -598,13 +540,11 @@ public class MarkdownFormatter {
                 // UPPER case
                 String headerText = line.getContent();
                 if (line.headerLevel < 3) {
-                    
                     headerText = headerText.toUpperCase();
                     wrappingOut.setIndent(0);
                     print(headerText, wrappingOut);
                 }
                 else {
-                    
                     out.append(SPACES, 0, TEXT_INDENT);
                     wrappingOut.setIndent(TEXT_INDENT);
                     wrappingOut.bold(true);
@@ -621,7 +561,6 @@ public class MarkdownFormatter {
             case TABLE_HEADER:
                 printBlock();
                 if (! isFirstLine) {
-                    
                     out.println();
                 }
                 
@@ -662,14 +601,12 @@ public class MarkdownFormatter {
     }
     
     private Line peek() {
-        
         nextLine = line.peek(nextLine);
         return nextLine;
     }
     
     
     private int getListWrappingIndent() {
-        
         int len = listStates.size();
         
         assert len > 0;
@@ -690,43 +627,31 @@ public class MarkdownFormatter {
     }
     
     protected void printBlock() {
-        
         if (block.length() > 0) {
-            
             print(block, wrappingOut);
             block.setLength(0);
         }
     }
 
     protected static void print(CharSequence block, WrappingStream wrappingOut) {
-        
         print(block, block.length(), 0, wrappingOut, true);
-
     }
     
-    protected static void print(CharSequence block, int len, int idx, 
-             WrappingStream wrappingOut, boolean doFlush) {
-
+    protected static void print(CharSequence block, int len, int idx, WrappingStream wrappingOut, boolean doFlush) {
         while (idx < len) {
-            
             char ch = block.charAt(idx++);
             
             switch (ch) {
-            
             case '`':
-                
                 // If we hit a backtick (code block), then seek forward until
                 // we hit the end of the block.
                 wrappingOut.code(true);
                 while (idx < len) {
-                    
                     ch = block.charAt(idx++);
                     if (ch == '`') {
-                        
                         break;
                     }
                     else {
-                        
                         wrappingOut.print(ch);
                     }
                 }
@@ -754,22 +679,18 @@ public class MarkdownFormatter {
 
                 // If italics are on then a star turns it off
                 if ((decorations & Decoration.ITALIC) != 0) {
-                    
                     boolean needStar = true;
                     
                     // Only let the star disable italic mode if the character
                     // preceeding it is a non-whitespace character.
                     if (idx > 1) {
-                        
                         if (!Character.isWhitespace(block.charAt(idx-2))) {
-                            
                             wrappingOut.italic(false);
                             needStar = false;
                         }
                     }
 
                     if (needStar) {
-                        
                         wrappingOut.print('*');
                     }
                 }
@@ -779,22 +700,17 @@ public class MarkdownFormatter {
                     // Do we have a second star? This could mean bold...
                     boolean isBold = false;
                     if (idx < len && block.charAt(idx) == '*') {
-                        
-                        // If bold was on, we can only turn it off if there 
+                        // If bold was on, we can only turn it off if there
                         // was a non-whitespace preceeding the **
                         if ((decorations & Decoration.BOLD) != 0) {
-                            
                             boolean needStarStar = true;
                             
-                            if (idx > 2 
-                                && !Character.isWhitespace(block.charAt(idx-2))) {
-                                    
-                                    wrappingOut.bold(false);
-                                    needStarStar = false;
+                            if (idx > 2 && !Character.isWhitespace(block.charAt(idx-2))) {
+                                wrappingOut.bold(false);
+                                needStarStar = false;
                             }
                             
                             if (needStarStar) {
-                                
                                 wrappingOut.print('*');
                                 wrappingOut.print('*');
                             }
@@ -819,15 +735,12 @@ public class MarkdownFormatter {
                     // turning on italic if the next character is a non-whitespace
                     // and there is a closing italic
                     if (!isBold) {
-                        
                         if (idx < len
-                            && !Character.isWhitespace(block.charAt(idx))
-                            && hasClosingItalic(block, idx+1)) {
-                        
+                                && !Character.isWhitespace(block.charAt(idx))
+                                && hasClosingItalic(block, idx+1)) {
                             wrappingOut.italic(true);
                         }
                         else {
-                            
                             wrappingOut.print('*');
                         }
                     }
@@ -836,7 +749,6 @@ public class MarkdownFormatter {
                 
             case '\\':
                 if (idx < len && isValidEscapeChar(block.charAt(idx))) {
-                    
                     wrappingOut.print(block.charAt(idx));
                     ++idx;
                 }
@@ -844,17 +756,15 @@ public class MarkdownFormatter {
                 
             case '[':
                 if (idx < len && block.charAt(idx) == '[') {
-                    
                     ++idx;
+
                     if (hasClosingBrace(block, idx, true)) {
-                        
                         boolean hitPipe = false;
                         boolean done = false;
                         boolean wasBold = wrappingOut.isBold();
 
                         wrappingOut.bold(true);
                         while (idx < len && !done) {
-                            
                             ch = block.charAt(idx++);
                             if (ch == ']' 
                                 && idx < len && block.charAt(idx) == ']') {
@@ -863,13 +773,10 @@ public class MarkdownFormatter {
                                 done = true;
                             }
                             else if (ch == '|') {
-                                
                                 hitPipe = true;
                             }
                             else {
-                                
                                 if (!hitPipe) {
-                                    
                                     wrappingOut.print(ch);
                                 }
                             }
@@ -877,31 +784,24 @@ public class MarkdownFormatter {
                         wrappingOut.bold(wasBold);
                     }
                     else {
-                        
                         wrappingOut.print('[');
                         wrappingOut.print('[');
                     }
                 }
                 else {
-                    
                     if (hasClosingBrace(block, idx, false)) {
-                        
                         boolean done = false;
                         while (idx < len && ! done) {
-                            
                             ch = block.charAt(idx++);
                             if (ch == ']') {
-                                
                                 done = true;
                             }
                             else {
-                                
                                 wrappingOut.print(ch);
                             }
                         }
                     }
                     else {
-                        
                         wrappingOut.print('[');
                     }
                 }
@@ -913,29 +813,21 @@ public class MarkdownFormatter {
         }
         
         if (doFlush) {
-
             wrappingOut.flush();
         }
     }
     
-    private static boolean hasClosingBrace(CharSequence block, int idx, 
-        boolean isDoubled) {
-
+    private static boolean hasClosingBrace(CharSequence block, int idx, boolean isDoubled) {
         int len = block.length();
         while (idx < len) {
-            
             char ch = block.charAt(idx++);
             if (ch == ']') {
-                
                 if (isDoubled) {
-                    
                     if (idx < len && block.charAt(idx) == ']') {
-                        
                         return true;
                     }
                 }
                 else {
-                    
                     return true;
                 }
             }
@@ -953,22 +845,16 @@ public class MarkdownFormatter {
      * @return true if there is a closing italic
      */
     private static boolean hasClosingItalic(CharSequence block, int idx) {
-        
         int len = block.length();
         while (idx < len) {
-            
             char ch = block.charAt(idx);
             
             // Ignore *'s in code blocks
             if (ch == '`') { 
-
                 idx = skipCode(block, len, idx+1);
             }
             else {
-            
-                if (ch == '*' && idx > 0 
-                   && !Character.isWhitespace(block.charAt(idx-1))) {
-                
+                if (ch == '*' && idx > 0 && !Character.isWhitespace(block.charAt(idx-1))) {
                     return true;
                 }
 
@@ -988,42 +874,33 @@ public class MarkdownFormatter {
      * @return true if there is a closing italic
      */
     private static boolean hasClosingBold(CharSequence block, int idx) {
-        
         int len = block.length();
         while (idx < len) {
-            
             char ch = block.charAt(idx);
             
             // Ignore *'s in code blocks
             if (ch == '`') { 
-
                 idx = skipCode(block, len, idx+1);
             }
             else {
-            
                 // Hit the first star
                 if (ch == '*') {
-                    
-                    // It can only be closing if there is a non-whitespace 
+                    // It can only be closing if there is a non-whitespace
                     // and non-star before
                     boolean canBeClosing = false;
                     if (idx > 0) {
-                        
                         ch = block.charAt(idx-1);
                         canBeClosing = ch != '*' && !Character.isWhitespace(ch);
                     }
 
-                    
                     // Eat the '*'
                     ++idx;
                     
                     // Is there another one?
                     if (idx < len && block.charAt(idx) == '*') {
-                        
                         // Eat it too
                         ++idx;
                         if (canBeClosing) {
-                            
                             return true;
                         }
                     }
@@ -1050,11 +927,8 @@ public class MarkdownFormatter {
      *   there is no closing backtick
      */
     private static int skipCode(CharSequence block, int len, int idx) {
-
         for (++idx; idx < len; idx++) {
-            
             if (block.charAt(idx) == '`') {
-                
                 return idx+1;
             }
         }
@@ -1068,8 +942,7 @@ public class MarkdownFormatter {
      *   escpaed in markdown.
      */
     private static boolean isValidEscapeChar (char ch) {
-
-        return (ch == '\\' || ch == '`' || ch == '*' || ch == '_' 
+        return (ch == '\\' || ch == '`' || ch == '*' || ch == '_'
                         || ch == '{' || ch == '}' || ch == '[' || ch == ']'
                         || ch == '(' || ch == ')' || ch == '#' || ch == '+'
                         || ch == '-' || ch == '.' || ch == '!');
@@ -1082,9 +955,7 @@ public class MarkdownFormatter {
      * identified.
      */
     protected static class Line {
-
         public enum Type {
-            
             TEXT,
             ULIST,
             OLIST,
@@ -1128,17 +999,14 @@ public class MarkdownFormatter {
         public int      idx;  // The current index into the string being parsed
 
         public Line () {
-            
         }
         
         public Line (String str) {
-            
             this.str = str;
             this.len = str.length();
         }
         
         public void reset (String str) {
-            
             this.str = str;
             this.len = str.length();
             this.idx = 0;
@@ -1154,9 +1022,7 @@ public class MarkdownFormatter {
          *   there is no next line
          */
         public Line peek (Line into) {
-            
             if (into == null) {
-                
                 into = new Line();
             }
             
@@ -1171,7 +1037,6 @@ public class MarkdownFormatter {
             into.idx          = idx;
             
             if (into.next()) {
-                
                 return into;
             }
             
@@ -1184,17 +1049,14 @@ public class MarkdownFormatter {
          * @return The next line or null if there are no more lines
          */
         public Line peek () {
-            
             return peek(null);
         }
         
         public boolean next () {
-            
             start = contentStart = idx;
             headerLevel = indent = 0;
             
             if (idx >= len) {
-                
                 return false;
             }
             
@@ -1204,7 +1066,6 @@ public class MarkdownFormatter {
             // this line as the table divider, which is easy, just seek forward
             // to the newline.
             if (type == Type.TABLE_HEADER) {
-                
                 type = Type.TABLE_HEADER_DIVIDER;
                 idx = skipWhitespace(str, len, idx);
                 contentStart = idx;
@@ -1221,9 +1082,7 @@ public class MarkdownFormatter {
                 
                 return true;
             }
-            else if (type == Type.TABLE_HEADER_DIVIDER
-                || type == Type.TABLE_ROW) {
-                
+            else if (type == Type.TABLE_HEADER_DIVIDER || type == Type.TABLE_ROW) {
                 type = Type.TABLE_ROW;
 
                 int curIdx = idx;
@@ -1233,22 +1092,16 @@ public class MarkdownFormatter {
 
                 boolean hasPipe = false;
                 while (curIdx < len) {
-                    
                     char curChar = str.charAt(curIdx++);
                     if (curChar == '\n') {
-                        
                         break;
                     }
-                    else if (hasPipe == false 
-                        || (curChar == '|' 
-                               && (curChar == idx || str.charAt(curIdx-1) != '\\'))) {
-                        
+                    else if (!hasPipe || (curChar == '|' && (curChar == idx || str.charAt(curIdx-1) != '\\'))) {
                         hasPipe = true;
                     }
                 }
                 
                 if (hasPipe) {
-                    
                     contentStart = curContentStart;
                     indent = curIndent;
                     contentEnd = curIdx-1;
@@ -1264,10 +1117,8 @@ public class MarkdownFormatter {
 
             // Do we have a header?
             if (ch == '#') {
-
                 ++idx;
                 while (idx < len && str.charAt(idx) == '#') {
-                    
                     ++idx;
                 }
 
@@ -1276,23 +1127,19 @@ public class MarkdownFormatter {
                 contentStart = skipWhitespace(str, len, idx);
             }
             else if (ch == '\n') {
-                
                 type  = Type.TEXT;
                 indent = 0;
                 contentStart = idx;
             }
             else {
-                
                 idx = skipWhitespace(str, len, idx);
                 if (idx >= len) {
-                    
                     // We had nothing but whitespace, so it is an empty line
                     this.type = Type.TEXT;
                     this.indent = len - contentStart;
                     this.contentStart = len;
                 }
                 else {
-
                     contentStart = idx;
                     indent = (idx - start);
                     
@@ -1300,32 +1147,24 @@ public class MarkdownFormatter {
                     
                     // Do we have a numbered list?
                     if (ch >= '0' && ch <= '9') {
-                    
                         // Skip all of the digits
                         while (idx < len && Character.isDigit(str.charAt(idx))) {
-                        
                             ++idx;
                         }
                     
                         // We have to have a ". " to be a numbered list
-                        if (idx+1 < len && str.charAt(idx) == '.'
-                            && Character.isWhitespace(str.charAt(idx+1))) {
-                        
+                        if (idx+1 < len && str.charAt(idx) == '.' && Character.isWhitespace(str.charAt(idx+1))) {
                             type = Type.OLIST;
                             contentStart = skipWhitespace(str, len, idx+2);
                         }
                         else {
-
                             type  = Type.TEXT;
                         }
                     }
                     else {
-                    
                         switch (ch) {
-                        
-                        case '*': 
+                        case '*':
                             if (idx < len && Character.isWhitespace(str.charAt(idx))) {
-                                
                                 type = Type.ULIST;
                                 contentStart = skipWhitespace(str, len, idx+1);
                             }
@@ -1342,29 +1181,23 @@ public class MarkdownFormatter {
                     }
                 }
             }
-            
 
             idx = contentStart;
             contentEnd = -1;
             while (idx < len) {
-                
                 ch = str.charAt(idx);
                 if (ch == '\r' && (idx+1) < len && str.charAt(idx+1) == '\n') {
-                    
                     contentEnd = idx;
                     idx += 2;
                     break;
                 }
                 else if (ch == '\n') {
-                    
                     contentEnd = idx;
                     ++idx;
                     break;
                 }
-                else if (ch == '|' && mightBeTable == false) {
-                    
+                else if (ch == '|' && !mightBeTable) {
                     if (idx == start || str.charAt(idx-1) != '\\') {
-                        
                         mightBeTable = true;
                     }
                 }
@@ -1375,11 +1208,9 @@ public class MarkdownFormatter {
             // If we hit a pipe in the input, then we need to peek into the
             // next line to determine if we might have a table going on here
             if (mightBeTable) {
-                
                 // Check the start of the next line to see if we have a table
                 // divider. If so, then change the type to table.
                 if (isTableDivider(str, len, idx)) {
-                    
                     type = Type.TABLE_HEADER;
                     contentStart = skipWhitespace(str, len, start);
                     indent = contentStart - start;
@@ -1387,7 +1218,6 @@ public class MarkdownFormatter {
             }
 
             if (contentEnd == -1) {
-                
                 contentEnd = idx;
             }
             return true;
@@ -1398,29 +1228,23 @@ public class MarkdownFormatter {
          *   which indicates a forced newline
          */
         public boolean forcesNewline() {
-            
             return (contentEnd - contentStart >= 2)
                && str.charAt(contentEnd-1) == ' '
                && str.charAt(contentEnd-2) == ' ';
         }
         
         public boolean isEmpty() {
-            
             return contentStart == contentEnd;
         }
         
         public String getContent() {
-            
             return str.substring(contentStart, contentEnd);
         }
 
         protected static int skipWhitespace(String str, int len, int idx) {
-            
             while (idx < len) {
-                
                 char ch = str.charAt(idx);
                 if (! Character.isWhitespace(ch) || ch == '\n') {
-                    
                     return idx;
                 }
                 
@@ -1437,39 +1261,32 @@ public class MarkdownFormatter {
          * @return true if there is a table here
          */
         private boolean isTableDivider(String str, int len, int idx) {
-
             char ch;
             
             idx = skipWhitespace(str, len, idx);
 
             int cnt = 0;
             while (idx < len) {
-                
                 ch = str.charAt(idx);
                 if (ch == '\n') {
-                    
                     return false;
                 }
                 else if (ch == '-') {
-                    
                     ++idx;
                     ++cnt;
                 }
                 else {
-                    
                     break;
                 }
             }
             
             if (cnt < 3) {
-                
                 return false;
             }
             
             idx = skipWhitespace(str, len, idx);
             ch = str.charAt(idx);
             if (idx >= len || ch != '|') {
-                
                 return false;
             }
             
@@ -1478,19 +1295,15 @@ public class MarkdownFormatter {
 
             cnt = 0;
             while (idx < len) {
-                
                 ch = str.charAt(idx);
                 if (ch == '\n') {
-                    
                     break;
                 }
                 else if (ch == '-') {
-                    
                     ++idx;
                     ++cnt;
                 }
                 else {
-                    
                     break;
                 }
             }
@@ -1500,7 +1313,6 @@ public class MarkdownFormatter {
         
         @Override
         public String toString() {
-            
             StringBuilder sb = new StringBuilder();
             sb.append(str, start, start + indent)
                     .append("^")
@@ -1548,7 +1360,6 @@ public class MarkdownFormatter {
          * @param screenWidth The maximum display width before wrapping
          */
         public WrappingStream (PrintStream out, int indent, int screenWidth) {
-            
             this.out = out;
             this.indent = indent;
             this.lineWidth = indent;
@@ -1562,7 +1373,6 @@ public class MarkdownFormatter {
          * @param indent The new indent level
          */
         public void setIndent(int indent) {
-            
             this.indent = indent;
             this.lineWidth = indent;
         }
@@ -1571,7 +1381,6 @@ public class MarkdownFormatter {
          * @return The current amount of indent
          */
         public int getIndent() {
-            
             return indent;
         }
         
@@ -1581,7 +1390,6 @@ public class MarkdownFormatter {
          * @param onOff true if you want to enter raw mode, false otherwise
          */
         public void raw(boolean onOff) {
-            
             this.rawMode = onOff;
         }
         
@@ -1591,13 +1399,10 @@ public class MarkdownFormatter {
          * @param decoration The decoration to toggle
          */
         public void toggleDecoration(int decoration) {
-            
             if ((decorations & decoration) == 0) {
-                
                 decorationOn(decoration);
             }
             else {
-                
                 decorationOff(decoration);
             }
         }
@@ -1606,7 +1411,6 @@ public class MarkdownFormatter {
          * @return The current set of decoration bits that are enabled.
          */
         public int getCurrentDecorations() {
-            
             return decorations;
         }
         
@@ -1616,11 +1420,11 @@ public class MarkdownFormatter {
          * @param isOn If true, then code mode is enabled
          */
         public void code (boolean isOn) {
-            
-            if (isOn) 
+            if (isOn) {
                 decorationOn(Decoration.CODE);
-            else 
+            } else {
                 decorationOff(Decoration.CODE);
+            }
         }
         
         /**
@@ -1628,18 +1432,17 @@ public class MarkdownFormatter {
          * @param isOn true if on, false if off
          */
         public void bold (boolean isOn) {
-            
-            if (isOn) 
+            if (isOn) {
                 decorationOn(Decoration.BOLD);
-            else 
+            } else {
                 decorationOff(Decoration.BOLD);
+            }
         }
         
         /**
          * @return true if bold is on
          */
         public boolean isBold() {
-            
             return (decorations & Decoration.BOLD) != 0;
         }
 
@@ -1648,11 +1451,11 @@ public class MarkdownFormatter {
          * @param isOn true if on, false if off
          */
         public void underscore (boolean isOn) {
-            
-            if (isOn) 
+            if (isOn) {
                 decorationOn(Decoration.UNDERSCORE);
-            else 
+            } else {
                 decorationOff(Decoration.UNDERSCORE);
+            }
         }
         
         /**
@@ -1660,11 +1463,11 @@ public class MarkdownFormatter {
          * @param isOn true if on, false if off
          */
         public void italic (boolean isOn) {
-            
-            if (isOn) 
+            if (isOn) {
                 decorationOn(Decoration.ITALIC);
-            else 
+            } else {
                 decorationOff(Decoration.ITALIC);
+            }
         }
 
         /**
@@ -1672,11 +1475,11 @@ public class MarkdownFormatter {
          * @param isOn true if on, false if off
          */
         public void dim (boolean isOn) {
-            
-            if (isOn) 
+            if (isOn) {
                 decorationOn(Decoration.DIM);
-            else 
+            } else {
                 decorationOff(Decoration.DIM);
+            }
         }
         
         /**
@@ -1687,7 +1490,6 @@ public class MarkdownFormatter {
          *   they will not appear in the final output
          */
         public void setDecorationsEnabled(boolean isOn) {
-            
             this.decorationsEnabled = isOn;
         }
         
@@ -1695,7 +1497,6 @@ public class MarkdownFormatter {
          * @return whether or not decorations are enabled.
          */
         public boolean hasDecorationsEnabled() {
-            
             return decorationsEnabled;
         }
 
@@ -1705,21 +1506,16 @@ public class MarkdownFormatter {
          * @param ch The character to print
          */
         public void print (char ch) {
-            
             checkIndent(false);
 
             if (ch == '\n') {
-                
                 dumpWord(true);
             }
             else if (ch == '\r') {
-                
                 return;
             }
             else {
-                
                 if (rawMode) {
-                    
                     word.append(ch);
                     ++wordWidth;
                     return;
@@ -1728,32 +1524,26 @@ public class MarkdownFormatter {
                 // A space indicates the end of the previous word and the
                 // start of a new one
                 if (Character.isWhitespace(ch)) {
-                    
                     // However, our "word" accumulated so far may consists only
                     // of non-printable control characters (bold, underline, etc),
                     // so only dump if there are printable characters.
                     if (wordWidth > 0) {
-
                         dumpWord(false);
                     }
                 }
                 else {
-                    
                     // Add the letter to the word
                     word.append(ch);
                     ++wordWidth;
                     
                     // Does the word fit on the current line?
                     if (lineWidth + wordWidth >= screenWidth) {
-                        
                         // Special case, if the line is the full length of
                         // the line, then just force it to dump
                         if (lineWidth == indent) {
-                            
                             dumpWord(true);
                         }
                         else {
-                            
                             wrap();
 
                             // Force a line wrap and indent in preparation
@@ -1771,15 +1561,12 @@ public class MarkdownFormatter {
          * ensure that the output is terminated with a final newline.
          */
         public void flush() {
-            
             dumpWord(false);
             
             // If needIndent is true, then someone already turned off decorations
             // and pushed a newline out, so we don't need to do it here.
             if (! needIndent) {
-
                 if (decorations != Decoration.OFF) {
-                    
                     out.print(Decoration.OFF_ESC);
                 }
 
@@ -1795,17 +1582,14 @@ public class MarkdownFormatter {
         }
 
         private void decorationOn(int bit) {
-            
-            assert bit != Decoration.OFF; 
+            assert bit != Decoration.OFF;
 
             // Bit is already set or decorations are disabled, it is a no-op
             if (!decorationsEnabled || (decorations & bit) != 0) {
-                
                 return;
             }
             
             if (decorations != Decoration.OFF) {
-                
                 word.append(Decoration.OFF_ESC);
             }
 
@@ -1813,11 +1597,9 @@ public class MarkdownFormatter {
             
             // Ensure BOLD and DIM are not on at the same time
             if (bit == Decoration.BOLD) {
-                
                 decorations &= ~(Decoration.DIM);
             }
             else if (bit == Decoration.DIM) {
-                
                 decorations &= ~(Decoration.BOLD);
             }
 
@@ -1825,18 +1607,15 @@ public class MarkdownFormatter {
         }
         
         private void decorationOff(int bit) {
-
-            assert bit != Decoration.OFF; 
+            assert bit != Decoration.OFF;
 
             // Bit is already off, it is a no-op
             if ((decorations & bit) == 0) {
-                
                 return;
             }
             
             decorations &= ~(bit);
             if (decorations != 0) {
-                
                 word.append(Decoration.OFF_ESC);
             }
 
@@ -1844,12 +1623,9 @@ public class MarkdownFormatter {
         }
         
         private void checkIndent(boolean force) {
-
             if (needIndent || force) {
-
                 out.append(SPACES, 0, indent);
                 if (decorations != Decoration.OFF) {
-                    
                     out.print(Decoration.getEscape(decorations));
                 }
 
@@ -1859,10 +1635,8 @@ public class MarkdownFormatter {
         }
 
         private void dumpWord(boolean forceWrap) {
-            
             if (word.length() > 0) {
-
-                // If the word isn't at the start of the line, then we need 
+                // If the word isn't at the start of the line, then we need
                 // a space to separate it from the previous one
                 boolean needsSpace = (wordWidth > 0 && lineWidth > indent);
 
@@ -1870,9 +1644,7 @@ public class MarkdownFormatter {
                 int charsToBeAdded = wordWidth + (needsSpace ? 1 : 0);
 
                 if ((lineWidth + charsToBeAdded) <= screenWidth) {
-                    
                     if (needsSpace) {
-                        
                         out.print(' ');
                     }
 
@@ -1882,7 +1654,6 @@ public class MarkdownFormatter {
                     word.setLength(0);
                 }
                 else {
-                    
                     // The word won't fit on the current line, force a word wrap
                     // and indent
                     checkIndent(true);
@@ -1895,15 +1666,12 @@ public class MarkdownFormatter {
             }
             
             if (forceWrap) {
-                
                 wrap();
             }
         }
         
         private void wrap() {
-
             if (decorations != Decoration.OFF) {
-            
                 out.print(Decoration.OFF_ESC);
             }
             

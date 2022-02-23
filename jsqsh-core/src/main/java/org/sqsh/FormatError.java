@@ -19,16 +19,14 @@ package org.sqsh;
  * Thrown by {@link Formatter} if it fails to format a value.
  */
 public class FormatError extends Error {
-    
+
     private static final long serialVersionUID = -2728322823878040372L;
 
-    public FormatError (String message) {
-        
+    public FormatError(String message) {
         super(message);
     }
-    
-    public FormatError (String message, Throwable cause) {
-        
+
+    public FormatError(String message, Throwable cause) {
         super(message, cause);
     }
 }

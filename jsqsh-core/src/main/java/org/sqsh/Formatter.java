@@ -16,22 +16,21 @@
 package org.sqsh;
 
 /**
- * A formatter is used to convert a data type (usually a base java type or
- * a java.lang.sql datatype) to a readable string.
+ * A formatter is used to convert a data type (usually a base java type or a java.lang.sql datatype) to a readable
+ * string.
  */
 public interface Formatter {
-    
+
     /**
-     * Returns the maximum number of characters required to display a value
-     * as a textual string.
-     * 
+     * Returns the maximum number of characters required to display a value as a textual string.
+     *
      * @return The maximum number of characters required to display a value.
      */
     int getMaxWidth();
 
     /**
      * Formats a value into a string.
-     * 
+     *
      * @param value The value to be formatted.
      * @return The formatted value.
      * @throws FormatError If the formatter fails to format a value

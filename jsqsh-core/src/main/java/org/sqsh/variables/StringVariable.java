@@ -20,52 +20,46 @@ import org.sqsh.Variable;
 /**
  * Used to represent a basic string variable.
  */
-public class StringVariable
-    extends Variable {
-    
+public class StringVariable extends Variable {
+
     private String value;
-    
+
     /**
      * Required for digester.
      */
     public StringVariable() {
-        
     }
-    
+
     /**
      * Creates a string variable.
-     * 
+     *
      * @param name The name of the variable.
      * @param value The value that it is to be set to.
      */
-    public StringVariable (String name, String value) {
-        
+    public StringVariable(String name, String value) {
         super(name);
-        this.value = value; 
+        this.value = value;
     }
-    
+
     /**
      * Creates a exportable string variable.
-     * 
+     *
      * @param name The name of the variable.
      * @param value The value that it is to be set to.
      * @param isExported True if the variable is to be exported.
      */
-    public StringVariable (String name, String value, boolean isExported) {
-        
+    public StringVariable(String name, String value, boolean isExported) {
         super(name, isExported);
-        this.value = value; 
+        this.value = value;
     }
-    
+
     /**
      * {@inheritDoc}
      */
     @Override
     public String setValue(String value) {
-        
-        String oldValue = value;
+        String oldValue = this.value;
         this.value = value;
-        
         return oldValue;
     }
 
@@ -73,8 +67,7 @@ public class StringVariable
      * {@inheritDoc}
      */
     @Override
-    public String toString () {
-
+    public String toString() {
         return value;
     }
 }

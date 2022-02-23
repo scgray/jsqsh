@@ -15,156 +15,124 @@
  */
 package org.sqsh.variables;
 
-import java.lang.reflect.InvocationTargetException;
-
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.sqsh.CannotSetValueError;
 import org.sqsh.Variable;
 
+import java.lang.reflect.InvocationTargetException;
+
 /**
- * Represents a variable that is a wrapper around a property of the sqsh
- * session object.
+ * Represents a variable that is a wrapper around a property of the sqsh session object.
  */
-public class PropertyVariable
-    extends Variable {
-    
+public class PropertyVariable extends Variable {
+
     private String property = null;
     private String bean = null;
     private boolean settable = true;
     private boolean quiet = false;
-    
+
     /**
      * Manditory constructor.
      */
     public PropertyVariable() {
     }
-    
+
     /**
      * @return the bean who's property we are setting.
      */
-    public String getBean () {
-    
+    public String getBean() {
         return bean;
     }
-    
+
     /**
      * @param bean the bean to set
      */
-    public void setBean (String bean) {
-    
+    public void setBean(String bean) {
         this.bean = bean;
     }
 
     /**
      * The name of the property that is to be manipulated by this variable.
+     *
      * @param property name of the property that is to be manipulated by this variable.
      */
     public void setProperty(String property) {
-        
         this.property = property;
     }
-    
+
     /**
      * Returns whether or not this property can be set.
+     *
      * @return Returns whether or not this property can be set.
      */
-    public boolean isSettable () {
-    
+    public boolean isSettable() {
         return settable;
     }
-    
+
     /**
      * Set to true if the property can be set.
+     *
      * @param isSettable True if the property can be set.
      */
-    public void setSettable (boolean isSettable) {
-    
+    public void setSettable(boolean isSettable) {
         this.settable = isSettable;
     }
-    
+
     /**
      * Returns true if failures to get or set should be silently ignored.
+     *
      * @return true if failures to get or set should be silently ignored.
      */
-    public boolean isQuiet () {
-    
+    public boolean isQuiet() {
         return quiet;
     }
 
     /**
      * @param quiet true if failures to get or set should be silently ignored.
      */
-    public void setQuiet (boolean quiet) {
-    
+    public void setQuiet(boolean quiet) {
         this.quiet = quiet;
     }
 
     @Override
-    public String setValue (String value)
-        throws CannotSetValueError {
-        
-        Throwable failure = null;
-        
+    public String setValue(String value) throws CannotSetValueError {
         if (!settable) {
-            
-            throw new CannotSetValueError("The value of \"" 
-                + getName() + "\" is read only");
+            throw new CannotSetValueError("The value of \"" + getName() + "\" is read only");
         }
-        
-        if (failure == null) {
-            
-            try {
-                
-                Object o = getManager().getBean(bean);
-                BeanUtils.setProperty(o, property, value);
-            }
-            catch (InvocationTargetException e) {
-                
-                failure = e.getTargetException();
-            }
-            catch (Throwable e) {
-                
-                failure = e;
-            }
+
+        Throwable failure = null;
+        try {
+            Object o = getManager().getBean(bean);
+            BeanUtils.setProperty(o, property, value);
+        } catch (InvocationTargetException e) {
+            failure = e.getTargetException();
+        } catch (Throwable e) {
+            failure = e;
         }
-        
+
         if (failure != null) {
-            
-            throw new CannotSetValueError("Cannot set variable \"" 
-               + getName() + "\" (bean property " 
-               + bean + "." + property + ") to \""
-               + value + "\": " + failure.getMessage(), failure);
+            throw new CannotSetValueError(
+                    "Cannot set variable \"" + getName() + "\" (bean property " + bean + "." + property + ") to \""
+                            + value + "\": " + failure.getMessage(), failure);
         }
-        
         return null;
     }
 
     @Override
-    public String toString () {
-
+    public String toString() {
         try {
-            
             Object o = getManager().getBean(bean);
-            Object val = 
-                PropertyUtils.getNestedProperty(o, property);
-            
+            Object val = PropertyUtils.getNestedProperty(o, property);
             if (val == null) {
-                
                 return "null";
             }
-            
             return val.toString();
-        }
-        catch (Throwable e) {
-            
+        } catch (Throwable e) {
             if (quiet) {
-                
                 return "null";
             }
-            
-            return "Cannot read variable '" + getName() + "': " 
-                + e.getMessage() + " (" + e.getClass().getName() + ")";
+            return "Cannot read variable '" + getName() + "': " + e.getMessage() + " (" + e.getClass().getName() + ")";
         }
     }
 }

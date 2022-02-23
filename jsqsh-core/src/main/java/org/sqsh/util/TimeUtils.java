@@ -20,128 +20,110 @@ package org.sqsh.util;
  */
 public class TimeUtils {
 
-    private TimeUtils() {}
+    private TimeUtils() {
+    }
 
     /**
      * Given a number of milliseconds, product a string of the format
      * <pre>
      * 7d6h6m.21s
      * </pre>
-     * 
+     *
      * @param millis Milliseconds in duration
      * @return A duration string.
      */
-    public static String millisToDurationString (long millis) {
-        
-        StringBuilder sb = new StringBuilder ();
-        
+    public static String millisToDurationString(long millis) {
+        StringBuilder sb = new StringBuilder();
+
         if (millis < 0) {
-            
             sb.append('-');
             millis = -(millis);
         }
-        
+
         long val = millis / 86400000L;
         if (val > 0L) {
-            
-            sb.append (val).append ('d');
+            sb.append(val).append('d');
             millis %= 86400000L;
         }
 
         val = millis / 3600000L;
-        if (sb.length () > 0 || val != 0L) {
-            
-            sb.append (val).append ('h');
+        if (sb.length() > 0 || val != 0L) {
+            sb.append(val).append('h');
             millis %= 3600000L;
         }
 
         val = millis / 60000L;
-        if (sb.length () > 0 || val != 0L) {
-            
-            sb.append (val).append ('m');
+        if (sb.length() > 0 || val != 0L) {
+            sb.append(val).append('m');
             millis %= 60000L;
         }
 
         val = millis / 1000L;
-        sb.append (val);
+        sb.append(val);
 
         millis %= 1000L;
-        sb.append ('.');
+        sb.append('.');
         append3(sb, millis);
-        sb.append ('s');
+        sb.append('s');
 
-        return sb.toString ();
+        return sb.toString();
     }
-    
+
     /**
      * Given a number of milliseconds, product a string of the format dd:hh:mm:ss
-     * 
+     *
      * @param millis Milliseconds in duration
      * @return A timer string.
      */
-    public static String millisToTimerString (long millis) {
-        
-        StringBuilder sb = new StringBuilder ();
-        
+    public static String millisToTimerString(long millis) {
+        StringBuilder sb = new StringBuilder();
         if (millis < 0) {
-            
             sb.append('-');
             millis = -(millis);
         }
-        
+
         long val = millis / 86400000L;
         if (val > 0L) {
-            
-            append2 (sb, val).append(':');
+            append2(sb, val).append(':');
             millis %= 86400000L;
         }
 
         val = millis / 3600000L;
-        if (sb.length () > 0 || val != 0L) {
-            
-            append2 (sb, val).append (':');
+        if (sb.length() > 0 || val != 0L) {
+            append2(sb, val).append(':');
             millis %= 3600000L;
         }
 
         val = millis / 60000L;
-        append2 (sb, val).append (':');
+        append2(sb, val).append(':');
         if (val != 0L) {
-            
             millis %= 60000L;
         }
 
         val = millis / 1000L;
-        append2 (sb, val);
+        append2(sb, val);
+        return sb.toString();
+    }
 
-        return sb.toString ();
-    }
-    
     private static StringBuilder append2(StringBuilder sb, long val) {
-        
         if (val < 10) {
-            
             sb.append('0');
         }
         sb.append(val);
         return sb;
     }
-    
+
     private static StringBuilder append3(StringBuilder sb, long val) {
-        
         if (val < 10) {
-            
             sb.append("00");
-        }
-        else if (val < 100) {
-            
+        } else if (val < 100) {
             sb.append('0');
         }
         sb.append(val);
         return sb;
     }
-    
-    public static void main (String[] argv) {
-    	
-    	System.out.println(millisToDurationString(Long.parseLong(argv[0])));
+
+    public static void main(String[] argv) {
+        System.out.println(millisToDurationString(Long.parseLong(argv[0])));
     }
 }

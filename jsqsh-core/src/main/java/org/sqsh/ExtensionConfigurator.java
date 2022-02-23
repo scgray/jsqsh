@@ -16,23 +16,20 @@
 package org.sqsh;
 
 /**
- * An <code>ExtensionConfigurator</code> is a class that can be created
- * and invoked when a jsqsh extension (see {@link Extension} and 
- * {@link ExtensionManager}) is loaded.  An extension already has hooks
- * that can cause new commands and variables to be added to jsqsh, but
- * an extension may want to do something a little more low level like
- * play around with the current session or context.  A class implementing
- * this interface can be invoked to do just such configuration.
+ * An <code>ExtensionConfigurator</code> is a class that can be created and invoked when a jsqsh extension (see {@link
+ * Extension} and {@link ExtensionManager}) is loaded.  An extension already has hooks that can cause new commands and
+ * variables to be added to jsqsh, but an extension may want to do something a little more low level like play around
+ * with the current session or context.  A class implementing this interface can be invoked to do just such
+ * configuration.
  */
 public abstract class ExtensionConfigurator {
-    
+
     /**
-     * Method that is invoked after the extension has been loaded. It is 
-     * possible to get a handle to the current session (for example, the
-     * session that may have imported the extension via the \import command)
-     * via {@link SqshContext#getCurrentSession()}.
-     * 
+     * Method that is invoked after the extension has been loaded. It is possible to get a handle to the current session
+     * (for example, the session that may have imported the extension via the \import command) via {@link
+     * SqshContext#getCurrentSession()}.
+     *
      * @param context The context in which the extension was loaded.
      */
-    public abstract void configure (SqshContext context, Extension extension);
+    public abstract void configure(SqshContext context, Extension extension);
 }

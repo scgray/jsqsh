@@ -21,50 +21,40 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class ProcessUtils {
-    
+
     /**
-     * Helper class to consume the output of a process. This spawns a thread
-     * that will read from an input of a process until there is either an 
-     * error or until the end of the stream is reached.  The output will be
-     * accumulated in an in-memory buffer that can be retrieved when the
-     * process has completed execution.
+     * Helper class to consume the output of a process. This spawns a thread that will read from an input of a process
+     * until there is either an error or until the end of the stream is reached.  The output will be accumulated in an
+     * in-memory buffer that can be retrieved when the process has completed execution.
      */
     public static class Consumer extends Thread {
-        
-        private BufferedReader in;
-        private StringBuilder buffer;
-        
-        public Consumer (InputStream stream)  {
-            
+        private final BufferedReader in;
+        private final StringBuilder buffer;
+
+        public Consumer(InputStream stream) {
             in = new BufferedReader(new InputStreamReader(stream));
             this.buffer = new StringBuilder();
         }
-        
+
         public String getOutput() {
-            
             return buffer.toString();
         }
-        
-        public void run () {
-            
+
+        public void run() {
             String line;
             try {
                 while ((line = in.readLine()) != null) {
-                    
                     if (buffer.length() > 0) {
-                        
                         buffer.append("\n");
                     }
-
                     buffer.append(line);
                 }
-            }
-            catch (IOException e) {
-
-            }
-            finally {
-                
-                try { in.close(); } catch (IOException e) { /* IGNORED */ }
+            } catch (IOException e) {
+                // IGNORED
+            } finally {
+                try {
+                    in.close();
+                } catch (IOException e) { /* IGNORED */ }
             }
         }
     }

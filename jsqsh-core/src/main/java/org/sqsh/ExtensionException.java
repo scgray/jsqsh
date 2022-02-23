@@ -17,14 +17,12 @@ package org.sqsh;
 
 @SuppressWarnings("serial")
 public class ExtensionException extends Exception {
-    
-    public ExtensionException (String msg) {
-        
-        super (msg);
+
+    public ExtensionException(String msg) {
+        super(msg);
     }
 
-    public ExtensionException (String msg, Throwable cause) {
-        
-        super (msg, cause);
+    public ExtensionException(String msg, Throwable cause) {
+        super(msg, cause);
     }
 }

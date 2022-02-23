@@ -16,26 +16,23 @@
 package org.sqsh;
 
 /**
- * Thrown by {@link Variable#setValue(String)} if the value of the variable
- * cannot be set, either because the variable is immutable or because 
- * the value provided is invalid.
+ * Thrown by {@link Variable#setValue(String)} if the value of the variable cannot be set, either because the variable
+ * is immutable or because the value provided is invalid.
  */
-public class CannotSetValueError
-    extends Error {
-    
+public class CannotSetValueError extends Error {
+
     private static final long serialVersionUID = -1877819111531503199L;
 
     /**
      * Creates a new error.
+     *
      * @param message The message of the error.
      */
     public CannotSetValueError(String message) {
-        
         super(message);
     }
-    
+
     public CannotSetValueError(String message, Throwable cause) {
-        
         super(message, cause);
     }
 }

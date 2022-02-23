@@ -15,30 +15,25 @@
  */
 package org.sqsh;
 
-import org.junit.Test;
 import org.junit.Assert;
+import org.junit.Test;
 
 public class CustomCommandTest {
-    
+
     public static class TestCommand extends Command {
-        
         @Override
         public SqshOptions getOptions() {
-            
             return new SqshOptions();
         }
-        
+
         @Override
-        public int execute (Session session, SqshOptions opts)
-            throws Exception {
-            
+        public int execute(Session session, SqshOptions opts) throws Exception {
             return 0;
         }
-     }
-    
+    }
+
     @Test
     public void testCustomCommand() {
-        
         CommandManager cm = new CommandManager();
         Command command = cm.getCommand("\\test_command");
         Assert.assertNotNull(command);
