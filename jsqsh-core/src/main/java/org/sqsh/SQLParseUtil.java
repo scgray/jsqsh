@@ -147,30 +147,24 @@ public class SQLParseUtil {
      *   immediately following it is returned.
      */
     public static int skipComment(CharSequence str, int len, int idx) {
-        
-        ++idx;
-        if (idx < len && str.charAt(idx) == '*') {
-            
-            ++idx;
-            boolean done = false;
-            while (!done && idx < len) {
-                
-                if (str.charAt(idx) == '*'
-                    && (idx+1) < len && str.charAt(idx + 1) == '/') {
-                    
-                    ++idx;
-                    done = true;
-                }
-                else {
-                
-                    ++idx;
-                }
-            }
+        // If there is no comment starting, then don't go anywhere.
+        if (idx + 1 >= len || str.charAt(idx) != '/' || str.charAt(idx + 1) != '*') {
+            return idx;
         }
-        
+
+        idx +=2;
+
+        while (idx < len) {
+            char ch = str.charAt(idx);
+            if (ch == '*' && idx + 1 < len && str.charAt(idx + 1) == '/') {
+                return idx + 2;
+            }
+            ++idx;
+        }
+
         return idx;
     }
-    
+
     /**
      * Skips over a quoted string.
      * 

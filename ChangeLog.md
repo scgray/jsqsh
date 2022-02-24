@@ -25,6 +25,7 @@
   exiting in JLine3.
 * Added `\commit` and `\rollback` commands
 * Added new `count` display style
+* Added support for "snowflake" as a driver type.
 * If $JSQSH_HOME is set (which it will be by the shell script that launches 
   it) and $JSQSH_HOME/config exists, then the directory will be loaded in
   the same fashion as $HOME/.jsqsh, allowing the binary to be packaged up

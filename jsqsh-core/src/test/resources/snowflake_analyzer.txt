@@ -1,0 +1,551 @@
+@negativePositive
+select 1
+
+@negativePositive
+select ";" 1
+
+@positive
+select 1; with other stuff
+
+@positive
+select 1;with other stuff
+
+@negative
+select 1 -- terminator contained in comment ;
+
+@negativePositive
+select 1 /* terminator contained in comment ; */
+
+@negative
+select 1 /* unterminated comment
+;
+
+@negativePositive
+select 'contained in string literal;'
+
+@negativePositive
+select "contained in quoted identifier;"
+
+@negativePositive
+select 'string literal escaping'';'''
+
+@negativePositive
+select "quoted identifer escaping"";"""
+
+@negative
+select 'unclosed literal;
+
+@negative
+select "unclosed quoted identifier;
+
+@negative
+create function foo()
+returns string
+language javascript
+as
+$$
+   x = 10;
+
+@negativePositive
+create function foo()
+returns string
+language javascript
+as
+$$
+   x = 10;
+   return "hello: " + x;
+$$
+
+@negative
+create procedure foo()
+returns string
+language javascript
+as
+$$
+  snowflake.execute({
+    sqlText: `create bar()
+        returns string
+        language javascript
+        \$\$
+            return "hello";
+
+############################################################################################################
+## ANONYMOUS BLOCKS
+############################################################################################################
+@negative
+DECLARE
+  x float := 0.0;
+
+@negative
+DECLARE
+  x float := 0.0;
+BEGIN
+  x := 5;
+
+@negativePositive
+DECLARE
+  x float := 0.0;
+BEGIN
+  x := 5;
+END
+
+@negative
+DECLARE
+  x varchar := 'hello';
+BEGIN
+  BEGIN
+    x := 'frank';
+  END;
+
+@negativePositive
+DECLARE
+  x varchar := 'hello';
+BEGIN
+  BEGIN
+    x := 'frank';
+  END;
+END
+
+@negativePositive
+begin
+  case (x)
+    when 10 then
+      return 'one';
+    when 20 then
+      return 'two';
+    else
+      return 'three';
+  end;
+end
+
+@negative
+begin
+  case (x * (x + 3))
+    when 10 then
+      return 'one';
+  end;
+
+@negative
+# Subtle: the case expression has unbalanced parens
+begin
+  case (x * (x + 3)
+    when 10 then
+      return 'one';
+  end;
+end;
+
+@negative
+begin
+  if (3 * (4 * 6)) then
+     x := 5;
+  else
+     x := 5 * 5;
+  end if;
+
+@negativePositive
+begin
+  if (3 * (4 * 6)) then
+     x := 5;
+  else
+     x := 5 * 5;
+  end if;
+end
+
+@negative
+# Unbalanced expression
+begin
+  if (3 * (4 * 6) then
+      x := 5;
+  end if;
+end;
+
+@negative
+begin
+  if (x > 10) then
+      begin
+         x := 5;
+         y := 3;
+      end;
+  end if;
+
+@negativePositive
+begin
+  if (x > 10) then
+      begin
+         x := 5;
+         y := 3;
+      end;
+  end if;
+end
+
+@negative
+begin
+  for x in y do
+     x := 3;
+     y := 10;
+  end for;
+
+@negativePositive
+begin
+  for x in y do
+     x := 3;
+     y := 10;
+  end for;
+end
+
+@negativePositive
+begin
+  for x in y do
+     x := 3;
+     y := 10;
+  end for 'label';
+end
+
+@negative
+begin
+  for x in y do
+     x := 3;
+     begin
+         z := 10;
+     end;
+  end for 'label';
+
+@negativePositive
+begin
+  for x in y do
+     x := 3;
+     begin
+         z := 10;
+     end;
+  end for 'label';
+end
+
+@negative
+begin
+  if (x > 10) then
+      for x in y do
+         x := 3;
+         begin
+             z := 10;
+
+@negative
+begin
+  if (x > 10) then
+      for x in y do
+         x := 3;
+         begin
+             z := 10;
+         end;
+
+@negative
+begin
+  if (x > 10) then
+      for x in y do
+         x := 3;
+         begin
+             z := 10;
+         end;
+      end for;
+
+@negative
+begin
+  if (x > 10) then
+      for x in y do
+         x := 3;
+         begin
+             z := 10;
+         end;
+      end for;
+   end if;
+
+@negativePositive
+begin
+  if (x > 10) then
+      for x in y do
+         x := 3;
+         begin
+             z := 10;
+         end;
+      end for;
+   end if;
+end
+
+@negative
+begin
+  if (x > 10) then
+      for x in y loop
+         x := 3;
+         begin
+             z := 10;
+
+@negative
+begin
+  if (x > 10) then
+      for x in y loop
+         x := 3;
+         begin
+             z := 10;
+         end;
+
+@negative
+begin
+  if (x > 10) then
+      for x in y loop
+         x := 3;
+         begin
+             z := 10;
+         end;
+      end loop 'label';
+
+@negative
+begin
+  if (x > 10) then
+      for x in y loop
+         x := 3;
+         begin
+             z := 10;
+         end;
+      end loop 'label';
+  end if;
+
+@negativePositive
+begin
+  if (x > 10) then
+      for x in y loop
+         x := 3;
+         begin
+             z := 10;
+         end;
+      end loop 'label';
+  end if;
+end
+
+@negative
+# Subtle: END IF can't be used to close a BEGIN
+begin
+  if (x > 10) then
+      for x in y loop
+         x := 3;
+         begin
+             z := 10;
+         end if;
+      end loop 'label';
+  end if;
+end;
+
+@negative
+# Subtle: END IF can't be used to close a FOR
+begin
+  if (x > 10) then
+      for x in y loop
+         x := 3;
+         begin
+             z := 10;
+         end;
+      end if;
+  end if;
+end;
+
+@negative
+# Subtle: END FOR can't be used to close an IF
+begin
+  if (x > 10) then
+      for x in y loop
+         x := 3;
+         begin
+             z := 10;
+         end;
+      end loop;
+  end for;
+end;
+
+@negative
+begin
+   create procedure foo(x varchar, y double)
+   returns varchar
+   language sql
+   comment = 'hello!'
+   execute as owner
+   as
+   begin
+      return x;
+   end;
+
+@negativePositive
+begin
+   create procedure foo(x varchar, y double)
+   returns varchar
+   language sql
+   comment = 'hello!'
+   execute as owner
+   as
+   begin
+      return x;
+   end;
+end
+
+@negativePositive
+# Try to trip up the recognition of BEGIN if it is in variable
+begin
+   create procedure foo(x varchar, y double)
+   returns varchar
+   language sql
+   comment = 'hello!'
+   execute as owner
+   as
+   $begin := 10;
+end
+
+############################################################################################################
+## SNOWSCRIPT BLOCKS ONLY RECOGNIZED IN APPROPRIATE PLACES
+############################################################################################################
+@positive
+select b.begin from begin as b;
+
+@positive
+select b.declare from begin as b;
+
+@positive
+# This isn't legal syntax, but it is demonstrating that, since a SQL function cannot contain a naked
+# (only a string literal containing the code), the begin isn't the valid start of a block and the
+# terminator is interpreted.
+create function foo(blah integer)
+returns integer
+not null
+immutable
+as
+begin;
+
+@positive
+# Unknown types of create don't allow blocks
+create doohicky foo(blah integer)
+returns integer
+not null
+immutable
+as
+begin;
+
+@positive
+# javascript cannot have a begin block
+create or replace secure procedure blah(x varchar)
+returns string
+language javascript
+as
+begin;
+
+@positive
+# contents of the $$ are ignored
+create or replace secure procedure blah(x varchar)
+returns string
+language javascript
+as
+$$
+  begin
+     return X * 2;
+$$;
+
+@positive
+# contents of the $$ are ignored
+create or replace secure procedure blah(x varchar)
+returns string
+language javascript
+as
+$$
+  begin
+     return X * 2;
+$$;
+
+@positive
+# contents of the $$ are ignored, even if the language is SQL
+create or replace secure procedure blah(x varchar)
+returns string
+language sql
+as
+$$
+  begin
+     return X * 2;
+$$;
+############################################################################################################
+## PROCEDURES
+############################################################################################################
+@negativePositive
+create or replace procedure foo(x int)
+returns int
+language sql
+as
+begin
+  return x *2;
+end
+
+@positive
+# Since we use "AS BEGIN" or "AS DECLARE" to recognize the body of a procedure, make sure that the "AS"
+# that is part of an EXECUTE AS clause can't trip us up.
+create or replace procedure foo(x int)
+returns int
+language sql
+execute as begin
+as
+$$
+  blah
+$$;
+
+@positive
+create or replace procedure foo(x int)
+returns int
+language sql
+execute as declare
+as
+$$
+  blah
+$$;
+############################################################################################################
+## BIG OLD NASTY STUFF
+############################################################################################################
+@negativePositive
+create or replace secure procedure foo(x varchar, y varchar)
+returns string
+language sql
+execute as owner
+as
+begin
+  create or replace procedure new_proc(y integer)
+  returns string
+  language sql
+  as
+  $$
+  begin
+    return 'I have a string body!';
+  end;
+  $$
+
+  create or replace secure procedure blah(x double, y string, q varchar)
+  returns string
+  language sql
+  execute as owner
+  as
+  declare
+    f string;
+  begin
+    case ((x * 4) + 13)
+      when 11 then
+        f := 'hello ' || x || ' ' || y || ' ' || q;
+      when 44 then
+        begin
+          x := 12;
+          z := 'boo' || q;
+        end;
+      else
+        begin
+          return 'arrrgh';
+        end;
+    end case;
+
+    while (x < 10) do
+      x := x + 2;
+    end while 'fred';
+
+    while (x < (4 * 8)) loop
+      x := x + 2;
+    end loop;
+  end;
+end
