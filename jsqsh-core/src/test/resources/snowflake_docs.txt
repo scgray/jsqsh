@@ -1,0 +1,764 @@
+#############################################################################
+## Examples pulled from the snowflake docs..added here to make sure the parsing
+## works on real-world examples.
+#############################################################################
+@negativePositive
+create or replace procedure myprocedure()
+  returns varchar
+  language sql
+  as
+  $$
+    -- Snowflake Scripting code
+    declare
+      radius_of_circle float;
+      area_of_circle float;
+    begin
+      radius_of_circle := 3;
+      area_of_circle := pi() * radius_of_circle * radius_of_circle;
+      return area_of_circle;
+    end;
+  $$
+
+@negativePositive
+execute immediate $$
+-- Snowflake Scripting code
+declare
+  radius_of_circle float;
+  area_of_circle float;
+begin
+  radius_of_circle := 3;
+  area_of_circle := pi() * radius_of_circle * radius_of_circle;
+  return area_of_circle;
+end;
+$$
+
+@negativePositive
+set stmt =
+$$
+declare
+    radius_of_circle float;
+    area_of_circle float;
+begin
+    radius_of_circle := 3;
+    area_of_circle := pi() * radius_of_circle * radius_of_circle;
+    return area_of_circle;
+end;
+$$
+
+@negativePositive
+declare
+    radius_of_circle float;
+    area_of_circle float;
+begin
+    radius_of_circle := 3;
+    area_of_circle := pi() * radius_of_circle * radius_of_circle;
+    return area_of_circle;
+end
+
+@negativePositive
+create or replace procedure area()
+  returns float
+  language sql
+  as
+    declare
+      radius float;
+      area_of_circle float;
+    begin
+      radius := 3;
+      area_of_circle := pi() * radius * radius;
+      return area_of_circle;
+    end
+
+@negativePositive
+create or replace procedure area()
+returns float
+language sql
+as
+$$
+declare
+    radius float;
+    area_of_circle float;
+begin
+    radius := 3;
+    area_of_circle := pi() * radius * radius;
+    return area_of_circle;
+end;
+$$
+
+@negativePositive
+declare
+  radius_of_circle float;
+  area_of_circle float;
+begin
+  radius_of_circle := 3;
+  area_of_circle := pi() * radius_of_circle * radius_of_circle;
+  return area_of_circle;
+end
+
+@negativePositive
+execute immediate $$
+declare
+    radius_of_circle float;
+    area_of_circle float;
+begin
+    radius_of_circle := 3;
+    area_of_circle := pi() * radius_of_circle * radius_of_circle;
+    return area_of_circle;
+end;
+$$
+
+@negativePositive
+begin
+  create table parent (id integer);
+  create table child (id integer, parent_id integer);
+  return 'Completed';
+end
+
+@negativePositive
+execute immediate $$
+begin
+    create table parent (id integer);
+    create table child (id integer, parent_id integer);
+    return 'Completed';
+end;
+$$
+
+@negativePositive
+declare
+    profit number(38, 2) default 0.0;
+begin
+    let cost number(38, 2) := 100.0;
+    let revenue number(38, 2) default 110.0;
+
+    profit := revenue - cost;
+    return profit;
+end
+
+@negativePositive
+declare
+  id integer;
+  name varchar;
+begin
+  select id, name into :id, :name from some_data where id = 1;
+  return :id || ' ' || :name;
+end
+
+@negativePositive
+declare
+  w integer;
+  x integer default 0;
+  dt date;
+  result_string varchar;
+begin
+  w := 1;                     -- Assign a value.
+  w := 24 * 7;                -- Assign the result of an expression.
+  dt := '2020-09-30'::date;   -- Explicit cast.
+  dt := '2020-09-30';         -- Implicit cast.
+  result_string := w::varchar || ', ' || dt::varchar;
+  return result_string;
+end
+
+@negativePositive
+declare
+  profit number(38, 2) default 0.0;
+begin
+  let cost number(38, 2) := 100.0;
+  let revenue number(38, 2) default 110.0;
+
+  profit := revenue - cost;
+  return profit;
+end
+
+@negativePositive
+declare
+  profit number(38, 2) default 0.0;
+begin
+  let cost number(38, 2) := 100.0;
+  let revenue number(38, 2) default 110.0;
+
+  profit := revenue - cost;
+  return profit;
+end
+
+@negativePositive
+create procedure duplicate_name(pv_name varchar)
+returns varchar
+language sql
+as
+begin
+  declare
+    pv_name varchar;
+  begin
+    pv_name := 'middle block variable';
+    declare
+      pv_name varchar;
+    begin
+      pv_name := 'innermost block variable';
+      insert into names (v) values (:PV_NAME);
+    end;
+    -- Because the innermost and middle blocks have separate variables
+    -- named "pv_name", the INSERT below inserts the value
+    -- 'middle block variable'.
+    insert into names (v) values (:PV_NAME);
+  end;
+  -- This inserts the value of the input parameter.
+  insert into names (v) values (:PV_NAME);
+  return 'Completed.';
+end
+
+@negativePositive
+begin
+  let count := 1;
+  if (count < 0) then
+    return 'negative value';
+  elseif (count = 0) then
+    return 'zero';
+  else
+    return 'positive value';
+  end if;
+end
+
+@negativePositive
+declare
+  expression_to_evaluate varchar default 'default value';
+begin
+  expression_to_evaluate := 'value a';
+  case (expression_to_evaluate)
+    when 'value a' then
+      return 'x';
+    when 'value b' then
+      return 'y';
+    when 'value c' then
+      return 'z';
+    when 'default value' then
+      return 'default';
+    else
+      return 'other';
+  end;
+end
+
+@negativePositive
+declare
+  a varchar default 'x';
+  b varchar default 'y';
+  c varchar default 'z';
+begin
+  case
+    when a = 'x' then
+      return 'a is x';
+    when b = 'y' then
+      return 'b is y';
+    when c = 'z' then
+      return 'c is z';
+    else
+      return 'a is not x, b is not y, and c is not z';
+  end;
+end
+
+@negativePositive
+declare
+  counter integer default 0;
+  maximum_count integer default 5;
+begin
+  for i in 1 to maximum_count do
+    counter := counter + 1;
+  end for;
+  return counter;
+end
+
+@negativePositive
+declare
+  total_price float;
+  c1 CURSOR for select price from invoices;
+begin
+  total_price := 0.0;
+  for record in c1 do
+    total_price := total_price + record.price;
+  end for;
+  return total_price;
+end
+
+@negativePositive
+begin
+  let counter := 0;
+  while (counter < 5) do
+    counter := counter + 1;
+  end while;
+  return counter;
+end
+
+@negativePositive
+begin
+  let counter := 5;
+  let number_of_iterations := 0;
+  repeat
+    counter := counter - 1;
+    number_of_iterations := number_of_iterations + 1;
+  until (counter = 0)
+  end repeat;
+  return number_of_iterations;
+end
+
+@negativePositive
+create procedure power_of_2()
+returns number(8, 0)
+language sql
+as
+declare
+    counter number(8, 0);      -- Loop counter.
+    power_of_2 number(8, 0);   -- Stores the most recent power of 2 that we calculated.
+begin
+    counter := 1;
+    power_of_2 := 1;
+    repeat
+        power_of_2 := power_of_2 * 2;
+        counter := counter + 1;
+    until (counter > 8)
+    end repeat;
+    return power_of_2;
+end
+
+@negativePositive
+begin
+  let counter := 5;
+  loop
+    if (counter = 0) then
+      break;
+    end if;
+    counter := counter - 1;
+  end loop;
+  return counter;
+end
+
+@negativePositive
+begin
+  let inner_counter := 0;
+  let outer_counter := 0;
+  loop
+    loop
+      if (inner_counter < 5) then
+        inner_counter := inner_counter + 1;
+        continue outer;
+      else
+        break outer;
+      end if;
+    end loop inner;
+    outer_counter := outer_counter + 1;
+    break;
+  end loop outer;
+  return array_construct(outer_counter, inner_counter);
+end
+
+@negativePositive
+declare
+  id integer default 0;
+  minimum_price number(13,2) default 22.00;
+  maximum_price number(13,2) default 33.00;
+  c1 CURSOR for select id from invoices where price > ? and price < ?;
+begin
+  open c1 using (minimum_price, maximum_price);
+  fetch c1 into id;
+  return id;
+end
+
+@negativePositive
+declare
+  c1 CURSOR for select * from invoices;
+  id integer;
+  price number(13,2);
+begin
+  open c1;
+  fetch c1 into id, price;
+  return table(resultset_from_cursor(c1));
+end
+
+@negativePositive
+declare
+    row_price float;
+    total_price float;
+    c1 CURSOR for select price from invoices;
+begin
+    row_price := 0.0;
+    total_price := 0.0;
+    open c1;
+    fetch c1 into row_price;
+    total_price := total_price + row_price;
+    fetch c1 into row_price;
+    total_price := total_price + row_price;
+    close c1;
+    return total_price;
+end
+
+@negativePositive
+declare
+  res RESULTSET;
+  col_name varchar;
+  select_statement varchar;
+begin
+  col_name := 'col1';
+  select_statement := 'SELECT ' || col_name || ' FROM mytable';
+  res := (execute immediate :select_statement);
+  return table(res);
+end
+
+@negativePositive
+create or replace procedure test_sp()
+returns table(a integer)
+language sql
+as
+  declare
+    res RESULTSET default (select a from t001 order by a);
+  begin
+    return table(res);
+  end
+
+@negativePositive
+create or replace procedure test_sp_dynamic(table_name varchar)
+returns table(a integer)
+language sql
+as
+  declare
+    res RESULTSET;
+    query varchar default 'SELECT a FROM ' || :table_name || ' ORDER BY a';
+  begin
+    res := (execute immediate :query);
+    return table (res);
+  end
+
+@negativePositive
+create or replace procedure test_sp_02()
+returns table(a integer)
+language sql
+as
+  declare
+    res RESULTSET;
+  begin
+    res := (select a from t001 order by a);
+    return table(res);
+  end
+
+@negativePositive
+create or replace procedure test_sp_03()
+returns varchar
+language sql
+as
+
+  declare
+    accumulator integer default 0;
+    res1 RESULTSET default (select a from t001 order by a);
+    cur1 CURSOR for res1;
+  begin
+    for row_variable in cur1 do
+      accumulator := accumulator + row_variable.a;
+    end for;
+    return accumulator::varchar;
+  end
+
+@negativePositive
+begin
+
+  -- Insert 3 rows into a table.
+  insert into my_values values (1), (2), (3);
+  -- SQLROWCOUNT is not affected by statements
+  -- that are not DML statements (e.g. SELECT statements).
+  select * from my_values;
+  -- Returns the number of rows affected by
+  -- the last DML statement (the INSERT statement).
+  return sqlrowcount;
+
+end
+
+@negativePositive
+begin
+
+  -- Update the rows in a table that have values less than 3.
+  update my_values set value = 4 where value < 3;
+  -- SQLFOUND and SQLNOTFOUND are not affected by statements
+  -- that are not DML statements (e.g. SELECT statements).
+  select * from my_values;
+  -- SQLFOUND returns 'true' if the last DML statement
+  -- (the UPDATE statement) affected one or more rows.
+  if (sqlfound = true) then
+    return 'Updated ' || sqlrowcount || ' rows.';
+  -- SQLNOTFOUND returns 'true' if the last DML statement
+  -- (the UPDATE statement) affected zero rows.
+  elseif (sqlnotfound = true) then
+    return 'No rows updated.';
+  else
+    return 'SQLFOUND and SQLNOTFOUND are not true.';
+  end if;
+
+end
+
+@negativePositive
+declare
+  my_exception exception (-20002, 'Raised MY_EXCEPTION.');
+begin
+  let counter := 0;
+  let should_raise_exception := true;
+  if (should_raise_exception) then
+    raise my_exception;
+  end if;
+  counter := counter + 1;
+  return counter;
+end
+
+@negativePositive
+declare
+  my_exception exception (-20002, 'Raised MY_EXCEPTION.');
+begin
+  let counter := 0;
+  let should_raise_exception := true;
+  if (should_raise_exception) then
+    raise my_exception;
+  end if;
+  counter := counter + 1;
+  return counter;
+exception
+  when statement_error then
+    return object_construct('Error type', 'STATEMENT_ERROR',
+                            'SQLCODE', sqlcode,
+                            'SQLERRM', sqlerrm,
+                            'SQLSTATE', sqlstate);
+  when my_exception then
+    return object_construct('Error type', 'MY_EXCEPTION',
+                            'SQLCODE', sqlcode,
+                            'SQLERRM', sqlerrm,
+                            'SQLSTATE', sqlstate);
+  when other then
+    return object_construct('Error type', 'Other error',
+                            'SQLCODE', sqlcode,
+                            'SQLERRM', sqlerrm,
+                            'SQLSTATE', sqlstate);
+end
+
+@negativePositive
+create procedure case_demo_01(v varchar)
+returns varchar
+language sql
+as
+  begin
+    case (v)
+      when 'first choice' then
+        return 'one';
+      when 'second choice' then
+        return 'two';
+      else
+        return 'unexpected choice';
+    end;
+  end
+
+@negativePositive
+create procedure case_demo_2(v varchar)
+returns varchar
+language sql
+as
+  begin
+    case
+      when v = 'first choice' then
+        return 'one';
+      when v = 'second choice' then
+        return 'two';
+      else
+        return 'unexpected choice';
+    end;
+  end
+
+@negativePositive
+declare
+  counter1 number(8, 0);
+  counter2 number(8, 0);
+begin
+  counter1 := 0;
+  counter2 := 0;
+  while (counter1 < 3) do
+    counter1 := counter1 + 1;
+    continue;
+    counter2 := counter2 + 1;
+  end while;
+  return counter2;
+end
+
+@negativePositive
+declare
+  result varchar;
+  exception_1 exception (-20001, 'I caught the expected exception.');
+  exception_2 exception (-20002, 'Not the expected exception!');
+begin
+  result := 'If you see this, I did not catch any exception.';
+  if (true) then
+    raise exception_1;
+  end if;
+  return result;
+exception
+  when exception_2 then
+    return sqlerrm;
+  when exception_1 then
+    return sqlerrm;
+end
+
+@negativePositive
+declare
+  e1 exception (-20001, 'Exception e1');
+
+begin
+  -- Inner block.
+  declare
+    e2 exception (-20002, 'Exception e2');
+    selector boolean default true;
+  begin
+    if (selector) then
+      raise e1;
+    else
+      raise e2;
+    end if;
+  end;
+
+exception
+  when e1 then
+    return sqlerrm || ' caught in outer block.';
+end
+
+@negativePositive
+declare
+  result varchar;
+  e1 exception (-20001, 'Outer exception e1');
+
+begin
+  result := 'No error so far (but there will be).';
+
+  declare
+    e1 exception (-20101, 'Inner exception e1');
+  begin
+    raise e1;
+  exception
+    when e1 then
+      result := 'Inner exception raised.';
+      return result;
+  end;
+
+  return result;
+
+exception
+  when e1 then
+    result := 'Outer exception raised.';
+    return result;
+
+end
+
+@negativePositive
+create or replace procedure for_loop_over_cursor()
+returns float
+language sql
+as
+declare
+    total_price float;
+    c1 CURSOR(p) for select price from invoices;
+begin
+    total_price := 0.0;
+    open c1;
+    for rec in c1 do
+        total_price := total_price + rec.price;
+    end for;
+    close c1;
+    return total_price;
+end
+
+@negativePositive
+create procedure simple_for(iteration_limit integer)
+returns integer
+language sql
+as
+    declare
+        counter integer default 0;
+    begin
+        for i in 1 to iteration_limit do
+            counter := counter + 1;
+        end for;
+        return counter;
+    end
+
+@negativePositive
+create procedure reverse_loop(iteration_limit integer)
+returns varchar
+language sql
+as
+    declare
+        values_of_i varchar default '';
+    begin
+        for i in reverse 1 to iteration_limit do
+            values_of_i := values_of_i || ' ' || i::varchar;
+        end for;
+        return values_of_i;
+    end
+
+@negativePositive
+create procedure p(iteration_limit integer)
+returns varchar
+language sql
+as
+    declare
+        counter integer default 0;
+        i integer default -999;
+        return_value varchar default '';
+    begin
+        for i in 1 to iteration_limit do
+            counter := counter + 1;
+        end for;
+        return_value := 'counter: ' || counter::varchar || '\n';
+        return_value := return_value || 'i: ' || i::varchar;
+        return return_value;
+    end
+
+@negativePositive
+create or replace procedure example_if(flag integer)
+returns varchar
+language sql
+as
+begin
+    if (flag = 1) then
+        return 'one';
+    elseif (flag = 2) then
+        return 'two';
+    else
+        return 'Unexpected input.';
+    end if;
+end
+
+@negativePositive
+create procedure break_out_of_loop()
+returns integer
+language sql
+as
+    declare
+        counter integer;
+    begin
+        counter := 0;
+        loop
+            counter := counter + 1;
+            if (counter > 5) then
+                break;
+            end if;
+            insert into dummy_data (id) values (:counter);
+        end loop;
+        return counter;
+    end
+
+@negativePositive
+create procedure power_of_2()
+returns number(8, 0)
+language sql
+as
+declare
+    counter number(8, 0);      -- Loop counter.
+    power_of_2 number(8, 0);   -- Stores the most recent power of 2 that we calculated.
+begin
+    counter := 1;
+    power_of_2 := 1;
+    while (counter <= 8) do
+        power_of_2 := power_of_2 * 2;
+        counter := counter + 1;
+    end while;
+    return power_of_2;
+end
+

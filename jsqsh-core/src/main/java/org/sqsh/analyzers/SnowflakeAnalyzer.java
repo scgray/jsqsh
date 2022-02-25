@@ -11,6 +11,7 @@ public class SnowflakeAnalyzer implements SQLAnalyzer {
         IF,
         DO,
         LOOP,
+        REPEAT,
         BLOCK
     }
 
@@ -208,6 +209,10 @@ public class SnowflakeAnalyzer implements SQLAnalyzer {
                 case "LOOP":
                     blockStack.push(BlockType.LOOP);
                     break;
+                // REPEAT ... UNTIL (...) END REPEAT;
+                case "REPEAT":
+                    blockStack.push(BlockType.REPEAT);
+                    break;
                 // END
                 // END IF
                 // END [CASE]
@@ -223,6 +228,11 @@ public class SnowflakeAnalyzer implements SQLAnalyzer {
                                 break;
                             case IF:
                                 if (isEndIfBlock(tokenizer)) {
+                                    blockStack.pop();
+                                }
+                                break;
+                            case REPEAT:
+                                if (isEndRepeatBlock(tokenizer)) {
                                     blockStack.pop();
                                 }
                                 break;
@@ -294,10 +304,8 @@ public class SnowflakeAnalyzer implements SQLAnalyzer {
     }
 
     private boolean isCaseWhen(SnowflakeTokenizer tokenizer) {
-        // CASE (expression) WHEN
-        if (!skipParenExpression(tokenizer)) {
-            return false;
-        }
+        // CASE [ (expression) ] WHEN
+        skipParenExpression(tokenizer);
 
         String next = tokenizer.peek();
         if ("WHEN".equals(next)) {
@@ -313,9 +321,17 @@ public class SnowflakeAnalyzer implements SQLAnalyzer {
         return skipParenExpression(tokenizer);
     }
 
+    private boolean isEndRepeatBlock(SnowflakeTokenizer tokenizer) {
+        return isFollowedBy(tokenizer, "REPEAT");
+    }
+
     private boolean isEndIfBlock(SnowflakeTokenizer tokenizer) {
-        String maybeIf = tokenizer.peek();
-        if ("IF".equals(maybeIf)) {
+        return isFollowedBy(tokenizer, "IF");
+    }
+
+    private boolean isFollowedBy(SnowflakeTokenizer tokenizer, String token) {
+        String maybeToken = tokenizer.peek();
+        if (token.equals(maybeToken)) {
             tokenizer.next();
             return true;
         }

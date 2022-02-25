@@ -12,11 +12,54 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Test that the SnowflakeAnalyzer can properly determine when the terminator character ';'
+ * is actually the terminator character and not ending a line inside of a Snowscript block.
+ */
 public class SnowflakeAnalyzerTest {
 
+    private enum Type {
+        /**
+         * Queries marked as @positive are "positive only", meaning that they should always
+         * find the terminator character.
+         */
+        POSITIVE_ONLY,
+        /**
+         * Queries marked as @negative are "negative only", meaning that they should never
+         * find the terminator character.
+         */
+        NEGATIVE_ONLY,
+        /**
+         *
+         * Queries marked as @negativePositive will never find the terminator character, as written
+         * in the test file, but they will be tried again by appending the terminator character and
+         * should find it.
+         */
+        NEGATIVE_AND_POSITIVE,
+    }
+
+    private static class Query {
+        private final Type type;
+        private final String query;
+
+        public Query(Type type, String query) {
+            this.type = type;
+            this.query = query;
+        }
+    }
+
     @Test
-    public void testStuff() throws Exception {
-        List<Query> queries = loadQueries("/snowflake_analyzer.txt");
+    public void testAnalysis() throws Exception {
+        test("/snowflake_analyzer.txt");
+    }
+
+    @Test
+    public void testExamples() throws Exception {
+        test("/snowflake_docs.txt");
+    }
+
+    private void test(String resource) throws Exception {
+        List<Query> queries = loadQueries(resource);
         SnowflakeAnalyzer analyzer = new SnowflakeAnalyzer();
 
         for (Query query : queries) {
@@ -36,6 +79,7 @@ public class SnowflakeAnalyzerTest {
             }
         }
     }
+
 
     private void assertTerminated(SnowflakeAnalyzer analyzer, String text) {
         assertThat(analyzer.isTerminated(text, ';'))
@@ -101,19 +145,4 @@ public class SnowflakeAnalyzerTest {
         return sb.toString();
     }
 
-    private enum Type {
-        POSITIVE_ONLY,
-        NEGATIVE_ONLY,
-        NEGATIVE_AND_POSITIVE,
-    }
-
-    private static class Query {
-        private final Type type;
-        private final String query;
-
-        public Query(Type type, String query) {
-            this.type = type;
-            this.query = query;
-        }
-    }
 }
