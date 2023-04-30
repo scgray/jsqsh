@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 # jsqsh - This shell script attempts to launch org.sqsh.JSqsh. 
 #   it does its best to try to figure out where various files
@@ -9,11 +9,7 @@
 #
 # This determines the location of this shell script.
 #
-PROG=$(readlink "$0")
-while [ -L "$PROG" ]; do
-    PROG=$(readlink "$PROG")
-done
-PROG_DIR=$(dirname "$PROG")
+PROG_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 #
 # The parent directory of where this script was found
